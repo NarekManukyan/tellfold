@@ -1,0 +1,151 @@
+import Foundation
+import Testing
+@testable import Shoal
+
+struct EngineCommandTests {
+    @Test(arguments: [
+        (#"{"port": 54321}"#, 54321),
+        (#"{"port":8796}"#, 8796),
+        ("  {\"port\": 1}\n", 1),
+        (#"{"port": 65535, "pid": 12}"#, 65535),
+    ])
+    func parsesPortLine(line: String, port: Int) {
+        #expect(EngineCommand.parsePort(fromLine: line) == port)
+    }
+
+    @Test(arguments: [
+        "", "port 8000", #"{"port": 0}"#, #"{"port": 70000}"#, #"{"port": "8000"}"#, #"{"port": 80.5}"#,
+        #"{"host": "127.0.0.1"}"#, "INFO:     Uvicorn running on http://127.0.0.1:8000", "[1, 2]", #"{"port": -1}"#,
+    ])
+    func rejectsOtherLines(line: String) {
+        #expect(EngineCommand.parsePort(fromLine: line) == nil)
+    }
+
+    @Test func commandLine() {
+        let args = EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs dir", logLevel: "INFO")
+        #expect(args == ["run", "--project", "/eng", "shoal", "serve", "--port", "0", "--runs", "/runs dir", "--log-level", "info"])
+        let shown = EngineCommand.displayCommand(executable: "/bin/uv", arguments: args + ["--token", "tok"], token: "tok")
+        #expect(!shown.contains("tok "))
+        #expect(shown.hasSuffix("--token •••"))
+        #expect(shown.contains("'/runs dir'"))
+    }
+
+    @Test func tokensAreRandomHex() {
+        let a = EngineCommand.makeToken(), b = EngineCommand.makeToken()
+        #expect(a.count == 64)
+        #expect(a != b)
+        #expect(a.allSatisfy { $0.isHexDigit })
+    }
+
+    @Test func findsUVOnTheSearchPath() {
+        let present: Set<String> = ["/opt/homebrew/bin/uv", "/home/me/.local/bin/uv"]
+        let found = EngineCommand.findUV(preferred: nil, path: "/usr/bin:/home/me/.local/bin:/opt/homebrew/bin") { present.contains($0) }
+        #expect(found?.path == "/home/me/.local/bin/uv")
+        #expect(EngineCommand.findUV(preferred: nil, path: "/usr/bin") { present.contains($0) } == nil)
+    }
+
+    @Test func explicitUVPathWinsAndIsNotSilentlyReplaced() {
+        let present: Set<String> = ["/custom/uv", "/opt/homebrew/bin/uv"]
+        #expect(EngineCommand.findUV(preferred: "/custom/uv", path: "/opt/homebrew/bin") { present.contains($0) }?.path == "/custom/uv")
+        #expect(EngineCommand.findUV(preferred: "/missing/uv", path: "/opt/homebrew/bin") { present.contains($0) } == nil)
+        #expect(EngineCommand.findUV(preferred: "  ", path: "/opt/homebrew/bin") { present.contains($0) }?.path == "/opt/homebrew/bin/uv")
+    }
+
+    @Test func searchPathAddsToolDirectoriesOnce() {
+        let path = EngineCommand.searchPath(existing: "/usr/bin:/bin:/usr/bin", home: "/Users/me")
+        let parts = path.split(separator: ":").map(String.init)
+        #expect(parts.first == "/usr/bin")
+        #expect(parts.contains("/Users/me/.local/bin"))
+        #expect(parts.contains("/opt/homebrew/bin"))
+        #expect(parts.count == Set(parts).count)
+    }
+
+    @Test func environmentInjectsSecretsAndSwitches() {
+        let base = ["PATH": "/usr/bin", "HOME": "/Users/me", "SHOAL_FAKE_LLM": "1",
+                    "DYLD_INSERT_LIBRARIES": "/x/libXCTestBundleInject.dylib", "XCTestConfigurationFilePath": "/x"]
+        let env = EngineCommand.environment(base: base, token: "t0k", secrets: ["ANTHROPIC_API_KEY": "sk-test"],
+                                            offline: false, home: "/Users/me")
+        #expect(env["ANTHROPIC_API_KEY"] == "sk-test")
+        #expect(env["SHOAL_SERVE_TOKEN"] == "t0k")
+        #expect(env["SHOAL_FAKE_LLM"] == nil)
+        #expect(env["PYTHONUNBUFFERED"] == "1")
+        #expect(env["HOME"] == "/Users/me")
+        #expect(env["DYLD_INSERT_LIBRARIES"] == nil)
+        #expect(env["XCTestConfigurationFilePath"] == nil)
+        #expect(env["PATH"]?.contains("/Users/me/.local/bin") == true)
+        let offline = EngineCommand.environment(base: [:], token: "t", secrets: [:], offline: true, home: "/h")
+        #expect(offline["SHOAL_FAKE_LLM"] == "1")
+    }
+
+    @Test func backoffGrowsAndCaps() {
+        #expect((1...8).map(EngineCommand.backoffSeconds(attempt:)) == [1, 2, 4, 8, 16, 30, 30, 30])
+    }
+}
+
+struct KeychainNamingTests {
+    @Test func providerEnvNames() {
+        #expect(Keychain.envName(forProvider: "lmstudio") == "SHOAL_KEY_LMSTUDIO")
+        #expect(Keychain.envName(forProvider: "open-router.ai") == "SHOAL_KEY_OPEN_ROUTER_AI")
+        #expect(Keychain.envName(forProvider: "dé") == "SHOAL_KEY_D")
+        #expect(Keychain.envName(forProvider: "-a--b_") == "SHOAL_KEY_A_B")
+    }
+
+    @Test func envNameValidation() {
+        #expect(Keychain.isValidEnvName("ANTHROPIC_API_KEY"))
+        #expect(Keychain.isValidEnvName("_X1"))
+        #expect(!Keychain.isValidEnvName("1X"))
+        #expect(!Keychain.isValidEnvName("A-B"))
+        #expect(!Keychain.isValidEnvName(""))
+        #expect(!Keychain.isValidEnvName("KÉY"))
+    }
+
+    @Test func keychainRoundTrip() throws {
+        let keychain = Keychain(service: "dev.shoal.mac.tests.\(UUID().uuidString)")
+        do {
+            try keychain.set("secret-1", for: "TEST_KEY")
+        } catch {
+            // CI machines without an unlocked login keychain cannot store items; nothing else to check there.
+            return
+        }
+        defer { try? keychain.delete("TEST_KEY") }
+        #expect(keychain.string(for: "TEST_KEY") == "secret-1")
+        try keychain.set("secret-2", for: "TEST_KEY")
+        #expect(keychain.environment() == ["TEST_KEY": "secret-2"])
+        try keychain.set("", for: "TEST_KEY")
+        #expect(!keychain.contains("TEST_KEY"))
+        #expect(keychain.accounts().isEmpty)
+    }
+}
+
+struct EstimateTests {
+    /// Reference values from `shoal.runner.estimate_calls`.
+    @Test(arguments: [
+        (20, 6, 6, 3, 36), (6, 3, 3, 1, 14), (5, 4, 2, 7, 22), (200, 50, 20, 40, 585), (25, 10, 4, 9, 90),
+    ])
+    func matchesEngineFormula(agents: Int, rounds: Int, batch: Int, chunks: Int, expected: Int) {
+        #expect(NewRunRequest.estimatedCalls(agents: agents, rounds: rounds, batch: batch, chunks: chunks) == expected)
+    }
+}
+
+struct LineSplitterTests {
+    @Test func splitsAcrossChunksAndCRLF() {
+        var splitter = LineSplitter()
+        #expect(splitter.append(Array("{\"po".utf8)).isEmpty)
+        #expect(splitter.append(Array("rt\": 5}\r\nINFO a\nINFO".utf8)) == [#"{"port": 5}"#, "INFO a"])
+        #expect(splitter.append(Array(" b\n\n".utf8)) == ["INFO b", ""])
+        #expect(splitter.append(Array("tail".utf8)).isEmpty)
+        #expect(splitter.flush() == "tail")
+        #expect(splitter.flush() == nil)
+    }
+
+    @Test func readsLinesFromAPipe() async throws {
+        let pipe = Pipe()
+        let stream = PipeLineReader.lines(of: pipe.fileHandleForReading)
+        try pipe.fileHandleForWriting.write(contentsOf: Data("{\"port\": 4321}\nsecond".utf8))
+        try pipe.fileHandleForWriting.close()
+        var lines: [String] = []
+        for await line in stream { lines.append(line) }
+        #expect(lines == [#"{"port": 4321}"#, "second"])
+        #expect(EngineCommand.parsePort(fromLine: lines[0]) == 4321)
+    }
+}

@@ -1,0 +1,45 @@
+[
+  {
+    "id": "claude-code",
+    "kind": "cli",
+    "name": "Claude Code",
+    "installed": true,
+    "version": "2.1.0",
+    "path": "/Users/example/.local/bin/claude",
+    "auth": "ok",
+    "auth_hint": "Run `claude` and use /login",
+    "models": ["haiku", "sonnet", "opus"],
+    "default_models": {"agent": "haiku", "planner": "sonnet"},
+    "tested": true,
+    "notes": null
+  },
+  {
+    "id": "ollama",
+    "kind": "http",
+    "name": "Ollama",
+    "installed": false,
+    "version": null,
+    "path": "http://127.0.0.1:11434",
+    "auth": "unknown",
+    "auth_hint": null,
+    "models": [],
+    "default_models": {},
+    "tested": false,
+    "notes": "endpoint not reachable"
+  },
+  {
+    "id": "openai-compatible:lmstudio",
+    "kind": "http",
+    "name": "LM Studio",
+    "installed": true,
+    "version": null,
+    "path": "http://127.0.0.1:1234/v1",
+    "auth": "missing",
+    "auth_hint": "Add an API key",
+    "models": ["qwen3-8b"],
+    "default_models": {"agent": "qwen3-8b", "planner": "qwen3-8b"},
+    "tested": false,
+    "notes": null,
+    "some_future_field": 1
+  }
+]

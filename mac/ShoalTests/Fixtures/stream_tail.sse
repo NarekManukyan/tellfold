@@ -1,0 +1,28 @@
+: connected
+
+event: status
+data: {"state":"running","stage":"rounds","round":2,"total_rounds":3,"detail":"round 3 of 3: 1 batches deciding","error":null,"pid":87608,"started_at":"2026-11-07T00:05:41Z","updated_at":"2026-11-07T00:05:41Z"}
+
+event: posts_added
+data: {"round":3,"post_ids":[7,8]}
+
+event: round_done
+data: {"round":3,"actions":{"post":2,"nothing":2},"new_posts":2,"active_agents":2,"sentiment":0.5,"llm_calls":2,"llm_seconds":0.0,"total_rounds":3}
+
+event: status
+data: {"state":"running","stage":"rounds","round":3,"total_rounds":3,"detail":"round 3 of 3 done","error":null,"pid":87608,"started_at":"2026-11-07T00:05:41Z","updated_at":"2026-11-07T00:05:41Z"}
+
+event: status
+data: {"state":"running","stage":"report","round":3,"total_rounds":3,"detail":"writing the report","error":null,"pid":87608,"started_at":"2026-11-07T00:05:41Z","updated_at":"2026-11-07T00:05:41Z"}
+
+event: stage
+data: {"stage":"report","detail":"writing the report"}
+
+event: status
+data: {"state":"done","stage":"finished","round":3,"total_rounds":3,"detail":"report ready","error":null,"pid":87608,"started_at":"2026-11-07T00:05:41Z","updated_at":"2026-11-07T00:05:41Z"}
+
+event: run_done
+data: {}
+
+: ping
+

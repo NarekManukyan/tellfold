@@ -1,0 +1,11 @@
+{
+  "runs_dir": null,
+  "agent_runtime": "claude-code",
+  "agent_model": "haiku",
+  "planner_runtime": "claude-code",
+  "planner_model": "sonnet",
+  "ollama_base_url": "http://127.0.0.1:11434",
+  "openai_endpoints": [],
+  "concurrency": 4,
+  "think": false
+}

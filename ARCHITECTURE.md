@@ -1,0 +1,208 @@
+# Shoal architecture (build contract)
+
+Shoal is a local swarm-simulation tool inspired by the *idea* of MiroFish (seed documents in, simulated
+social reaction and a prediction report out). It is an original implementation: no MiroFish code, no Zep,
+no OASIS, no cloud services. The only LLM is the user's locally installed **Claude Code CLI**, driven through
+the Python **claude-agent-sdk** on the user's logged-in subscription. No API key.
+
+## Clean-room rule
+
+This is a clean-room implementation. Builders work only from this document, `shoal/models.py`, and
+public documentation of the libraries we depend on (claude-agent-sdk, pydantic, typer, rich, jinja2,
+pymupdf, sqlite3). Do **not** open, clone, fetch, search or recall the MiroFish repository, its forks,
+DeepWiki pages about it, or the OASIS / camel-ai source. Do not reuse its prompts, file names, function names,
+data layout or UI text. Design every prompt, schema and algorithm independently from the contract below.
+
+Python >= 3.11, managed with `uv`. Package: `shoal/`. Tests: `tests/`. All shared types live in
+`shoal/models.py` (already written — import from it, never redefine).
+
+## Pipeline
+
+```
+seed files ──ingest──▶ chunks ──graph──▶ KnowledgeGraph ──personas──▶ [Persona]
+                                                                     │
+                     god events ───────────────────────────────▶ engine (rounds × batches)
+                                                                     │  writes posts/actions to World
+                                                                     ▼
+                                                         report ──▶ report.json + report.html
+                                                         chat   ──▶ interview any agent afterwards
+```
+
+## Run directory
+
+Every run lives in `runs/<run_id>/` (run_id = `YYYYMMDD-HHMMSS-<slug>`; created by the CLI):
+
+| file | written by | content |
+|---|---|---|
+| `config.json` | cli | `SimConfig` |
+| `world.db` | world | SQLite: everything below in tables |
+| `graph.json` | graph | `KnowledgeGraph` |
+| `personas.json` | personas | `list[Persona]` |
+| `calls.jsonl` | llm | one line per LLM call: ts, purpose, model, seconds, ok, error, prompt_chars, output_chars |
+| `report.json` / `report.html` / `report.md` | report | `Report` + rendered pages |
+
+## Module contracts
+
+### `shoal/llm.py` — local Claude backend
+```python
+class LLMError(Exception): ...
+
+class LLM(Protocol):
+    async def text(self, prompt: str, *, system: str, model: str, purpose: str) -> str: ...
+    async def json(self, prompt: str, *, system: str, model: str, purpose: str,
+                   schema: type[BaseModel]) -> BaseModel: ...
+
+class ClaudeLocal:  # implements LLM
+    def __init__(self, *, concurrency: int = 4, log_path: Path | None = None,
+                 cli_path: str | None = None, timeout_s: float = 240, retries: int = 2): ...
+
+class FakeLLM:  # implements LLM, for tests: deterministic, no subprocess
+    def __init__(self, responder: Callable[[str, str, type[BaseModel] | None], str | dict]): ...
+```
+`LLM`, `LLMError` and `FakeLLM` are **already written** in `shoal/llm.py` — use them as-is. FakeLLM's
+responder is called as `responder(purpose, prompt, schema)` (sync or async); return a str for `text()`,
+a dict or JSON string for `json()`, or an `Exception` instance to make the call raise it. `FakeLLM.calls`
+records `(purpose, model, prompt)`. Every module must pass a short, stable `purpose` string to each call
+(e.g. `"graph.extract"`, `"personas.batch"`, `"engine.round"`, `"engine.sentiment"`, `"report.write"`,
+`"chat.interview"`, `"chat.ask"`) so tests can route fake responses by purpose.
+- Uses `claude_agent_sdk.query` with `ClaudeAgentOptions(system_prompt=system, model=model, max_turns=1,
+  tools=[], allowed_tools=[], setting_sources=[], cli_path=cli_path or shutil.which("claude"))`.
+  `setting_sources=[]` is required so the user's own CLAUDE.md, hooks and plugins do not leak into
+  simulation prompts. Verify option names against the *installed* SDK source before relying on them.
+- `json()`: prefer the SDK's structured output (`output_format={"type": "json_schema", "schema": ...}` →
+  `ResultMessage.structured_output`) if the installed SDK supports it; otherwise instruct "reply with only
+  JSON matching this schema", extract the first JSON object/array from the text, validate with pydantic,
+  and on validation failure retry once with the error appended. Raise `LLMError` after retries.
+- Concurrency via an `anyio.Semaphore`; per-call timeout; exponential backoff on rate-limit / process errors.
+- Append one JSONL record per call to `log_path` (never log full prompts — only lengths).
+- Model aliases `haiku`, `sonnet`, `opus` are passed straight to the CLI.
+
+### `shoal/ingest.py`
+```python
+def load_documents(paths: list[Path]) -> list[tuple[str, str]]  # (source name, text); .pdf .md .txt .markdown
+def chunk_text(docs: list[tuple[str, str]], size: int = 1800, overlap: int = 200) -> list[Chunk]
+```
+PDF via `pymupdf`; text via `charset-normalizer` for non-UTF-8 files. Chunk on paragraph boundaries where possible.
+
+### `shoal/graph.py` — local knowledge store (replaces Zep)
+```python
+async def extract_graph(llm: LLM, chunks: list[Chunk], *, question: str, model: str,
+                        on_progress: Callable[[str], None] | None = None) -> KnowledgeGraph
+```
+- One LLM call per group of chunks (≈4 chunks/call), run concurrently, then a merge step that dedupes
+  entities by normalized name/slug and drops relations pointing at unknown ids. Pure-python merge; no LLM.
+- Prompts steer extraction toward actors who would *react* to the question (people, orgs, groups, media).
+
+### `shoal/world.py` — the simulated social platform (SQLite)
+```python
+class World:
+    def __init__(self, db_path: Path): ...                 # creates tables if absent
+    def add_personas(self, personas: list[Persona]) -> None
+    def personas(self) -> list[Persona]
+    def persona(self, agent_id: str) -> Persona
+    def apply(self, round: int, action: Action) -> int | None   # returns new post id for post/reply/repost
+    def feed_for(self, agent_id: str, round: int, k: int) -> list[Post]
+    def post(self, post_id: int) -> Post
+    def posts(self, round: int | None = None) -> list[Post]
+    def followers(self, agent_id: str) -> list[str]
+    def following(self, agent_id: str) -> list[str]
+    def actions(self, round: int | None = None) -> list[tuple[int, Action]]
+    def save_memory(self, mem: AgentMemory) -> None
+    def memory(self, agent_id: str) -> AgentMemory
+    def save_round_stats(self, stats: RoundStats) -> None
+    def round_stats(self) -> list[RoundStats]
+    def add_event(self, event: GodEvent) -> None
+    def events(self) -> list[GodEvent]
+```
+- `apply` validates: unknown target post / agent → downgrade to `nothing` (never crash on LLM output);
+  no self-follow; one like/dislike per agent per post; counters on `Post` kept in sync.
+- `feed_for` ranking: posts from followed agents and replies to the agent's own posts first, then by
+  engagement score `likes + 2*reposts + replies - dislikes` weighted by author influence and recency,
+  excluding the agent's own posts. Deterministic for a given seed.
+
+### `shoal/personas.py`
+```python
+async def generate_personas(llm: LLM, graph: KnowledgeGraph, *, question: str, n: int, model: str,
+                            language: str) -> list[Persona]
+```
+- Mix of (a) personas that embody key graph entities (orgs, public figures) and (b) ordinary members of the
+  affected public with diverse demographics, incentives and starting stances (supporters, critics, neutral,
+  indifferent). Generate in batches of ≤10 per call with the already-made handles listed to avoid duplicates.
+  Assign ids `a01..aNN`, unique handles, clamp activity/influence to 0..1.
+
+### `shoal/engine.py` — the round loop
+```python
+class Engine:
+    def __init__(self, llm: LLM, world: World, config: SimConfig, *,
+                 on_event: Callable[[str, dict], None] | None = None): ...
+    async def seed_world(self, graph: KnowledgeGraph) -> None   # initial follow graph + round-0 opening posts
+    async def run(self) -> list[RoundStats]
+```
+Per round r:
+1. Inject `GodEvent`s for r (stored in world, shown to all agents as breaking news this round).
+2. Sample active agents by `activity` (seeded RNG; at least one agent).
+3. Split active agents into batches of `batch_size`; one `llm.json(...)` call per batch, concurrently.
+   The prompt holds, per agent: persona (incl. private background/stance), memory notes, and that
+   agent's own feed (`feed_for`). Response schema: `{"decisions": [{agent_id, actions: [Action...] (1–3),
+   memory_note}]}`. Agents may only reference post ids that were in *their* feed.
+4. Apply actions in a deterministic order (by agent id), append memory notes (keep last `memory_size`).
+5. Cheap sentiment pass: one `llm.json` call over the round's new posts → mean sentiment −1..1 toward
+   the question's subject; store `RoundStats`.
+6. `on_event("round_done", {...})` for the CLI live view.
+The engine must tolerate a failed batch (log it, those agents do nothing this round) and keep going.
+
+### `shoal/report.py`
+```python
+async def build_report(llm: LLM, world: World, graph: KnowledgeGraph, config: SimConfig, *,
+                       model: str) -> Report
+def render_html(report: Report, world: World, config: SimConfig) -> str   # self-contained, no CDN
+def render_markdown(report: Report) -> str
+```
+- Python first computes evidence: per-round stats, top posts by engagement, most-followed agents,
+  stance shift (first vs last posts of each agent), notable threads. The LLM gets that digest (not the raw
+  DB) and returns a `Report`. Report must answer `config.question` directly and cite post ids / handles.
+- HTML (Jinja2 template in `shoal/templates/report.html`): report sections, sentiment-by-round chart (inline
+  SVG), action mix per round, top threads rendered as a feed, persona directory. Light/dark via
+  `prefers-color-scheme`. No external assets.
+
+### `shoal/chat.py`
+```python
+async def interview(llm: LLM, world: World, agent_id: str, question: str, *, model: str,
+                    history: list[tuple[str, str]] | None = None) -> str
+async def ask_report(llm: LLM, world: World, report: Report, question: str, *, model: str) -> str
+```
+Agent answers in character using persona + memory + its own posts and replies.
+
+### `shoal/cli.py` (Typer app `app`, entry point `shoal`)
+```
+shoal run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--agent-model haiku]
+          [--planner-model sonnet] [--concurrency 4] [--event "3:Breaking news text"]... [--out runs]
+          [--language English] [--open]
+shoal report RUN_DIR            # rebuild report from an existing run
+shoal chat RUN_DIR --agent a03  # interactive interview (REPL)
+shoal ask RUN_DIR "question"    # one-shot question to the report agent
+shoal agents RUN_DIR            # table of personas
+shoal doctor                    # checks claude CLI on PATH, logged in (tiny haiku call), SDK import
+```
+Live progress with `rich` (stage spinners, per-round table: active agents, posts, sentiment).
+`--event` may repeat; format `ROUND:TEXT`. `--open` opens report.html in the browser at the end.
+Ctrl-C mid-run keeps everything written so far; `shoal report` can rebuild from it.
+
+## Testing
+- `tests/` uses `FakeLLM` only — no test may spawn the real CLI. Cover: chunking, graph merge/dedup,
+  world.apply validation + feed ranking, engine round loop with a fake responder (including a failing batch
+  and invalid post ids), report digest + HTML render, CLI `--help` and a full fake run via Typer's CliRunner
+  (inject the fake via an env var `SHOAL_FAKE_LLM=1` that `cli.py` honours).
+- Run with `uv run pytest -q`.
+
+## Ownership (build team)
+Each builder edits only its own files. If you need something from another module, code against the
+contract above exactly; do not edit the other module.
+
+| builder | files |
+|---|---|
+| llm | `shoal/llm.py`, `tests/test_llm.py`, `tests/conftest.py` (shared FakeLLM fixtures) |
+| knowledge | `shoal/ingest.py`, `shoal/graph.py`, `shoal/personas.py`, `tests/test_ingest.py`, `tests/test_graph.py`, `tests/test_personas.py` |
+| world | `shoal/world.py`, `shoal/engine.py`, `tests/test_world.py`, `tests/test_engine.py` |
+| report | `shoal/report.py`, `shoal/chat.py`, `shoal/templates/report.html`, `tests/test_report.py` |
+| cli | `shoal/cli.py`, `shoal/__init__.py`, `shoal/__main__.py`, `README.md`, `examples/`, `tests/test_cli.py` |

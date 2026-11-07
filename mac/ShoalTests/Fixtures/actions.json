@@ -1,0 +1,164 @@
+[
+  {
+    "round": 0,
+    "agent_id": "a04",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #2 from the offline test model (engine.seed).",
+    "reasoning": ""
+  },
+  {
+    "round": 0,
+    "agent_id": "a06",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #5 from the offline test model (engine.seed).",
+    "reasoning": ""
+  },
+  {
+    "round": 1,
+    "agent_id": "a03",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round)."
+  },
+  {
+    "round": 1,
+    "agent_id": "a03",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #8 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #11 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a01",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid like: post 26 not in own feed] Canned reasoning #42 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a01",
+    "type": "reply",
+    "target_post_id": 1,
+    "target_agent_id": null,
+    "content": "Canned content #44 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #47 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a02",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid reply: post 14 not in own feed] Canned reasoning #54 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a02",
+    "type": "nothing",
+    "target_post_id": 24,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "Canned reasoning #59 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a03",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a03",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #8 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #11 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a04",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid repost: post 38 not in own feed] Canned reasoning #6 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a04",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #8 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #11 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a05",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid like: post 45 not in own feed] Canned reasoning #42 from the offline test model (engine.round)."
+  },
+  {
+    "round": 2,
+    "agent_id": "a05",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid reply: post 34 not in own feed] Canned reasoning #47 from the offline test model (engine.round)."
+  },
+  {
+    "round": 3,
+    "agent_id": "a01",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #15 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #18 from the offline test model (engine.round)."
+  },
+  {
+    "round": 3,
+    "agent_id": "a01",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid follow: already following] Canned reasoning #23 from the offline test model (engine.round)."
+  },
+  {
+    "round": 3,
+    "agent_id": "a03",
+    "type": "nothing",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "",
+    "reasoning": "[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round)."
+  },
+  {
+    "round": 3,
+    "agent_id": "a03",
+    "type": "post",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "content": "Canned content #8 from the offline test model (engine.round).",
+    "reasoning": "Canned reasoning #11 from the offline test model (engine.round)."
+  }
+]

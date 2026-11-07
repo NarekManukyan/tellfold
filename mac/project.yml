@@ -1,0 +1,134 @@
+# XcodeGen spec for Shoal for Mac. Generate the project with `xcodegen generate` in this folder;
+# Shoal.xcodeproj is a build product: never hand-edit it.
+name: Shoal
+
+options:
+  bundleIdPrefix: dev.shoal
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    DEAD_CODE_STRIPPING: YES
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_TESTABILITY: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+    Release:
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      ENABLE_TESTABILITY: NO
+
+targets:
+  Shoal:
+    type: application
+    platform: macOS
+    sources:
+      - path: Shoal
+        excludes:
+          - "**/Info.plist"
+          - "**/*.entitlements"
+    info:
+      path: Shoal/App/Info.plist
+      properties:
+        CFBundleName: Shoal
+        CFBundleDisplayName: Shoal
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.developer-tools
+        LSMinimumSystemVersion: "26.0"
+        NSHumanReadableCopyright: ""
+        NSUserNotificationsUsageDescription: Shoal tells you when a simulation finishes or fails.
+        NSRemovableVolumesUsageDescription: Shoal runs its simulation engine and keeps runs in folders you choose, which can be on an external drive.
+        NSDocumentsFolderUsageDescription: Shoal reads seed documents and keeps runs in folders you choose.
+        NSDownloadsFolderUsageDescription: Shoal reads seed documents you choose from Downloads.
+        NSDesktopFolderUsageDescription: Shoal reads seed documents you choose from the Desktop.
+        # Lets the app accept seed files dropped on its Dock icon and opened with File > Open.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Seed document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - net.daringfireball.markdown
+              - public.plain-text
+              - com.adobe.pdf
+    entitlements:
+      path: Shoal/App/Shoal.entitlements
+      properties:
+        # The app spawns `uv` and local agent CLIs, so it cannot run in the App Sandbox.
+        com.apple.security.app-sandbox: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.shoal.mac
+        PRODUCT_NAME: Shoal
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        COMBINE_HIDPI_IMAGES: YES
+      configs:
+        Debug:
+          ENABLE_HARDENED_RUNTIME: NO
+        Release:
+          ENABLE_HARDENED_RUNTIME: YES
+    postBuildScripts:
+      - name: Bundle engine (Release)
+        basedOnDependencyAnalysis: false
+        shell: /bin/sh
+        script: |
+          # Release builds carry the Python engine source in Resources/engine; Debug runs it from the repo.
+          if [ "${CONFIGURATION}" != "Release" ]; then exit 0; fi
+          ENGINE_SRC="${PROJECT_DIR}/.."
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine"
+          mkdir -p "${DEST}"
+          rsync -a --delete --exclude "__pycache__" --exclude "*.pyc" "${ENGINE_SRC}/shoal" "${DEST}/"
+          cp "${ENGINE_SRC}/pyproject.toml" "${DEST}/pyproject.toml"
+          if [ -f "${ENGINE_SRC}/uv.lock" ]; then cp "${ENGINE_SRC}/uv.lock" "${DEST}/uv.lock"; fi
+          if [ -f "${ENGINE_SRC}/README.md" ]; then cp "${ENGINE_SRC}/README.md" "${DEST}/README.md"; fi
+
+  ShoalTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ShoalTests
+        excludes:
+          - "Fixtures/**"
+      - path: ShoalTests/Fixtures
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - target: Shoal
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.shoal.mac.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Shoal.app/Contents/MacOS/Shoal"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  Shoal:
+    build:
+      targets:
+        Shoal: all
+        ShoalTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - name: ShoalTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

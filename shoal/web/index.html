@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Shoal Studio: start, watch and replay local swarm simulations.">
+  <title>Shoal Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236366F1'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='24' cy='16' r='3'/%3E%3Ccircle cx='17' cy='11' r='2.4'/%3E%3Ccircle cx='17' cy='21' r='2.4'/%3E%3Ccircle cx='10' cy='16' r='2.1'/%3E%3Ccircle cx='5' cy='11.5' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
+  <script>
+    // Resolve the theme before first paint: saved choice, else the OS preference, else light.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("shoal.theme"); } catch (e) { /* storage blocked */ }
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/css/studio.css">
+  <script type="module" src="/static/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#view" onclick="event.preventDefault();document.getElementById('view').focus();">Skip to content</a>
+
+  <aside class="sidebar" id="sidebar" aria-label="Runs">
+    <div class="side-head">
+      <a class="brand" href="#/" aria-label="Shoal, all runs">
+        <svg class="brand-mark" viewBox="0 0 26 16" aria-hidden="true" fill="currentColor">
+          <circle cx="22.5" cy="8" r="2.9"/><circle cx="15.5" cy="3.8" r="2.4"/><circle cx="15.5" cy="12.2" r="2.4"/>
+          <circle cx="8.5" cy="1.9" r="1.9"/><circle cx="8.5" cy="14.1" r="1.9"/>
+        </svg>
+        <span>Shoal</span>
+      </a>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path id="theme-icon" d=""/></svg>
+      </button>
+    </div>
+    <div class="side-new">
+      <a class="btn btn-primary" href="#/new" id="new-btn" aria-label="New simulation">
+        <svg class="icon sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="lbl">New simulation</span>
+      </a>
+    </div>
+    <nav class="side-list" id="side-list" aria-label="Runs"></nav>
+    <div class="side-foot">
+      <span class="conn" id="conn" data-state="unknown" title="Server connection">
+        <span class="dot" aria-hidden="true"></span><span class="lbl">Connecting</span>
+      </span>
+      <span class="badge-fake" id="fake-badge" hidden title="The server uses the deterministic fake model (SHOAL_FAKE_LLM)">Fake model</span>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn nav-btn" id="nav-btn" type="button" aria-label="Show runs" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+      <span class="top-chip" id="top-chip"></span>
+      <span class="spacer"></span>
+      <span class="top-prov" id="top-prov"></span>
+      <span class="top-actions" id="top-actions"></span>
+    </header>
+    <main id="view" tabindex="-1" aria-live="off"></main>
+  </div>
+
+  <div class="toasts" id="toasts" role="region" aria-label="Notifications" aria-live="polite"></div>
+
+  <noscript>
+    <div class="state">
+      <div class="state-title">Shoal Studio needs JavaScript</div>
+      <div class="state-body">Everything runs locally; nothing is sent anywhere except this machine's Shoal server.</div>
+    </div>
+  </noscript>
+</body>
+</html>

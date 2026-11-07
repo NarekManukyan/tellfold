@@ -1,0 +1,240 @@
+[
+  {
+    "id": "claude-code",
+    "kind": "cli",
+    "name": "Claude Code",
+    "installed": true,
+    "version": "2.1.283",
+    "path": "/Users/example/.local/bin/claude",
+    "auth": "unknown",
+    "auth_hint": "Run `claude` once and use /login.",
+    "models": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "default_models": {
+      "agent": "haiku",
+      "planner": "sonnet"
+    },
+    "tested": true,
+    "notes": "claude-agent-sdk with tools off, no MCP servers, no project settings, in an empty folder."
+  },
+  {
+    "id": "cursor-agent",
+    "kind": "cli",
+    "name": "Cursor Agent",
+    "installed": true,
+    "version": "2026.01.23-916f423",
+    "path": "/Users/example/.local/bin/cursor-agent",
+    "auth": "unknown",
+    "auth_hint": "Run `cursor-agent login` (or set CURSOR_API_KEY).",
+    "models": [
+      "default",
+      "gpt-5",
+      "sonnet-4",
+      "sonnet-4-thinking"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "cursor-agent -p --output-format json --mode ask --sandbox enabled; flags verified with --help. Real call not verified yet: the CLI on the build Mac was not logged in."
+  },
+  {
+    "id": "codex",
+    "kind": "cli",
+    "name": "Codex CLI",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install Codex CLI (`codex` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "codex exec --sandbox read-only --ephemeral, prompt on stdin; from the official CLI reference."
+  },
+  {
+    "id": "gemini-cli",
+    "kind": "cli",
+    "name": "Gemini CLI",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install Gemini CLI (`gemini` was not found).",
+    "models": [
+      "auto",
+      "flash",
+      "pro",
+      "flash-lite"
+    ],
+    "default_models": {
+      "agent": "flash",
+      "planner": "pro"
+    },
+    "tested": false,
+    "notes": "gemini --prompt ... --output-format json --approval-mode default; from the official CLI reference."
+  },
+  {
+    "id": "opencode",
+    "kind": "cli",
+    "name": "OpenCode",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install OpenCode (`opencode` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "opencode run --format json --dir <tmp>; models are provider/model. JSON event shape is parsed defensively."
+  },
+  {
+    "id": "qwen-code",
+    "kind": "cli",
+    "name": "Qwen Code",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install Qwen Code (`qwen` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "qwen --prompt ... --output-format json; from the Qwen Code headless docs."
+  },
+  {
+    "id": "copilot",
+    "kind": "cli",
+    "name": "GitHub Copilot CLI",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install GitHub Copilot CLI (`copilot` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "copilot -p ... -s --no-ask-user --deny-tool shell --deny-tool write; from GitHub's programmatic reference."
+  },
+  {
+    "id": "grok",
+    "kind": "cli",
+    "name": "Grok CLI",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install Grok CLI (`grok` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "Community grok-cli (superagent-ai), not an official xAI tool: grok --prompt ... --directory <tmp>."
+  },
+  {
+    "id": "droid",
+    "kind": "cli",
+    "name": "Factory Droid",
+    "installed": false,
+    "version": null,
+    "path": null,
+    "auth": "unknown",
+    "auth_hint": "Install Factory Droid (`droid` was not found).",
+    "models": [
+      "default"
+    ],
+    "default_models": {
+      "agent": "default",
+      "planner": "default"
+    },
+    "tested": false,
+    "notes": "droid exec -o json --cwd <tmp> (read-only without --auto); from the Factory CLI reference."
+  },
+  {
+    "id": "ollama",
+    "kind": "http",
+    "name": "Ollama",
+    "installed": false,
+    "version": null,
+    "path": "http://127.0.0.1:11434",
+    "auth": "unknown",
+    "auth_hint": "Install Ollama from ollama.com, then pull a model.",
+    "models": [],
+    "default_models": {
+      "agent": "",
+      "planner": ""
+    },
+    "tested": false,
+    "notes": "POST /api/chat with format = the JSON schema."
+  },
+  {
+    "id": "anthropic-api",
+    "kind": "http",
+    "name": "Anthropic API",
+    "installed": false,
+    "version": null,
+    "path": "https://api.anthropic.com",
+    "auth": "missing",
+    "auth_hint": "Set ANTHROPIC_API_KEY (the Mac app stores it in the Keychain).",
+    "models": [
+      "claude-haiku-5-5",
+      "claude-sonnet-5-5",
+      "claude-opus-5-5"
+    ],
+    "default_models": {
+      "agent": "claude-haiku-5-5",
+      "planner": "claude-sonnet-5-5"
+    },
+    "tested": false,
+    "notes": "Messages API, billed per token. haiku/sonnet/opus map to the current model ids."
+  },
+  {
+    "id": "openai-api",
+    "kind": "http",
+    "name": "OpenAI API",
+    "installed": false,
+    "version": null,
+    "path": "https://api.openai.com/v1",
+    "auth": "missing",
+    "auth_hint": "Set OPENAI_API_KEY (the Mac app stores it in the Keychain).",
+    "models": [
+      "gpt-5-mini",
+      "gpt-5",
+      "gpt-5-nano"
+    ],
+    "default_models": {
+      "agent": "gpt-5-mini",
+      "planner": "gpt-5"
+    },
+    "tested": false,
+    "notes": "Chat Completions, billed per token. Default model names are suggestions; pick any your key can use."
+  }
+]
