@@ -10,10 +10,24 @@ struct OverviewView: View {
 
     @Environment(\.runNavigate) private var navigate
     @State private var width: CGFloat = 1000
+    /// Width of the crowd canvas, measured so its height can follow it (see `crowdHeight(forWidth:)`).
+    @State private var crowdWidth: CGFloat = 443
 
     private static let sideBySide: CGFloat = 860
     /// Height of the strip the floating view switch covers at the top of the Overview crowd graph.
-    private static let switchStrip: CGFloat = 22
+    static let switchStrip: CGFloat = 22
+
+    /// Height of the part of the canvas the picture is framed in. The camp labels keep their size on screen, so a
+    /// narrow canvas needs height for the picture to keep a scale at which the smallest avatar (22 pt at scale 1) is
+    /// still about 20 pt across. Wider canvases need less.
+    static func crowdHeight(forWidth width: CGFloat) -> CGFloat {
+        switch width {
+        case ..<540: 580
+        case ..<640: 500
+        case ..<780: 420
+        default: 360
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -75,7 +89,8 @@ struct OverviewView: View {
                 .glassEffect(.regular, in: .capsule)
                 .padding(6)
             }
-            .frame(height: 320 + Self.switchStrip)
+            .frame(height: Self.crowdHeight(forWidth: crowdWidth) + Self.switchStrip)
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { crowdWidth = $0 }
             Text("Avatars are simulated people and tiles are organisations. Size is influence. Click one to open it.")
                 .font(Theme.caption)
                 .foregroundStyle(Theme.muted)
@@ -428,12 +443,12 @@ private struct SentimentByRoundCard: View {
                 .frame(maxWidth: .infinity, minHeight: 320)
             } else {
                 chart(points)
-                    .frame(height: 320)
+                    .frame(minHeight: 320, maxHeight: .infinity)
             }
             hoverNote
         }
         .card()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func chart(_ points: [Point]) -> some View {
@@ -598,7 +613,7 @@ private struct CampRow: View {
                         .font(Theme.small)
                         .foregroundStyle(Theme.muted)
                     Spacer(minLength: Theme.space2)
-                    SentimentValue(score: sentiment, size: 13)
+                    CampSentimentValue(score: sentiment, size: 13)
                     Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.faint)
                 }
                 if showsSummary, !group.summary.isEmpty {

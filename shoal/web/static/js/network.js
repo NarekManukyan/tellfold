@@ -1088,7 +1088,7 @@ export class NetworkView {
       });
       let s = 1;
       // rough label width in world units ("Name · n · +0.00"), so labels at the same height never collide
-      const lw = groups.map((g) => ((g.camp ? g.camp.name.length : 8) + 12) * (this.compact ? 6.6 : 7));
+      const lw = groups.map((g) => ((g.camp ? g.camp.name.length : 8) + (g.camp && g.camp.noPosts ? 15 : 12)) * (this.compact ? 6.6 : 7));
       for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) {
         const need = groups[i].r + groups[j].r + pad * 2 + (this.compact ? 26 : 40);
         const d = Math.hypot(unit[i].x - unit[j].x, unit[i].y - unit[j].y) || 1;
@@ -1439,7 +1439,10 @@ export class NetworkView {
     // regions (camps view)
     const regionLabels = [];
     if (L.regions.v > 0.01) {
-      for (const g of this._currentRegions().sort((a, b) => a.cy - b.cy)) {
+      const regions = this._currentRegions().sort((a, b) => a.cy - b.cy);
+      // every region's disc on screen, so a label can steer clear of the neighbouring circles too
+      const discs = regions.map((g) => ({ g, ...st.toScreen(g.cx, g.cy), r: g.r * k }));
+      for (const g of regions) {
         const s = st.toScreen(g.cx, g.cy);
         const r = g.r * k;
         const col = this._campColor(g.camp);
@@ -1456,19 +1459,29 @@ export class NetworkView {
         ctx.stroke();
         // label: "Name · n · −0.86", the name 11.5/600 sans, the figures 11 mono
         const name = g.camp ? g.camp.name : 'Everyone';
-        const sv = g.camp && typeof g.camp.sentiment === 'number' ? formatScore(g.camp.sentiment) : null;
+        const sv = g.camp && typeof g.camp.sentiment === 'number' ? formatScore(g.camp.sentiment)
+          : g.camp && g.camp.noPosts ? 'no posts' : null;
         const rest = ` · ${g.n}${sv ? ` · ${sv}` : ''}`;
-        const nameFont = `600 11.5px ${SANS}`, restFont = `400 11px ${MONO}`;
+        const nameFont = `600 11.5px ${SANS}`, restFont = `400 11px ${sv === 'no posts' ? SANS : MONO}`;
         ctx.font = nameFont;
         const nw = ctx.measureText(name).width;
         ctx.font = restFont;
         const rw = ctx.measureText(rest).width;
-        let ly = s.y - r - 8;
-        let lx = s.x - (nw + rw) / 2;
-        lx = Math.max(6, Math.min(w - nw - rw - 6, lx));
-        // a label that would collide with one already drawn moves under its circle
-        const hit = (y) => regionLabels.some((b) => b.x0 < lx + nw + rw && lx < b.x1 && b.y0 < y + 4 && y - 14 < b.y1);
-        if (hit(ly)) ly = s.y + r + 18;
+        const tw = nw + rw;
+        const clampX = (x) => Math.max(6, Math.min(w - tw - 6, x));
+        const hitLabel = (x, y) => regionLabels.find((b) => b.x0 < x + tw && x < b.x1 && b.y0 < y + 4 && y - 14 < b.y1);
+        const hitDisc = (x, y) => discs.some((d) => d.g !== g &&
+          Math.hypot(d.x - Math.max(x, Math.min(d.x, x + tw)), d.y - Math.max(y - 14, Math.min(d.y, y + 4))) < d.r);
+        const hitAt = (x, y) => hitLabel(x, y) || (hitDisc(x, y) ? { x0: x, x1: x + tw } : null);
+        // a label that would collide with one already drawn moves under its circle, then sideways, then further out
+        const cx = clampX(s.x - tw / 2);
+        const tries = [[cx, s.y - r - 8], [cx, s.y + r + 18]];
+        for (const [x0, y0] of tries.slice()) {
+          const b = hitAt(x0, y0);
+          if (b) tries.push([clampX(b.x1 + 4), y0], [clampX(b.x0 - tw - 4), y0]);
+        }
+        tries.push([cx, s.y - r - 24], [cx, s.y + r + 34]);
+        const [lx, ly] = tries.find(([x0, y0]) => !hitAt(x0, y0)) || tries.find(([x0, y0]) => !hitLabel(x0, y0)) || tries[0];
         regionLabels.push({ x0: lx - 4, x1: lx + nw + rw + 4, y0: ly - 14, y1: ly + 4 });
         ctx.textBaseline = 'alphabetic';
         ctx.lineJoin = 'round';

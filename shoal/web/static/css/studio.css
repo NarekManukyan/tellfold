@@ -200,6 +200,7 @@ input, textarea { caret-color: var(--accent); }
 .sv { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--text-dim); white-space: nowrap; }
 .sv[data-s="neg"] { color: var(--neg-text); }
 .sv[data-s="pos"] { color: var(--pos-text); }
+.sv.no-posts { font-family: var(--font); font-size: var(--fs-sm); color: var(--text-dim); cursor: help; }
 
 /* ------------------------------------------------------------------ icons */
 .icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6;

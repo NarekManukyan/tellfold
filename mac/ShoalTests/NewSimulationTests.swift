@@ -123,19 +123,53 @@ struct NewSimulationTests {
 
     // MARK: run again
 
-    @Test func runAgainPrefillsFromTheConfigAndAsksForMissingDocuments() throws {
+    private func config() -> SimConfig {
         var config = SimConfig(question: "Will they stay?")
         config.numAgents = 24
         config.rounds = 5
-        config.seedFiles = ["/runs/r1/seeds/description.md", "inputs/old/notes.pdf"]
-        let folder = URL(fileURLWithPath: "/runs/r1")
-        let prefill = NewSimulationPrefill.runAgain(config: config, runFolder: folder) { $0.path == "/runs/r1/seeds/description.md" }
+        config.seedFiles = ["/runs/r1/seeds/description.md", "/runs/r1/seeds/notes.pdf"]
+        return config
+    }
+
+    @Test func runAgainPutsDescriptionBackAsTextAndAttachesTheOtherDocuments() {
+        let folder = URL(fileURLWithPath: "/tmp/run-again")
+        let files = [folder.appending(path: "description.md"), folder.appending(path: "pricing.pdf"), folder.appending(path: "notes.md")]
+        let prefill = NewSimulationPrefill.runAgain(config: config(), seedFiles: files) { url in
+            url.lastPathComponent == "description.md" ? "  Allby reminds you about doses.\n" : nil
+        }
         #expect(prefill.isRunAgain)
         #expect(prefill.question == "Will they stay?")
         #expect(prefill.config?.numAgents == 24)
-        #expect(prefill.seedFiles.map(\.path) == ["/runs/r1/seeds/description.md"])
-        #expect(prefill.missingSeedNames == ["notes.pdf"])
+        #expect(prefill.descriptionText == "Allby reminds you about doses.")
+        #expect(prefill.seedFiles.map(\.lastPathComponent) == ["pricing.pdf", "notes.md"])
+        #expect(prefill.missingSeedNames.isEmpty)
         #expect(SizePreset.detect(agents: 24, rounds: 5) == nil)
+    }
+
+    @Test func runAgainWithOnlyFilesLeavesTheDescriptionEmpty() {
+        let files = [URL(fileURLWithPath: "/tmp/run-again/notes.md")]
+        let prefill = NewSimulationPrefill.runAgain(config: config(), seedFiles: files)
+        #expect(prefill.descriptionText.isEmpty)
+        #expect(prefill.seedFiles == files)
+    }
+
+    @Test func anUnreadableOrEmptyDescriptionStaysAnAttachedFile() {
+        let url = URL(fileURLWithPath: "/tmp/run-again/description.md")
+        #expect(NewSimulationPrefill.runAgain(config: config(), seedFiles: [url]) { _ in nil }.seedFiles == [url])
+        #expect(NewSimulationPrefill.runAgain(config: config(), seedFiles: [url]) { _ in "  \n" }.seedFiles == [url])
+    }
+
+    @Test func runAgainAsksForTheDocumentsAgainOnlyWhenTheRunHasNone() {
+        let none = NewSimulationPrefill.runAgain(config: config(), seedFiles: [])
+        #expect(none.seedFiles.isEmpty && none.descriptionText.isEmpty)
+        #expect(none.missingSeedNames == ["description.md", "notes.pdf"])
+        // Some downloaded, one could not be fetched: only that one is asked for again.
+        let partial = NewSimulationPrefill.runAgain(config: config(), seedFiles: [URL(fileURLWithPath: "/tmp/x/notes.pdf")],
+                                                    unavailable: ["extra.md"])
+        #expect(partial.missingSeedNames == ["extra.md"])
+        // A description is not "missing": the Describe it box holds it.
+        let onlyDescription = NewSimulationPrefill.runAgain(config: config(), seedFiles: [URL(fileURLWithPath: "/tmp/x/description.md")]) { _ in "Text" }
+        #expect(onlyDescription.missingSeedNames.isEmpty && onlyDescription.descriptionText == "Text")
     }
 
     @Test func aQuestionOnlyPrefillIsNotARunAgain() {

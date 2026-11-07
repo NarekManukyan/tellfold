@@ -61,6 +61,19 @@ export const api = {
     request("GET", `/api/runs/${enc(id)}/actions` + (round === undefined || round === null ? "" : `?round=${Number(round)}`)),
   agent: (id, agentId) => request("GET", `/api/runs/${enc(id)}/agents/${enc(agentId)}`),
   createRun: (formData) => request("POST", "/api/runs", { form: formData }),
+  seeds: (id) => request("GET", `/api/runs/${enc(id)}/seeds`),
+  /** One saved seed document as a File, so a run can be started again with the same material. */
+  seedFile: async (id, name) => {
+    let res;
+    try {
+      res = await fetch(`/api/runs/${enc(id)}/seeds/${enc(name)}`);
+    } catch {
+      throw new ApiError(0, errorMessage(0));
+    }
+    if (!res.ok) throw new ApiError(res.status, `Could not read ${name} (HTTP ${res.status})`);
+    const blob = await res.blob();
+    return new File([blob], name, { type: blob.type || "" });
+  },
   injectEvent: (id, round, content) =>
     request("POST", `/api/runs/${enc(id)}/events`, { json: { round: Number(round), content } }),
   stop: (id) => request("POST", `/api/runs/${enc(id)}/stop`),

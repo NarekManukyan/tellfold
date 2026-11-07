@@ -119,6 +119,13 @@ function sv(score, extra = {}) {
 
 const isScore = (v) => typeof v === "number" && !Number.isNaN(v);
 
+const NO_POSTS_TIP = "None of these people posted, so there is no sentiment to average.";
+/** A camp's mean when it has one; otherwise "no posts" in muted text (blank when the run has no sentiment at all). */
+function campSv(score, runHasSentiment = true) {
+  if (isScore(score)) return sv(score);
+  return runHasSentiment ? el("span", { class: "sv no-posts", title: NO_POSTS_TIP, text: "no posts" }) : el("span", { class: "sv" });
+}
+
 /** Model text without Markdown markers, for one-line summaries inside buttons. */
 const plain = (t) => String(t || "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1").replace(/(?<![*\w])\*(\S.*?\S|\S)\*/g, "$1");
 
@@ -674,11 +681,21 @@ function mountNew(root, query = {}) {
     });
   };
   if (fromId) {
-    lead.textContent = "The question, size and advanced options are copied from the earlier run. Change anything you like.";
+    lead.textContent = "The question, documents, size and advanced options are copied from the earlier run. Change anything you like.";
     host.replaceChildren(stateBlock({ title: "Loading the earlier run", spinner: true }));
-    api.run(fromId).then((detail) => {
+    // the run's settings, then its saved seed documents (null when they cannot be read: the form says so)
+    const loadSeeds = async () => {
+      try {
+        const list = await api.seeds(fromId);
+        if (!Array.isArray(list)) return null;
+        return await Promise.all(list.map((s) => api.seedFile(fromId, s.name)));
+      } catch {
+        return null;
+      }
+    };
+    Promise.all([api.run(fromId), loadSeeds()]).then(([detail, seeds]) => {
       if (!alive) return;
-      mount({ config: detail && detail.config ? detail.config : null });
+      mount({ config: detail && detail.config ? detail.config : null, seeds });
     }).catch((err) => {
       if (!alive) return;
       toast("error", "Could not load the earlier run", err.message || String(err));
@@ -1151,7 +1168,11 @@ function mountRun(root, runId, query) {
   function updateCampMeans() {
     const r = S.round;
     const final = r === null || r >= S.latestRound;
-    for (const c of S.camps) c.sentiment = final && isScore(c.reported) ? c.reported : postMean(c.members, final ? null : r);
+    const scored = hasPostSentiment();
+    for (const c of S.camps) {
+      c.sentiment = final && isScore(c.reported) ? c.reported : postMean(c.members, final ? null : r);
+      c.noPosts = scored && !isScore(c.sentiment); // read by the crowd graph's region labels
+    }
   }
 
   function postsList() {
@@ -1746,14 +1767,14 @@ function mountRun(root, runId, query) {
     const scored = hasPostSentiment();
     kids.push(el("div", { class: "camp-rows" }, S.camps.map((c) => {
       const shown = c.members.slice(0, 6);
-      return el("button", { class: "camp-row", type: "button", "aria-label": `${c.name}, ${c.members.length} people${isScore(c.sentiment) ? `, mean sentiment ${formatScore(c.sentiment)}` : ""}. Open in Crowd.`,
+      return el("button", { class: "camp-row", type: "button", "aria-label": `${c.name}, ${c.members.length} people${isScore(c.sentiment) ? `, mean sentiment ${formatScore(c.sentiment)}` : scored ? ", no posts" : ""}. Open in Crowd.`,
         onclick: () => selectCamp(c.key, { tab: true }) },
         campDot(c.color),
         el("span", { class: "name", text: c.name }),
         el("span", { class: "av-stack", "aria-hidden": "true" }, shown.map((id) => av(id, 24)),
           c.members.length > shown.length ? el("span", { class: "more", text: `+${c.members.length - shown.length}` }) : null),
         el("span", { class: "count", text: `${c.members.length}` }),
-        isScore(c.sentiment) ? sv(c.sentiment) : el("span", { class: "sv", text: scored ? "n/a" : "" }),
+        campSv(c.sentiment, scored),
         el("span", { class: "summ", text: plain(c.summary) }));
     })));
     campsCard.replaceChildren(...kids);
@@ -1886,7 +1907,8 @@ function mountRun(root, runId, query) {
           el("button", { class: "icon-btn", type: "button", "aria-label": "Close camp", title: "Close (Esc)", onclick: () => selectCamp(null) }, icon("x"))),
         el("div", { class: "row" }, campDot(c.color), el("h2", { text: c.name })),
         el("div", { class: "row note" }, `${c.members.length} ${c.members.length === 1 ? "person" : "people"}`,
-          isScore(c.sentiment) ? el("span", {}, ` · mean${S.round !== null && S.round < S.latestRound ? ` up to round ${S.round}` : ""} `, sv(c.sentiment)) : null),
+          isScore(c.sentiment) ? el("span", {}, ` · mean${S.round !== null && S.round < S.latestRound ? ` up to round ${S.round}` : ""} `, sv(c.sentiment))
+            : hasPostSentiment() ? el("span", {}, " · ", campSv(null)) : null),
         c.summary ? inline(c.summary, el("p")) : null),
       el("div", { class: "panel-sec" }, el("h3", { text: "Members" }), el("div", { class: "member-list" }, members.map((id) => memberButton(id, sent)))),
       el("div", { class: "panel-sec" }, el("h3", { text: r === 0 ? "Their posts in round 0" : `Their posts in round ${r}` })),
@@ -2045,7 +2067,7 @@ function mountRun(root, runId, query) {
         el("div", { class: "rep-camps" }, S.camps.map((c) => el("div", { class: "rep-camp" },
           campDot(c.color),
           el("b", {}, el("button", { class: "linkish", type: "button", text: c.name, onclick: () => selectCamp(c.key, { tab: true }) })),
-          el("span", { class: "note" }, `${c.members.length} · `, isScore(c.reported ?? postMean(c.members, null)) ? sv(c.reported ?? postMean(c.members, null)) : "n/a"),
+          el("span", { class: "note" }, `${c.members.length} · `, campSv(c.reported ?? postMean(c.members, null), hasPostSentiment())),
           c.summary ? inline(c.summary, el("p")) : null)))));
     }
 

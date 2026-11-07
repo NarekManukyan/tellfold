@@ -44,6 +44,7 @@ from shoal.models import (
 from shoal.report import build_report
 from shoal.runner import (  # noqa: F401 - re-exported: older callers and tests use cli.<name>
     RunError,
+    copy_seeds,
     create_run_dir,
     estimate_calls,
     make_run_id,
@@ -518,6 +519,8 @@ def run(
         agent_runtime=agent_runtime, planner_runtime=planner_runtime,
     )
     run_dir = create_run_dir(out, question)
+    files = copy_seeds(run_dir, files)
+    config = config.model_copy(update={"seed_files": [str(f) for f in files]})
     write_json(run_dir / "config.json", config)
     console.print(f"[bold]Shoal[/] run [cyan]{run_dir}[/]" + ("  [yellow](fake LLM)[/]" if fake_mode() else ""),
                   soft_wrap=True)

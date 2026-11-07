@@ -310,6 +310,13 @@ def test_full_run_and_every_endpoint(client: TestClient, factory: Factory, runs_
     page = client.get(f"/api/runs/{run_id}/report.html")
     assert page.status_code == 200 and page.headers["content-type"].startswith("text/html")
 
+    seeds = client.get(f"/api/runs/{run_id}/seeds").json()
+    assert seeds and all(set(s) == {"name", "size"} for s in seeds)
+    doc = client.get(f"/api/runs/{run_id}/seeds/{seeds[0]['name']}")
+    assert doc.status_code == 200 and len(doc.content) == seeds[0]["size"]
+    assert client.get(f"/api/runs/{run_id}/seeds/..%2Fconfig.json").status_code == 404
+    assert client.get(f"/api/runs/{run_id}/seeds/missing.md").status_code == 404
+
     # chat and ask round-trips
     res = client.post(f"/api/runs/{run_id}/chat",
                       json={"agent_id": author, "message": "Why did you post that?", "history": [["hi", "hello"]]})

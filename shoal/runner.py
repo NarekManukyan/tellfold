@@ -12,6 +12,7 @@ import logging
 import math
 import os
 import re
+import shutil
 import tempfile
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -58,6 +59,23 @@ def create_run_dir(out: Path, question: str) -> Path:
             return run_dir
         except FileExistsError:
             run_dir, n = base.with_name(f"{base.name}-{n}"), n + 1
+
+
+SEEDS_DIR = "seeds"
+
+
+def copy_seeds(run_dir: Path, files: list[Path]) -> list[Path]:
+    """Copy the seed documents into the run, so the run can be read and run again without the originals."""
+    dest = run_dir / SEEDS_DIR
+    dest.mkdir(exist_ok=True)
+    copies: list[Path] = []
+    for f in files:
+        target, n = dest / f.name, 2
+        while target.exists():
+            target, n = dest / f"{f.stem}-{n}{f.suffix}", n + 1
+        shutil.copyfile(f, target)
+        copies.append(target)
+    return copies
 
 
 def write_json(path: Path, data: BaseModel | list[BaseModel]) -> None:

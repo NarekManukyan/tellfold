@@ -223,6 +223,8 @@ struct CampPanel: View {
                             if let s = store.campSentiment(group, at: store.playhead) {
                                 Text("mean").font(Theme.small).foregroundStyle(Theme.muted)
                                 SentimentValue(score: s, size: 12)
+                            } else {
+                                CampSentimentValue(score: nil, size: 12)
                             }
                         }
                     }

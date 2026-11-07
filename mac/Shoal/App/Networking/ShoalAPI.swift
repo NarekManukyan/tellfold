@@ -81,6 +81,12 @@ struct NewRunRequest: Hashable, Sendable {
     }
 }
 
+/// One entry of `GET /api/runs/{id}/seeds`.
+struct SeedInfo: Codable, Hashable, Sendable {
+    var name: String
+    var size: Int
+}
+
 /// Typed client for the engine's HTTP API (UI_CONTRACT.md plus the runtime/settings endpoints).
 /// Every `/api` request carries `Authorization: Bearer <token>` when a token is set.
 actor ShoalAPI {
@@ -169,6 +175,14 @@ actor ShoalAPI {
         req.httpBody = form.finalize()
         let created: CreatedRun = try await send(req)
         return created.id
+    }
+
+    /// The seed documents saved with a run (`GET /api/runs/{id}/seeds`); empty for runs made before the engine kept them.
+    func seeds(runID: String) async throws -> [SeedInfo] { try await get("runs", runID, "seeds") }
+
+    /// One saved seed document's bytes.
+    func seedData(runID: String, name: String) async throws -> Data {
+        try await sendRaw(makeRequest(["runs", runID, "seeds", name]))
     }
 
     func injectEvent(runID: String, round: Int, content: String) async throws {

@@ -263,10 +263,37 @@ final class AppModel {
         isNewSimulationPresented = true
     }
 
-    /// Opens the sheet with a finished, stopped or failed run's question, size and options.
+    /// Opens the sheet with a finished, stopped or failed run's question, size and options, and its seed documents
+    /// downloaded from the engine into a temporary folder.
     func runAgain(runID: String, config: SimConfig) {
-        let folder = URL(fileURLWithPath: prefs.runsFolder).appending(path: runID)
-        newSimulation(prefill: .runAgain(config: config, runFolder: folder) { FileManager.default.fileExists(atPath: $0.path) })
+        Task { await openRunAgain(runID: runID, config: config) }
+    }
+
+    func openRunAgain(runID: String, config: SimConfig) async {
+        var urls: [URL] = []
+        var failed: [String] = []
+        if let api {
+            do {
+                let list = try await api.seeds(runID: runID)
+                if !list.isEmpty {
+                    let folder = FileManager.default.temporaryDirectory.appending(path: "shoal-run-again-\(UUID().uuidString)")
+                    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                    for item in list {
+                        do {
+                            let data = try await api.seedData(runID: runID, name: item.name)
+                            let url = folder.appending(path: item.name)
+                            try data.write(to: url)
+                            urls.append(url)
+                        } catch {
+                            failed.append(item.name)
+                        }
+                    }
+                }
+            } catch {
+                // An engine without the endpoint is treated like an older run: the sheet asks for the documents again.
+            }
+        }
+        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed))
     }
 
     static let seedContentTypes: [UTType] = [

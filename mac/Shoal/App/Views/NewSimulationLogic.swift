@@ -86,24 +86,28 @@ nonisolated struct NewSimulationPrefill: Equatable, Sendable {
 
     var isRunAgain: Bool { config != nil }
 
-    /// Builds the prefill for "Run again…". The API returns a run's configuration with its seed file *paths* and no
-    /// document contents, so the files come back only when a path still exists on this Mac. Anything else is named and
-    /// asked for again rather than guessed.
-    static func runAgain(config: SimConfig, runFolder: URL?, fileExists: (URL) -> Bool) -> NewSimulationPrefill {
-        var found: [URL] = []
-        var missing: [String] = []
-        for path in config.seedFiles {
-            let name = (path as NSString).lastPathComponent
-            var candidates: [URL] = []
-            if (path as NSString).isAbsolutePath { candidates.append(URL(fileURLWithPath: path)) }
-            if let runFolder { candidates.append(runFolder.appending(path: "seeds").appending(path: name)) }
-            if let hit = candidates.first(where: fileExists) {
-                if !found.contains(hit) { found.append(hit) }
+    /// Builds the prefill for "Run again…" from the run's configuration and the seed documents the engine returned
+    /// (already downloaded to `seedFiles`). A `description.md` goes back into the Describe it box as text; every other
+    /// document is attached as a file. `unavailable` names documents the engine listed but the app could not fetch.
+    /// When the run has no stored documents at all (an older run) the sheet asks for them again.
+    static func runAgain(config: SimConfig, seedFiles: [URL], unavailable: [String] = [],
+                         readText: (URL) -> String? = { try? String(contentsOf: $0, encoding: .utf8) }) -> NewSimulationPrefill {
+        var files: [URL] = []
+        var text = ""
+        for url in seedFiles {
+            if url.lastPathComponent.lowercased() == InlineDocument.descriptionName, text.isEmpty,
+               let body = readText(url), !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                text = body.trimmingCharacters(in: .whitespacesAndNewlines)
             } else {
-                missing.append(name)
+                files.append(url)
             }
         }
-        return NewSimulationPrefill(question: config.question, config: config, seedFiles: found, missingSeedNames: missing)
+        var missing = unavailable
+        if seedFiles.isEmpty, unavailable.isEmpty {
+            missing = config.seedFiles.map { ($0 as NSString).lastPathComponent }
+        }
+        return NewSimulationPrefill(question: config.question, descriptionText: text, config: config, seedFiles: files,
+                                    missingSeedNames: missing)
     }
 }
 

@@ -143,7 +143,8 @@ const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(naviga
 
 /**
  * Mount the form into `container`.
- * prefill: { question?, config?: SimConfig of an earlier run (Run again) }
+ * prefill: { question?, config?: SimConfig of an earlier run (Run again),
+ *            seeds?: File[] saved with that run (null when they could not be read) }
  * Returns unmount().
  */
 export function mountNewRun(container, { api, onCreated, cancelHref = "#/", prefill = {} } = {}) {
@@ -224,7 +225,12 @@ export function mountNewRun(container, { api, onCreated, cancelHref = "#/", pref
   const filesPane = el("div", { class: "nr-pane", role: "tabpanel", id: "nr-pane-files", "aria-labelledby": "nr-tab-files" },
     dropzone, fileInput, fileList, fileErr);
 
-  const againNote = cfg && Array.isArray(cfg.seed_files) && cfg.seed_files.length
+  // Run again: the earlier run's documents come back (description.md as text, the rest as files); only when
+  // none could be read does the form ask for them again
+  const seedFiles = Array.isArray(prefill.seeds) ? prefill.seeds.filter((f) => f && f.size > 0) : [];
+  const seedText = seedFiles.find((f) => f.name.toLowerCase() === DESCRIPTION_NAME) || null;
+  const seedOthers = seedFiles.filter((f) => f !== seedText);
+  const againNote = cfg && !seedFiles.length && Array.isArray(cfg.seed_files) && cfg.seed_files.length
     ? el("div", { class: "nr-note" }, icon("info", "icon sm"),
       el("div", {}, el("b", { text: "Add the documents again. " }),
         `The earlier run used ${cfg.seed_files.map((p) => String(p).replace(/\\/g, "/").split("/").pop()).join(", ")}; `,
@@ -780,6 +786,18 @@ export function mountNewRun(container, { api, onCreated, cancelHref = "#/", pref
   setMode("describe");
   setAdvanced(advOpen, false);
   renderPickers();
+  if (seedOthers.length) {
+    addFiles(seedOthers);
+    if (!seedText) setMode("files");
+  }
+  if (seedText) {
+    seedText.text().then((t) => {
+      if (!alive || state.description.trim()) return;
+      description.value = t.replace(/\s+$/, "");
+      state.description = description.value;
+      update();
+    }).catch(() => {});
+  }
   renderFiles();
   renderEvents();
   update();

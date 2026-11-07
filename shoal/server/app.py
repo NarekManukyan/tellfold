@@ -497,6 +497,23 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
             raise HTTPException(409, str(e)) from None
         return {"ok": True}
 
+    @app.get("/api/runs/{run_id}/seeds")
+    async def list_seeds(run_id: str) -> list[dict]:
+        """The seed documents saved with a run, so it can be run again with the same material."""
+        folder = run_dir_of(run_id) / "seeds"
+        if not folder.is_dir():
+            return []
+        return [{"name": f.name, "size": f.stat().st_size}
+                for f in sorted(folder.iterdir()) if f.is_file() and not f.name.startswith(".")]
+
+    @app.get("/api/runs/{run_id}/seeds/{name}")
+    async def get_seed(run_id: str, name: str) -> FileResponse:
+        folder = run_dir_of(run_id) / "seeds"
+        path = folder / name
+        if name != Path(name).name or name.startswith(".") or not path.is_file():
+            raise HTTPException(404, "no such seed document")
+        return FileResponse(path, filename=name)
+
     @app.get("/api/runs/{run_id}/report.html")
     async def report_html(run_id: str) -> FileResponse:
         path = run_dir_of(run_id) / "report.html"

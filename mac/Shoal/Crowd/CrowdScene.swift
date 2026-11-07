@@ -26,7 +26,7 @@ nonisolated struct CrowdLabel: Sendable, Equatable {
 
     var figures: String {
         var t = "\(count)"
-        if let sentiment { t += " · " + RunUI.sentimentText(sentiment) }
+        t += " · " + (sentiment.map { RunUI.sentimentText($0) } ?? CampSentimentValue.noPostsText)
         return t
     }
 

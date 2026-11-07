@@ -143,6 +143,12 @@ def test_full_fake_run_writes_every_artifact(fake_run: Path) -> None:
     assert "<html" in (fake_run / "report.html").read_text().lower()
 
 
+def test_run_keeps_a_copy_of_its_seeds(fake_run: Path) -> None:
+    config = json.loads((fake_run / "config.json").read_text())
+    copies = [Path(p) for p in config["seed_files"]]
+    assert copies and all(p.parent == fake_run / "seeds" and p.is_file() for p in copies)
+
+
 def test_report_rebuilds_from_run(fake_run: Path) -> None:
     (fake_run / "report.html").unlink()
     result = runner.invoke(cli.app, ["report", str(fake_run)])

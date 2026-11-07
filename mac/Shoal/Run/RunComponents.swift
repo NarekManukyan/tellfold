@@ -91,6 +91,30 @@ struct SentimentValue: View {
     }
 }
 
+/// A camp's mean sentiment, or "no posts" in muted text when none of its people posted (there is nothing to average).
+struct CampSentimentValue: View {
+    let score: Double?
+    var size: CGFloat = 12
+    var weight: Font.Weight = .semibold
+
+    /// What the tooltip says when there is no number.
+    static let noPostsHelp = "None of these people posted, so there is no sentiment to average."
+    static let noPostsText = "no posts"
+
+    var body: some View {
+        if score == nil {
+            Text(Self.noPostsText)
+                .font(Theme.ui(size - 1))
+                .foregroundStyle(Theme.muted)
+                .help(Self.noPostsHelp)
+                .accessibilityLabel("No posts")
+                .accessibilityHint(Self.noPostsHelp)
+        } else {
+            SentimentValue(score: score, size: size, weight: weight)
+        }
+    }
+}
+
 /// Low / Medium / High confidence: three bars and the words.
 struct ConfidenceBadge: View {
     let confidence: ReportConfidence
