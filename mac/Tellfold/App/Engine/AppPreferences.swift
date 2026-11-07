@@ -55,18 +55,25 @@ final class AppPreferences {
         URL.applicationSupportDirectory.appending(path: "Tellfold/runs", directoryHint: .isDirectory)
     }
 
-    /// Debug builds run the engine from the repository; Release builds from `Resources/engine` in the bundle.
-    nonisolated static var defaultEnginePath: String {
-        #if DEBUG
-        return "/Volumes/external_ssd/my/shoal"
-        #else
-        return Bundle.main.resourceURL?.appending(path: "engine").path ?? ""
-        #endif
+    /// The engine Release builds carry in `Resources/engine`, with its own Python (see `mac/scripts/bundle-engine.sh`).
+    /// Nil when the app has none, as in Debug builds.
+    nonisolated static var bundledEngine: URL? {
+        guard let engine = Bundle.main.resourceURL?.appending(path: "engine", directoryHint: .isDirectory),
+              FileManager.default.isExecutableFile(atPath: EngineCommand.bundledPython(in: engine).path) else { return nil }
+        return engine
+    }
+
+    /// The Python project `uv run` uses when there is no bundled engine: Debug builds run it from the repository.
+    nonisolated static let developmentEnginePath = "/Volumes/external_ssd/my/shoal"
+
+    /// The bundled engine, unless an engine path is set in Settings (which always runs through `uv`).
+    var bundledEngineFolder: URL? {
+        enginePath.trimmingCharacters(in: .whitespaces).isEmpty ? Self.bundledEngine : nil
     }
 
     var resolvedEnginePath: String {
         let trimmed = enginePath.trimmingCharacters(in: .whitespaces)
-        return trimmed.isEmpty ? Self.defaultEnginePath : (trimmed as NSString).expandingTildeInPath
+        return trimmed.isEmpty ? Self.developmentEnginePath : (trimmed as NSString).expandingTildeInPath
     }
 
     var resolvedRunsFolder: URL {

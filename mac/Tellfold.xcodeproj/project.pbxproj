@@ -509,7 +509,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Release builds carry the Python engine source in Resources/engine; Debug runs it from the repo.\nif [ \"${CONFIGURATION}\" != \"Release\" ]; then exit 0; fi\nENGINE_SRC=\"${PROJECT_DIR}/..\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\"\nmkdir -p \"${DEST}\"\nrsync -a --delete --exclude \"__pycache__\" --exclude \"*.pyc\" \"${ENGINE_SRC}/tellfold\" \"${DEST}/\"\ncp \"${ENGINE_SRC}/pyproject.toml\" \"${DEST}/pyproject.toml\"\nif [ -f \"${ENGINE_SRC}/uv.lock\" ]; then cp \"${ENGINE_SRC}/uv.lock\" \"${DEST}/uv.lock\"; fi\nif [ -f \"${ENGINE_SRC}/README.md\" ]; then cp \"${ENGINE_SRC}/README.md\" \"${DEST}/README.md\"; fi\n";
+			shellScript = "# Release builds carry the whole engine, with its own Python, in Resources/engine; Debug runs it from\n# the repo through uv.\nif [ \"${CONFIGURATION}\" != \"Release\" ]; then exit 0; fi\n\"${PROJECT_DIR}/scripts/bundle-engine.sh\" \"${PROJECT_DIR}/..\" \\\n  \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\" \"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -755,6 +755,7 @@
 		D3508B707737BA6D7ACF6F10 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Tellfold/App/Tellfold.entitlements;

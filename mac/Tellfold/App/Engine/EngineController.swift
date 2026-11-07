@@ -12,8 +12,8 @@ struct EngineLogLine: Identifiable, Hashable, Sendable {
     let text: String
 }
 
-/// Owns the engine process: `uv run --project <enginePath> tellfold serve --port 0 --runs <dir> --log-level <level>`,
-/// with the bearer token in `TELLFOLD_SERVE_TOKEN` (equivalent to `--token`, but hidden from `ps`).
+/// Owns the engine process: `tellfold serve --port 0 --runs <dir> --log-level <level>`, run by the Python bundled in
+/// the app (Release) or through `uv run --project <enginePath>` (Debug, or a custom engine path), with the bearer token in `TELLFOLD_SERVE_TOKEN` (equivalent to `--token`, but hidden from `ps`).
 ///
 /// It reads the `{"port": N}` line from stdout, verifies `/api/health`, then publishes a `TellfoldAPI`. stdin
 /// stays open for the life of the process (the engine exits when it closes, so it dies with the app). On a
@@ -181,20 +181,31 @@ final class EngineController {
         guard process == nil else { return }
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let base = ProcessInfo.processInfo.environment
-        let path = EngineCommand.searchPath(existing: base["PATH"], home: home)
-        let preferredUV = prefs.uvPath.trimmingCharacters(in: .whitespaces)
-        guard let uv = EngineCommand.findUV(preferred: preferredUV.isEmpty ? nil : preferredUV, path: path) else {
-            state = .uvMissing
-            appendApp(preferredUV.isEmpty ? "uv was not found on PATH (\(path))." : "uv is not executable at \(preferredUV).")
-            return
-        }
-        let enginePath = prefs.resolvedEnginePath
-        guard FileManager.default.fileExists(atPath: enginePath + "/pyproject.toml") else {
-            state = .failed("No engine at \(enginePath) (pyproject.toml missing). Set the engine path in Settings > Advanced.")
-            appendApp("No pyproject.toml in \(enginePath).")
-            return
-        }
         let runs = prefs.resolvedRunsFolder
+        let executable: URL, args: [String], workingDirectory: URL
+        if let engine = prefs.bundledEngineFolder {
+            // The engine built into the app: its own Python, nothing to install.
+            executable = EngineCommand.bundledPython(in: engine)
+            args = EngineCommand.bundledArguments(runsFolder: runs.path, logLevel: prefs.logLevel.rawValue)
+            workingDirectory = runs
+        } else {
+            let path = EngineCommand.searchPath(existing: base["PATH"], home: home)
+            let preferredUV = prefs.uvPath.trimmingCharacters(in: .whitespaces)
+            guard let uv = EngineCommand.findUV(preferred: preferredUV.isEmpty ? nil : preferredUV, path: path) else {
+                state = .uvMissing
+                appendApp(preferredUV.isEmpty ? "uv was not found on PATH (\(path))." : "uv is not executable at \(preferredUV).")
+                return
+            }
+            let enginePath = prefs.resolvedEnginePath
+            guard FileManager.default.fileExists(atPath: enginePath + "/pyproject.toml") else {
+                state = .failed("No engine at \(enginePath) (pyproject.toml missing). Set the engine path in Settings > Advanced.")
+                appendApp("No pyproject.toml in \(enginePath).")
+                return
+            }
+            executable = uv
+            args = EngineCommand.arguments(enginePath: enginePath, runsFolder: runs.path, logLevel: prefs.logLevel.rawValue)
+            workingDirectory = URL(filePath: enginePath, directoryHint: .isDirectory)
+        }
         do {
             try FileManager.default.createDirectory(at: runs, withIntermediateDirectories: true)
         } catch {
@@ -205,23 +216,14 @@ final class EngineController {
         token = EngineCommand.makeToken()
         generation += 1
         let gen = generation
-        let args = EngineCommand.arguments(enginePath: enginePath, runsFolder: runs.path, logLevel: prefs.logLevel.rawValue)
-        commandDescription = "TELLFOLD_SERVE_TOKEN=••• " + EngineCommand.displayCommand(executable: uv.path, arguments: args, token: token)
+        commandDescription = "TELLFOLD_SERVE_TOKEN=••• " + EngineCommand.displayCommand(executable: executable.path, arguments: args, token: token)
 
         let process = Process()
-        process.executableURL = uv
+        process.executableURL = executable
         process.arguments = args
-        process.currentDirectoryURL = URL(filePath: enginePath, directoryHint: .isDirectory)
-        var environment = EngineCommand.environment(
+        process.currentDirectoryURL = workingDirectory
+        process.environment = EngineCommand.environment(
             base: base, token: token, secrets: keychain.environment(), offline: prefs.offlineTestModel, home: home)
-        if enginePath.hasPrefix(Bundle.main.bundlePath + "/") {
-            // The engine bundled in Resources/engine is read-only: keep its virtualenv in Application Support and
-            // never rewrite its lockfile.
-            environment["UV_PROJECT_ENVIRONMENT"] = URL.applicationSupportDirectory
-                .appending(path: "Tellfold/engine-venv", directoryHint: .isDirectory).path
-            environment["UV_FROZEN"] = "1"
-        }
-        process.environment = environment
         let input = Pipe(), output = Pipe(), errors = Pipe()
         process.standardInput = input
         process.standardOutput = output
@@ -239,7 +241,7 @@ final class EngineController {
         do {
             try process.run()
         } catch {
-            appendApp("Could not start uv: \(error.localizedDescription)")
+            appendApp("Could not start the engine: \(error.localizedDescription)")
             scheduleRestart(reason: error.localizedDescription)
             return
         }

@@ -80,20 +80,18 @@ targets:
           ENABLE_HARDENED_RUNTIME: NO
         Release:
           ENABLE_HARDENED_RUNTIME: YES
+          # The bundled engine's Python is built for Apple silicon only.
+          ARCHS: arm64
     postBuildScripts:
       - name: Bundle engine (Release)
         basedOnDependencyAnalysis: false
         shell: /bin/sh
         script: |
-          # Release builds carry the Python engine source in Resources/engine; Debug runs it from the repo.
+          # Release builds carry the whole engine, with its own Python, in Resources/engine; Debug runs it from
+          # the repo through uv.
           if [ "${CONFIGURATION}" != "Release" ]; then exit 0; fi
-          ENGINE_SRC="${PROJECT_DIR}/.."
-          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine"
-          mkdir -p "${DEST}"
-          rsync -a --delete --exclude "__pycache__" --exclude "*.pyc" "${ENGINE_SRC}/tellfold" "${DEST}/"
-          cp "${ENGINE_SRC}/pyproject.toml" "${DEST}/pyproject.toml"
-          if [ -f "${ENGINE_SRC}/uv.lock" ]; then cp "${ENGINE_SRC}/uv.lock" "${DEST}/uv.lock"; fi
-          if [ -f "${ENGINE_SRC}/README.md" ]; then cp "${ENGINE_SRC}/README.md" "${DEST}/README.md"; fi
+          "${PROJECT_DIR}/scripts/bundle-engine.sh" "${PROJECT_DIR}/.." \
+            "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine" "${EXPANDED_CODE_SIGN_IDENTITY:--}"
 
   TellfoldTests:
     type: bundle.unit-test

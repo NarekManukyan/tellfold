@@ -92,6 +92,11 @@ struct NewSimulationTests {
         let missing = runtime(installed: false)
         #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing, missing], ids: ["claude-code", "claude-code"])?
             .contains("not installed") == true)
+        #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing], ids: ["claude-code"])?
+            .contains("claude.com/claude-code") == true)
+        let missingOllama = runtime("ollama", name: "Ollama", kind: .http, installed: false)
+        #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missingOllama], ids: ["ollama"])
+            == "Ollama is not installed on this Mac. Install it, or pick another runtime under Advanced.")
         let signedOut = runtime(auth: .missing, hint: "Run `claude` and use /login")
         let note = NewSimulationRules.readinessNote(engineRunning: true, runtimes: [signedOut, ok], ids: ["claude-code", "other"])
         #expect(note == "Claude Code is not signed in. Run `claude` and use /login.")

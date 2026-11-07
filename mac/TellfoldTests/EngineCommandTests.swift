@@ -30,6 +30,13 @@ struct EngineCommandTests {
         #expect(shown.contains("'/runs dir'"))
     }
 
+    @Test func bundledCommandLine() {
+        let args = EngineCommand.bundledArguments(runsFolder: "/runs", logLevel: "Debug")
+        #expect(args == ["-I", "-B", "-m", "tellfold", "serve", "--port", "0", "--runs", "/runs", "--log-level", "debug"])
+        let python = EngineCommand.bundledPython(in: URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory))
+        #expect(python.path == "/App.app/Contents/Resources/engine/python/bin/python3")
+    }
+
     @Test func tokensAreRandomHex() {
         let a = EngineCommand.makeToken(), b = EngineCommand.makeToken()
         #expect(a.count == 64)

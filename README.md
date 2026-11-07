@@ -156,3 +156,14 @@ Tests never call the real CLI. Setting `TELLFOLD_FAKE_LLM=1` makes every command
 ```sh
 TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
 ```
+
+### Mac app
+
+The Mac app lives in `mac/` (XcodeGen). Debug builds run the engine from this repository through `uv`. Release builds are self-contained: `mac/scripts/bundle-engine.sh` puts a relocatable CPython, the locked dependencies and the `tellfold` package into `Tellfold.app/Contents/Resources/engine`, so the app needs neither `uv` nor Python on the user's Mac. It still needs Claude Code installed and signed in, because every model call goes through the user's own `claude`.
+
+```sh
+cd mac && xcodegen generate
+xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/dd
+```
+
+The first Release build downloads Python and the dependencies (a few minutes). Later builds reuse `mac/build/engine-cache` until `uv.lock` changes. The bundled engine is about 190 MB and Apple silicon only. A Developer ID signing identity signs everything inside with the hardened runtime, ready for notarization.

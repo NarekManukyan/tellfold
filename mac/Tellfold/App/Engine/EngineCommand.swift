@@ -11,8 +11,23 @@ enum EngineCommand {
     /// `uv run --project <enginePath> tellfold serve --port 0 --runs <runsFolder> --log-level <level>` (after `uv`).
     /// The token goes in through `TELLFOLD_SERVE_TOKEN` (see `environment`), equivalent to `--token <token>`.
     static func arguments(enginePath: String, runsFolder: String, logLevel: String) -> [String] {
-        ["run", "--project", enginePath, "tellfold", "serve", "--port", "0", "--runs", runsFolder,
-         "--log-level", logLevel.lowercased()]
+        ["run", "--project", enginePath] + serveArguments(runsFolder: runsFolder, logLevel: logLevel)
+    }
+
+    /// The engine built into the app: `<engine>/python/bin/python3 -I -B -m tellfold serve ...` (after the
+    /// executable). `-I` keeps the user's PYTHON* variables and site-packages out; `-B` never writes bytecode into
+    /// the signed bundle (it is compiled at build time).
+    static func bundledArguments(runsFolder: String, logLevel: String) -> [String] {
+        ["-I", "-B", "-m"] + serveArguments(runsFolder: runsFolder, logLevel: logLevel)
+    }
+
+    /// The Python inside a bundled engine folder (`Resources/engine`).
+    static func bundledPython(in engine: URL) -> URL {
+        engine.appending(path: "python/bin/python3")
+    }
+
+    private static func serveArguments(runsFolder: String, logLevel: String) -> [String] {
+        ["tellfold", "serve", "--port", "0", "--runs", runsFolder, "--log-level", logLevel.lowercased()]
     }
 
     /// The engine prints exactly one JSON line `{"port": N}` to stdout once it is listening. Returns N for that

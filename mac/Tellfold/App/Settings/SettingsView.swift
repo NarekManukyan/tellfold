@@ -110,7 +110,8 @@ struct AdvancedSettingsTab: View {
             Section {
                 LabeledContent("Engine path") {
                     HStack {
-                        TextField("Engine path", text: $prefs.enginePath, prompt: Text(AppPreferences.defaultEnginePath))
+                        TextField("Engine path", text: $prefs.enginePath,
+                                  prompt: Text(AppPreferences.bundledEngine == nil ? AppPreferences.developmentEnginePath : "Built-in engine"))
                             .labelsHidden()
                             .onSubmit { needsRestart = true }
                         Button("Choose…") { chooseEnginePath() }
@@ -130,7 +131,9 @@ struct AdvancedSettingsTab: View {
             } header: {
                 Text("Engine")
             } footer: {
-                Text("The engine runs as `uv run --project <engine path> tellfold serve`. Changes apply after a restart.")
+                Text(AppPreferences.bundledEngine == nil
+                     ? "The engine runs as `uv run --project <engine path> tellfold serve`. Changes apply after a restart."
+                     : "Leave the engine path empty to use the engine built into Tellfold. A custom path runs it with `uv run --project <engine path> tellfold serve`. Changes apply after a restart.")
             }
 
             Section {

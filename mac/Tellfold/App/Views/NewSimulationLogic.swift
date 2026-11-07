@@ -162,6 +162,11 @@ nonisolated enum NewSimulationRules {
         for (info, id) in zip(runtimes, ids) where seen.insert(id).inserted {
             guard let info else { return "\(id) is not one of the runtimes this engine knows. Pick another under Advanced." }
             if !info.installed {
+                if info.id == "claude-code" {
+                    // The usual first-run case on a Mac without Claude Code: say exactly how to get it.
+                    return "Tellfold runs its crowd with Claude Code, which is not installed on this Mac. Install it "
+                        + "from claude.com/claude-code, run `claude` once in Terminal to sign in, then start."
+                }
                 return "\(info.name) is not installed on this Mac. Install it, or pick another runtime under Advanced."
             }
             if info.auth == .missing {
