@@ -1,9 +1,9 @@
-# XcodeGen spec for Shoal for Mac. Generate the project with `xcodegen generate` in this folder;
-# Shoal.xcodeproj is a build product: never hand-edit it.
-name: Shoal
+# XcodeGen spec for Tellfold for Mac. Generate the project with `xcodegen generate` in this folder;
+# Tellfold.xcodeproj is a build product: never hand-edit it.
+name: Tellfold
 
 options:
-  bundleIdPrefix: dev.shoal
+  bundleIdPrefix: dev.tellfold
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
@@ -30,29 +30,29 @@ settings:
       ENABLE_TESTABILITY: NO
 
 targets:
-  Shoal:
+  Tellfold:
     type: application
     platform: macOS
     sources:
-      - path: Shoal
+      - path: Tellfold
         excludes:
           - "**/Info.plist"
           - "**/*.entitlements"
     info:
-      path: Shoal/App/Info.plist
+      path: Tellfold/App/Info.plist
       properties:
-        CFBundleName: Shoal
-        CFBundleDisplayName: Shoal
+        CFBundleName: Tellfold
+        CFBundleDisplayName: Tellfold
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         LSApplicationCategoryType: public.app-category.developer-tools
         LSMinimumSystemVersion: "26.0"
         NSHumanReadableCopyright: ""
-        NSUserNotificationsUsageDescription: Shoal tells you when a simulation finishes or fails.
-        NSRemovableVolumesUsageDescription: Shoal runs its simulation engine and keeps runs in folders you choose, which can be on an external drive.
-        NSDocumentsFolderUsageDescription: Shoal reads seed documents and keeps runs in folders you choose.
-        NSDownloadsFolderUsageDescription: Shoal reads seed documents you choose from Downloads.
-        NSDesktopFolderUsageDescription: Shoal reads seed documents you choose from the Desktop.
+        NSUserNotificationsUsageDescription: Tellfold tells you when a simulation finishes or fails.
+        NSRemovableVolumesUsageDescription: Tellfold runs its simulation engine and keeps runs in folders you choose, which can be on an external drive.
+        NSDocumentsFolderUsageDescription: Tellfold reads seed documents and keeps runs in folders you choose.
+        NSDownloadsFolderUsageDescription: Tellfold reads seed documents you choose from Downloads.
+        NSDesktopFolderUsageDescription: Tellfold reads seed documents you choose from the Desktop.
         # Lets the app accept seed files dropped on its Dock icon and opened with File > Open.
         CFBundleDocumentTypes:
           - CFBundleTypeName: Seed document
@@ -63,16 +63,17 @@ targets:
               - public.plain-text
               - com.adobe.pdf
     entitlements:
-      path: Shoal/App/Shoal.entitlements
+      path: Tellfold/App/Tellfold.entitlements
       properties:
         # The app spawns `uv` and local agent CLIs, so it cannot run in the App Sandbox.
         com.apple.security.app-sandbox: false
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.shoal.mac
-        PRODUCT_NAME: Shoal
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tellfold.mac
+        PRODUCT_NAME: Tellfold
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         COMBINE_HIDPI_IMAGES: YES
       configs:
         Debug:
@@ -89,43 +90,43 @@ targets:
           ENGINE_SRC="${PROJECT_DIR}/.."
           DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine"
           mkdir -p "${DEST}"
-          rsync -a --delete --exclude "__pycache__" --exclude "*.pyc" "${ENGINE_SRC}/shoal" "${DEST}/"
+          rsync -a --delete --exclude "__pycache__" --exclude "*.pyc" "${ENGINE_SRC}/tellfold" "${DEST}/"
           cp "${ENGINE_SRC}/pyproject.toml" "${DEST}/pyproject.toml"
           if [ -f "${ENGINE_SRC}/uv.lock" ]; then cp "${ENGINE_SRC}/uv.lock" "${DEST}/uv.lock"; fi
           if [ -f "${ENGINE_SRC}/README.md" ]; then cp "${ENGINE_SRC}/README.md" "${DEST}/README.md"; fi
 
-  ShoalTests:
+  TellfoldTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: ShoalTests
+      - path: TellfoldTests
         excludes:
           - "Fixtures/**"
-      - path: ShoalTests/Fixtures
+      - path: TellfoldTests/Fixtures
         type: folder
         buildPhase: resources
     dependencies:
-      - target: Shoal
+      - target: Tellfold
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.shoal.mac.tests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tellfold.mac.tests
         GENERATE_INFOPLIST_FILE: YES
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Shoal.app/Contents/MacOS/Shoal"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tellfold.app/Contents/MacOS/Tellfold"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
 schemes:
-  Shoal:
+  Tellfold:
     build:
       targets:
-        Shoal: all
-        ShoalTests: [test]
+        Tellfold: all
+        TellfoldTests: [test]
     run:
       config: Debug
     test:
       config: Debug
       gatherCoverageData: false
       targets:
-        - name: ShoalTests
+        - name: TellfoldTests
     profile:
       config: Release
     analyze:

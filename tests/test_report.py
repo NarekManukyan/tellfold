@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from shoal.chat import ask_report, interview, relevant_posts
-from shoal.llm import FakeLLM
-from shoal.models import (
+from tellfold.chat import ask_report, interview, relevant_posts
+from tellfold.llm import FakeLLM
+from tellfold.models import (
     Action,
     ActionType,
     AgentMemory,
@@ -18,7 +18,7 @@ from shoal.models import (
     RoundStats,
     SimConfig,
 )
-from shoal.report import (
+from tellfold.report import (
     _markdown,
     _Refs,
     build_report,
@@ -27,7 +27,7 @@ from shoal.report import (
     render_html,
     render_markdown,
 )
-from shoal.world import World
+from tellfold.world import World
 
 QUESTION = "Will the city council's congestion charge survive public backlash?"
 
@@ -268,8 +268,8 @@ def test_relevant_posts_ranks_overlap(world):
 
 
 def test_finalize_camps_places_every_agent_once_and_scores_sentiment():
-    from shoal.models import Camp, Persona, Post
-    from shoal.report import Evidence, _finalize_camps
+    from tellfold.models import Camp, Persona, Post
+    from tellfold.report import Evidence, _finalize_camps
 
     people = {
         pid: Persona(id=pid, handle=f"h_{pid}", name=pid, bio="", background="", stance="")

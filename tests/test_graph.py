@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from shoal.graph import (
+from tellfold.graph import (
     ExtractedEntity,
     ExtractedRelation,
     Extraction,
@@ -11,8 +11,8 @@ from shoal.graph import (
     merge_extractions,
     slugify,
 )
-from shoal.llm import FakeLLM, LLMError
-from shoal.models import Chunk
+from tellfold.llm import FakeLLM, LLMError
+from tellfold.models import Chunk
 
 CHUNKS = [Chunk(id=i, source="seed.md", text=f"chunk text {i}") for i in range(9)]
 

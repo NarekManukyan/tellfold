@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from shoal.ingest import chunk_text, load_documents
+from tellfold.ingest import chunk_text, load_documents
 
 SEED = """# Harbor Town transit plan
 

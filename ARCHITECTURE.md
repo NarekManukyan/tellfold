@@ -1,20 +1,20 @@
-# Shoal architecture (build contract)
+# Tellfold architecture (build contract)
 
-Shoal is a local swarm-simulation tool inspired by the *idea* of MiroFish (seed documents in, simulated
+Tellfold is a local swarm-simulation tool inspired by the *idea* of MiroFish (seed documents in, simulated
 social reaction and a prediction report out). It is an original implementation: no MiroFish code, no Zep,
 no OASIS, no cloud services. The only LLM is the user's locally installed **Claude Code CLI**, driven through
 the Python **claude-agent-sdk** on the user's logged-in subscription. No API key.
 
 ## Clean-room rule
 
-This is a clean-room implementation. Builders work only from this document, `shoal/models.py`, and
+This is a clean-room implementation. Builders work only from this document, `tellfold/models.py`, and
 public documentation of the libraries we depend on (claude-agent-sdk, pydantic, typer, rich, jinja2,
 pymupdf, sqlite3). Do **not** open, clone, fetch, search or recall the MiroFish repository, its forks,
 DeepWiki pages about it, or the OASIS / camel-ai source. Do not reuse its prompts, file names, function names,
 data layout or UI text. Design every prompt, schema and algorithm independently from the contract below.
 
-Python >= 3.11, managed with `uv`. Package: `shoal/`. Tests: `tests/`. All shared types live in
-`shoal/models.py` (already written — import from it, never redefine).
+Python >= 3.11, managed with `uv`. Package: `tellfold/`. Tests: `tests/`. All shared types live in
+`tellfold/models.py` (already written — import from it, never redefine).
 
 ## Pipeline
 
@@ -43,7 +43,7 @@ Every run lives in `runs/<run_id>/` (run_id = `YYYYMMDD-HHMMSS-<slug>`; created 
 
 ## Module contracts
 
-### `shoal/llm.py` — local Claude backend
+### `tellfold/llm.py` — local Claude backend
 ```python
 class LLMError(Exception): ...
 
@@ -59,7 +59,7 @@ class ClaudeLocal:  # implements LLM
 class FakeLLM:  # implements LLM, for tests: deterministic, no subprocess
     def __init__(self, responder: Callable[[str, str, type[BaseModel] | None], str | dict]): ...
 ```
-`LLM`, `LLMError` and `FakeLLM` are **already written** in `shoal/llm.py` — use them as-is. FakeLLM's
+`LLM`, `LLMError` and `FakeLLM` are **already written** in `tellfold/llm.py` — use them as-is. FakeLLM's
 responder is called as `responder(purpose, prompt, schema)` (sync or async); return a str for `text()`,
 a dict or JSON string for `json()`, or an `Exception` instance to make the call raise it. `FakeLLM.calls`
 records `(purpose, model, prompt)`. Every module must pass a short, stable `purpose` string to each call
@@ -77,14 +77,14 @@ records `(purpose, model, prompt)`. Every module must pass a short, stable `purp
 - Append one JSONL record per call to `log_path` (never log full prompts — only lengths).
 - Model aliases `haiku`, `sonnet`, `opus` are passed straight to the CLI.
 
-### `shoal/ingest.py`
+### `tellfold/ingest.py`
 ```python
 def load_documents(paths: list[Path]) -> list[tuple[str, str]]  # (source name, text); .pdf .md .txt .markdown
 def chunk_text(docs: list[tuple[str, str]], size: int = 1800, overlap: int = 200) -> list[Chunk]
 ```
 PDF via `pymupdf`; text via `charset-normalizer` for non-UTF-8 files. Chunk on paragraph boundaries where possible.
 
-### `shoal/graph.py` — local knowledge store (replaces Zep)
+### `tellfold/graph.py` — local knowledge store (replaces Zep)
 ```python
 async def extract_graph(llm: LLM, chunks: list[Chunk], *, question: str, model: str,
                         on_progress: Callable[[str], None] | None = None) -> KnowledgeGraph
@@ -93,7 +93,7 @@ async def extract_graph(llm: LLM, chunks: list[Chunk], *, question: str, model: 
   entities by normalized name/slug and drops relations pointing at unknown ids. Pure-python merge; no LLM.
 - Prompts steer extraction toward actors who would *react* to the question (people, orgs, groups, media).
 
-### `shoal/world.py` — the simulated social platform (SQLite)
+### `tellfold/world.py` — the simulated social platform (SQLite)
 ```python
 class World:
     def __init__(self, db_path: Path): ...                 # creates tables if absent
@@ -120,7 +120,7 @@ class World:
   engagement score `likes + 2*reposts + replies - dislikes` weighted by author influence and recency,
   excluding the agent's own posts. Deterministic for a given seed.
 
-### `shoal/personas.py`
+### `tellfold/personas.py`
 ```python
 async def generate_personas(llm: LLM, graph: KnowledgeGraph, *, question: str, n: int, model: str,
                             language: str) -> list[Persona]
@@ -130,7 +130,7 @@ async def generate_personas(llm: LLM, graph: KnowledgeGraph, *, question: str, n
   indifferent). Generate in batches of ≤10 per call with the already-made handles listed to avoid duplicates.
   Assign ids `a01..aNN`, unique handles, clamp activity/influence to 0..1.
 
-### `shoal/engine.py` — the round loop
+### `tellfold/engine.py` — the round loop
 ```python
 class Engine:
     def __init__(self, llm: LLM, world: World, config: SimConfig, *,
@@ -151,7 +151,7 @@ Per round r:
 6. `on_event("round_done", {...})` for the CLI live view.
 The engine must tolerate a failed batch (log it, those agents do nothing this round) and keep going.
 
-### `shoal/report.py`
+### `tellfold/report.py`
 ```python
 async def build_report(llm: LLM, world: World, graph: KnowledgeGraph, config: SimConfig, *,
                        model: str) -> Report
@@ -161,11 +161,11 @@ def render_markdown(report: Report) -> str
 - Python first computes evidence: per-round stats, top posts by engagement, most-followed agents,
   stance shift (first vs last posts of each agent), notable threads. The LLM gets that digest (not the raw
   DB) and returns a `Report`. Report must answer `config.question` directly and cite post ids / handles.
-- HTML (Jinja2 template in `shoal/templates/report.html`): report sections, sentiment-by-round chart (inline
+- HTML (Jinja2 template in `tellfold/templates/report.html`): report sections, sentiment-by-round chart (inline
   SVG), action mix per round, top threads rendered as a feed, persona directory. Light/dark via
   `prefers-color-scheme`. No external assets.
 
-### `shoal/chat.py`
+### `tellfold/chat.py`
 ```python
 async def interview(llm: LLM, world: World, agent_id: str, question: str, *, model: str,
                     history: list[tuple[str, str]] | None = None) -> str
@@ -173,26 +173,26 @@ async def ask_report(llm: LLM, world: World, report: Report, question: str, *, m
 ```
 Agent answers in character using persona + memory + its own posts and replies.
 
-### `shoal/cli.py` (Typer app `app`, entry point `shoal`)
+### `tellfold/cli.py` (Typer app `app`, entry point `tellfold`)
 ```
-shoal run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--agent-model haiku]
+tellfold run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--agent-model haiku]
           [--planner-model sonnet] [--concurrency 4] [--event "3:Breaking news text"]... [--out runs]
           [--language English] [--open]
-shoal report RUN_DIR            # rebuild report from an existing run
-shoal chat RUN_DIR --agent a03  # interactive interview (REPL)
-shoal ask RUN_DIR "question"    # one-shot question to the report agent
-shoal agents RUN_DIR            # table of personas
-shoal doctor                    # checks claude CLI on PATH, logged in (tiny haiku call), SDK import
+tellfold report RUN_DIR            # rebuild report from an existing run
+tellfold chat RUN_DIR --agent a03  # interactive interview (REPL)
+tellfold ask RUN_DIR "question"    # one-shot question to the report agent
+tellfold agents RUN_DIR            # table of personas
+tellfold doctor                    # checks claude CLI on PATH, logged in (tiny haiku call), SDK import
 ```
 Live progress with `rich` (stage spinners, per-round table: active agents, posts, sentiment).
 `--event` may repeat; format `ROUND:TEXT`. `--open` opens report.html in the browser at the end.
-Ctrl-C mid-run keeps everything written so far; `shoal report` can rebuild from it.
+Ctrl-C mid-run keeps everything written so far; `tellfold report` can rebuild from it.
 
 ## Testing
 - `tests/` uses `FakeLLM` only — no test may spawn the real CLI. Cover: chunking, graph merge/dedup,
   world.apply validation + feed ranking, engine round loop with a fake responder (including a failing batch
   and invalid post ids), report digest + HTML render, CLI `--help` and a full fake run via Typer's CliRunner
-  (inject the fake via an env var `SHOAL_FAKE_LLM=1` that `cli.py` honours).
+  (inject the fake via an env var `TELLFOLD_FAKE_LLM=1` that `cli.py` honours).
 - Run with `uv run pytest -q`.
 
 ## Ownership (build team)
@@ -201,8 +201,8 @@ contract above exactly; do not edit the other module.
 
 | builder | files |
 |---|---|
-| llm | `shoal/llm.py`, `tests/test_llm.py`, `tests/conftest.py` (shared FakeLLM fixtures) |
-| knowledge | `shoal/ingest.py`, `shoal/graph.py`, `shoal/personas.py`, `tests/test_ingest.py`, `tests/test_graph.py`, `tests/test_personas.py` |
-| world | `shoal/world.py`, `shoal/engine.py`, `tests/test_world.py`, `tests/test_engine.py` |
-| report | `shoal/report.py`, `shoal/chat.py`, `shoal/templates/report.html`, `tests/test_report.py` |
-| cli | `shoal/cli.py`, `shoal/__init__.py`, `shoal/__main__.py`, `README.md`, `examples/`, `tests/test_cli.py` |
+| llm | `tellfold/llm.py`, `tests/test_llm.py`, `tests/conftest.py` (shared FakeLLM fixtures) |
+| knowledge | `tellfold/ingest.py`, `tellfold/graph.py`, `tellfold/personas.py`, `tests/test_ingest.py`, `tests/test_graph.py`, `tests/test_personas.py` |
+| world | `tellfold/world.py`, `tellfold/engine.py`, `tests/test_world.py`, `tests/test_engine.py` |
+| report | `tellfold/report.py`, `tellfold/chat.py`, `tellfold/templates/report.html`, `tests/test_report.py` |
+| cli | `tellfold/cli.py`, `tellfold/__init__.py`, `tellfold/__main__.py`, `README.md`, `examples/`, `tests/test_cli.py` |

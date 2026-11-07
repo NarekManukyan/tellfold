@@ -12,10 +12,10 @@ import anyio
 import pytest
 from typer.testing import CliRunner
 
-from shoal import cli, runner
-from shoal.llm import FakeLLM, LLMError
-from shoal.models import GodEvent, Report, RunStage, RunState, RunStatus, SimConfig
-from shoal.world import World
+from tellfold import cli, runner
+from tellfold.llm import FakeLLM, LLMError
+from tellfold.models import GodEvent, Report, RunStage, RunState, RunStatus, SimConfig
+from tellfold.world import World
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "examples" / "mossbook_pricing.md"
 
@@ -250,12 +250,12 @@ def test_ui_command_builds_app_and_serves_on_localhost(tmp_path: Path, monkeypat
         seen["runs_dir"], seen["factory"] = runs_dir, llm_factory
         return "the-app"
 
-    package = types.ModuleType("shoal.server")
-    module = types.ModuleType("shoal.server.app")
+    package = types.ModuleType("tellfold.server")
+    module = types.ModuleType("tellfold.server.app")
     module.create_app = create_app
     package.app = module
-    monkeypatch.setitem(sys.modules, "shoal.server", package)
-    monkeypatch.setitem(sys.modules, "shoal.server.app", module)
+    monkeypatch.setitem(sys.modules, "tellfold.server", package)
+    monkeypatch.setitem(sys.modules, "tellfold.server.app", module)
     monkeypatch.setattr(uvicorn, "run", lambda app, **kw: seen.update(app=app, **kw))
     opened: list = []
     monkeypatch.setattr(cli.webbrowser, "open", lambda url: opened.append(url))

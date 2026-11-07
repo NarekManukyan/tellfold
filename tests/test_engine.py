@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from shoal.engine import Engine, build_follow_graph, pick_opening_authors, sample_active
-from shoal.llm import FakeLLM, LLMError
-from shoal.models import Action, ActionType, Entity, GodEvent, KnowledgeGraph, Persona, Relation, SimConfig
-from shoal.world import World
+from tellfold.engine import Engine, build_follow_graph, pick_opening_authors, sample_active
+from tellfold.llm import FakeLLM, LLMError
+from tellfold.models import Action, ActionType, Entity, GodEvent, KnowledgeGraph, Persona, Relation, SimConfig
+from tellfold.world import World
 
 AGENT_RE = re.compile(r"^=== (a\d+) @", re.M)
 

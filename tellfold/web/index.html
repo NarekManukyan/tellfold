@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Tellfold Studio: start, watch and replay local swarm simulations.">
+  <title>Tellfold Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2230 30 196 196%22%3E%3Cpath fill=%22%236366F1%22 d=%22M54 198L214 198L201.82 136.77L54 198Z%22/%3E%3Cpath fill=%22%234338CA%22 d=%22M54 198L201.82 136.77L167.14 84.86L54 198Z%22/%3E%3Cpath fill=%22%236366F1%22 d=%22M54 198L167.14 84.86L115.23 50.18L54 198Z%22/%3E%3Cpath fill=%22%234338CA%22 d=%22M54 198L115.23 50.18L54 38L54 198Z%22/%3E%3Ccircle fill=%22%23312E81%22 cx=%2254%22 cy=%22198%22 r=%2222%22/%3E%3C/svg%3E">
+  <script>
+    // Resolve the theme before first paint: saved choice, else the OS preference, else light.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("tellfold.theme") || localStorage.getItem("shoal.theme"); } catch (e) { /* storage blocked */ }
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/css/studio.css">
+  <script type="module" src="/static/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#view" onclick="event.preventDefault();document.getElementById('view').focus();">Skip to content</a>
+
+  <aside class="sidebar" id="sidebar" aria-label="Runs">
+    <div class="side-head">
+      <a class="brand" href="#/" aria-label="Tellfold, all runs">
+        <svg class="brand-mark" viewBox="30 30 196 196" aria-hidden="true" fill="currentColor">
+          <path d="title"/><path d="M87.27 191L214 191L204.5 143.24L87.42 191.73A34 34 0 0 1 87.27 191Z"/><path d="M82.06 178.8L199.14 130.3L172.09 89.81L82.48 179.42A34 34 0 0 1 82.06 178.8Z"/><path d="M72.58 169.52L162.19 79.91L121.7 52.86L73.2 169.94A34 34 0 0 1 72.58 169.52Z"/><path d="M60.27 164.58L108.76 47.5L61 38L61 164.73A34 34 0 0 1 60.27 164.58Z"/><circle cx="54" cy="198" r="22"/>
+        </svg>
+        <span>Tellfold</span>
+      </a>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path id="theme-icon" d=""/></svg>
+      </button>
+    </div>
+    <div class="side-new">
+      <a class="btn btn-primary" href="#/new" id="new-btn" aria-label="New simulation">
+        <svg class="icon sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="lbl">New simulation</span>
+      </a>
+    </div>
+    <nav class="side-list" id="side-list" aria-label="Runs"></nav>
+    <div class="side-foot">
+      <span class="conn" id="conn" data-state="unknown" title="Server connection">
+        <span class="dot" aria-hidden="true"></span><span class="lbl">Connecting</span>
+      </span>
+      <span class="badge-fake" id="fake-badge" hidden title="The server uses the deterministic fake model (TELLFOLD_FAKE_LLM)">Fake model</span>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn nav-btn" id="nav-btn" type="button" aria-label="Show runs" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+      <span class="top-chip" id="top-chip"></span>
+      <span class="spacer"></span>
+      <span class="top-prov" id="top-prov"></span>
+      <span class="top-actions" id="top-actions"></span>
+    </header>
+    <main id="view" tabindex="-1" aria-live="off"></main>
+  </div>
+
+  <div class="toasts" id="toasts" role="region" aria-label="Notifications" aria-live="polite"></div>
+
+  <noscript>
+    <div class="state">
+      <div class="state-title">Tellfold Studio needs JavaScript</div>
+      <div class="state-body">Everything runs locally; nothing is sent anywhere except this machine's Tellfold server.</div>
+    </div>
+  </noscript>
+</body>
+</html>

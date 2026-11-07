@@ -1,28 +1,30 @@
-# Shoal
+# Tellfold
 
-Shoal runs a small simulated social network on your own machine to help you guess how people will react to something. You give it one or more documents (a press release, a policy draft, a product announcement) and a question ("How will existing customers react to the new pricing?"). It reads the documents, builds a cast of people and organisations who would care, lets them post, reply, like and follow each other for a few rounds, and then writes a report that answers your question with the simulated posts as evidence.
+The logo and brand files live in `brand/` (see `brand/README.md`). The research behind the name is in `docs/naming-research.md`.
 
-Every model call goes through the Claude Code CLI you already have installed and logged in. Shoal needs no API key and no cloud service, and it keeps no data anywhere except the run folder it creates.
+Tellfold runs a small simulated social network on your own machine to help you guess how people will react to something. You give it one or more documents (a press release, a policy draft, a product announcement) and a question ("How will existing customers react to the new pricing?"). It reads the documents, builds a cast of people and organisations who would care, lets them post, reply, like and follow each other for a few rounds, and then writes a report that answers your question with the simulated posts as evidence.
 
-> **Clean-room note.** Shoal takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
+Every model call goes through the Claude Code CLI you already have installed and logged in. Tellfold needs no API key and no cloud service, and it keeps no data anywhere except the run folder it creates.
+
+> **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
 ## Requirements
 
-- **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Shoal uses your normal subscription through the CLI.
+- **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
 - **[uv](https://docs.astral.sh/uv/)** for Python and dependencies. Python 3.11 or newer; uv installs it for you if needed.
 - macOS or Linux. Windows should work under WSL, but nobody has tested it.
 
 ## Install
 
 ```sh
-git clone <this repo> shoal && cd shoal
+git clone <this repo> tellfold && cd tellfold
 uv sync
-uv run shoal doctor
+uv run tellfold doctor
 ```
 
 `doctor` checks that `claude` is on your PATH, that the Python SDK imports, and that a one-word haiku call succeeds. If all four rows say `ok`, you are ready.
 
-To get a global `shoal` command instead of `uv run shoal`:
+To get a global `tellfold` command instead of `uv run tellfold`:
 
 ```sh
 uv tool install .
@@ -33,7 +35,7 @@ uv tool install .
 The repository includes a fictional seed document: a plant-care app called Mossbook switching from a one-time purchase to a subscription.
 
 ```sh
-uv run shoal run examples/mossbook_pricing.md \
+uv run tellfold run examples/mossbook_pricing.md \
   -q "How will existing Mossbook buyers react to the new subscription pricing over the first two weeks?" \
   --agents 12 --rounds 4 --open
 ```
@@ -44,7 +46,9 @@ You will see each stage tick off, followed by a table that grows one row per rou
 
 ## Commands
 
-### `shoal run SEED... -q QUESTION [options]`
+The command is `tellfold` (`run`, `report`, `ui`, `serve`, `chat`, `ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
+
+### `tellfold run SEED... -q QUESTION [options]`
 
 Runs the whole pipeline and creates `runs/<YYYYMMDD-HHMMSS>-<slug>/`.
 
@@ -66,23 +70,23 @@ Runs the whole pipeline and creates `runs/<YYYYMMDD-HHMMSS>-<slug>/`.
 
 `SEED` can be `.pdf`, `.md`, `.markdown` or `.txt` files, or a folder containing them.
 
-### `shoal report RUN_DIR [--model M] [--open]`
+### `tellfold report RUN_DIR [--model M] [--open]`
 
 Rebuilds `report.json`, `report.html` and `report.md` from what is already in the run folder. Use it after an interrupted run, or to try a different model for the write-up.
 
-### `shoal chat RUN_DIR --agent a03`
+### `tellfold chat RUN_DIR --agent a03`
 
-Opens an interview with one simulated agent. The agent answers in character, using its persona, its memory notes and what it posted during the run. You can pass an id (`a03`) or a handle (`@maria_dev`). Type `exit` or press Ctrl-D to leave. Run `shoal agents` to see who is there.
+Opens an interview with one simulated agent. The agent answers in character, using its persona, its memory notes and what it posted during the run. You can pass an id (`a03`) or a handle (`@maria_dev`). Type `exit` or press Ctrl-D to leave. Run `tellfold agents` to see who is there.
 
-### `shoal ask RUN_DIR "question"`
+### `tellfold ask RUN_DIR "question"`
 
 Asks one follow-up question about the outcome ("Which group changed its mind the most, and why?"). The answer draws on the report and the simulation record.
 
-### `shoal agents RUN_DIR`
+### `tellfold agents RUN_DIR`
 
 Prints a table of every persona with followers, posts, activity, influence and starting stance.
 
-### `shoal doctor`
+### `tellfold doctor`
 
 Runs the setup checks described under Install. Exits with status 1 if anything fails.
 
@@ -100,11 +104,11 @@ runs/20260303-091500-how-will-existing-mossbook-buyers/
   report.md       the same report as Markdown
 ```
 
-Press Ctrl-C at any point and Shoal stops cleanly and keeps whatever it has written. If the simulation had already started, `shoal report RUN_DIR` builds a report from the rounds that finished.
+Press Ctrl-C at any point and Tellfold stops cleanly and keeps whatever it has written. If the simulation had already started, `tellfold report RUN_DIR` builds a report from the rounds that finished.
 
 ## Cost and rate limits
 
-Shoal does not charge anything itself; it uses your Claude subscription through the CLI, so heavy runs count against your plan's usage limits. Right after reading the seeds it prints an estimate of the number of calls, assuming none need a retry. For a run with `A` agents, `R` rounds and batch size `B`, that is roughly:
+Tellfold does not charge anything itself; it uses your Claude subscription through the CLI, so heavy runs count against your plan's usage limits. Right after reading the seeds it prints an estimate of the number of calls, assuming none need a retry. For a run with `A` agents, `R` rounds and batch size `B`, that is roughly:
 
 ```
 graph calls  ≈ chunks / 4                     (planner model)
@@ -119,18 +123,18 @@ Tips:
 
 - Start small (`--agents 8 --rounds 3`) to check the question and seeds give sensible results, then scale up.
 - Extended thinking is off for almost every call. With it on, haiku spends 10-20k hidden tokens per call and a graph-extraction call goes from about 10s to about 2 minutes. Only the final report keeps it, unless you pass `--think`.
-- If you hit rate limits, lower `--concurrency` to 2. Shoal retries with backoff, and a round where a batch keeps failing carries on without those agents.
+- If you hit rate limits, lower `--concurrency` to 2. Tellfold retries with backoff, and a round where a batch keeps failing carries on without those agents.
 - `--planner-model opus` gives a noticeably better report at a higher usage cost. Keep the agent model on haiku unless you have headroom.
 - `calls.jsonl` shows where the time went.
 
 ## How it works
 
 1. **Ingest.** Text is pulled out of the seed files (PDFs via PyMuPDF) and cut into overlapping chunks on paragraph boundaries.
-2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Shoal merges and deduplicates the results in plain Python.
+2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results in plain Python.
 3. **Personas.** The planner turns the most important actors into official accounts and public figures, then fills the rest of the cast with ordinary members of the affected public: different ages, jobs, incentives and starting views, including people who simply do not care.
 4. **World.** A small social platform lives in SQLite: posts, replies, reposts, likes, dislikes and follows. Each agent's feed ranks posts from people it follows and replies to its own posts first, then by engagement, author influence and recency.
 5. **Rounds.** Each round some agents become active (weighted by their activity level). They are decided in batches: the model sees each agent's private background, its memory notes and its own feed, and picks one to three actions. Invalid actions, such as liking a post that does not exist, are turned into "do nothing" instead of crashing the run. Breaking-news events are shown to everyone in their round. A short pass then scores the round's sentiment.
-6. **Report.** Shoal computes the evidence itself (per-round numbers, the most engaged posts, the most followed accounts, how each agent's tone moved from first post to last) and gives that digest to the planner model, which writes a report that answers the question and cites posts and handles.
+6. **Report.** Tellfold computes the evidence itself (per-round numbers, the most engaged posts, the most followed accounts, how each agent's tone moved from first post to last) and gives that digest to the planner model, which writes a report that answers the question and cites posts and handles.
 
 ## Limitations
 
@@ -147,8 +151,8 @@ Tips:
 uv run pytest -q
 ```
 
-Tests never call the real CLI. Setting `SHOAL_FAKE_LLM=1` makes every command use a built-in offline model that returns valid but meaningless placeholder output, which is handy for trying the CLI without spending usage:
+Tests never call the real CLI. Setting `TELLFOLD_FAKE_LLM=1` makes every command use a built-in offline model that returns valid but meaningless placeholder output, which is handy for trying the CLI without spending usage. The other environment variables are `TELLFOLD_HOME`, `TELLFOLD_FAKE_DELAY`, `TELLFOLD_SERVE_TOKEN`, `TELLFOLD_ALLOW_UNSAFE_RUNTIMES`, `TELLFOLD_KEY_<ID>` and `TELLFOLD_REAL_RUNTIMES`; the old `SHOAL_*` names are still read as fallbacks. Settings and runs live in `~/Library/Application Support/Tellfold`; an old `.../Shoal` folder is moved there automatically on first launch:
 
 ```sh
-SHOAL_FAKE_LLM=1 uv run shoal run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
+TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
 ```

@@ -19,8 +19,8 @@ from claude_agent_sdk import (
 )
 from pydantic import BaseModel
 
-from shoal.llm import ClaudeLocal, LLMError, extract_json
-from shoal.models import Report
+from tellfold.llm import ClaudeLocal, LLMError, extract_json
+from tellfold.models import Report
 
 
 class Pick(BaseModel):

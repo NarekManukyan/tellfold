@@ -1,6 +1,6 @@
 # Mossbook is changing how it's priced. Here's what that means for you.
 
-*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Shoal.*
+*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*
 
 Six years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.
 

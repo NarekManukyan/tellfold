@@ -1,4 +1,4 @@
-"""Runtime/settings API routes, runtime fields on POST /api/runs, the token guard, `shoal serve`, `shoal runtimes`."""
+"""Runtime/settings API routes, runtime fields on POST /api/runs, the token guard, `tellfold serve`, `tellfold runtimes`."""
 
 from __future__ import annotations
 
@@ -17,13 +17,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from typer.testing import CliRunner
 
-from shoal.cli import app as cli_app
-from shoal.cli import fake_responder
-from shoal.llm import FakeLLM
-from shoal.runtimes import RuntimeInfo
-from shoal.server import create_app
-from shoal.server.auth import TokenAuthMiddleware
-from shoal.settings import Settings, load_settings
+from tellfold.cli import app as cli_app
+from tellfold.cli import fake_responder
+from tellfold.llm import FakeLLM
+from tellfold.runtimes import RuntimeInfo
+from tellfold.server import create_app
+from tellfold.server.auth import TokenAuthMiddleware
+from tellfold.settings import Settings, load_settings
 
 TOKEN = "t0ken-" + "x" * 26
 SEED = b"# Ferry fares\n\nThe council wants to raise the ferry fare. Commuters object; shops approve.\n"
@@ -31,7 +31,7 @@ SEED = b"# Ferry fares\n\nThe council wants to raise the ferry fare. Commuters o
 
 @pytest.fixture(autouse=True)
 def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    monkeypatch.setenv("SHOAL_HOME", str(tmp_path / "shoal-home"))
+    monkeypatch.setenv("TELLFOLD_HOME", str(tmp_path / "tellfold-home"))
     return tmp_path
 
 
@@ -43,7 +43,7 @@ def fake_detect(settings: Settings, *, check_auth: bool = False) -> list[Runtime
 
 @pytest.fixture
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
-    monkeypatch.setattr("shoal.server.runtime_routes.detect_all", fake_detect)
+    monkeypatch.setattr("tellfold.server.runtime_routes.detect_all", fake_detect)
     factory = lambda run_dir, concurrency, think=False: FakeLLM(fake_responder)  # noqa: E731
     app = create_app(tmp_path / "runs", factory, fake_llm=True, poll_interval=0.05, shutdown_grace=0.5,
                      settings_path=tmp_path / "settings.json")
@@ -145,7 +145,7 @@ def test_token_middleware() -> None:
 
 
 def test_cli_runtimes_json_and_table(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("shoal.runtimes.detect_all", fake_detect)
+    monkeypatch.setattr("tellfold.runtimes.detect_all", fake_detect)
     runner = CliRunner()
     res = runner.invoke(cli_app, ["runtimes", "--json"])
     assert res.exit_code == 0, res.output
@@ -155,7 +155,7 @@ def test_cli_runtimes_json_and_table(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_cli_run_rejects_unknown_runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SHOAL_FAKE_LLM", "1")
+    monkeypatch.setenv("TELLFOLD_FAKE_LLM", "1")
     seed = tmp_path / "seed.md"
     seed.write_bytes(SEED)
     res = CliRunner().invoke(cli_app, ["run", str(seed), "-q", "q?", "--agent-runtime", "skynet",
@@ -165,7 +165,7 @@ def test_cli_run_rejects_unknown_runtime(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 def test_cli_run_records_runtimes_in_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SHOAL_FAKE_LLM", "1")
+    monkeypatch.setenv("TELLFOLD_FAKE_LLM", "1")
     seed = tmp_path / "seed.md"
     seed.write_bytes(SEED)
     res = CliRunner().invoke(cli_app, ["run", str(seed), "-q", "Will it pass?", "--agents", "3", "--rounds", "1",
@@ -177,8 +177,8 @@ def test_cli_run_records_runtimes_in_config(tmp_path: Path, monkeypatch: pytest.
 
 
 def test_serve_prints_port_requires_token_and_exits_on_stdin_eof(tmp_path: Path) -> None:
-    env = dict(os.environ, SHOAL_FAKE_LLM="1", SHOAL_SERVE_TOKEN=TOKEN, SHOAL_HOME=str(tmp_path / "home"))
-    proc = subprocess.Popen([sys.executable, "-m", "shoal", "serve", "--port", "0", "--runs", str(tmp_path / "runs")],
+    env = dict(os.environ, TELLFOLD_FAKE_LLM="1", TELLFOLD_SERVE_TOKEN=TOKEN, TELLFOLD_HOME=str(tmp_path / "home"))
+    proc = subprocess.Popen([sys.executable, "-m", "tellfold", "serve", "--port", "0", "--runs", str(tmp_path / "runs")],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     try:
         line = proc.stdout.readline().decode()
@@ -214,8 +214,8 @@ def test_serve_rejects_short_token(tmp_path: Path) -> None:
 
 
 def test_serve_port_zero_gives_each_server_its_own_port(tmp_path: Path) -> None:
-    env = dict(os.environ, SHOAL_FAKE_LLM="1", SHOAL_SERVE_TOKEN=TOKEN, SHOAL_HOME=str(tmp_path / "home"))
-    procs = [subprocess.Popen([sys.executable, "-m", "shoal", "serve", "--runs", str(tmp_path / f"runs{i}")],
+    env = dict(os.environ, TELLFOLD_FAKE_LLM="1", TELLFOLD_SERVE_TOKEN=TOKEN, TELLFOLD_HOME=str(tmp_path / "home"))
+    procs = [subprocess.Popen([sys.executable, "-m", "tellfold", "serve", "--runs", str(tmp_path / f"runs{i}")],
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env)
              for i in range(2)]
     try:

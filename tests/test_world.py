@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from shoal.models import Action, ActionType, AgentMemory, GodEvent, Persona, RoundStats
-from shoal.world import World
+from tellfold.models import Action, ActionType, AgentMemory, GodEvent, Persona, RoundStats
+from tellfold.world import World
 
 
 def persona(i: int, **kw) -> Persona:

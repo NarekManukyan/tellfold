@@ -1,6 +1,6 @@
-"""Shoal Studio server: HTTP API, uploads, SSE, live-run control and the watcher for CLI-started runs.
+"""Tellfold Studio server: HTTP API, uploads, SSE, live-run control and the watcher for CLI-started runs.
 
-Every model call goes through FakeLLM (the same schema-driven canned responder `SHOAL_FAKE_LLM=1` uses).
+Every model call goes through FakeLLM (the same schema-driven canned responder `TELLFOLD_FAKE_LLM=1` uses).
 A `Gate` lets a test hold a live run inside round 1 so injection / stop rules can be checked deterministically.
 """
 
@@ -19,13 +19,13 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from shoal.cli import fake_responder
-from shoal.llm import FakeLLM, LLMError
-from shoal.models import Action, ActionType, Persona, RoundStats, RunStage, RunState, RunStatus, SimConfig
-from shoal.runner import now_iso, write_json, write_status
-from shoal.server import create_app
-from shoal.server.app import safe_filename
-from shoal.world import World
+from tellfold.cli import fake_responder
+from tellfold.llm import FakeLLM, LLMError
+from tellfold.models import Action, ActionType, Persona, RoundStats, RunStage, RunState, RunStatus, SimConfig
+from tellfold.runner import now_iso, write_json, write_status
+from tellfold.server import create_app
+from tellfold.server.app import safe_filename
+from tellfold.world import World
 
 SEED_TEXT = (
     "# Harbour Town votes on a new ferry fare\n\n"
@@ -192,7 +192,7 @@ def test_health_spa_and_unknown_api(client: TestClient) -> None:
     assert client.get("/api/nope").status_code == 404
     assert client.get("/api/nope").headers["content-type"].startswith("application/json")
     assert client.get("/api/runs").json() == []
-    if (Path(__file__).parent.parent / "shoal/web/static/js/api.js").exists():
+    if (Path(__file__).parent.parent / "tellfold/web/static/js/api.js").exists():
         res = client.get("/static/js/api.js")
         assert res.status_code == 200 and "export" in res.text
     assert client.get("/static/js/does-not-exist.js").status_code == 404

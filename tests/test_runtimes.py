@@ -19,9 +19,9 @@ import httpx
 import pytest
 from pydantic import BaseModel
 
-from shoal.llm import ClaudeLocal, LLMError
-from shoal.models import SimConfig
-from shoal.runtimes import (
+from tellfold.llm import ClaudeLocal, LLMError
+from tellfold.models import SimConfig
+from tellfold.runtimes import (
     RoutedLLM,
     UnknownRuntime,
     build_llm,
@@ -31,11 +31,11 @@ from shoal.runtimes import (
     known_ids,
     test_runtime,
 )
-from shoal.runtimes import cli_tools, http_api, registry
-from shoal.runtimes.base import AdapterLLM, AdapterReply, AdapterRequest, BadOutput, Fatal, Transient
-from shoal.runtimes.cli_tools import ProcessResult, parse_json_reply
-from shoal.runtimes.detect import child_env, find_binary, parse_version
-from shoal.settings import OpenAIEndpoint, Settings, key_env_for, load_settings, save_settings
+from tellfold.runtimes import cli_tools, http_api, registry
+from tellfold.runtimes.base import AdapterLLM, AdapterReply, AdapterRequest, BadOutput, Fatal, Transient
+from tellfold.runtimes.cli_tools import ProcessResult, parse_json_reply
+from tellfold.runtimes.detect import child_env, find_binary, parse_version
+from tellfold.settings import OpenAIEndpoint, Settings, key_env_for, load_settings, save_settings
 
 
 class Pick(BaseModel):
@@ -53,15 +53,15 @@ def isolated_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     home.mkdir()
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    monkeypatch.setenv("SHOAL_HOME", str(tmp_path / "shoal-home"))
+    monkeypatch.setenv("TELLFOLD_HOME", str(tmp_path / "tellfold-home"))
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("PATH", str(bin_dir))
     for name in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "CURSOR_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY",
                  "GROK_API_KEY", "FACTORY_API_KEY", "GH_TOKEN", "GITHUB_TOKEN", "COPILOT_GITHUB_TOKEN",
-                 "NPM_CONFIG_PREFIX", "npm_config_prefix", "SHOAL_KEY_LOCAL"):
+                 "NPM_CONFIG_PREFIX", "npm_config_prefix", "TELLFOLD_KEY_LOCAL"):
         monkeypatch.delenv(name, raising=False)
     # the real machine's Homebrew / /usr/local folders must not leak in
-    monkeypatch.setattr("shoal.runtimes.detect.extra_bin_dirs", lambda: [home / ".local" / "bin"])
+    monkeypatch.setattr("tellfold.runtimes.detect.extra_bin_dirs", lambda: [home / ".local" / "bin"])
     return tmp_path
 
 
@@ -85,13 +85,13 @@ def test_settings_defaults_roundtrip_and_location(isolated_home: Path) -> None:
     settings = Settings(agent_runtime="ollama", agent_model="llama3.2:3b", openai_endpoints=[
         OpenAIEndpoint(id="LMStudio", name="LM Studio", base_url="http://127.0.0.1:1234/v1/", models=["qwen/qwen3-8b"])])
     path = save_settings(settings)
-    assert path == isolated_home / "shoal-home" / "settings.json"
+    assert path == isolated_home / "tellfold-home" / "settings.json"
     loaded = load_settings()
     assert loaded == settings
     assert loaded.openai_endpoints[0].id == "lmstudio"
     assert loaded.openai_endpoints[0].base_url == "http://127.0.0.1:1234/v1"
     assert loaded.openai_endpoints[0].runtime_id == "openai-compatible:lmstudio"
-    assert loaded.openai_endpoints[0].api_key_env == "SHOAL_KEY_LMSTUDIO"
+    assert loaded.openai_endpoints[0].api_key_env == "TELLFOLD_KEY_LMSTUDIO"
     path.write_text("{not json", encoding="utf-8")
     assert load_settings() == Settings()  # corrupt file -> defaults, never raises
 
@@ -106,7 +106,7 @@ def test_settings_reject_secrets_and_bad_urls() -> None:
     with pytest.raises(ValueError):
         Settings(openai_endpoints=[OpenAIEndpoint(id="a", name="A", base_url="http://h"),
                                    OpenAIEndpoint(id="a", name="B", base_url="http://h")])
-    assert key_env_for("open-router.ai") == "SHOAL_KEY_OPEN_ROUTER_AI"
+    assert key_env_for("open-router.ai") == "TELLFOLD_KEY_OPEN_ROUTER_AI"
 
 
 def test_simconfig_runtime_fields_default_for_old_configs() -> None:
@@ -189,7 +189,7 @@ def test_detect_ollama_and_openai_compatible_with_mock_servers(monkeypatch: pyte
     assert ollama.installed and ollama.version == "0.12.0" and ollama.models == ["llama3.2:3b", "qwen3:8b"]
     assert ollama.default_models == {"agent": "llama3.2:3b", "planner": "qwen3:8b"}
     assert infos["openai-compatible:deepseek"].auth == "missing"
-    monkeypatch.setenv("SHOAL_KEY_DEEPSEEK", SECRET)
+    monkeypatch.setenv("TELLFOLD_KEY_DEEPSEEK", SECRET)
     ds = get_runtime("openai-compatible:deepseek", settings).detect()
     assert ds.installed and ds.auth == "ok" and ds.models == ["deepseek-chat"]
     assert SECRET not in ds.model_dump_json()
@@ -416,7 +416,7 @@ def test_other_cli_adapters(fake_bin: str, cls: type, stdout: str, expected: str
         assert dangerous not in argv
 
 
-ENGINE_SECRETS = {"SHOAL_SERVE_TOKEN": "engine-token-0123456789", "SHOAL_KEY_DEEPSEEK": SECRET,
+ENGINE_SECRETS = {"TELLFOLD_SERVE_TOKEN": "engine-token-0123456789", "TELLFOLD_KEY_DEEPSEEK": SECRET,
                   "ANTHROPIC_API_KEY": SECRET, "OPENAI_API_KEY": SECRET}
 
 
@@ -541,7 +541,7 @@ def test_real_process_runner_passes_prompt_without_shell(tmp_path: Path) -> None
     hostile = "$(touch pwned); `id`; rm -rf ~ && echo"
     out = run(Echo(str(script)).text, hostile, system="s", model="", purpose="x")
     args, cwd, stdin = out.split("|")
-    assert hostile in args and "shoal-rt-" in cwd and stdin == "from stdin"
+    assert hostile in args and "tellfold-rt-" in cwd and stdin == "from stdin"
     assert not (tmp_path / "pwned").exists()
 
 
@@ -585,7 +585,7 @@ def test_ollama_missing_model_and_unreachable() -> None:
 
 def test_openai_compatible_falls_back_json_schema_then_object_then_prompt(monkeypatch: pytest.MonkeyPatch,
                                                                          tmp_path: Path) -> None:
-    monkeypatch.setenv("SHOAL_KEY_LOCAL", SECRET)
+    monkeypatch.setenv("TELLFOLD_KEY_LOCAL", SECRET)
     seen: list[dict] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -599,7 +599,7 @@ def test_openai_compatible_falls_back_json_schema_then_object_then_prompt(monkey
 
     log = tmp_path / "calls.jsonl"
     llm = http_api.OpenAICompatLLM(base_url="http://127.0.0.1:1234/v1", runtime_id="openai-compatible:local",
-                                   api_key_env="SHOAL_KEY_LOCAL", transport=httpx.MockTransport(handler),
+                                   api_key_env="TELLFOLD_KEY_LOCAL", transport=httpx.MockTransport(handler),
                                    log_path=log)
     assert run(llm.json, "p", system="s", model="qwen/qwen3-8b", purpose="x", schema=Pick).n == 5
     assert [b.get("response_format", {}).get("type") for b in seen] == ["json_schema", "json_object", None]
@@ -610,12 +610,12 @@ def test_openai_compatible_falls_back_json_schema_then_object_then_prompt(monkey
 
 
 def test_openai_compatible_auth_failure_has_no_secret(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SHOAL_KEY_LOCAL", SECRET)
+    monkeypatch.setenv("TELLFOLD_KEY_LOCAL", SECRET)
 
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, json={"error": {"message": "invalid key"}})
 
-    llm = http_api.OpenAICompatLLM(base_url="http://h/v1", api_key_env="SHOAL_KEY_LOCAL",
+    llm = http_api.OpenAICompatLLM(base_url="http://h/v1", api_key_env="TELLFOLD_KEY_LOCAL",
                                    transport=httpx.MockTransport(handler))
     with pytest.raises(LLMError) as err:
         run(llm.text, "p", system="s", model="m", purpose="x")
@@ -673,7 +673,7 @@ class Recorder:
 
 
 def test_routed_llm_sends_agent_purposes_to_agent_runtime_and_maps_aliases() -> None:
-    from shoal.runtimes import Route
+    from tellfold.runtimes import Route
 
     agent, planner = Recorder("agent"), Recorder("planner")
     routed = RoutedLLM(Route(agent, "ollama", "llama3.2", False), Route(planner, "claude-code", "sonnet", True))
@@ -696,7 +696,7 @@ def test_build_llm_defaults_to_claude_code_and_shares_one_backend(tmp_path: Path
     assert llm.agent.llm is llm.planner.llm and isinstance(llm.agent.llm, ClaudeLocal)
     assert llm.agent.llm._think_purposes[0] == "graph."
     options = llm.agent.llm._options("sys", "haiku", None, "engine.round")
-    assert options.cwd and "shoal-runtime-cwd" in str(options.cwd) and options.setting_sources == []
+    assert options.cwd and "tellfold-runtime-cwd" in str(options.cwd) and options.setting_sources == []
 
 
 def test_build_llm_mixes_runtimes_and_uses_settings_models() -> None:
@@ -719,16 +719,16 @@ def test_test_runtime_reports_failure_without_raising(monkeypatch: pytest.Monkey
 
 
 def test_make_llm_uses_the_run_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from shoal import cli
-    from shoal.runner import write_json
+    from tellfold import cli
+    from tellfold.runner import write_json
 
-    monkeypatch.delenv("SHOAL_FAKE_LLM", raising=False)
+    monkeypatch.delenv("TELLFOLD_FAKE_LLM", raising=False)
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     write_json(run_dir / "config.json", SimConfig(question="q", seed_files=[], agent_runtime="ollama"))
     llm = cli.make_llm(run_dir, 2)
     assert isinstance(llm, RoutedLLM) and llm.agent.runtime_id == "ollama" and llm.planner.runtime_id == "claude-code"
     write_json(run_dir / "config.json", SimConfig(question="q", seed_files=[], agent_runtime="gone"))
-    with pytest.raises(LLMError, match="shoal runtimes"):
+    with pytest.raises(LLMError, match="tellfold runtimes"):
         cli.make_llm(run_dir, 2)
     assert cli.make_llm(None, 1).agent.runtime_id == "claude-code"

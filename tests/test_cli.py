@@ -1,4 +1,4 @@
-"""CLI tests. Everything runs on the canned FakeLLM via SHOAL_FAKE_LLM=1; the real CLI is never spawned."""
+"""CLI tests. Everything runs on the canned FakeLLM via TELLFOLD_FAKE_LLM=1; the real CLI is never spawned."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import typer
 from pydantic import BaseModel, Field
 from typer.testing import CliRunner
 
-from shoal import cli
-from shoal.models import Action, KnowledgeGraph, Persona, Report, SimConfig
+from tellfold import cli
+from tellfold.models import Action, KnowledgeGraph, Persona, Report, SimConfig
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "examples" / "mossbook_pricing.md"
 runner = CliRunner()

@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from shoal.llm import FakeLLM
+from tellfold.llm import FakeLLM
 
 # A route answers one purpose. It can be a fixed value (str / dict / Exception), a list of values
 # consumed one per call (the last one repeats), or a callable(prompt, schema) -> value.

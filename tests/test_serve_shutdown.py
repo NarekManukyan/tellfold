@@ -1,4 +1,4 @@
-"""`shoal serve` must not outlive the Mac app when a request thread is stuck in a blocking call."""
+"""`tellfold serve` must not outlive the Mac app when a request thread is stuck in a blocking call."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import time
 def test_exit_later_ends_a_process_whose_main_thread_is_stuck() -> None:
     code = (
         "import threading\n"
-        "from shoal.cli import _exit_later\n"
+        "from tellfold.cli import _exit_later\n"
         "_exit_later(0.2)\n"
         "threading.Event().wait()\n"  # never returns on its own
     )
@@ -23,13 +23,13 @@ def test_exit_later_ends_a_process_whose_main_thread_is_stuck() -> None:
 def test_fake_delay_parsing_and_slow_fake_llm(monkeypatch) -> None:
     import anyio
 
-    from shoal import cli
+    from tellfold import cli
 
-    monkeypatch.setenv("SHOAL_FAKE_LLM", "1")
+    monkeypatch.setenv("TELLFOLD_FAKE_LLM", "1")
     for raw, want in [("", 0.0), ("abc", 0.0), ("-1", 0.0), ("0.05", 0.05), ("99", 10.0)]:
-        monkeypatch.setenv("SHOAL_FAKE_DELAY", raw)
+        monkeypatch.setenv("TELLFOLD_FAKE_DELAY", raw)
         assert cli.fake_delay() == want
-    monkeypatch.setenv("SHOAL_FAKE_DELAY", "0.05")
+    monkeypatch.setenv("TELLFOLD_FAKE_DELAY", "0.05")
     llm = cli.make_llm(None, 1)
 
     async def call() -> float:
@@ -53,8 +53,8 @@ def test_force_exit_kills_running_agent_cli_groups(tmp_path) -> None:
     child.chmod(0o755)
     code = (
         "import asyncio, os, time\n"
-        "from shoal.cli import _exit_later\n"
-        "from shoal.runtimes.cli_tools import run_process\n"
+        "from tellfold.cli import _exit_later\n"
+        "from tellfold.runtimes.cli_tools import run_process\n"
         "async def main():\n"
         f"    task = asyncio.ensure_future(run_process([{str(child)!r}], stdin=None, cwd='/', env=dict(os.environ)))\n"
         f"    while not os.path.exists({str(pid_file)!r}):\n"

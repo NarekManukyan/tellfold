@@ -1,7 +1,7 @@
-"""Real-tool checks for the runtimes marked tested=True. Skipped unless SHOAL_REAL_RUNTIMES=1.
+"""Real-tool checks for the runtimes marked tested=True. Skipped unless TELLFOLD_REAL_RUNTIMES=1.
 
 Each makes one tiny call (haiku-class model, a one-word prompt):
-    SHOAL_REAL_RUNTIMES=1 uv run pytest -q tests/test_runtimes_real.py
+    TELLFOLD_REAL_RUNTIMES=1 uv run pytest -q tests/test_runtimes_real.py
 """
 
 from __future__ import annotations
@@ -12,12 +12,12 @@ import anyio
 import pytest
 from pydantic import BaseModel
 
-from shoal.models import SimConfig
-from shoal.runtimes import build_llm, get_runtime, test_runtime
-from shoal.settings import Settings
+from tellfold.models import SimConfig
+from tellfold.runtimes import build_llm, get_runtime, test_runtime
+from tellfold.settings import Settings
 
-pytestmark = pytest.mark.skipif(os.environ.get("SHOAL_REAL_RUNTIMES") != "1",
-                                reason="real runtime calls run only with SHOAL_REAL_RUNTIMES=1")
+pytestmark = pytest.mark.skipif(os.environ.get("TELLFOLD_REAL_RUNTIMES") != "1",
+                                reason="real runtime calls run only with TELLFOLD_REAL_RUNTIMES=1")
 
 
 class Word(BaseModel):

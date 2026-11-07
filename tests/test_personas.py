@@ -3,9 +3,9 @@ from collections import Counter
 
 import pytest
 
-from shoal.llm import FakeLLM, LLMError
-from shoal.models import Entity, KnowledgeGraph, Relation
-from shoal.personas import PersonaBatch, generate_personas, plan_slots, unique_handle
+from tellfold.llm import FakeLLM, LLMError
+from tellfold.models import Entity, KnowledgeGraph, Relation
+from tellfold.personas import PersonaBatch, generate_personas, plan_slots, unique_handle
 
 GRAPH = KnowledgeGraph(
     entities=[
