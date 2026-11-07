@@ -109,6 +109,13 @@ struct RunDetailView: View {
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button {
+                    if let config = store.config { app.runAgain(runID: store.runID, config: config) }
+                } label: {
+                    Label("Run Again…", systemImage: "arrow.counterclockwise")
+                }
+                .disabled(!store.canRunAgain)
+
+                Button {
                     store.showsInjectEvent = true
                 } label: {
                     Label("Inject Event…", systemImage: "bolt")
@@ -141,7 +148,7 @@ struct RunDetailView: View {
             } label: {
                 Label("More", systemImage: "ellipsis.circle")
             }
-            .help("Inject an event, rebuild or export the report")
+            .help("Run again, inject an event, rebuild or export the report")
         }
     }
 

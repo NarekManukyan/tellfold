@@ -12,6 +12,8 @@ struct OverviewView: View {
     @State private var width: CGFloat = 1000
 
     private static let sideBySide: CGFloat = 860
+    /// Height of the strip the floating view switch covers at the top of the Overview crowd graph.
+    private static let switchStrip: CGFloat = 22
 
     var body: some View {
         ScrollView {
@@ -48,27 +50,32 @@ struct OverviewView: View {
     private var crowdCard: some View {
         VStack(alignment: .leading, spacing: Theme.space3) {
             SectionTitle("Crowd") {
-                HStack(spacing: Theme.space2) {
-                    Picker("View", selection: $crowd.mode) {
-                        ForEach(CrowdMode.allCases) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .controlSize(.small)
+                Button("Open") { navigate(.crowd) }
+                    .buttonStyle(.console(.secondary, compact: true))
                     .fixedSize()
-                    .accessibilityLabel("Crowd view")
-                    Button("Open") { navigate(.crowd) }
-                        .buttonStyle(.console(.secondary, compact: true))
-                        .fixedSize()
-                        .help("Open the crowd in full")
-                }
+                    .help("Open the crowd in full")
             }
-            CrowdGraphView(store: store, model: crowd, compact: true) { agent, camp in
+            // The graph runs full-bleed; the view switch floats over it on Liquid Glass and the picture is framed below it.
+            CrowdGraphView(store: store, model: crowd, compact: true, insets: CrowdInsets(top: Self.switchStrip, bottom: 0)) { agent, camp in
                 if let agent { store.selectedAgentID = agent }
                 if let camp { store.selectedAgentID = nil; store.selectedCampID = camp }
                 navigate(.crowd)
             }
-            .frame(height: 320)
+            .overlay(alignment: .topTrailing) {
+                Picker("View", selection: $crowd.mode) {
+                    ForEach(CrowdMode.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.small)
+                .fixedSize()
+                .accessibilityLabel("Crowd view")
+                .padding(.horizontal, 4)
+                .frame(height: 28)
+                .glassEffect(.regular, in: .capsule)
+                .padding(6)
+            }
+            .frame(height: 320 + Self.switchStrip)
             Text("Avatars are simulated people and tiles are organisations. Size is influence. Click one to open it.")
                 .font(Theme.caption)
                 .foregroundStyle(Theme.muted)
@@ -218,6 +225,7 @@ private struct SummaryCard: View {
             HStack(spacing: Theme.space2) {
                 Button("Read full report") { navigate(.report) }
                     .buttonStyle(.consolePrimary)
+                RunAgainButton(store: store)
                 Text("A scenario exploration of a simulated crowd, not a poll of real people.")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.muted)
@@ -243,6 +251,7 @@ private struct SummaryCard: View {
                     }
                     .buttonStyle(.consolePrimary)
                     .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
+                    RunAgainButton(store: store)
                     if store.latestRound == 0 {
                         Text("A report needs at least one finished round.")
                             .font(Theme.small)

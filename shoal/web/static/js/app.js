@@ -5,7 +5,7 @@
 import { api, stream, ApiError } from "./api.js";
 import { Feed, formatScore, sentimentSign } from "./feed.js";
 import { AgentDrawer } from "./agent.js";
-import { mountNewRun } from "./newrun.js";
+import { mountNewRun, EXAMPLES } from "./newrun.js";
 import { avatarImg } from "./avatar.js";
 
 // The canvas modules are loaded on demand so a failure in one of them degrades a single card instead of
@@ -58,6 +58,7 @@ const ICONS = {
   plus: "M12 5v14M5 12h14",
   minus: "M5 12h14",
   fit: "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
+  again: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3",
   play: "M7 4.5v15l12-7.5z",
   pause: "M8 5v14M16 5v14",
   prev: "M15 6l-6 6 6 6",
@@ -471,7 +472,7 @@ function route() {
   view.scrollTop = 0;
   document.getElementById("new-btn")?.setAttribute("aria-current", r.name === "new" ? "page" : "false");
   if (r.name === "home") unmountView = mountHome(view);
-  else if (r.name === "new") unmountView = mountNew(view);
+  else if (r.name === "new") unmountView = mountNew(view, r.query);
   else if (r.name === "run") unmountView = mountRun(view, r.params.id, r.query);
   else unmountView = mountNotFound(view);
   renderSidebar();
@@ -498,12 +499,13 @@ function mountHome(root) {
   let firstLoad = true;
 
   const list = el("div", { class: "runs", "aria-label": "Simulation runs" });
+  const headBtn = el("a", { class: "btn btn-primary", href: "#/new" }, icon("plus", "icon sm"), "New simulation");
   const page = el("div", { class: "page" },
     el("div", { class: "page-head" },
       el("div", {},
         el("h1", { text: "Simulations" }),
-        el("p", { text: "Seed documents and a question in, a simulated crowd's reaction and a prediction out. Open a run to read its answer, watch the crowd or replay it round by round." })),
-      el("a", { class: "btn btn-primary", href: "#/new" }, icon("plus", "icon sm"), "New simulation")),
+        el("p", { text: "Ask a question about your product and a simulated crowd reacts to it. Open a run to read its answer, watch the crowd or replay it round by round." })),
+      headBtn),
     list);
   root.appendChild(page);
 
@@ -555,17 +557,11 @@ function mountHome(root) {
       setConn("ok", "Local");
       if (!runs.length) {
         list.hidden = true;
-        let empty = page.querySelector(".empty-home");
-        if (!empty) {
-          empty = el("div", { class: "empty-home" },
-            shoalGlyph(),
-            el("h2", { text: "No simulations yet" }),
-            el("p", {}, "Start one from a few seed documents and a question. Runs started from the command line with ", el("code", { text: "shoal run" }), " show up here too."),
-            el("a", { class: "btn btn-primary", href: "#/new" }, icon("plus", "icon sm"), "New simulation"));
-          page.appendChild(empty);
-        }
+        headBtn.hidden = true;
+        if (!page.querySelector(".empty-home")) page.appendChild(firstQuestionCard());
       } else {
         list.hidden = false;
+        headBtn.hidden = false;
         page.querySelector(".empty-home")?.remove();
         renderGroups(runs);
       }
@@ -591,6 +587,45 @@ function mountHome(root) {
   };
 }
 
+/** No runs yet: ask the first question right here; Continue (or an example) opens the form with it filled in. */
+function firstQuestionCard() {
+  const q = el("textarea", { class: "textarea nr-question", id: "first-question", rows: "3", maxlength: "2000",
+    placeholder: "How will people react to …?" });
+  const hint = el("span", { class: "nr-reason", id: "first-question-reason", "aria-live": "polite" });
+  const go = () => {
+    if (!q.value.trim()) {
+      hint.textContent = "Add a question, or pick an example";
+      q.focus();
+      return;
+    }
+    openNewWithQuestion(q.value);
+  };
+  q.addEventListener("input", () => { if (q.value.trim()) hint.textContent = ""; });
+  q.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      go();
+    }
+  });
+  const card = el("section", { class: "card empty-home", "aria-labelledby": "first-title" },
+    el("div", { class: "empty-home-top" },
+      shoalGlyph(),
+      el("div", {},
+        el("h2", { id: "first-title", text: "Ask your first question" }),
+        el("p", { text: "Shoal casts a simulated crowd, lets it react for a few rounds and writes up what happened. Start with what you want to find out." }))),
+    el("label", { class: "sr-only", for: "first-question", text: "Your question" }),
+    q,
+    el("div", { class: "nr-examples", role: "group", "aria-labelledby": "first-examples-label" },
+      el("span", { class: "nr-examples-label", id: "first-examples-label", text: "Try an example:" }),
+      EXAMPLES.map((text) => el("button", { class: "nr-example", type: "button", text, onclick: () => openNewWithQuestion(text) }))),
+    el("div", { class: "empty-home-foot" },
+      el("p", { class: "note" }, "Runs started from the command line with ", el("code", { text: "shoal run" }), " show up here too."),
+      el("div", { class: "nr-actions" }, hint,
+        el("button", { class: "btn btn-primary", type: "button", "aria-describedby": "first-question-reason", onclick: go }, "Continue"))));
+  setTimeout(() => { if (card.isConnected) q.focus({ preventScroll: true }); }, 0);
+  return card;
+}
+
 function shoalGlyph() {
   const s = svgEl("svg", { width: 104, height: 56, viewBox: "0 0 26 14", "aria-hidden": "true" });
   for (const [x, y, r] of [[22, 7, 2.6], [15.5, 2.8, 2.1], [15.5, 11.2, 2.1], [9, 7, 1.9], [3.4, 3.2, 1.5]]) {
@@ -601,25 +636,61 @@ function shoalGlyph() {
 
 // ------------------------------------------------------------------ new run
 
-function mountNew(root) {
-  setCrumbs([{ label: "Runs", href: "#/" }, { label: "New simulation" }]);
-  document.title = "New simulation · Shoal";
-  const page = el("div", { class: "page" },
+/** Open the New simulation form with a question already filled in (the home empty state uses this). */
+function openNewWithQuestion(question) {
+  Studio.prefill = { question: String(question || "").trim() };
+  location.hash = "#/new";
+}
+
+function mountNew(root, query = {}) {
+  const fromId = query.from || null;
+  const prefill = Studio.prefill || {};
+  Studio.prefill = null;
+  setCrumbs(fromId
+    ? [{ label: "Runs", href: "#/" }, { label: "Earlier run", href: `#/run/${encodeURIComponent(fromId)}` }, { label: "Run again" }]
+    : [{ label: "Runs", href: "#/" }, { label: "New simulation" }]);
+  document.title = `${fromId ? "Run again" : "New simulation"} · Shoal`;
+  const lead = el("p");
+  const page = el("div", { class: "page page-newrun" },
     el("div", { class: "page-head" },
       el("div", {},
-        el("h1", { text: "New simulation" }),
-        el("p", { text: "Shoal reads your documents, maps the topic, casts a crowd of personas and lets them talk for a number of rounds. Everything runs on this machine with the model tools you already have." }))));
+        el("h1", { text: fromId ? "Run again" : "New simulation" }),
+        lead)));
   const host = el("div");
   page.appendChild(host);
   root.appendChild(page);
-  const unmount = mountNewRun(host, {
-    api,
-    onCreated: (id) => {
-      loadSidebar();
-      location.hash = `#/run/${encodeURIComponent(id)}`;
-    },
-  });
+  let unmount = null;
+  let alive = true;
+  const mount = (extra = {}) => {
+    if (!alive) return;
+    unmount = mountNewRun(host, {
+      api,
+      cancelHref: fromId ? `#/run/${encodeURIComponent(fromId)}` : "#/",
+      prefill: { ...prefill, ...extra },
+      onCreated: (id) => {
+        loadSidebar();
+        location.hash = `#/run/${encodeURIComponent(id)}`;
+      },
+    });
+  };
+  if (fromId) {
+    lead.textContent = "The question, size and advanced options are copied from the earlier run. Change anything you like.";
+    host.replaceChildren(stateBlock({ title: "Loading the earlier run", spinner: true }));
+    api.run(fromId).then((detail) => {
+      if (!alive) return;
+      mount({ config: detail && detail.config ? detail.config : null });
+    }).catch((err) => {
+      if (!alive) return;
+      toast("error", "Could not load the earlier run", err.message || String(err));
+      lead.textContent = "The earlier run could not be read, so this form starts empty.";
+      mount();
+    });
+  } else {
+    lead.textContent = "Three questions. Everything else has a sensible default under Advanced.";
+    mount();
+  }
   return () => {
+    alive = false;
     if (typeof unmount === "function") unmount();
   };
 }
@@ -777,7 +848,13 @@ function mountRun(root, runId, query) {
       title: isRunning() ? "Available once the run has finished" : "Write the report again from the stored run", run: () => rebuildReport() },
     S.report ? { label: "Open report page", icon: "external", href: api.reportUrl(runId) } : null,
     { label: "Run details", icon: "details", run: () => selectTab("details", { focus: true }) },
+    canRunAgain() ? { label: "Run again…", icon: "again", run: () => runAgain() } : null,
   ]);
+  const runAgainHref = `#/new?from=${encodeURIComponent(runId)}`;
+  const canRunAgain = () => !!S.detail && !isRunning(); // done, stopped or failed
+  const runAgain = () => { location.hash = runAgainHref; };
+  const runAgainButton = () => el("a", { class: "btn", href: runAgainHref, title: "Start a new simulation with this run's question and settings" },
+    icon("again", "icon sm"), "Run again…");
   topActions.replaceChildren(stopBtn, injectBtn, more);
 
   // -------------------------------------------------------------- tabs row
@@ -1612,11 +1689,13 @@ function mountRun(root, runId, query) {
       else if (rep.summary) kids.push(inline(rep.summary, el("p", { class: "sum-lead" })));
       kids.push(el("div", { class: "sum-actions" },
         el("button", { class: "btn btn-primary", type: "button", onclick: () => selectTab("report", { focus: true }) }, icon("doc", "icon sm"), "Read full report"),
-        el("button", { class: "btn", type: "button", onclick: () => { selectTab("report"); requestAnimationFrame(() => reportRoot.querySelector(".ask input")?.focus()); } }, icon("chat", "icon sm"), "Ask about it")));
+        el("button", { class: "btn", type: "button", onclick: () => { selectTab("report"); requestAnimationFrame(() => reportRoot.querySelector(".ask input")?.focus()); } }, icon("chat", "icon sm"), "Ask about it"),
+        canRunAgain() ? runAgainButton() : null));
     } else {
       kids.push(el("h1", { class: "verdict", text: state === "failed" ? "No answer: the run ended before its report." : "No report yet" }));
       kids.push(el("p", { class: "sum-lead", text: S.stats.length ? "A report can still be written from the rounds that were recorded." : "No rounds were recorded, so there is nothing to report on." }));
-      if (S.stats.length) kids.push(el("div", { class: "sum-actions" }, rebuildButton("Build report")));
+      const acts = [S.stats.length ? rebuildButton("Build report") : null, canRunAgain() ? runAgainButton() : null].filter(Boolean);
+      if (acts.length) kids.push(el("div", { class: "sum-actions" }, acts));
     }
     summaryCard.replaceChildren(...kids);
   }

@@ -28,6 +28,9 @@ final class AppModel {
     private(set) var currentStore: RunStore?
 
     var isNewSimulationPresented = false
+    /// What the sheet opens with (a question from the empty state, or a run's settings for "Run again…"); the sheet
+    /// takes it when it appears.
+    var newSimulationPrefill: NewSimulationPrefill?
     /// Seed files waiting for the New Simulation sheet (Dock drop, File > Open).
     var pendingSeedFiles: [URL] = []
 
@@ -255,8 +258,15 @@ final class AppModel {
         return id
     }
 
-    func newSimulation() {
+    func newSimulation(prefill: NewSimulationPrefill? = nil) {
+        newSimulationPrefill = prefill
         isNewSimulationPresented = true
+    }
+
+    /// Opens the sheet with a finished, stopped or failed run's question, size and options.
+    func runAgain(runID: String, config: SimConfig) {
+        let folder = URL(fileURLWithPath: prefs.runsFolder).appending(path: runID)
+        newSimulation(prefill: .runAgain(config: config, runFolder: folder) { FileManager.default.fileExists(atPath: $0.path) })
     }
 
     static let seedContentTypes: [UTType] = [

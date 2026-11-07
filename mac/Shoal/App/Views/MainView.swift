@@ -32,14 +32,7 @@ struct MainView: View {
         } else if !model.engine.state.isRunning {
             EngineUnavailableView()
         } else if model.hasLoadedRuns && model.runs.isEmpty {
-            ContentUnavailableView {
-                Label("No Simulations Yet", systemImage: "circle.hexagongrid")
-            } description: {
-                Text("Start one from a few seed documents and a question about how people will react.")
-            } actions: {
-                Button("New Simulation…") { model.newSimulation() }
-                    .buttonStyle(.consolePrimary)
-            }
+            FirstQuestionCard()
         } else {
             ContentUnavailableView("No Simulation Selected", systemImage: "sidebar.left",
                                    description: Text("Choose a simulation in the sidebar."))

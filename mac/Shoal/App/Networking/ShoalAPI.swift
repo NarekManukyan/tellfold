@@ -50,6 +50,10 @@ struct NewRunRequest: Hashable, Sendable {
     var language: String = "English"
     var think: Bool = false
     var events: [GodEvent] = []
+    /// RNG seed for activity sampling (the engine's default is 7).
+    var seed: Int = 7
+    /// Documents that exist only in memory, such as the pasted description, sent like uploaded seed files.
+    var inlineDocuments: [InlineDocument] = []
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
@@ -67,8 +71,8 @@ struct NewRunRequest: Hashable, Sendable {
     }
 
     /// Rough chunk count for the estimate: ~1,600 characters per chunk, PDFs yield ~30 % text per byte.
-    static func estimatedChunks(files: [URL]) -> Int {
-        var chars = 0.0
+    static func estimatedChunks(files: [URL], inlineDocuments: [InlineDocument] = []) -> Int {
+        var chars = Double(inlineDocuments.reduce(0) { $0 + $1.data.count })
         for url in files {
             let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
             chars += url.pathExtension.lowercased() == "pdf" ? Double(size) * 0.3 : Double(size)
@@ -139,6 +143,7 @@ actor ShoalAPI {
         form.add("concurrency", String(request.concurrency))
         form.add("language", request.language)
         form.add("think", request.think ? "true" : "false")
+        form.add("seed", String(request.seed))
         let events = request.events.filter { !$0.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         if !events.isEmpty {
             let data = try Self.encoder.encode(events)
@@ -155,6 +160,9 @@ actor ShoalAPI {
                 throw ShoalAPIError(status: 413, message: "\(url.lastPathComponent) is larger than 20 MB")
             }
             form.addFile("files[]", filename: url.lastPathComponent, contentType: Self.mimeType(for: url), data: data)
+        }
+        for doc in request.inlineDocuments {
+            form.addFile("files[]", filename: doc.filename, contentType: "text/markdown", data: doc.data)
         }
         var req = makeRequest(["runs"], method: "POST")
         req.setValue(form.contentType, forHTTPHeaderField: "Content-Type")

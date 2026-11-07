@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Play button, a scrubber with one stop per round (injected events marked in amber) and the speed menu: the replay
-/// transport of the Crowd tab. All of it drives the one playhead on the store.
+/// transport of the Crowd tab. All of it drives the one playhead on the store. It floats over the graph on a Liquid
+/// Glass capsule; the play button keeps the filled accent so its white glyph holds contrast on any backdrop.
 struct RoundScrubber: View {
     let store: RunStore
     let replay: ReplayController
@@ -53,12 +54,13 @@ struct RoundScrubber: View {
                 } label: {
                     Label(replay.followsLive ? "Live" : "Go live", systemImage: "dot.radiowaves.left.and.right")
                 }
-                .buttonStyle(.console(replay.followsLive ? .ghost : .secondary, compact: true))
+                .buttonStyle(.console(.ghost, compact: true))
                 .help(replay.followsLive ? "Following the newest round" : "Jump to the newest round and follow it")
             }
         }
         .padding(.horizontal, Theme.space4)
-        .padding(.vertical, Theme.space2)
+        .padding(.vertical, 2)
+        .glassEffect(.regular, in: .capsule)
     }
 
     private func speedText(_ speed: Double) -> String {
@@ -76,12 +78,12 @@ struct RoundScrubber: View {
             let labelEvery = n > 24 ? 5 : (n > 12 ? 2 : 1)
             let events = Set(store.events.map(\.round))
             ZStack(alignment: .topLeading) {
-                Capsule().fill(Theme.seam).frame(width: usable, height: 4).offset(x: inset, y: 14)
+                Capsule().fill(Theme.seamStrong).frame(width: usable, height: 4).offset(x: inset, y: 14)
                 Capsule().fill(Theme.accent).frame(width: max(0, m.x(store.playhead) - inset), height: 4).offset(x: inset, y: 14)
                 ForEach(0...n, id: \.self) { r in
                     let reached = r <= store.latestRound
                     Circle()
-                        .fill(r <= store.playhead ? Theme.accent : (reached ? Theme.card : Theme.seam))
+                        .fill(r <= store.playhead ? Theme.accent : (reached ? Theme.card : Theme.seamStrong))
                         .overlay(Circle().strokeBorder(reached ? Theme.accent : Theme.seamStrong, lineWidth: 1))
                         .frame(width: 8, height: 8)
                         .position(x: m.x(r), y: 16)
@@ -95,7 +97,7 @@ struct RoundScrubber: View {
                     if r % labelEvery == 0 || r == n {
                         Text("r\(r)")
                             .font(Theme.mono(10, r == store.playhead ? .bold : .regular))
-                            .foregroundStyle(r == store.playhead ? Theme.accent : Theme.muted)
+                            .foregroundStyle(r == store.playhead ? Theme.link : Theme.secondary)
                             .position(x: m.x(r), y: 31)
                     }
                 }

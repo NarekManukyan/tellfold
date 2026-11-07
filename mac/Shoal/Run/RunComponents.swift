@@ -55,6 +55,24 @@ extension RunStore {
 
     /// The run's report text can be rebuilt (not while it runs, and not before any round completed).
     var canRebuildReport: Bool { !isLive && api != nil && (latestRound > 0 || report != nil) }
+
+    /// A finished, stopped or failed run whose settings can seed a new simulation.
+    var canRunAgain: Bool { !isLive && config != nil && (status?.state.isTerminal ?? false) }
+}
+
+/// "Run again…": opens the New simulation sheet with this run's question, size and options.
+struct RunAgainButton: View {
+    let store: RunStore
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        Button("Run again…") {
+            if let config = store.config { app.runAgain(runID: store.runID, config: config) }
+        }
+        .buttonStyle(.console(.secondary))
+        .disabled(!store.canRunAgain || !app.engine.state.isRunning)
+        .help("Start a new simulation from this run's question and settings")
+    }
 }
 
 // MARK: - small views
@@ -163,35 +181,55 @@ struct HoverRowStyle: ButtonStyle {
 /// The quiet note shown when a run's report has no camps, with the button that writes a fresh report.
 struct CampsFallbackNote: View {
     let store: RunStore
+    /// Floating over the graph: the note sits on glass and its button is a glass button.
+    var glass = false
     @State private var confirm = false
     @State private var rebuilding = false
 
     var body: some View {
-        HStack(alignment: .center, spacing: Theme.space3) {
+        let row = HStack(alignment: .center, spacing: Theme.space3) {
             Text(CampGrouping.fallbackNote)
                 .font(Theme.small)
-                .foregroundStyle(Theme.muted)
+                .foregroundStyle(glass ? Theme.secondary : Theme.muted)
                 // A minimum width keeps the window's minimum height sane: probed at zero width the sentence would wrap per letter.
                 .frame(minWidth: 220, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: Theme.space2)
-            Button {
-                confirm = true
-            } label: {
-                if rebuilding || store.detail?.reportRebuild.running == true {
-                    HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Rebuilding…") }
-                } else {
-                    Text("Rebuild report")
-                }
+            rebuildButton
+        }
+        Group {
+            if glass {
+                row
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14))
+            } else {
+                row
             }
-            .buttonStyle(.console(.secondary, compact: true))
-            .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
-            .help(store.isLive ? "Available once the run has finished" : "Write the report again, grouping the crowd by opinion")
         }
         .confirmationDialog("Rebuild the report?", isPresented: $confirm) {
             Button("Rebuild Report") { Task { await rebuild() } }
         } message: {
             Text("The planner model writes a new report from this run. This makes a few model calls.")
+        }
+    }
+
+    @ViewBuilder private var rebuildButton: some View {
+        let button = Button {
+            confirm = true
+        } label: {
+            if rebuilding || store.detail?.reportRebuild.running == true {
+                HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Rebuilding…") }
+            } else {
+                Text("Rebuild report")
+            }
+        }
+        .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
+        .help(store.isLive ? "Available once the run has finished" : "Write the report again, grouping the crowd by opinion")
+        if glass {
+            button.buttonStyle(.glass).controlSize(.small)
+        } else {
+            button.buttonStyle(.console(.secondary, compact: true))
         }
     }
 

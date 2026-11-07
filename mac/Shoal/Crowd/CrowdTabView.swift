@@ -12,9 +12,15 @@ struct CrowdTabView: View {
     @State private var height: CGFloat = 800
     /// Stacked layout only: the feed under the graph is folded away until asked for, so the graph keeps the height.
     @State private var panelOpen = false
+    /// Heights of the glass strips over the graph, measured so the picture is framed between them.
+    @State private var topInset: CGFloat = 52
+    @State private var bottomInset: CGFloat = 110
 
     private static let panelWidth: CGFloat = 360
     private static let stacks: CGFloat = 840
+    /// How far the glass strips reach into the picture's own margin (the layout already keeps about 28 pt clear of the
+    /// edge), so the graph's lines and regions run right up to and behind the glass.
+    private static let glassOverlap: CGFloat = 22
 
     var body: some View {
         Group {
@@ -47,52 +53,81 @@ struct CrowdTabView: View {
 
     // MARK: graph
 
+    /// The graph runs edge to edge inside a flat card. The view switch, zoom, legend and round scrubber float above it
+    /// as Liquid Glass, so the canvas keeps rendering behind them and the picture is framed between the two strips.
     private var graphCard: some View {
         let grouping = CampGrouping.groups(report: store.report, personas: store.personas)
-        return VStack(spacing: 0) {
-            HStack(spacing: Theme.space3) {
-                Text("Crowd").font(Theme.sectionTitle).foregroundStyle(Theme.text)
-                Text("\(store.personas.count) people, round \(store.playhead)")
-                    .font(Theme.small)
-                    .foregroundStyle(Theme.muted)
-                Spacer(minLength: Theme.space2)
-                CanvasZoomControls(controller: model, hasUserCamera: model.userCamera != nil)
-                Picker("View", selection: $model.mode) {
-                    ForEach(CrowdMode.allCases) { Text($0.title).tag($0) }
+        return CrowdGraphView(store: store, model: model, showsLegend: false,
+                              insets: CrowdInsets(top: max(0, topInset - Self.glassOverlap), bottom: max(0, bottomInset - Self.glassOverlap)))
+            .frame(maxWidth: .infinity, minHeight: 140, maxHeight: .infinity)
+            .overlay(alignment: .top) {
+                topControls
+                    .padding(10)
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { topInset = $0 }
+            }
+            .overlay(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 6) {
+                    if grouping.isFallback, model.mode == .camps {
+                        CampsFallbackNote(store: store, glass: true)
+                    }
+                    legend
+                    RoundScrubber(store: store, replay: replay)
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-                .accessibilityLabel("Crowd view")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { bottomInset = $0 }
             }
-            .padding(.horizontal, Theme.space4)
-            .padding(.vertical, Theme.space3)
-            Seam()
-            CrowdGraphView(store: store, model: model, showsLegend: false)
-                .frame(maxWidth: .infinity, minHeight: 140, maxHeight: .infinity)
-            Seam()
-            legendRow
-            if grouping.isFallback, model.mode == .camps {
-                Seam()
-                CampsFallbackNote(store: store).padding(.horizontal, Theme.space4).padding(.vertical, Theme.space2)
-            }
-            Seam()
-            RoundScrubber(store: store, replay: replay)
-        }
-        .card(padding: 0, clips: true)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .card(padding: 0, clips: true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// What the arrows mean (Camps, Influence) or what grey means (Shoal), in a row of its own so it never covers the graph.
-    private var legendRow: some View {
+    /// Title, zoom and the Camps / Shoal / Influence switch, each on its own glass.
+    private var topControls: some View {
+        ViewThatFits(in: .horizontal) {
+            topRow(showsCount: true)
+            topRow(showsCount: false)
+        }
+    }
+
+    private func topRow(showsCount: Bool) -> some View {
+        HStack(spacing: Theme.space2) {
+            HStack(spacing: Theme.space2) {
+                Text("Crowd").font(Theme.sectionTitle).foregroundStyle(Theme.text)
+                if showsCount {
+                    Text("\(store.personas.count) people, round \(store.playhead)")
+                        .font(Theme.small)
+                        .foregroundStyle(Theme.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .fixedSize()
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .glassEffect(.regular, in: .capsule)
+            Spacer(minLength: Theme.space2)
+            CanvasZoomControls(controller: model, hasUserCamera: model.userCamera != nil)
+            modeSwitch
+        }
+    }
+
+    private var modeSwitch: some View {
+        Picker("View", selection: $model.mode) {
+            ForEach(CrowdMode.allCases) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .accessibilityLabel("Crowd view")
+        .padding(.horizontal, 4)
+        .frame(height: 32)
+        .glassEffect(.regular, in: .capsule)
+    }
+
+    /// What the arrows mean (Camps, Influence) or what grey means (Shoal), as a glass capsule over the graph.
+    private var legend: some View {
         let hasScores = store.posts.contains { $0.sentiment != nil }
         let mode: CrowdMode = model.mode == .shoal && !hasScores ? .camps : model.mode
-        return HStack {
-            CrowdLegend(mode: mode, framed: false)
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, Theme.space4)
-        .frame(height: 28)
+        return CrowdLegend(mode: mode, framed: true)
     }
 
     // MARK: side panel

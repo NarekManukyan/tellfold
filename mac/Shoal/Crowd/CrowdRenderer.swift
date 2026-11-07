@@ -17,6 +17,8 @@ struct CrowdRenderer {
     var hoveredID: String?
     var hoveredEdge: CrowdEdge?
     var compact: Bool
+    /// Height of the floating controls along the top edge: the Shoal axis labels sit below them.
+    var topInset = 0.0
 
     // MARK: geometry shared with hit testing
 
@@ -77,6 +79,8 @@ struct CrowdRenderer {
 
         if wCamps > 0.01 { drawCampEdges(in: &ctx, weight: wCamps, focusAgent: focusAgent, dimmed: dimmed, anyFocus: anyFocus, screen: screen, radius: radius) }
         if wInfluence > 0.01 { drawInfluenceEdges(in: &ctx, weight: wInfluence, dimmed: dimmed, anyFocus: anyFocus, screen: screen, radius: radius) }
+        // Region labels sit above the edges, each on a plate in its region's own fill so no line runs through the text.
+        if wCamps > 0.01 { drawRegionLabels(in: &ctx, size: size, weight: wCamps, scale: ns, focusAgent: focusAgent, focusMembers: focusMembers, screen: screen) }
 
         // Avatars: dimmed ones first, big voices last, the selected one on top.
         let order = scene.nodes.indices.sorted { a, b in
@@ -134,26 +138,71 @@ struct CrowdRenderer {
 
     // MARK: camps
 
+    /// Opacity factor of a region while something is selected: the selected camp stays, the rest recede.
+    private func regionDim(group gi: Int, id: String, focusAgent: String?, focusMembers: Set<String>?) -> Double {
+        let selectedGroup = focusAgent.flatMap { scene.node($0)?.groupIndex } == gi || scene.selectedGroupID == id
+        return (focusAgent != nil || focusMembers != nil) && !selectedGroup ? 0.45 : 1
+    }
+
     private func drawRegions(in ctx: inout GraphicsContext, size: CGSize, weight: Double, scale ns: Double, focusAgent: String?,
                              focusMembers: Set<String>?, screen: (String) -> CGPoint?) {
         for (gi, group) in scene.groups.enumerated() {
             guard let rect = Self.regionRect(group: gi, nodes: scene.nodes, camera: camera, scale: ns, label: scene.label(group, compact: compact), screen: screen) else { continue }
-            let selectedGroup = focusAgent.flatMap { scene.node($0)?.groupIndex } == gi
-                || scene.selectedGroupID == group.id
-            let dim = (focusAgent != nil || focusMembers != nil) && !selectedGroup ? 0.45 : 1
+            let dim = regionDim(group: gi, id: group.id, focusAgent: focusAgent, focusMembers: focusMembers)
             let shape = Path(roundedRect: rect, cornerRadius: 16)
             ctx.fill(shape, with: .color(group.color.opacity(0.10 * weight * dim)))
             ctx.stroke(shape, with: .color(group.color.opacity(0.35 * weight * dim)), lineWidth: 1)
+        }
+    }
 
+    /// Padding and corner of the plate behind a region label's text.
+    static let platePadding = 3.0
+    static let plateRadius = 4.0
+
+    /// Where a region label's text starts: inside its own region, with room for the plate. In the compact card a label
+    /// whose region runs past the card's edge slides left to stay on the canvas, but never out of its region, so the
+    /// plate cannot reach beyond the region.
+    private func labelOriginX(_ rect: CGRect, label: CrowdLabel, size: CGSize) -> Double {
+        let textWidth = max(0, label.width - CrowdLabel.sidePadding)
+        let inset = Self.platePadding + 1
+        let lo = rect.minX + inset
+        let desired = rect.minX + 10
+        guard compact else { return max(lo, min(desired, rect.maxX - textWidth - inset)) }
+        let visibleLo = max(lo, 6)
+        let visibleHi = min(rect.maxX, size.width - 2) - textWidth - inset
+        let hi = visibleHi >= visibleLo ? visibleHi : rect.maxX - textWidth - inset
+        return max(lo, min(max(desired, visibleLo), max(hi, lo)))
+    }
+
+    /// The label text of every camp, drawn after the edges. Each row gets a plate: the card colour with the region's
+    /// own 10% fill on top (the same composite the region shows), so lines behind the text are hidden while the label
+    /// still reads as part of its region. No border.
+    private func drawRegionLabels(in ctx: inout GraphicsContext, size: CGSize, weight: Double, scale ns: Double,
+                                  focusAgent: String?, focusMembers: Set<String>?, screen: (String) -> CGPoint?) {
+        for (gi, group) in scene.groups.enumerated() {
             let label = scene.label(group, compact: compact)
+            guard let rect = Self.regionRect(group: gi, nodes: scene.nodes, camera: camera, scale: ns, label: label, screen: screen) else { continue }
+            let dim = regionDim(group: gi, id: group.id, focusAgent: focusAgent, focusMembers: focusMembers)
             let figureColor = palette.textDim.opacity(weight * dim)
-            // In the compact card a label wider than its region slides left so it stays whole inside the card.
-            let x = compact ? max(6, min(rect.minX + 10, size.width - label.width + 10 - 2)) : rect.minX + 10
+            let x = labelOriginX(rect, label: label, size: size)
+            var rows: [(text: GraphicsContext.ResolvedText, origin: CGPoint, plate: CGRect)] = []
             for (i, row) in label.rows.enumerated() {
                 let name = Text(row.name).font(Theme.ui(11.5, .semibold)).foregroundStyle(palette.text.opacity(weight * dim))
                 let tail = Text(row.tail).font(Theme.mono(11)).foregroundStyle(figureColor)
-                ctx.draw(ctx.resolve(Text("\(name)\(tail)")), at: CGPoint(x: x, y: rect.minY + 8 + 15 * Double(i)), anchor: .topLeading)
+                let resolved = ctx.resolve(Text("\(name)\(tail)"))
+                let origin = CGPoint(x: x, y: rect.minY + 8 + 15 * Double(i))
+                let sz = resolved.measure(in: CGSize(width: 2000, height: 100))
+                // The plate never leaves its own region.
+                let plate = CGRect(origin: origin, size: sz).insetBy(dx: -Self.platePadding, dy: -Self.platePadding)
+                    .intersection(rect.insetBy(dx: 1, dy: 1))
+                rows.append((resolved, origin, plate))
             }
+            // One path for all rows so overlapping plates are filled once, not twice.
+            var plates = Path()
+            for r in rows { plates.addRoundedRect(in: r.plate, cornerSize: CGSize(width: Self.plateRadius, height: Self.plateRadius)) }
+            ctx.fill(plates, with: .color(palette.ground.opacity(weight)))
+            ctx.fill(plates, with: .color(group.color.opacity(0.10 * weight * dim)))
+            for r in rows { ctx.draw(r.text, at: r.origin, anchor: .topLeading) }
         }
     }
 
@@ -238,7 +287,7 @@ struct CrowdRenderer {
         let xr = camera.toScreen(SIMD2(half, 0), size: size).x
         let axisY = camera.toScreen(SIMD2(0, layout.shoalAxisY), size: size).y
         var centre = Path()
-        centre.move(to: CGPoint(x: x0, y: 10))
+        centre.move(to: CGPoint(x: x0, y: 10 + topInset))
         centre.addLine(to: CGPoint(x: x0, y: axisY))
         ctx.stroke(centre, with: .color(palette.edge.opacity(weight)), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
         var axis = Path()
@@ -256,7 +305,7 @@ struct CrowdRenderer {
         }
         ctx.stroke(axis, with: .color(palette.edge.opacity(weight * 1.2)), lineWidth: 1)
         ctx.draw(ctx.resolve(Text("← Against").font(Theme.ui(11, .medium)).foregroundStyle(palette.text.opacity(weight))),
-                 at: CGPoint(x: xl, y: 10), anchor: .topLeading)
+                 at: CGPoint(x: xl, y: 10 + topInset), anchor: .topLeading)
         if let laneY = layout.shoalLaneY {
             let y = camera.toScreen(SIMD2(0, laneY), size: size).y
             var rule = Path()
@@ -267,7 +316,7 @@ struct CrowdRenderer {
                      at: CGPoint(x: xl, y: y + 4), anchor: .topLeading)
         }
         ctx.draw(ctx.resolve(Text("For →").font(Theme.ui(11, .medium)).foregroundStyle(palette.text.opacity(weight))),
-                 at: CGPoint(x: xr, y: 10), anchor: .topTrailing)
+                 at: CGPoint(x: xr, y: 10 + topInset), anchor: .topTrailing)
     }
 
     // MARK: labels

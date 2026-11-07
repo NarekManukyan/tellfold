@@ -120,25 +120,27 @@ struct CanvasZoomControls: View {
     var hasUserCamera = true
 
     var body: some View {
-        HStack(spacing: 0) {
-            button("minus.magnifyingglass", "Zoom out") { controller.zoom(by: 0.8, anchor: nil) }
-            Seam(vertical: true).frame(height: 16)
-            button("plus.magnifyingglass", "Zoom in") { controller.zoom(by: 1.25, anchor: nil) }
-            Seam(vertical: true).frame(height: 16)
-            button("arrow.up.left.and.arrow.down.right", "Fit to view") { controller.fit() }
-                .disabled(!hasUserCamera)
+        // One container so the three glass circles are rendered together (glass cannot sample glass).
+        GlassEffectContainer(spacing: 6) {
+            HStack(spacing: 8) {
+                button("minus.magnifyingglass", "Zoom out") { controller.zoom(by: 0.8, anchor: nil) }
+                button("plus.magnifyingglass", "Zoom in") { controller.zoom(by: 1.25, anchor: nil) }
+                button("arrow.up.left.and.arrow.down.right", "Fit to view") { controller.fit() }
+                    .disabled(!hasUserCamera)
+            }
         }
-        .elevatedSurface()
     }
 
     private func button(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .foregroundStyle(Theme.muted)
-                .frame(width: 28, height: 24)
-                .contentShape(Rectangle())
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Theme.secondary)
+                .frame(width: 32, height: 32)
+                .contentShape(Circle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: .circle)
         .help(label)
         .accessibilityLabel(label)
     }

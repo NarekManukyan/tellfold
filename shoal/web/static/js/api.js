@@ -52,6 +52,8 @@ async function request(method, path, { json, form, signal } = {}) {
 
 export const api = {
   health: () => request("GET", "/api/health"),
+  settings: () => request("GET", "/api/settings"),
+  runtimes: ({ checkAuth = false } = {}) => request("GET", `/api/runtimes?check_auth=${checkAuth ? 1 : 0}`),
   runs: () => request("GET", "/api/runs"),
   run: (id) => request("GET", `/api/runs/${enc(id)}`),
   posts: (id, sinceId = 0) => request("GET", `/api/runs/${enc(id)}/posts?since_id=${Number(sinceId) || 0}`),

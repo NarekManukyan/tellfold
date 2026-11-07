@@ -9,6 +9,9 @@ struct CrowdGraphView: View {
     var compact = false
     /// The legend pill over the graph; the Crowd tab shows the legend in its own row instead.
     var showsLegend = true
+    /// Strips along the top and bottom that floating glass controls cover (owned by the caller). The graph draws
+    /// full-bleed underneath them and frames the picture between them.
+    var insets = CrowdInsets.zero
     /// Compact only: an avatar or camp region was clicked.
     var onOpen: ((_ agentID: String?, _ campID: String?) -> Void)?
 
@@ -20,6 +23,7 @@ struct CrowdGraphView: View {
         var signature: Int
         var width: Int
         var height: Int
+        var insets: CrowdInsets
     }
 
     var body: some View {
@@ -31,7 +35,7 @@ struct CrowdGraphView: View {
 
         GeometryReader { geo in
             let trigger = Trigger(signature: scene.layoutSignature(mode: mode), width: Int(geo.size.width / 8),
-                                  height: Int(geo.size.height / 8))
+                                  height: Int(geo.size.height / 8), insets: insets)
             TimelineView(.animation(paused: !model.isAnimating)) { _ in
                 let now = ProcessInfo.processInfo.systemUptime
                 let camera = model.userCamera ?? model.autoCamera(at: now)
@@ -39,7 +43,7 @@ struct CrowdGraphView: View {
                 let renderer = CrowdRenderer(
                     scene: scene, mode: mode, positions: positions, camera: camera, weights: model.weights(at: now),
                     layout: model.layout, palette: palette, images: images, hoveredID: model.hoveredID,
-                    hoveredEdge: model.hoveredEdge, compact: compact)
+                    hoveredEdge: model.hoveredEdge, compact: compact, topInset: insets.top)
                 ZStack(alignment: .topLeading) {
                     Canvas { ctx, size in renderer.draw(in: &ctx, size: size) }
                         .accessibilityHidden(true)
@@ -47,7 +51,7 @@ struct CrowdGraphView: View {
                 }
             }
             .onChange(of: trigger, initial: true) { _, _ in
-                model.relayout(scene: scene, mode: mode, size: geo.size, reduceMotion: reduceMotion, compact: compact)
+                model.relayout(scene: scene, mode: mode, size: geo.size, reduceMotion: reduceMotion, compact: compact, insets: insets)
             }
             .modifier(CrowdInteractionModifier(model: model, compact: compact, onTap: { point in tap(point, scene: scene, mode: mode) },
                                                onEscape: { clearSelection() }))
@@ -67,13 +71,12 @@ struct CrowdGraphView: View {
                     .foregroundStyle(Theme.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(Theme.card.opacity(0.92), in: Capsule())
-                    .overlay(Capsule().strokeBorder(Theme.seam, lineWidth: 1))
-                    .padding(.top, 10)
+                    .glassEffect(.regular, in: .capsule)
+                    .padding(.top, insets.top + 6)
             }
         }
         .overlay(alignment: .bottomLeading) {
-            if !compact, showsLegend { CrowdLegend(mode: mode).padding(10) }
+            if !compact, showsLegend { CrowdLegend(mode: mode).padding(10).padding(.bottom, insets.bottom) }
         }
         .clipped()
     }
@@ -229,7 +232,7 @@ struct CrowdEdgeTooltip: View {
 /// What the curves and arrows mean in the current view.
 struct CrowdLegend: View {
     let mode: CrowdMode
-    /// A pill with a hairline (over the graph) or bare text (in a row of its own).
+    /// A glass capsule (floating over the graph) or bare text (in a row of its own).
     var framed = true
     @Environment(\.colorScheme) private var colorScheme
 
@@ -244,7 +247,7 @@ struct CrowdLegend: View {
                         Text(kind.label.lowercased()).fixedSize()
                     }
                 }
-                Text("this round").foregroundStyle(Theme.faint)
+                Text("this round").foregroundStyle(framed ? Theme.muted : Theme.faint)
             case .influence:
                 Text("Arrows: who replied to or reposted whom. Thicker means more.")
                     .fixedSize()
@@ -253,11 +256,10 @@ struct CrowdLegend: View {
             }
         }
         .font(Theme.caption)
-        .foregroundStyle(Theme.muted)
-        .padding(.horizontal, framed ? 10 : 0)
-        .padding(.vertical, framed ? 5 : 0)
-        .background(framed ? Theme.card.opacity(0.92) : .clear, in: Capsule())
-        .overlay { if framed { Capsule().strokeBorder(Theme.seam, lineWidth: 1) } }
+        .foregroundStyle(framed ? Theme.secondary : Theme.muted)
+        .padding(.horizontal, framed ? 12 : 0)
+        .padding(.vertical, framed ? 6 : 0)
+        .modifier(GlassCapsule(active: framed))
         .accessibilityHidden(true)
     }
 }
@@ -290,5 +292,18 @@ struct CrowdAccessibilityList: View {
         }
         parts.append(n.isOrganisation ? "organisation" : "person")
         return parts.joined(separator: "; ")
+    }
+}
+
+/// Wraps a floating control in a Liquid Glass capsule, or leaves it bare when `active` is false.
+struct GlassCapsule: ViewModifier {
+    var active = true
+
+    func body(content: Content) -> some View {
+        if active {
+            content.glassEffect(.regular, in: .capsule)
+        } else {
+            content
+        }
     }
 }

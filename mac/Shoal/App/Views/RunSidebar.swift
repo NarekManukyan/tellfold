@@ -31,9 +31,8 @@ struct RunSidebar: View {
                 }
             }
         }
+        // No custom background: the system's floating Liquid Glass sidebar draws itself.
         .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
-        .background(Theme.ground)
         .overlay { emptyState }
         .safeAreaInset(edge: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: Theme.space3) {
@@ -240,7 +239,6 @@ struct EngineStatusBar: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Seam()
             HStack(spacing: 6) {
                 Circle()
                     .fill(color)
@@ -272,7 +270,6 @@ struct EngineStatusBar: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
         }
-        .background(Theme.ground)
         .accessibilityElement(children: .contain)
     }
 

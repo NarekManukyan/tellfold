@@ -28,6 +28,9 @@ final class CrowdModel: CanvasGesturing {
     @ObservationIgnored private(set) var edges: [CrowdEdge] = []
     @ObservationIgnored private(set) var layout = CrowdLayout()
     @ObservationIgnored var viewSize: CGSize = .zero
+    /// Strips of the canvas that floating glass controls cover. The picture is laid out and framed in what is left
+    /// between them, while the canvas itself runs underneath so the glass has something to refract.
+    @ObservationIgnored private(set) var insets = CrowdInsets.zero
 
     @ObservationIgnored private var from: [String: CGPoint] = [:]
     @ObservationIgnored private var start = 0.0
@@ -53,22 +56,25 @@ final class CrowdModel: CanvasGesturing {
 
     /// Computes the layout for `mode` and starts a transition from wherever the avatars are now. A change of size alone
     /// (a window resize) snaps instead of animating.
-    func relayout(scene: CrowdScene, mode: CrowdMode, size: CGSize, reduceMotion: Bool, compact: Bool = false) {
+    func relayout(scene: CrowdScene, mode: CrowdMode, size: CGSize, reduceMotion: Bool, compact: Bool = false,
+                  insets: CrowdInsets = .zero) {
         guard size.width > 1, size.height > 1 else { return }
         viewSize = size
+        self.insets = insets
+        let usable = CGSize(width: size.width, height: max(1, size.height - insets.top - insets.bottom))
         effectiveIsInfluence = mode == .influence
         nodes = scene.nodes
         edges = scene.edges
         let key = scene.layoutSignature(mode: mode)
         let now = ProcessInfo.processInfo.systemUptime
         let target = CrowdLayout.compute(nodes: scene.nodes, groupCount: scene.groups.count, sentiment: scene.sentiment,
-                                         size: size, mode: mode, labels: scene.groups.map { scene.label($0, compact: compact) })
+                                         size: usable, mode: mode, labels: scene.groups.map { scene.label($0, compact: compact) })
         let first = appliedContentKey == nil
         let sizeOnly = appliedContentKey == key
         let animate = !first && !sizeOnly && !reduceMotion
         from = animate ? positions(at: now) : target.positions
-        cameraFrom = animate ? autoCamera(at: now) : Self.camera(for: target)
-        cameraTo = Self.camera(for: target)
+        cameraFrom = animate ? autoCamera(at: now) : Self.camera(for: target, insets: insets)
+        cameraTo = Self.camera(for: target, insets: insets)
         weightsFrom = animate ? weights(at: now) : Self.oneHot(mode)
         weightsTo = Self.oneHot(mode)
         layout = target
@@ -94,9 +100,10 @@ final class CrowdModel: CanvasGesturing {
         [mode == .camps ? 1 : 0, mode == .shoal ? 1 : 0, mode == .influence ? 1 : 0]
     }
 
-    private static func camera(for layout: CrowdLayout) -> CanvasCamera {
+    private static func camera(for layout: CrowdLayout, insets: CrowdInsets) -> CanvasCamera {
         let s = layout.fitScale
-        return CanvasCamera(scale: s, offset: SIMD2(-layout.center.x * s, -layout.center.y * s))
+        // The usable area's centre sits (top - bottom) / 2 below the canvas centre.
+        return CanvasCamera(scale: s, offset: SIMD2(-layout.center.x * s, -layout.center.y * s + (insets.top - insets.bottom) / 2))
     }
 
     /// 0 at the start of the transition, 1 at its end (eased).
@@ -209,7 +216,8 @@ final class CrowdModel: CanvasGesturing {
 
     func zoom(by factor: Double, anchor: CGPoint?) {
         var cam = camera
-        cam.zoom(by: factor, anchor: anchor ?? CGPoint(x: viewSize.width / 2, y: viewSize.height / 2), size: viewSize)
+        let centre = CGPoint(x: viewSize.width / 2, y: viewSize.height / 2 + (insets.top - insets.bottom) / 2)
+        cam.zoom(by: factor, anchor: anchor ?? centre, size: viewSize)
         userCamera = cam
     }
 
@@ -246,4 +254,12 @@ final class CrowdModel: CanvasGesturing {
             pan(by: CGSize(width: dx, height: dy))
         }
     }
+}
+
+/// How far floating controls reach into the top and bottom of the crowd canvas.
+nonisolated struct CrowdInsets: Equatable, Sendable {
+    var top: Double
+    var bottom: Double
+
+    static let zero = CrowdInsets(top: 0, bottom: 0)
 }
