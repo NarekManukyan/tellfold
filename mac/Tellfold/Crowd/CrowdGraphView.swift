@@ -71,7 +71,7 @@ struct CrowdGraphView: View {
                     .foregroundStyle(Theme.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .glassEffect(.regular, in: .capsule)
+                    .glassSurface(in: .capsule)
                     .padding(.top, insets.top + 6)
             }
         }
@@ -301,7 +301,7 @@ struct GlassCapsule: ViewModifier {
 
     func body(content: Content) -> some View {
         if active {
-            content.glassEffect(.regular, in: .capsule)
+            content.glassSurface(in: .capsule)
         } else {
             content
         }

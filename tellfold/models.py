@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, Field
+from pydantic.json_schema import SkipJsonSchema
 
 
 # ---------- knowledge graph ----------
@@ -144,6 +145,26 @@ class Camp(BaseModel):
     sentiment: float | None = None  # mean of members' scored posts, filled in by Python
 
 
+class Misquote(BaseModel):
+    post_id: int
+    quote: str
+
+
+class CitationAudit(BaseModel):
+    """What Python could verify about the report's citations, filled in after the report call."""
+
+    checked: int = 0  # post ids, handles and quotes found in the report text
+    unknown_posts: list[int] = Field(default_factory=list)  # cited #ids that are not posts in this run
+    unknown_handles: list[str] = Field(default_factory=list)  # cited @handles that are not agents in this run
+    misquotes: list[Misquote] = Field(default_factory=list)  # quotes not found in the post cited next to them
+    repaired: bool = False  # a repair call was made because the first draft had problems
+    marked: int = 0  # citations still wrong after the repair, replaced in the text with "[unverified]"
+
+    @property
+    def problems(self) -> int:
+        return len(self.unknown_posts) + len(self.unknown_handles) + len(self.misquotes)
+
+
 class Report(BaseModel):
     title: str
     summary: str  # 3-5 sentence direct answer to SimConfig.question
@@ -155,6 +176,8 @@ class Report(BaseModel):
     camps: list[Camp] = Field(default_factory=list)  # 2-5 opinion camps covering every agent
     risks: list[str] = Field(default_factory=list)
     caveats: list[str] = Field(default_factory=list)
+    # Filled in by Python, never asked of the model (kept out of the JSON schema). None in older reports.
+    citation_audit: SkipJsonSchema[CitationAudit | None] = None
 
 
 # ---------- run lifecycle (written to runs/<id>/status.json by tellfold.runner) ----------

@@ -33,6 +33,8 @@ final class AppModel {
     var newSimulationPrefill: NewSimulationPrefill?
     /// Seed files waiting for the New Simulation sheet (Dock drop, File > Open).
     var pendingSeedFiles: [URL] = []
+    /// The run whose report is being exported as PDF, if any; one export at a time.
+    private(set) var exportingPDF: String?
 
     private(set) var runtimes: [RuntimeInfo] = []
     private(set) var runtimesError: String?
@@ -270,6 +272,18 @@ final class AppModel {
         }
         let store = currentStore?.runID == id ? currentStore! : RunStore(runID: id, api: api)
         NSWorkspace.shared.open(try await store.reportHTMLFile())
+    }
+
+    /// Renders the run's report as a paged PDF and asks where to save it (File > Export PDF…, the report toolbar).
+    /// `title` names the file. Returns the saved file, or nil when cancelled.
+    @discardableResult
+    func exportPDF(_ id: String, title: String) async throws -> URL? {
+        guard exportingPDF == nil else { return nil }
+        exportingPDF = id
+        defer { exportingPDF = nil }
+        guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        let html = try await api.reportHTML(runID: id)
+        return try await ReportPDFExporter().export(html: html, title: title, in: NSApp.keyWindow ?? NSApp.mainWindow)
     }
 
     // MARK: New simulation

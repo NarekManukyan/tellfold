@@ -243,7 +243,7 @@ struct CampsFallbackNote: View {
                 row
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14))
+                    .glassSurface(in: RoundedRectangle(cornerRadius: 14))
             } else {
                 row
             }
@@ -268,7 +268,7 @@ struct CampsFallbackNote: View {
         .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
         .help(store.isLive ? "Available once the run has finished" : "Write the report again, grouping the crowd by opinion")
         if glass {
-            button.buttonStyle(.glass).controlSize(.small)
+            button.glassButtonStyle().controlSize(.small)
         } else {
             button.buttonStyle(.console(.secondary, compact: true))
         }

@@ -107,6 +107,7 @@ header .summary { font-size: 1.1rem; }
 
 .prediction { margin-top: 24px; border-left: 4px solid var(--accent); }
 .prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.audit { margin: -4px 0 10px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 .conf-low .dot { background: var(--conf-low); }
@@ -207,9 +208,63 @@ footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
   .card { padding: 16px; }
   .thread-replies { margin-left: 8px; padding-left: 10px; }
 }
+/* Paper (Print, Save as PDF, and the Mac app's Export PDF): always light, the page size the printer asks for (A4 or
+   Letter) with the same margins, a new page for each long part, and no card split across pages. */
+@page { size: auto; margin: 16mm 15mm 18mm; }
 @media print {
-  body { background: #fff; }
-  .post, .card { break-inside: avoid; }
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    color-scheme: light;
+    --page: #fff;
+    --surface: #fff;
+    --surface-2: #f2f1ed;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #6f6d68;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.16);
+    --accent: #2a78d6;
+    --accent-soft: rgba(42, 120, 214, 0.10);
+    --c-post: #2a78d6;
+    --c-reply: #eb6834;
+    --c-repost: #1baf7a;
+    --c-like: #eda100;
+    --c-dislike: #e87ba4;
+    --c-follow: #008300;
+  }
+  /* Keep chart lines, action bars, legend swatches and avatars in colour instead of letting the printer drop them. */
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; font-size: 10.5pt; line-height: 1.5; }
+  main { max-width: none; padding: 0; }
+  h1 { font-size: 21pt; }
+  h2 { font-size: 14pt; }
+  section { margin-top: 28px; }
+  section[aria-labelledby="analysis"], section[aria-labelledby="cited"],
+  section[aria-labelledby="threads"], section[aria-labelledby="people"] { break-before: page; margin-top: 0; }
+  h2, h3, h4, .chart-title, .post-head { break-after: avoid; }
+  /* WebKit does not honour break-after: avoid, so a heading carries invisible room for the lines after it and moves
+     to the next page with them instead of ending a page on its own. */
+  h2, h3 { break-inside: avoid; }
+  h2::after, h3::after { content: ""; display: block; height: 90px; margin-bottom: -90px; }
+  p, li { orphans: 3; widows: 3; }
+  /* WebKit ignores break-inside on grid items, so the lists of cards lay out as plain blocks on paper (and each chart
+     gets the full width, which keeps its labels a readable size). */
+  .charts, .feed, .thread, .thread-replies, .events, .two-col { display: block; }
+  .charts > *, .feed > *, .thread-replies > *, .events > *, .two-col > * { margin-bottom: 10px; }
+  .thread-replies { margin-top: 10px; }
+  /* Two persona cards a row as inline blocks: a whole card moves to the next page instead of splitting. */
+  .directory { display: block; font-size: 0; }
+  .persona { display: inline-grid; vertical-align: top; width: calc(50% - 6px); margin: 0 0 12px; font-size: 10.5pt; }
+  .persona:nth-child(odd) { margin-right: 12px; }
+  .post, .card, .tile, .event-item, .persona, .mix-row, .voice { break-inside: avoid; }
+  .prediction { break-inside: auto; }
+  .thread > .post:first-child { break-after: avoid; }
+  .post:target, .persona:target { outline: none; }
+  /* Interactive only: the collapsed round table, hover targets. Citations stay coloured so they read as references. */
+  details, svg.chart .hit { display: none; }
+  a { color: var(--accent); text-decoration: none; }
+  a.voice { color: var(--ink); }
+  footer { margin-top: 32px; }
 }
 </style>
 </head>
@@ -258,6 +313,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
         <h2 style="margin:0">Prediction</h2>
         <span class="badge conf-{{ report.confidence }}"><span class="dot"></span>{{ report.confidence | capitalize }} confidence</span>
       </div>
+      {% if citations %}<p class="audit muted small">{{ citations }}</p>{% endif %}
       <div class="prose">{{ md(report.prediction) }}</div>
     </div>
 

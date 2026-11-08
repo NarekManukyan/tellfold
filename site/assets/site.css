@@ -213,7 +213,7 @@ h2 {
 /* The crowd crop is cut straight across the bottom of the window, so it fades out instead of ending on a hard line. */
 .step-shot-fade .shot { -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
 .step-shot-sheet { justify-self: center; width: min(100%, 420px); }
-.step-shot-sheet .shot { border-radius: 14px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 40px 80px rgba(79, 70, 229, 0.22); }
+.step-shot-sheet .shot { border-radius: 12px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 40px 80px rgba(79, 70, 229, 0.22); }
 
 @media (min-width: 880px) {
   .step:not(.step-split) .step-copy { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 0 48px; align-items: end; }
@@ -337,11 +337,11 @@ h2 {
 .motion .reveal.in { opacity: 1; transform: none; }
 .motion .uses-list.reveal, .motion .features.reveal { transition-delay: 80ms; }
 
-/* The app window settles into place as it scrolls up into view: it starts a little small and tipped back, and is
-   flat and full size by the time most of it is on screen. Only browsers with scroll timelines do this. */
+/* The app window settles into place as it scrolls up into view: it starts a little small and low, and is full
+   size by the time most of it is on screen. A flat 2D scale keeps the screenshot's text sharp. Only browsers with scroll timelines do this. */
 @supports (animation-timeline: view()) {
   @keyframes settle {
-    from { transform: perspective(1600px) translateY(48px) rotateX(10deg) scale(0.9); }
+    from { transform: translateY(40px) scale(0.92); }
     to { transform: none; }
   }
   .motion .hero-shot .shot {

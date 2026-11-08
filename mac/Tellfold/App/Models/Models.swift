@@ -458,6 +458,56 @@ extension Camp {
     }
 }
 
+/// A quote in the report that was not found in the post cited next to it.
+struct Misquote: Codable, Hashable, Sendable {
+    var postID: Int
+    var quote: String
+
+    enum CodingKeys: String, CodingKey {
+        case quote
+        case postID = "post_id"
+    }
+}
+
+/// What the engine verified about the report's citations (`report.citation_audit`): every `#id`, `@handle` and quote.
+struct CitationAudit: Codable, Hashable, Sendable {
+    var checked: Int = 0
+    var unknownPosts: [Int] = []
+    var unknownHandles: [String] = []
+    var misquotes: [Misquote] = []
+    /// A repair call was made because the first draft had problems.
+    var repaired: Bool = false
+    /// Citations still wrong after the repair, replaced in the text with "[unverified]".
+    var marked: Int = 0
+
+    /// The line under the confidence badge, worded like the HTML report (`citation_line` in tellfold/report.py).
+    /// Nil when there was nothing to check.
+    var summaryLine: String? {
+        guard checked > 0 else { return nil }
+        if marked > 0 { return "\(checked - marked) of \(checked) citations checked against the posts, \(marked) marked" }
+        if checked == 1 { return "The 1 citation was checked against the posts" }
+        return "All \(checked) citations checked against the posts"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case checked, misquotes, repaired, marked
+        case unknownPosts = "unknown_posts"
+        case unknownHandles = "unknown_handles"
+    }
+}
+
+extension CitationAudit {
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        checked = c.value(.checked, default: 0)
+        unknownPosts = c.value(.unknownPosts, default: [])
+        unknownHandles = c.value(.unknownHandles, default: [])
+        misquotes = c.value(.misquotes, default: [])
+        repaired = c.value(.repaired, default: false)
+        marked = c.value(.marked, default: 0)
+    }
+}
+
 struct Report: Codable, Hashable, Sendable {
     var title: String
     var summary: String
@@ -472,10 +522,13 @@ struct Report: Codable, Hashable, Sendable {
     var camps: [Camp] = []
     var risks: [String] = []
     var caveats: [String] = []
+    /// Nil in reports written before citations were checked.
+    var citationAudit: CitationAudit?
 
     enum CodingKeys: String, CodingKey {
         case title, summary, prediction, confidence, sections, risks, caveats, reasons, camps
         case keyVoices = "key_voices"
+        case citationAudit = "citation_audit"
     }
 }
 
@@ -492,6 +545,7 @@ extension Report {
         camps = c.value(.camps, default: [])
         risks = c.value(.risks, default: [])
         caveats = c.value(.caveats, default: [])
+        citationAudit = c.optional(.citationAudit)
     }
 }
 
