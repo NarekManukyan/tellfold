@@ -24,6 +24,7 @@ struct SettingsView: View {
 
 struct GeneralSettingsTab: View {
     @Environment(AppModel.self) private var model
+    @Environment(AppUpdater.self) private var updater
     @State private var runsFolderChanged = false
 
     var body: some View {
@@ -77,10 +78,37 @@ struct GeneralSettingsTab: View {
                         if on { Task { _ = await model.notifier.requestAuthorization() } }
                     }
             }
+
+            if updater.isAvailable {
+                @Bindable var bindable = updater
+                Section {
+                    Toggle("Check for updates automatically", isOn: $bindable.automaticallyChecks)
+                    HStack {
+                        Text(lastCheckText)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Check Now") { updater.checkForUpdates() }
+                            .disabled(!updater.canCheckForUpdates)
+                    }
+                } header: {
+                    Text("Updates")
+                } footer: {
+                    Text("Tellfold \(Self.appVersion). New versions download and install from inside the app.")
+                }
+            }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Theme.panel)
+    }
+
+    private var lastCheckText: String {
+        guard let date = updater.lastCheck else { return "Not checked yet" }
+        return "Last checked \(date.formatted(.relative(presentation: .named)))"
+    }
+
+    private static var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
     }
 
     private func chooseRunsFolder() {

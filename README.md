@@ -8,6 +8,12 @@ Every model call goes through the Claude Code CLI you already have installed and
 
 > **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
+## Download
+
+Get the Mac app from [narekmanukyan.github.io/tellfold](https://narekmanukyan.github.io/tellfold/) or the [latest release](https://github.com/NarekManukyan/tellfold/releases/latest). It needs macOS 26 on Apple silicon and Claude Code installed and signed in. Updates arrive inside the app (Tellfold > Check for Updates…).
+
+Tellfold is free. If it helps you, [sponsor its development](https://github.com/sponsors/NarekManukyan).
+
 ## Requirements
 
 - **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
@@ -167,3 +173,18 @@ xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/
 ```
 
 The first Release build downloads Python and the dependencies (a few minutes). Later builds reuse `mac/build/engine-cache` until `uv.lock` changes. The bundled engine is about 190 MB and Apple silicon only. A Developer ID signing identity signs everything inside with the hardened runtime, ready for notarization.
+
+### Releasing
+
+`mac/scripts/release.sh <version>` builds a Developer ID signed and notarized `Tellfold.dmg`, signs it for Sparkle and adds it to `site/appcast.xml`, which the app reads for updates. Add `--publish` to also create the GitHub release and push the appcast; the Pages workflow (`.github/workflows/pages.yml`) publishes `site/` to GitHub Pages on every push to `main` that touches it. Write the release notes in `docs/releases/<version>.md` first, and commit the appcast change afterwards.
+
+One-time setup on the release Mac:
+
+1. A **Developer ID Application** certificate: Xcode > Settings > Accounts > Manage Certificates > + (needs a paid Apple Developer Program membership).
+2. Notary credentials. Either an App Store Connect API key saved as an [`asc`](https://asccli.sh) profile, then run with `TELLFOLD_ASC_PROFILE=<profile>`; or an app-specific password from account.apple.com: `xcrun notarytool store-credentials tellfold-notary --apple-id <apple id> --team-id <team id>`.
+3. The Sparkle update key is in the login keychain under the account `tellfold`. Back it up with `mac/build/sparkle-2.10.1/bin/generate_keys --account tellfold -x <file>` and keep the file somewhere safe: without it no installed copy can be updated.
+4. `gh auth login` for GitHub releases.
+
+## Licence
+
+Copyright © 2026 Narek Manukyan. All rights reserved. The source is public so you can read and audit it; no licence is granted to copy, modify or redistribute it.

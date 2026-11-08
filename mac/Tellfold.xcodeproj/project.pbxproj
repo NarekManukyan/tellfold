@@ -20,6 +20,7 @@
 		105014F4F3D7BBB5CCCCB056 /* UVOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D79E3980A71BE652A2CCF7A /* UVOnboardingView.swift */; };
 		107959F98A34283825D50BF2 /* RunStore+Crowd.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35C23FA5158DB41A0E29CE3 /* RunStore+Crowd.swift */; };
 		11FE784C3AAD941A4679C383 /* RunUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABBB3CD9649D94EC60F4C7C /* RunUI.swift */; };
+		131D287F7A2BAF5A558145C8 /* AppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE658B55ECE2CB2F23B31976 /* AppUpdater.swift */; };
 		1640C5D0FB8F0E704D29AD8A /* CanvasOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2EF9D87195C57B24BD2F19 /* CanvasOverlays.swift */; };
 		1896B62B62B9BF288C0BD0CC /* CrowdCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A82F9F5C8C1CC2123BE4CD95 /* CrowdCardTests.swift */; };
 		1CB8DB6BB9AAEC67ADB08518 /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F56C70A2CEEFA9F8FDFD99BB /* DiagnosticsView.swift */; };
@@ -55,6 +56,7 @@
 		854AFD1718E91B593FA489A1 /* Camps.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42C3A06B4B81FB93F44357E /* Camps.swift */; };
 		86D5231BB0B5CFBCAA19D245 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB799C6E9BF02656EBC4EC /* JSONValue.swift */; };
 		8D0A4E4AE95DAFFF56055695 /* RunLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A9FF75428F33C23339C276 /* RunLogView.swift */; };
+		942D7CDA698982F47155C9A7 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = AFC48215361BEBE3B5A81C3C /* Sparkle */; };
 		978012294D550696E2E841D4 /* Runtimes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441968F320C0B80B7D961B00 /* Runtimes.swift */; };
 		A12F7C8E535F1C0A59DBD4F6 /* CampsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FAF04603B799769CFA75FC7 /* CampsTests.swift */; };
 		A158B037DE9ECD2BA6691489 /* ServerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70076BA287BF21A099B5BA48 /* ServerEvent.swift */; };
@@ -168,6 +170,7 @@
 		C35C23FA5158DB41A0E29CE3 /* RunStore+Crowd.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RunStore+Crowd.swift"; sourceTree = "<group>"; };
 		CA657B535A8FFD248488DAFD /* TellfoldAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldAPI.swift; sourceTree = "<group>"; };
 		CC88AB8678F4B9F886B2064E /* RunMarkdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunMarkdown.swift; sourceTree = "<group>"; };
+		CE658B55ECE2CB2F23B31976 /* AppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdater.swift; sourceTree = "<group>"; };
 		CFDB15C4387BADEF5CF4ED19 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldApp.swift; sourceTree = "<group>"; };
 		D1FDEC67D74959C8BF41001E /* KnowledgeGraphRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphRenderer.swift; sourceTree = "<group>"; };
@@ -189,6 +192,17 @@
 		FDBF27948D47ABED2D0D81DA /* EngineCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineCommand.swift; sourceTree = "<group>"; };
 		FFBBEED42AEF57FB5132C624 /* RunLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLayoutTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		217BC15FE214BD9ECF846618 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				942D7CDA698982F47155C9A7 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		00EDFF84042A14EFA5152855 /* Models */ = {
@@ -312,12 +326,21 @@
 				5A35F1CE0C6C233C997CB82E /* Networking */,
 				48530FBBC42F74CDAA8D9EF2 /* Settings */,
 				4A183DA2D8185CDE884F3F3E /* Store */,
+				6577D7217F4884FF8B1DD283 /* Updates */,
 				2DB14D8ACAD6646988ACC152 /* Views */,
 				ADC02F8EA95A044987D31037 /* Assets.xcassets */,
 				D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */,
 				5FADB95E54847F0BC2C47F2E /* TellfoldCommands.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		6577D7217F4884FF8B1DD283 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				CE658B55ECE2CB2F23B31976 /* AppUpdater.swift */,
+			);
+			path = Updates;
 			sourceTree = "<group>";
 		};
 		69B871DD0C3EBCE7BBA4A3A4 /* Crowd */ = {
@@ -403,6 +426,7 @@
 			buildPhases = (
 				D643597D82B4E78026F81A27 /* Sources */,
 				BA1D7DEBC767F56DE28199B8 /* Resources */,
+				217BC15FE214BD9ECF846618 /* Frameworks */,
 				106C296A45CD2810E4936BE9 /* Bundle engine (Release) */,
 			);
 			buildRules = (
@@ -411,6 +435,7 @@
 			);
 			name = Tellfold;
 			packageProductDependencies = (
+				AFC48215361BEBE3B5A81C3C /* Sparkle */,
 			);
 			productName = Tellfold;
 			productReference = F4C6A673361F3BF71FA2371A /* Tellfold.app */;
@@ -461,6 +486,9 @@
 			);
 			mainGroup = ACCF647D651E8B5EC2C9585C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				69429C6AB59D91669BD52987 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AB97948CB364165E30E67196 /* Products */;
 			projectDirPath = "";
@@ -546,6 +574,7 @@
 				C297562F482D0A01AA9EEC60 /* AgentsSettingsTab.swift in Sources */,
 				0510A612CE80E24783034C00 /* AppModel.swift in Sources */,
 				680829AD0C402C1B04BE2BC8 /* AppPreferences.swift in Sources */,
+				131D287F7A2BAF5A558145C8 /* AppUpdater.swift in Sources */,
 				4AD022D1D3C78C9153A3B576 /* Avatar.swift in Sources */,
 				854AFD1718E91B593FA489A1 /* Camps.swift in Sources */,
 				A3608DC940B2E84F39841F7E /* CanvasCamera.swift in Sources */,
@@ -656,6 +685,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -676,6 +706,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -725,6 +756,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -740,6 +772,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -858,6 +891,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		69429C6AB59D91669BD52987 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AFC48215361BEBE3B5A81C3C /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 69429C6AB59D91669BD52987 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E8498437498F4F7B729405B7 /* Project object */;
 }

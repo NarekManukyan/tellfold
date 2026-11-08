@@ -63,8 +63,13 @@ final class AppPreferences {
         return engine
     }
 
-    /// The Python project `uv run` uses when there is no bundled engine: Debug builds run it from the repository.
-    nonisolated static let developmentEnginePath = "/Volumes/external_ssd/my/shoal"
+    /// The Python project `uv run` uses when there is no bundled engine: Debug builds run it from the repository this
+    /// file was compiled from (four folders up from `mac/Tellfold/App/Engine`).
+    nonisolated static let developmentEnginePath: String = {
+        var url = URL(filePath: #filePath)
+        for _ in 0..<5 { url.deleteLastPathComponent() }
+        return (url.path(percentEncoded: false) as NSString).standardizingPath
+    }()
 
     /// The bundled engine, unless an engine path is set in Settings (which always runs through `uv`).
     var bundledEngineFolder: URL? {

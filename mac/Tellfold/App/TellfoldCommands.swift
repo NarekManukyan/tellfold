@@ -1,11 +1,17 @@
 import SwiftUI
 
-/// Menu bar: File > Open Seed Files and the Simulation menu.
+/// Menu bar: Tellfold > Check for Updates, File > Open Seed Files and the Simulation menu.
 struct TellfoldCommands: Commands {
     let model: AppModel
+    let updater: AppUpdater
     @FocusedValue(\.runStore) private var store
 
     var body: some Commands {
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates…") { updater.checkForUpdates() }
+                .disabled(!updater.canCheckForUpdates)
+        }
+
         CommandGroup(replacing: .newItem) {
             Button("Open Seed Files…") { model.presentOpenPanel() }
                 .keyboardShortcut("o")

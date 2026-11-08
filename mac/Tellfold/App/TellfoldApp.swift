@@ -12,7 +12,7 @@ struct TellfoldApp: App {
                 .frame(minWidth: 960, minHeight: 560)
         }
         .defaultSize(width: 1320, height: 840)
-        .commands { TellfoldCommands(model: delegate.model) }
+        .commands { TellfoldCommands(model: delegate.model, updater: delegate.updater) }
 
         Window("Diagnostics", id: "diagnostics") {
             DiagnosticsView()
@@ -25,6 +25,7 @@ struct TellfoldApp: App {
         Settings {
             SettingsView()
                 .environment(delegate.model)
+                .environment(delegate.updater)
         }
     }
 }
@@ -32,6 +33,7 @@ struct TellfoldApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppDelegate.makeModel()
+    let updater = AppUpdater(enabled: !AppDelegate.isRunningTests)
 
     /// Unit tests run inside the app; they must not spawn the engine.
     static var isRunningTests: Bool {

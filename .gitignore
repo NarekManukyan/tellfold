@@ -20,3 +20,6 @@ mac/build/
 mac/DerivedData/
 xcuserdata/
 *.xcuserstate
+
+# Private seed documents (kept out of the public repo)
+inputs/
