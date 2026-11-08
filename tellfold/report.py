@@ -352,7 +352,8 @@ turning points, and agents who changed their mind.
 - Calibrate confidence. "high" only when the signal is consistent across rounds and across different kinds of \
 agents and survives injected events; "medium" for a clear lean with notable dissent or volatility; "low" when \
 sentiment flipped, activity was sparse, or the crowd split evenly.
-- Write every prose field in {language}. Keep @handles, #ids, persona ids and JSON keys exactly as given."""
+- Write every prose field in {language}, including the title, reasons and camp names. Keep @handles, #ids, \
+persona ids and JSON keys exactly as given."""
 
 
 REPORT_TASK = """\

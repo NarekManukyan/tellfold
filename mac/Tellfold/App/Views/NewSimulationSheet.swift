@@ -21,7 +21,8 @@ struct NewSimulationSheet: View {
     @State private var plannerRuntime = "claude-code"
     @State private var plannerModel = "sonnet"
     @State private var concurrency = 4
-    @State private var language = "English"
+    @State private var languageSelection = "English"
+    @State private var customLanguage = ""
     @State private var think = false
     @State private var seed = 7
     @State private var events: [PlannedEvent] = []
@@ -58,6 +59,7 @@ struct NewSimulationSheet: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.space5) {
+                        templateMenu
                         if let note = readinessNote {
                             ReadinessNote(text: note, actionTitle: needsAgentSetup ? "Choose AI Tool…" : nil) {
                                 showsAgentSetup = true
@@ -106,6 +108,21 @@ struct NewSimulationSheet: View {
         .onChange(of: rounds) { _, new in
             for i in events.indices where events[i].round > new { events[i].round = new }
         }
+    }
+
+    // MARK: Templates
+
+    private var templateMenu: some View {
+        Menu {
+            ForEach(StartingTemplate.all) { template in
+                Button(template.title) { apply(template) }
+            }
+        } label: {
+            Label("Start from an example", systemImage: "doc.text.magnifyingglass")
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help("Fill in a question and a fictional document to try Tellfold with")
     }
 
     // MARK: Step 1: the question
@@ -232,7 +249,38 @@ struct NewSimulationSheet: View {
                              choose: { preset in agents = preset.agents; rounds = preset.rounds },
                              customDetail: SizePreset.detect(agents: agents, rounds: rounds) == nil
                                  ? "\(agents) people · \(rounds) rounds" : nil)
+            languageRow
         }
+    }
+
+    private var languageRow: some View {
+        HStack(spacing: Theme.space2) {
+            Text("Posts and report in").font(Theme.body).foregroundStyle(Theme.secondary)
+            Picker("Language", selection: $languageSelection) {
+                ForEach(LanguageChoice.common, id: \.self) { Text($0).tag($0) }
+                Divider()
+                Text(LanguageChoice.other).tag(LanguageChoice.other)
+            }
+            .labelsHidden()
+            .fixedSize()
+            if languageSelection == LanguageChoice.other {
+                TextField("Language", text: $customLanguage, prompt: Text("Language name"))
+                    .labelsHidden()
+                    .consoleField()
+                    .frame(width: 160)
+                    .onChange(of: customLanguage) { _, new in
+                        if new.count > LanguageChoice.maxLength { customLanguage = String(new.prefix(LanguageChoice.maxLength)) }
+                    }
+            }
+        }
+        .padding(.top, Theme.space2)
+    }
+
+    private var language: String { LanguageChoice.resolve(selection: languageSelection, custom: customLanguage) }
+
+    private func setLanguage(_ value: String) {
+        languageSelection = LanguageChoice.selection(for: value)
+        customLanguage = LanguageChoice.custom(for: value)
     }
 
     // MARK: Advanced
@@ -259,12 +307,6 @@ struct NewSimulationSheet: View {
                 }
                 Seam()
                 advancedGroup {
-                    row("Language") {
-                        TextField("Language", text: $language)
-                            .labelsHidden()
-                            .consoleField()
-                            .frame(width: 160)
-                    }
                     row("Random seed", hint: "The same seed repeats the same sampling.") {
                         NumberField(value: $seed, range: 0...Int(Int32.max), label: "Random seed", width: 96)
                     }
@@ -503,6 +545,7 @@ struct NewSimulationSheet: View {
         didSetDefaults = true
         concurrency = model.engineSettings?.concurrency ?? model.prefs.defaultConcurrency
         think = model.engineSettings?.think ?? false
+        setLanguage(model.prefs.lastLanguage)
         if model.runtimes.isEmpty { await model.loadRuntimes() }
         useDefaultRuntimes()
         if let prefill = model.newSimulationPrefill {
@@ -529,7 +572,7 @@ struct NewSimulationSheet: View {
         rounds = c.rounds
         batch = c.batchSize
         concurrency = c.concurrency
-        language = c.language
+        setLanguage(c.language)
         think = c.think
         seed = c.seed
         events = c.events.map { PlannedEvent(round: min(max(1, $0.round), c.rounds), content: $0.content) }
@@ -543,6 +586,22 @@ struct NewSimulationSheet: View {
         if !files.isEmpty || !missingSeedNames.isEmpty { aboutMode = .files }
     }
 
+    /// Fills the question, attaches the template's bundled document and plans its breaking news.
+    private func apply(_ template: StartingTemplate) {
+        question = template.question
+        if let url = template.seedURL() {
+            files = [url]
+            descriptionText = ""
+            missingSeedNames = []
+            aboutMode = .files
+            errorMessage = nil
+        } else {
+            errorMessage = "The example document is missing from this copy of Tellfold."
+        }
+        events = template.events.map { PlannedEvent(round: min(max(1, $0.round), rounds), content: $0.content) }
+        focus = nil
+    }
+
     private func submit() async {
         guard disabledReason == nil, !isSubmitting else { return }
         isSubmitting = true
@@ -553,7 +612,7 @@ struct NewSimulationSheet: View {
             files: files, question: NewSimulationRules.trimmed(question), agents: agents, rounds: rounds, batch: batch,
             agentRuntime: agentRuntime, agentModel: agentModel, plannerRuntime: plannerRuntime,
             plannerModel: plannerModel, concurrency: concurrency,
-            language: language.trimmingCharacters(in: .whitespaces).isEmpty ? "English" : language,
+            language: language,
             think: think,
             events: events.map { GodEvent(round: $0.round, content: $0.content.trimmingCharacters(in: .whitespacesAndNewlines)) }
                 .filter { !$0.content.isEmpty },
@@ -561,6 +620,7 @@ struct NewSimulationSheet: View {
             inlineDocuments: text.isEmpty ? [] : [.description(text)])
         do {
             _ = try await model.createRun(request)
+            model.prefs.lastLanguage = language
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

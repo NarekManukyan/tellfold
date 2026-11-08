@@ -188,3 +188,78 @@ nonisolated enum NewSimulationRules {
         runtimes.contains { $0 == nil || $0?.installed == false }
     }
 }
+
+/// The language the agents post in and the report is written in: a short menu of common languages, or any other
+/// name typed under "Other…". The engine takes the name as written (up to 40 characters).
+nonisolated enum LanguageChoice {
+    static let common = [
+        "English", "Spanish", "French", "German", "Italian", "Portuguese", "Dutch", "Polish", "Turkish", "Russian",
+        "Ukrainian", "Armenian", "Arabic", "Hindi", "Chinese", "Japanese", "Korean",
+    ]
+    /// The menu row that shows the text field.
+    static let other = "Other…"
+    /// The engine's limit for the `language` form field.
+    static let maxLength = 40
+
+    /// The menu row for a language: the language itself when it is in the menu (any case), otherwise "Other…".
+    static func selection(for language: String) -> String {
+        let trimmed = language.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "English" }
+        return common.first { $0.caseInsensitiveCompare(trimmed) == .orderedSame } ?? other
+    }
+
+    /// What the text field under "Other…" starts with for a language: empty for one that is in the menu.
+    static func custom(for language: String) -> String {
+        selection(for: language) == other ? String(language.trimmingCharacters(in: .whitespacesAndNewlines).prefix(maxLength)) : ""
+    }
+
+    /// The language to send: the menu choice, or the typed one under "Other…" (trimmed, at most 40 characters,
+    /// English when nothing was typed).
+    static func resolve(selection: String, custom: String) -> String {
+        guard selection == other else { return selection }
+        let typed = String(custom.trimmingCharacters(in: .whitespacesAndNewlines).prefix(maxLength))
+        return typed.isEmpty ? "English" : typed
+    }
+}
+
+/// A ready-made start for the New simulation sheet: a question, a fictional seed document bundled with the app
+/// (the `examples/` folder of the repository) and the breaking news to inject partway through.
+nonisolated struct StartingTemplate: Identifiable, Hashable, Sendable {
+    /// The seed document's file name without `.md`.
+    var id: String
+    var title: String
+    var question: String
+    var events: [GodEvent] = []
+
+    func seedURL(in bundle: Bundle = .main) -> URL? { bundle.url(forResource: id, withExtension: "md") }
+
+    static let all: [StartingTemplate] = [
+        StartingTemplate(
+            id: "corner_cafe_prices", title: "A café raises its prices",
+            question: "How will the café's regulars and neighbours react to the new prices and the neighbour card "
+                + "over the first weeks, and will the café lose customers?",
+            events: [GodEvent(round: 3, content: "A local food blog calls the new prices greedy.")]),
+        StartingTemplate(
+            id: "school_phone_policy", title: "A school bans phones during the day",
+            question: "How will parents, students and teachers react to the phone-free school day, and will the "
+                + "school have to change the policy?",
+            events: [GodEvent(round: 3, content: "A school bus breaks down on the motorway in the evening, and "
+                + "students with locked phones cannot call their parents for over an hour.")]),
+        StartingTemplate(
+            id: "high_street_car_free", title: "A town closes its main street to cars",
+            question: "How will residents, shop owners and commuters react to making Market Street car-free, and "
+                + "will the council go ahead with it?"),
+        StartingTemplate(
+            id: "team_office_return", title: "A company brings staff back to the office",
+            question: "How will Halden's staff react to the three office days and the new mixed teams, and how "
+                + "many are likely to push back or leave?",
+            events: [GodEvent(round: 3, content: "A post on a popular tech forum claims Halden is using office days "
+                + "to make people quit so it doesn't have to pay redundancy.")]),
+        StartingTemplate(
+            id: "mossbook_pricing", title: "An app switches to a subscription",
+            question: "How will existing Mossbook buyers and the wider houseplant community react to the new "
+                + "subscription pricing during its first two weeks, and will Mossbook have to change the plan?",
+            events: [GodEvent(round: 3, content: "A popular plant YouTuber with 800k subscribers posts a video "
+                + "titled 'Mossbook just betrayed its users'.")]),
+    ]
+}

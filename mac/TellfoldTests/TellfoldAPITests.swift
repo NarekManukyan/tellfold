@@ -144,6 +144,7 @@ struct TellfoldAPITests {
         var request = NewRunRequest(files: [seed], question: "Will it work?")
         request.agentRuntime = "cursor-agent"
         request.think = true
+        request.language = "French"
         request.events = [GodEvent(round: 2, content: "News"), GodEvent(round: 3, content: "  ")]
         let id = try await api.createRun(request)
         #expect(id == "20261107-1")
@@ -155,6 +156,7 @@ struct TellfoldAPITests {
         #expect(body.contains("name=\"question\"\r\n\r\nWill it work?\r\n"))
         #expect(body.contains("name=\"agent_runtime\"\r\n\r\ncursor-agent\r\n"))
         #expect(body.contains("name=\"think\"\r\n\r\ntrue\r\n"))
+        #expect(body.contains("name=\"language\"\r\n\r\nFrench\r\n"))
         #expect(body.contains(#"[{"content":"News","round":2}]"#))
         #expect(body.contains("name=\"files[]\"; filename=\"seed notes.md\"\r\nContent-Type: text/markdown\r\n\r\n# Seed\nHello\r\n"))
         #expect(body.hasSuffix("--\r\n"))

@@ -276,3 +276,25 @@ def test_ui_refuses_busy_port(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setattr(cli, "port_free", lambda port: False)
     result = CliRunner().invoke(cli.app, ["ui", "--runs", str(tmp_path), "--no-open"])
     assert result.exit_code == 1 and "already in use" in result.output
+
+
+async def test_language_reaches_every_writing_prompt(run_dir: Path):
+    """A French run asks for French in the persona, opening, round and report prompts."""
+    systems: dict[str, str] = {}
+
+    class Spy(FakeLLM):
+        async def text(self, prompt, *, system, model, purpose):
+            systems.setdefault(purpose, system)
+            return await super().text(prompt, system=system, model=model, purpose=purpose)
+
+        async def json(self, prompt, *, system, model, purpose, schema):
+            systems.setdefault(purpose, system)
+            return await super().json(prompt, system=system, model=model, purpose=purpose, schema=schema)
+
+    llm = Spy(lambda purpose, prompt, schema: cli.fake_responder(purpose, prompt, schema))
+    await runner.run_pipeline(llm, run_dir, make_config(language="French"), [EXAMPLE])
+    persona_prompts = [prompt for purpose, _, prompt in llm.calls if purpose == "personas.batch"]
+    assert persona_prompts and all("in French" in p for p in persona_prompts)
+    assert "in French" in systems["report.write"] and "camp names" in systems["report.write"]
+    engine_systems = [s for purpose, s in systems.items() if purpose.startswith("engine.") and "in French" in s]
+    assert engine_systems, sorted(systems)
