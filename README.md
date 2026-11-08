@@ -39,7 +39,7 @@ To install, download `Tellfold.dmg`, open it and drag Tellfold to Applications. 
 
 ## Your privacy
 
-Tellfold has no account and no server. Your documents go only to the AI model you use through Claude Code, and every run stays on your Mac.
+Tellfold has no account and no server. Your documents go only to the AI tool you choose, and every run stays on your Mac.
 
 ## Good to know
 

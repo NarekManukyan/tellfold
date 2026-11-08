@@ -151,7 +151,7 @@ print(d.get("id",""), a.get("status",""))'
 notarize() {
     local file=$1 result id status
     if [ -n "$ASC_PROFILE" ]; then
-        result=$(asc --profile "$ASC_PROFILE" notarization submit --file "$file" --wait --timeout 1h --output json)
+        result=$(asc --profile "$ASC_PROFILE" notarization submit --file "$file" --wait --timeout "${TELLFOLD_NOTARY_TIMEOUT:-72h}" --output json)
         read -r id status < <(printf '%s' "$result" | submission)
         if [ "$status" != "Accepted" ]; then
             asc --profile "$ASC_PROFILE" notarization log --id "$id" >&2 || true
