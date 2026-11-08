@@ -648,10 +648,42 @@ extension RunSummary {
     }
 }
 
+/// Model calls of one kind: a run's total, or the part sent to the agent or planner runtime.
+struct CallTotals: Codable, Hashable, Sendable {
+    var count: Int = 0
+    var failed: Int = 0
+    var seconds: Double = 0
+}
+
+extension CallTotals {
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        count = c.value(.count, default: 0)
+        failed = c.value(.failed, default: 0)
+        seconds = c.value(.seconds, default: 0)
+    }
+}
+
+/// Totals from the run's `calls.jsonl`. `agent` and `planner` are nil from engines that did not split them.
 struct CallsSummary: Codable, Hashable, Sendable {
     var count: Int = 0
     var failed: Int = 0
     var seconds: Double = 0
+    /// Rounds, sentiment and interviews.
+    var agent: CallTotals?
+    /// Graph, personas, report and ask.
+    var planner: CallTotals?
+}
+
+extension CallsSummary {
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        count = c.value(.count, default: 0)
+        failed = c.value(.failed, default: 0)
+        seconds = c.value(.seconds, default: 0)
+        agent = c.optional(.agent)
+        planner = c.optional(.planner)
+    }
 }
 
 struct ReportRebuild: Codable, Hashable, Sendable {

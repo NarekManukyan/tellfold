@@ -59,15 +59,26 @@ struct NewRunRequest: Hashable, Sendable {
     static let maxFileBytes = 20 * 1024 * 1024
     static let maxFiles = 20
 
-    /// The same formula as `tellfold.runner.estimate_calls`.
-    static func estimatedCalls(agents: Int, rounds: Int, batch: Int, chunks: Int) -> Int {
-        let batch = max(1, batch)
+    /// Share of the crowd expected to act in a round (`ESTIMATED_ACTIVE_SHARE` in tellfold/runner.py).
+    static let estimatedActiveShare = 0.4
+
+    /// The same formula as `tellfold.runner.estimate_call_split`: model calls for the crowd (agent runtime) and for
+    /// planning (graph, personas, report) when nothing needs a retry.
+    static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int) -> (agent: Int, planner: Int) {
+        let batch = Double(max(1, batch))
         let graph = Int((Double(chunks) / 4).rounded(.up))
         let personas = Int((Double(agents) / 10).rounded(.up))
         let openingAuthors = (0.3 * Double(agents)).rounded(.toNearestOrEven)
-        let opening = Int((openingAuthors / Double(batch)).rounded(.up)) + 1
-        let perRound = Int((Double(agents) / Double(batch)).rounded(.up)) + 1
-        return graph + personas + opening + rounds * perRound + 1
+        let opening = Int((openingAuthors / batch).rounded(.up)) + 1
+        let active = max(1, (Double(agents) * estimatedActiveShare).rounded(.up))
+        let perRound = Int((active / batch).rounded(.up)) + 1
+        return (opening + rounds * perRound, graph + personas + 1)
+    }
+
+    /// The same formula as `tellfold.runner.estimate_calls`.
+    static func estimatedCalls(agents: Int, rounds: Int, batch: Int, chunks: Int) -> Int {
+        let split = estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
+        return split.agent + split.planner
     }
 
     /// Rough chunk count for the estimate: ~1,600 characters per chunk, PDFs yield ~30 % text per byte.

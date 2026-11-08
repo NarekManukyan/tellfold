@@ -42,7 +42,7 @@ You will see each stage tick off, followed by a table that grows one row per rou
 
 `examples/run_mossbook.sh` runs a fuller version that also injects two breaking-news events partway through.
 
-There are three more fictional seeds that have nothing to do with software: `examples/corner_cafe_prices.md` (a café raising its prices), `examples/school_phone_policy.md` (a school banning phones during the day) and `examples/high_street_car_free.md` (a town closing its main street to cars).
+There are four more fictional seeds that have nothing to do with software: `examples/corner_cafe_prices.md` (a café raising its prices), `examples/school_phone_policy.md` (a school banning phones during the day), `examples/high_street_car_free.md` (a town closing its main street to cars) and `examples/team_office_return.md` (a company bringing staff back to the office). The Mac app bundles all of them for "Start from an example" on the New simulation sheet.
 
 ## Commands
 

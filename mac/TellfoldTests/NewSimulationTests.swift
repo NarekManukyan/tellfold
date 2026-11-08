@@ -194,4 +194,74 @@ struct NewSimulationTests {
         #expect(NewSimulationRules.exampleQuestions.contains(prefill.question))
         #expect(NewSimulationRules.exampleQuestions.count == 3)
     }
+
+    // MARK: language
+
+    @Test func languageMenuRoundTripsTheConfigLanguage() {
+        #expect(LanguageChoice.selection(for: "French") == "French")
+        #expect(LanguageChoice.selection(for: " french ") == "French")
+        #expect(LanguageChoice.selection(for: "") == "English")
+        #expect(LanguageChoice.selection(for: "Catalan") == LanguageChoice.other)
+        #expect(LanguageChoice.custom(for: "Catalan") == "Catalan")
+        #expect(LanguageChoice.custom(for: "French").isEmpty)
+        #expect(LanguageChoice.resolve(selection: "Armenian", custom: "ignored") == "Armenian")
+        #expect(LanguageChoice.resolve(selection: LanguageChoice.other, custom: "  Catalan ") == "Catalan")
+        #expect(LanguageChoice.resolve(selection: LanguageChoice.other, custom: "   ") == "English")
+        #expect(LanguageChoice.resolve(selection: LanguageChoice.other, custom: String(repeating: "x", count: 60)).count == 40)
+        #expect(LanguageChoice.common.count == 17 && LanguageChoice.common.first == "English")
+    }
+
+    @Test func runAgainRestoresTheLanguage() {
+        var french = config()
+        french.language = "French"
+        let prefill = NewSimulationPrefill.runAgain(config: french, seedFiles: [])
+        let language = try? #require(prefill.config?.language)
+        #expect(LanguageChoice.resolve(selection: LanguageChoice.selection(for: language ?? ""),
+                                       custom: LanguageChoice.custom(for: language ?? "")) == "French")
+        var other = config()
+        other.language = "Catalan"
+        #expect(LanguageChoice.resolve(selection: LanguageChoice.selection(for: other.language),
+                                       custom: LanguageChoice.custom(for: other.language)) == "Catalan")
+    }
+
+    @MainActor @Test func lastLanguageIsRemembered() throws {
+        let suite = "tellfold-tests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        #expect(AppPreferences(defaults: defaults).lastLanguage == "English")
+        AppPreferences(defaults: defaults).lastLanguage = "Japanese"
+        #expect(AppPreferences(defaults: defaults).lastLanguage == "Japanese")
+    }
+
+    // MARK: templates
+
+    @MainActor @Test func everyTemplateHasItsBundledDocument() throws {
+        #expect(StartingTemplate.all.count == 5)
+        #expect(Set(StartingTemplate.all.map(\.id)).count == StartingTemplate.all.count)
+        for template in StartingTemplate.all {
+            let url = try #require(template.seedURL(), "missing \(template.id).md in the app bundle")
+            let text = try String(contentsOf: url, encoding: .utf8)
+            #expect(text.contains("Fictional document"))
+            #expect(!template.question.isEmpty && template.question.hasSuffix("?"))
+            #expect(template.events.allSatisfy { (1...SizePreset.quick.rounds).contains($0.round) })
+            #expect(AppModel.isSeedFile(url))
+        }
+    }
+
+    // MARK: cost
+
+    @Test func costLineNamesTheCallsAndWhereTheyGo() {
+        #expect(NewSimulationRules.costLine(agentCalls: 20, plannerCalls: 4, agentRuntime: "Claude Code",
+                                            agentModel: "haiku", plannerRuntime: "Claude Code", plannerModel: "sonnet")
+                == "About 24 model calls on Claude Code: 20 for the crowd (haiku), 4 for planning (sonnet).")
+        #expect(NewSimulationRules.costLine(agentCalls: 20, plannerCalls: 4, agentRuntime: "Ollama",
+                                            agentModel: "llama3.2", plannerRuntime: "Codex", plannerModel: "default")
+                == "About 24 model calls: 20 on Ollama for the crowd (llama3.2), 4 on Codex for planning (default).")
+    }
+
+    @Test func standardEstimateIsCloseToARealRun() {
+        // A real Standard run (20 people, 6 rounds, batches of 6, a one-page seed) made 22 calls before any chat.
+        let calls = NewRunRequest.estimatedCalls(agents: 20, rounds: 6, batch: 6, chunks: 1)
+        #expect(abs(Double(calls) - 22) / 22 <= 0.3)
+    }
 }

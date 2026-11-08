@@ -52,6 +52,11 @@ targets:
       - path: Tellfold/Resources/Examples
         type: folder
         buildPhase: resources
+      # The fictional seed documents behind "Start from an example" on the New simulation sheet.
+      - path: ../examples
+        buildPhase: resources
+        excludes:
+          - "*.sh"
     dependencies:
       - package: Sparkle
     info:

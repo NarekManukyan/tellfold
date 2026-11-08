@@ -32,6 +32,7 @@ from tellfold.models import (
     SimConfig,
 )
 from tellfold.runner import read_status
+from tellfold.runtimes import is_agent_purpose
 
 M = TypeVar("M", bound=BaseModel)
 
@@ -148,9 +149,11 @@ class RunReader:
         return {pid: p.handle for pid, p in (self._persona_cache or {}).items()}
 
     def calls(self) -> dict[str, Any]:
-        """Totals from calls.jsonl: {count, failed, seconds}."""
-        count = failed = 0
-        seconds = 0.0
+        """Totals from calls.jsonl: {count, failed, seconds, agent: {...}, planner: {...}}.
+
+        `agent` covers the calls routed to the agent runtime (rounds, sentiment, interviews), `planner` the rest
+        (graph, personas, report, ask), split the same way `tellfold.runtimes.build_llm` routes them."""
+        totals = {role: {"count": 0, "failed": 0, "seconds": 0.0} for role in ("all", "agent", "planner")}
         try:
             with (self.run_dir / "calls.jsonl").open(encoding="utf-8") as f:
                 for line in f:
@@ -160,16 +163,20 @@ class RunReader:
                         continue  # a line still being written
                     if not isinstance(rec, dict):
                         continue
-                    count += 1
-                    if rec.get("ok") is False:
-                        failed += 1
                     try:
-                        seconds += float(rec.get("seconds") or 0)
+                        seconds = float(rec.get("seconds") or 0)
                     except (TypeError, ValueError):
-                        pass
+                        seconds = 0.0
+                    role = "agent" if is_agent_purpose(str(rec.get("purpose") or "")) else "planner"
+                    for key in ("all", role):
+                        totals[key]["count"] += 1
+                        totals[key]["failed"] += rec.get("ok") is False
+                        totals[key]["seconds"] += seconds
         except OSError:
             pass
-        return {"count": count, "failed": failed, "seconds": round(seconds, 2)}
+        for t in totals.values():
+            t["seconds"] = round(t["seconds"], 2)
+        return {**totals["all"], "agent": totals["agent"], "planner": totals["planner"]}
 
     def mtime(self, name: str) -> float:
         try:

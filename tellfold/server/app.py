@@ -84,10 +84,15 @@ class RunSummary(BaseModel):
     example: bool = False  # a built-in example run: read-only
 
 
-class CallsSummary(BaseModel):
+class CallTotals(BaseModel):
     count: int = 0
     failed: int = 0
     seconds: float = 0.0
+
+
+class CallsSummary(CallTotals):
+    agent: CallTotals = Field(default_factory=CallTotals)  # engine.* and chat.interview calls
+    planner: CallTotals = Field(default_factory=CallTotals)  # graph, personas, report and ask calls
 
 
 class ReportRebuild(BaseModel):

@@ -27,6 +27,8 @@ final class AppPreferences {
     var askedNotificationPermission: Bool { didSet { defaults.set(askedNotificationPermission, forKey: Keys.askedNotifications) } }
     /// The first-run step that picks an AI tool was finished or skipped.
     var agentSetupDone: Bool { didSet { defaults.set(agentSetupDone, forKey: Keys.agentSetupDone) } }
+    /// The language of the last simulation started; the New simulation sheet opens with it.
+    var lastLanguage: String { didSet { defaults.set(lastLanguage, forKey: Keys.lastLanguage) } }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -40,6 +42,7 @@ final class AppPreferences {
         offlineTestModel = defaults.bool(forKey: Keys.offline)
         askedNotificationPermission = defaults.bool(forKey: Keys.askedNotifications)
         agentSetupDone = defaults.bool(forKey: Keys.agentSetupDone)
+        lastLanguage = defaults.string(forKey: Keys.lastLanguage) ?? "English"
     }
 
     private enum Keys {
@@ -52,6 +55,7 @@ final class AppPreferences {
         static let offline = "offlineTestModel"
         static let askedNotifications = "askedNotificationPermission"
         static let agentSetupDone = "agentSetupDone"
+        static let lastLanguage = "lastLanguage"
     }
 
     /// `~/Library/Application Support/Tellfold/runs`.
