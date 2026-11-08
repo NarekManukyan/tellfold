@@ -86,7 +86,7 @@ struct OverviewView: View {
                 .accessibilityLabel("Crowd view")
                 .padding(.horizontal, 4)
                 .frame(height: 28)
-                .glassEffect(.regular, in: .capsule)
+                .glassSurface(in: .capsule)
                 .padding(6)
             }
             .frame(height: Self.crowdHeight(forWidth: crowdWidth) + Self.switchStrip)

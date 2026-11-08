@@ -121,7 +121,7 @@ struct CanvasZoomControls: View {
 
     var body: some View {
         // One container so the three glass circles are rendered together (glass cannot sample glass).
-        GlassEffectContainer(spacing: 6) {
+        GlassGroup(spacing: 6) {
             HStack(spacing: 8) {
                 button("minus.magnifyingglass", "Zoom out") { controller.zoom(by: 0.8, anchor: nil) }
                 button("plus.magnifyingglass", "Zoom in") { controller.zoom(by: 1.25, anchor: nil) }
@@ -140,7 +140,7 @@ struct CanvasZoomControls: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .circle)
+        .glassSurface(in: .circle, interactive: true)
         .help(label)
         .accessibilityLabel(label)
     }

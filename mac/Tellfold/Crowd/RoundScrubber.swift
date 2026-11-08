@@ -60,7 +60,7 @@ struct RoundScrubber: View {
         }
         .padding(.horizontal, Theme.space4)
         .padding(.vertical, 2)
-        .glassEffect(.regular, in: .capsule)
+        .glassSurface(in: .capsule)
     }
 
     private func speedText(_ speed: Double) -> String {

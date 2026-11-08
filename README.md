@@ -28,7 +28,7 @@ You can also add a twist partway through ("a local newspaper criticises the plan
 
 ## What you need
 
-- A Mac with Apple silicon, running macOS 26 or later
+- A Mac with Apple silicon, running macOS 15 or later
 - An AI tool on your Mac, installed and signed in: [Claude Code](https://claude.com/claude-code), [Codex](https://developers.openai.com/codex/cli), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor](https://cursor.com/cli), [Ollama](https://ollama.com) and more. Tellfold uses it to run the simulated people, so there is no extra account. On first launch it finds the tools you have and suggests one; change it any time in Settings › Agents. Bigger runs use more of your plan, and Ollama runs free models on your Mac.
 
 To install, download `Tellfold.dmg`, open it and drag Tellfold to Applications. The app updates itself (Tellfold › Check for Updates…).
