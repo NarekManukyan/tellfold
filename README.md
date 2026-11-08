@@ -1,190 +1,55 @@
 # Tellfold
 
-The logo and brand files live in `brand/` (see `brand/README.md`). The research behind the name is in `docs/naming-research.md`.
+**See how people might react, before you tell them.**
 
-Tellfold runs a small simulated social network on your own machine to help you guess how people will react to something. You give it one or more documents (a press release, a policy draft, a product announcement) and a question ("How will existing customers react to the new pricing?"). It reads the documents, builds a cast of people and organisations who would care, lets them post, reply, like and follow each other for a few rounds, and then writes a report that answers your question with the simulated posts as evidence.
+Tellfold is a free Mac app. You describe something you are about to announce or change, and ask a question about it. Tellfold builds a small crowd of simulated people who would care, lets them talk about it with each other for a few rounds, and then writes you a short answer: how the reaction is likely to go, who pushes back, and why.
 
-Every model call goes through the Claude Code CLI you already have installed and logged in. Tellfold needs no API key and no cloud service, and it keeps no data anywhere except the run folder it creates.
+[**Download for Mac**](https://narekmanukyan.github.io/tellfold/) · [Website](https://narekmanukyan.github.io/tellfold/) · [Sponsor](https://github.com/sponsors/NarekManukyan)
 
-> **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
+## What you can use it for
 
-## Download
+Anything where you want to know how a group of people will take news before they hear it. For example:
 
-Get the Mac app from [narekmanukyan.github.io/tellfold](https://narekmanukyan.github.io/tellfold/) or the [latest release](https://github.com/NarekManukyan/tellfold/releases/latest). It needs macOS 26 on Apple silicon and Claude Code installed and signed in. Updates arrive inside the app (Tellfold > Check for Updates…).
+- **A small business** raising its prices, changing its opening hours or launching a loyalty card
+- **A school** writing to parents about a new rule, a timetable change or a trip
+- **A town council or club** proposing a new street layout, a fee or a change to the rules
+- **A team or company** announcing a reorganisation, a return to the office or a new benefit
+- **A landlord or housing group** explaining a rent increase or building works
+- **A charity or campaign** testing how an appeal or a message will land
+- **A product or app** changing its pricing or launching a feature
 
-Tellfold is free. If it helps you, [sponsor its development](https://github.com/sponsors/NarekManukyan).
-
-## Requirements
-
-- **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
-- **[uv](https://docs.astral.sh/uv/)** for Python and dependencies. Python 3.11 or newer; uv installs it for you if needed.
-- macOS or Linux. Windows should work under WSL, but nobody has tested it.
-
-## Install
-
-```sh
-git clone <this repo> tellfold && cd tellfold
-uv sync
-uv run tellfold doctor
-```
-
-`doctor` checks that `claude` is on your PATH, that the Python SDK imports, and that a one-word haiku call succeeds. If all four rows say `ok`, you are ready.
-
-To get a global `tellfold` command instead of `uv run tellfold`:
-
-```sh
-uv tool install .
-```
-
-## Quick start
-
-The repository includes a fictional seed document: a plant-care app called Mossbook switching from a one-time purchase to a subscription.
-
-```sh
-uv run tellfold run examples/mossbook_pricing.md \
-  -q "How will existing Mossbook buyers react to the new subscription pricing over the first two weeks?" \
-  --agents 12 --rounds 4 --open
-```
-
-You will see each stage tick off, followed by a table that grows one row per round with the number of active agents, new posts, the mix of actions and the average sentiment. When it finishes, `--open` opens `report.html` in your browser.
-
-`examples/run_mossbook.sh` runs a fuller version that also injects two breaking-news events partway through.
-
-## Commands
-
-The command is `tellfold` (`run`, `report`, `ui`, `serve`, `chat`, `ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
-
-### `tellfold run SEED... -q QUESTION [options]`
-
-Runs the whole pipeline and creates `runs/<YYYYMMDD-HHMMSS>-<slug>/`.
-
-| option | default | meaning |
-|---|---|---|
-| `-q, --question` | required | What you want predicted. The report answers this directly. |
-| `--agents` | 20 | Number of simulated people and organisations. |
-| `--rounds` | 6 | Simulation rounds. Each round is one beat of activity on the platform. |
-| `--batch` | 6 | Agents decided per model call. Bigger batches mean fewer calls but less attention per agent. |
-| `--agent-model` | haiku | Model for the per-round decisions. This is where most calls go. |
-| `--planner-model` | sonnet | Model for reading the documents, writing personas and writing the report. |
-| `--concurrency` | 4 | How many Claude CLI processes run at once. |
-| `--event "ROUND:TEXT"` | none | Breaking news shown to everyone at the start of that round. Can be repeated. Rounds count from 1. |
-| `--language` | English | Language the agents post in and the report is written in. |
-| `--seed` | 7 | Random seed for who is active each round and feed tie-breaks. |
-| `--think` | off | Turn on extended thinking for the graph, persona and report calls. More thorough, but each of those calls gets several times slower. By default only the final report call thinks. |
-| `--out` | runs | Folder that holds run directories. |
-| `--open` | off | Open `report.html` when the run finishes. |
-
-`SEED` can be `.pdf`, `.md`, `.markdown` or `.txt` files, or a folder containing them.
-
-### `tellfold report RUN_DIR [--model M] [--open]`
-
-Rebuilds `report.json`, `report.html` and `report.md` from what is already in the run folder. Use it after an interrupted run, or to try a different model for the write-up.
-
-### `tellfold chat RUN_DIR --agent a03`
-
-Opens an interview with one simulated agent. The agent answers in character, using its persona, its memory notes and what it posted during the run. You can pass an id (`a03`) or a handle (`@maria_dev`). Type `exit` or press Ctrl-D to leave. Run `tellfold agents` to see who is there.
-
-### `tellfold ask RUN_DIR "question"`
-
-Asks one follow-up question about the outcome ("Which group changed its mind the most, and why?"). The answer draws on the report and the simulation record.
-
-### `tellfold agents RUN_DIR`
-
-Prints a table of every persona with followers, posts, activity, influence and starting stance.
-
-### `tellfold doctor`
-
-Runs the setup checks described under Install. Exits with status 1 if anything fails.
-
-## What a run leaves behind
-
-```
-runs/20260303-091500-how-will-existing-mossbook-buyers/
-  config.json     the exact settings used
-  graph.json      people, organisations and relations extracted from the seeds
-  personas.json   the simulated cast
-  world.db        SQLite: posts, actions, follows, memories, round stats, events
-  calls.jsonl     one line per model call: purpose, model, duration, sizes, errors (never the prompt text)
-  report.json     the structured report
-  report.html     a self-contained page: report, sentiment chart, top threads, persona directory
-  report.md       the same report as Markdown
-```
-
-Press Ctrl-C at any point and Tellfold stops cleanly and keeps whatever it has written. If the simulation had already started, `tellfold report RUN_DIR` builds a report from the rounds that finished.
-
-## Cost and rate limits
-
-Tellfold does not charge anything itself; it uses your Claude subscription through the CLI, so heavy runs count against your plan's usage limits. Right after reading the seeds it prints an estimate of the number of calls, assuming none need a retry. For a run with `A` agents, `R` rounds and batch size `B`, that is roughly:
-
-```
-graph calls  ≈ chunks / 4                     (planner model)
-persona calls ≈ A / 10                         (planner model)
-round calls  ≈ R × (A / B + 1)                 (agent model, plus one sentiment pass per round)
-report       = 1                               (planner model)
-```
-
-The default 20 agents × 6 rounds with batch 6 comes to about 30 haiku calls for the rounds, plus a handful of sonnet calls for the graph, personas and report.
-
-Tips:
-
-- Start small (`--agents 8 --rounds 3`) to check the question and seeds give sensible results, then scale up.
-- Extended thinking is off for almost every call. With it on, haiku spends 10-20k hidden tokens per call and a graph-extraction call goes from about 10s to about 2 minutes. Only the final report keeps it, unless you pass `--think`.
-- If you hit rate limits, lower `--concurrency` to 2. Tellfold retries with backoff, and a round where a batch keeps failing carries on without those agents.
-- `--planner-model opus` gives a noticeably better report at a higher usage cost. Keep the agent model on haiku unless you have headroom.
-- `calls.jsonl` shows where the time went.
+You can also add a twist partway through ("a local newspaper criticises the plan") and see whether the mood changes.
 
 ## How it works
 
-1. **Ingest.** Text is pulled out of the seed files (PDFs via PyMuPDF) and cut into overlapping chunks on paragraph boundaries.
-2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results in plain Python.
-3. **Personas.** The planner turns the most important actors into official accounts and public figures, then fills the rest of the cast with ordinary members of the affected public: different ages, jobs, incentives and starting views, including people who simply do not care.
-4. **World.** A small social platform lives in SQLite: posts, replies, reposts, likes, dislikes and follows. Each agent's feed ranks posts from people it follows and replies to its own posts first, then by engagement, author influence and recency.
-5. **Rounds.** Each round some agents become active (weighted by their activity level). They are decided in batches: the model sees each agent's private background, its memory notes and its own feed, and picks one to three actions. Invalid actions, such as liking a post that does not exist, are turned into "do nothing" instead of crashing the run. Breaking-news events are shown to everyone in their round. A short pass then scores the round's sentiment.
-6. **Report.** Tellfold computes the evidence itself (per-round numbers, the most engaged posts, the most followed accounts, how each agent's tone moved from first post to last) and gives that digest to the planner model, which writes a report that answers the question and cites posts and handles.
+1. **Describe it.** Paste your announcement, letter or plan, or add the document. Then type your question, such as "How will regular customers react to the new prices?"
+2. **Watch the crowd.** Tellfold creates a mix of people (supporters, sceptics and people who don't care much) and lets them post, reply and like each other's posts, round by round. A run takes a few minutes.
+3. **Read the answer.** You get a short report with the likely outcome, how confident it is, and the posts that back it up. You can then ask any of the simulated people why they said what they said.
 
-## Limitations
+## What you need
 
-- These are language-model agents, not people. They are often more articulate, more reasonable and more on-topic than a real crowd. Treat the output as a structured way to think through reactions, not as a poll.
-- Twenty agents over six rounds is a small town meeting, not the internet. Network effects, virality and bots are only roughly approximated.
-- Results vary between runs. Run the same question two or three times with different `--seed` values before trusting a conclusion.
-- The agents only know what is in your seed documents plus the model's general knowledge. If an important fact or a vocal group is missing from the seeds, it will be missing from the simulation.
-- Sentiment is the model's judgement of the round's posts toward your question's subject, on a −1 to 1 scale. It is not a calibrated measurement.
-- Scanned PDFs without a text layer are not OCR'd.
+- A Mac with Apple silicon, running macOS 26 or later
+- [Claude Code](https://claude.com/claude-code) installed and signed in. Tellfold uses it to run the simulated people, so there is no extra account or API key. Bigger runs use more of your Claude plan.
 
-## Development
+To install, download `Tellfold.dmg`, open it and drag Tellfold to Applications. The app updates itself (Tellfold › Check for Updates…).
 
-```sh
-uv run pytest -q
-```
+## Your privacy
 
-Tests never call the real CLI. Setting `TELLFOLD_FAKE_LLM=1` makes every command use a built-in offline model that returns valid but meaningless placeholder output, which is handy for trying the CLI without spending usage. The other environment variables are `TELLFOLD_HOME`, `TELLFOLD_FAKE_DELAY`, `TELLFOLD_SERVE_TOKEN`, `TELLFOLD_ALLOW_UNSAFE_RUNTIMES`, `TELLFOLD_KEY_<ID>` and `TELLFOLD_REAL_RUNTIMES`; the old `SHOAL_*` names are still read as fallbacks. Settings and runs live in `~/Library/Application Support/Tellfold`; an old `.../Shoal` folder is moved there automatically on first launch:
+Tellfold has no account and no server. Your documents go only to the AI model you use through Claude Code, and every run stays on your Mac.
 
-```sh
-TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
-```
+## Good to know
 
-### Mac app
+- The people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, so treat the result as a rehearsal, not a survey.
+- A run is a small group, not a whole town or the internet.
+- Results vary from run to run. If a decision matters, run it two or three times.
+- The crowd only knows what you give it, plus general knowledge. If an important fact or group is missing from your text, it will be missing from the simulation.
 
-The Mac app lives in `mac/` (XcodeGen). Debug builds run the engine from this repository through `uv`. Release builds are self-contained: `mac/scripts/bundle-engine.sh` puts a relocatable CPython, the locked dependencies and the `tellfold` package into `Tellfold.app/Contents/Resources/engine`, so the app needs neither `uv` nor Python on the user's Mac. It still needs Claude Code installed and signed in, because every model call goes through the user's own `claude`.
+## Support Tellfold
 
-```sh
-cd mac && xcodegen generate
-xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/dd
-```
+Tellfold is free to download and use. If it helped you, [sponsoring it on GitHub](https://github.com/sponsors/NarekManukyan) pays for the time that goes into it. Questions and bug reports are welcome in [Issues](https://github.com/NarekManukyan/tellfold/issues).
 
-The first Release build downloads Python and the dependencies (a few minutes). Later builds reuse `mac/build/engine-cache` until `uv.lock` changes. The bundled engine is about 190 MB and Apple silicon only. A Developer ID signing identity signs everything inside with the hardened runtime, ready for notarization.
-
-### Releasing
-
-`mac/scripts/release.sh <version>` builds a Developer ID signed and notarized `Tellfold.dmg`, signs it for Sparkle and adds it to `site/appcast.xml`, which the app reads for updates. Add `--publish` to also create the GitHub release and push the appcast; the Pages workflow (`.github/workflows/pages.yml`) publishes `site/` to GitHub Pages on every push to `main` that touches it. Write the release notes in `docs/releases/<version>.md` first, and commit the appcast change afterwards.
-
-One-time setup on the release Mac:
-
-1. A **Developer ID Application** certificate: Xcode > Settings > Accounts > Manage Certificates > + (needs a paid Apple Developer Program membership).
-2. Notary credentials. Either an App Store Connect API key saved as an [`asc`](https://asccli.sh) profile, then run with `TELLFOLD_ASC_PROFILE=<profile>`; or an app-specific password from account.apple.com: `xcrun notarytool store-credentials tellfold-notary --apple-id <apple id> --team-id <team id>`.
-3. The Sparkle update key is in the login keychain under the account `tellfold`. Back it up with `mac/build/sparkle-2.10.1/bin/generate_keys --account tellfold -x <file>` and keep the file somewhere safe: without it no installed copy can be updated.
-4. `gh auth login` for GitHub releases.
+Developers who want to build from source or use the command line can read [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Licence
 
-Copyright © 2026 Narek Manukyan. All rights reserved. The source is public so you can read and audit it; no licence is granted to copy, modify or redistribute it.
+Copyright © 2026 Narek Manukyan. All rights reserved. The source is public so you can read and check it. No licence is granted to copy, change or redistribute it.

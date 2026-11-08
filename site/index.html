@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Tellfold: watch the crowd react before you ship</title>
-<meta name="description" content="Tellfold is a free Mac app. Give it your launch, pricing change or announcement and a question, and a crowd of simulated people reacts over several rounds, then it writes a report that answers your question. It runs on your Mac with the Claude Code you already have.">
+<title>Tellfold: see how people react before you tell them</title>
+<meta name="description" content="Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement and a question. A crowd of simulated people talks it over for a few rounds, then Tellfold writes a short answer. It runs on your Mac with the Claude Code you already have.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#1E1B4B">
 <link rel="canonical" href="https://narekmanukyan.github.io/tellfold/">
@@ -17,8 +17,8 @@
 <link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tellfold">
-<meta property="og:title" content="Tellfold: watch the crowd react before you ship">
-<meta property="og:description" content="A free Mac app. A crowd of simulated people reacts to your launch, pricing change or announcement, round by round, and folds into one answer.">
+<meta property="og:title" content="Tellfold: see how people react before you tell them">
+<meta property="og:description" content="A free Mac app. A crowd of simulated people reacts to your price change, new rule, plan or announcement, round by round, and folds into one answer.">
 <meta property="og:url" content="https://narekmanukyan.github.io/tellfold/">
 <meta property="og:image" content="https://narekmanukyan.github.io/tellfold/icon-512.png">
 <meta name="twitter:card" content="summary">
@@ -33,6 +33,7 @@
     <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><g><path class="p1" d="M54 198L214 198L208.55 156.59L54 198Z"/><path class="p2" d="M54 198L208.55 156.59L192.56 118L54 198Z"/><path class="p1" d="M54 198L192.56 118L167.14 84.86L54 198Z"/><path class="p2" d="M54 198L167.14 84.86L134 59.44L54 198Z"/><path class="p1" d="M54 198L134 59.44L95.41 43.45L54 198Z"/><path class="p2" d="M54 198L95.41 43.45L54 38L54 198Z"/><circle class="hg" cx="54" cy="198" r="16"/></g><g class="wm" transform="translate(262 55) scale(0.62)"><path d="M 16,56 V 88 H 0 v 24 h 16 v 88 H 40 V 112 H 56 V 88 H 40 V 56 Z"/><path d="M 125.76,88.01 c -23.05,0.12 -44.26,14.57 -52.37,36.85 -9.27,25.46 1.14,54.09 24.61,67.64 23.46,13.55 53.47,8.26 70.89,-12.49 L 150.51,164.58 C 140.47,176.54 123.51,179.53 110,171.72 96.49,163.92 90.61,147.74 95.95,133.07 101.28,118.4 116.19,109.79 131.56,112.5 c 11.19,1.97 20.04,9.53 24.06,19.5 H 126 v 24 h 56 L 182,144 c -0.01,-27.09 -19.6,-50.44 -46.28,-55.14 -3.34,-0.59 -6.66,-0.86 -9.96,-0.85 z"/><path d="M 204,40 v 160 h 24 V 40 Z"/><path d="M 256,40 v 160 h 24 V 40 Z"/><path d="M 356,36 c -26.37,0 -48,21.63 -48,48 v 4 h -16 v 24 h 16 v 88 h 24 v -88 h 16 V 88 h -16 v -4 c 0,-13.4 10.6,-24 24,-24 h 10 V 36 Z"/><path d="M 416,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 494,40 v 160 h 24 V 40 Z"/><path d="M 596,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 628,40 v 160 h 24 V 40 Z"/></g></svg></a>
     <nav aria-label="Primary">
       <ul class="nav">
+        <li class="nav-wide"><a href="#uses">What it’s for</a></li>
         <li class="nav-wide"><a href="#how">How it works</a></li>
         <li class="nav-wide"><a href="#report">The report</a></li>
         <li class="nav-wide"><a href="#install">Install</a></li>
@@ -48,8 +49,8 @@
 <section class="hero" data-round="2" aria-labelledby="hero-title">
   <div class="hero-side">
   <div class="hero-copy">
-    <h1 id="hero-title">Watch the crowd react before you ship.</h1>
-    <p class="lede">Tellfold is a Mac app. Give it your launch, pricing change or announcement, and a crowd of simulated people reads it, argues it out over several rounds, and folds into one answer.</p>
+    <h1 id="hero-title">See how people react before you tell them.</h1>
+    <p class="lede">Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
     <div class="actions">
       <a class="btn btn-primary" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon icon-download" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></svg>Download for Mac</a>
       <a class="btn btn-ghost" href="https://github.com/sponsors/NarekManukyan"><svg class="icon icon-heart" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></svg>Sponsor</a>
@@ -97,6 +98,21 @@
   </figure>
 </section>
 
+<section class="uses" id="uses" aria-labelledby="uses-title">
+  <div class="wrap">
+    <h2 id="uses-title" class="rise">Try it on anything people will have an opinion about.</h2>
+    <p class="section-lede rise d1">Shops, schools, councils, teams, clubs, landlords, apps. If a group of people will hear about it, Tellfold can rehearse how they take it.</p>
+    <ul class="uses-list">
+      <li class="rise"><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
+      <li class="rise d1"><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
+      <li class="rise d2"><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
+      <li class="rise"><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
+      <li class="rise d1"><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
+      <li class="rise d2"><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
+    </ul>
+  </div>
+</section>
+
 <section class="how" id="how" aria-labelledby="how-title">
   <div class="wrap">
     <h2 id="how-title" class="rise">Three questions in, one answer out.</h2>
@@ -105,7 +121,7 @@
     <ol class="leaflet">
       <li class="leaf">
         <h3>Describe it</h3>
-        <p>What do you want to find out, what is it about, and how big should the crowd be. Add a PRD, a pricing page or an announcement draft, or just paste the text.</p>
+        <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
         <div class="sheet" aria-hidden="true">
           <p class="field-label">What do you want to find out?</p>
           <p class="field">How will existing Mossbook users react to the switch to subscription pricing?</p>
@@ -146,11 +162,11 @@
       <h2 id="report-title" class="rise">Every claim leads back to a post.</h2>
       <p class="rise d1">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite cite-dark">@handle</span> and <span class="cite cite-dark">#12</span> open the person and the post behind them.</p>
       <dl class="abilities">
-        <div><dt>Inject breaking news</dt><dd>Add a competitor’s price cut or a reviewer’s post to a later round.</dd></div>
+        <div><dt>Inject breaking news</dt><dd>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</dd></div>
         <div><dt>Interview anyone</dt><dd>Ask a person why they posted what they did. They answer in character, from their memory.</dd></div>
         <div><dt>Ask about the outcome</dt><dd>Follow-up questions are answered from the report and the full record.</dd></div>
         <div><dt>Replay the crowd</dt><dd>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</dd></div>
-        <div><dt>Export it</dt><dd>Save any report as one web page for the people making the call with you.</dd></div>
+        <div><dt>Export it</dt><dd>Save any report as one web page to share with the people deciding with you.</dd></div>
       </dl>
     </div>
 
@@ -178,13 +194,13 @@
     <div class="pair">
       <div class="note rise">
         <h3>Runs on your Mac, with what you already have.</h3>
-        <p>Every model call goes through the Claude Code you already have installed and signed in. There’s no API key to paste and no Tellfold account. Your documents go only to the model you choose, and runs stay on your Mac. Heavy runs count against your Claude plan’s usage limits.</p>
-        <p>Tellfold also picks up other agent CLIs such as Codex CLI and Gemini CLI, local models through Ollama or an OpenAI‑compatible server like LM Studio, or your own API keys.</p>
+        <p>Tellfold uses the Claude Code you already have installed and signed in. There’s no Tellfold account and nothing to set up. Your documents go only to the AI you choose, and every run stays on your Mac. Bigger runs use more of your Claude plan.</p>
+        <p>It can also use other AI tools you may have, such as Codex or Gemini, or AI models that run on your own Mac.</p>
       </div>
       <div class="note rise d2">
         <h3>A rehearsal, not a poll.</h3>
-        <p>The people are language models. They tend to be more articulate and more reasonable than a real crowd, twenty of them is a town meeting rather than the internet, and results vary from run to run. Every report says so.</p>
-        <p>Use it to think through reactions before real users have them, and run a question two or three times before you trust the answer.</p>
+        <p>The people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
+        <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
       </div>
     </div>
   </div>
@@ -215,7 +231,7 @@
     <svg class="close-fan" viewBox="30 30 196 196" aria-hidden="true" focusable="false"><path class="cpleat cpleat-1 p1" d="M54 198L214 198L208.55 156.59L54 198Z"/><path class="cpleat cpleat-2 p2" d="M54 198L208.55 156.59L192.56 118L54 198Z"/><path class="cpleat cpleat-3 p1" d="M54 198L192.56 118L167.14 84.86L54 198Z"/><path class="cpleat cpleat-4 p2" d="M54 198L167.14 84.86L134 59.44L54 198Z"/><path class="cpleat cpleat-5 p1" d="M54 198L134 59.44L95.41 43.45L54 198Z"/><path class="cpleat cpleat-6 p2" d="M54 198L95.41 43.45L54 38L54 198Z"/><circle class="hg" cx="54" cy="198" r="16"/></svg>
     <div class="close-copy">
       <h2 id="close-title" class="rise d1">Tellfold is free.</h2>
-      <p class="rise d2">Free to download and free to use. If it helped you make a call, sponsoring it on GitHub pays for the time that goes into building it.</p>
+      <p class="rise d2">Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
       <div class="actions rise d3">
         <a class="btn btn-primary" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon icon-download" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></svg>Download for Mac</a>
         <a class="btn btn-ghost" href="https://github.com/sponsors/NarekManukyan"><svg class="icon icon-heart" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></svg>Sponsor on GitHub</a>

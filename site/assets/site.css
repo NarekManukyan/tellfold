@@ -363,6 +363,16 @@ main .d1 { --d: 90; }
 main .d2 { --d: 180; }
 main .d3 { --d: 270; }
 
+/* what it's for: six questions from outside software, set on the fold rules */
+.uses { border-top: 1px solid var(--rule); }
+.uses-list {
+  list-style: none; margin: clamp(40px, 6vw, 64px) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: clamp(24px, 4vw, 56px);
+}
+.uses-list li { padding: 22px 0 26px; border-top: 1px solid var(--rule-strong); }
+.use-who { font-size: 14px; font-weight: 600; color: var(--pleat-b); }
+.use-q { margin-top: 8px; font: 700 clamp(20px, 1.8vw, 24px)/1.2 var(--display); letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+
 /* how it works: a leaflet folded in three */
 .how { background: var(--ground-deep); }
 .leaflet {
@@ -502,6 +512,7 @@ main .d3 { --d: 270; }
 
 @media (max-width: 860px) {
   .leaflet { grid-template-columns: 1fr; }
+  .uses-list { grid-template-columns: 1fr 1fr; }
   .leaf, .leaf:first-child, .leaf:last-child { padding: 32px 0; }
   .leaf:first-child { padding-top: 0; }
   .leaf + .leaf::before { left: 0; right: 0; top: 0; bottom: auto; width: auto; height: 1px; }
@@ -514,6 +525,7 @@ main .d3 { --d: 270; }
 /* Below this width the pleats are too narrow to carry a slip: the fan stays as the picture, the slips line up under it
    in the same order, each marked with its pleat's tone. */
 @media (max-width: 640px) {
+  .uses-list { grid-template-columns: 1fr; }
   .stage, .fan-stage { display: contents; }
   .fan { grid-row: 2; position: relative; width: min(100%, 360px); height: auto; aspect-ratio: 1; margin-top: 28px; }
   .readout { grid-row: 3; }
