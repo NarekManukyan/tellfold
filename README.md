@@ -28,7 +28,7 @@ You can also add a twist partway through ("a local newspaper criticises the plan
 
 ## What you need
 
-- A Mac with Apple silicon, running macOS 26 or later
+- A Mac with Apple silicon, running macOS 15 or later
 - [Claude Code](https://claude.com/claude-code) installed and signed in. Tellfold uses it to run the simulated people, so there is no extra account or API key. Bigger runs use more of your Claude plan.
 
 To install, download `Tellfold.dmg`, open it and drag Tellfold to Applications. The app updates itself (Tellfold › Check for Updates…).
