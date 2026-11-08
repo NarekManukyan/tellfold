@@ -177,6 +177,10 @@ struct DetailsView: View {
                     stat("\(calls.count)", "model calls")
                     if calls.failed > 0 { stat("\(calls.failed)", "failed calls") }
                     stat(RunProvenance.duration(Int(calls.seconds.rounded())), "model time")
+                    if let agent = calls.agent, let planner = calls.planner, let config = store.config {
+                        stat("\(agent.count)", "crowd calls (\(config.agentModel))")
+                        stat("\(planner.count)", "planning calls (\(config.plannerModel))")
+                    }
                 }
             }
         }

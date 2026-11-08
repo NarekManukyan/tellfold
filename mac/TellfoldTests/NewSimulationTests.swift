@@ -247,4 +247,21 @@ struct NewSimulationTests {
             #expect(AppModel.isSeedFile(url))
         }
     }
+
+    // MARK: cost
+
+    @Test func costLineNamesTheCallsAndWhereTheyGo() {
+        #expect(NewSimulationRules.costLine(agentCalls: 20, plannerCalls: 4, agentRuntime: "Claude Code",
+                                            agentModel: "haiku", plannerRuntime: "Claude Code", plannerModel: "sonnet")
+                == "About 24 model calls on Claude Code: 20 for the crowd (haiku), 4 for planning (sonnet).")
+        #expect(NewSimulationRules.costLine(agentCalls: 20, plannerCalls: 4, agentRuntime: "Ollama",
+                                            agentModel: "llama3.2", plannerRuntime: "Codex", plannerModel: "default")
+                == "About 24 model calls: 20 on Ollama for the crowd (llama3.2), 4 on Codex for planning (default).")
+    }
+
+    @Test func standardEstimateIsCloseToARealRun() {
+        // A real Standard run (20 people, 6 rounds, batches of 6, a one-page seed) made 22 calls before any chat.
+        let calls = NewRunRequest.estimatedCalls(agents: 20, rounds: 6, batch: 6, chunks: 1)
+        #expect(abs(Double(calls) - 22) / 22 <= 0.3)
+    }
 }

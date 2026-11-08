@@ -400,6 +400,14 @@ struct NewSimulationSheet: View {
                     .font(Theme.body)
                     .foregroundStyle(Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if let costLine {
+                    Text(costLine)
+                        .font(Theme.small)
+                        .foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .help("Every simulation uses your own AI plan. This assumes no retries; the Details tab "
+                              + "shows the real count afterwards.")
+                }
                 if let errorMessage {
                     Text(errorMessage).font(Theme.small).foregroundStyle(Theme.negative)
                         .fixedSize(horizontal: false, vertical: true)
@@ -517,6 +525,19 @@ struct NewSimulationSheet: View {
             plannerModel: plannerModel,
             noToolYet: model.engine.state.isRunning && !model.runtimes.isEmpty && model.recommendedRuntime == nil
                 && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos))
+    }
+
+    /// The model-call estimate under the summary; nil until there is material to estimate from.
+    private var costLine: String? {
+        let text = NewSimulationRules.trimmed(descriptionText)
+        guard NewSimulationRules.hasMaterial(description: text, fileCount: files.count),
+              !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
+        let chunks = NewRunRequest.estimatedChunks(files: files, inlineDocuments: text.isEmpty ? [] : [.description(text)])
+        let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
+        return NewSimulationRules.costLine(
+            agentCalls: split.agent, plannerCalls: split.planner,
+            agentRuntime: model.runtime(agentRuntime)?.name ?? agentRuntime, agentModel: agentModel,
+            plannerRuntime: model.runtime(plannerRuntime)?.name ?? plannerRuntime, plannerModel: plannerModel)
     }
 
     private func sizeText(_ url: URL) -> String {

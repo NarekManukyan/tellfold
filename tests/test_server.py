@@ -273,7 +273,7 @@ def test_full_run_and_every_endpoint(client: TestClient, factory: Factory, runs_
     assert {"round": 1, "content": "The mayor delays the vote"} in d["events"]
     assert all(len(edge) == 2 for edge in d["follows"])
     assert d["report"] is not None and d["report"]["confidence"] in ("low", "medium", "high")
-    assert set(d["calls"]) == {"count", "failed", "seconds"}
+    assert set(d["calls"]) == {"count", "failed", "seconds", "agent", "planner"}
 
     runs = client.get("/api/runs").json()
     assert [r["id"] for r in runs] == [run_id]
@@ -528,3 +528,40 @@ def test_watcher_streams_a_run_written_by_another_process(client: TestClient, ru
     # external runs cannot be controlled from this server
     assert client.post(f"/api/runs/{run_id}/stop").status_code == 409
     assert client.post(f"/api/runs/{run_id}/events", json={"round": 2, "content": "x"}).status_code == 409
+
+
+def test_reader_splits_calls_by_role(tmp_path):
+    import json
+
+    from tellfold.server.reader import RunReader
+
+    lines = [
+        {"purpose": "graph.extract", "ok": True, "seconds": 10.5},
+        {"purpose": "personas.batch", "ok": False, "seconds": 2},
+        {"purpose": "engine.round", "ok": True, "seconds": 3.25},
+        {"purpose": "engine.sentiment", "ok": True, "seconds": 1},
+        {"purpose": "chat.interview", "ok": True, "seconds": None},
+        {"purpose": "report.write", "ok": True, "seconds": 20},
+    ]
+    (tmp_path / "calls.jsonl").write_text(
+        "\n".join(json.dumps(x) for x in lines) + '\n{"purpose": "engine.ro', encoding="utf-8"
+    )
+    calls = RunReader(tmp_path).calls()
+    assert (calls["count"], calls["failed"], calls["seconds"]) == (6, 1, 36.75)
+    assert calls["agent"] == {"count": 3, "failed": 0, "seconds": 4.25}
+    assert calls["planner"] == {"count": 3, "failed": 1, "seconds": 32.5}
+    empty = RunReader(tmp_path / "missing").calls()
+    assert empty["count"] == 0 and empty["agent"]["count"] == 0
+
+
+def test_estimate_reference_values_match_the_mac_app():
+    """The same table as EstimateTests in mac/TellfoldTests/EngineCommandTests.swift; change both together."""
+    from tellfold.models import SimConfig
+    from tellfold.runner import estimate_call_split, estimate_calls
+
+    for agents, rounds, batch, chunks, agent_calls, planner_calls in [
+        (20, 6, 6, 3, 20, 4), (6, 3, 3, 1, 8, 3), (5, 4, 2, 7, 10, 4), (200, 50, 20, 40, 254, 31), (25, 10, 4, 9, 43, 7),
+    ]:
+        config = SimConfig(question="q", seed_files=[], num_agents=agents, rounds=rounds, batch_size=batch)
+        assert estimate_call_split(config, chunks) == (agent_calls, planner_calls)
+        assert estimate_calls(config, chunks) == agent_calls + planner_calls

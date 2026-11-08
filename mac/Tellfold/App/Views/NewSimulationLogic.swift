@@ -160,6 +160,20 @@ nonisolated enum NewSimulationRules {
         return "\(people) \(verb) \(agentName) (\(agentModel)) for the crowd and \(plannerName) (\(plannerModel)) for planning."
     }
 
+    /// "About 24 model calls on Claude Code: 20 for the crowd (haiku), 4 for planning (sonnet)." The estimate assumes
+    /// no retries; when the two roles use different tools each part names its own.
+    static func costLine(agentCalls: Int, plannerCalls: Int, agentRuntime: String, agentModel: String,
+                         plannerRuntime: String, plannerModel: String) -> String {
+        let total = agentCalls + plannerCalls
+        let head = "About \(total) model \(total == 1 ? "call" : "calls")"
+        if agentRuntime == plannerRuntime {
+            return "\(head) on \(agentRuntime): \(agentCalls) for the crowd (\(agentModel)), "
+                + "\(plannerCalls) for planning (\(plannerModel))."
+        }
+        return "\(head): \(agentCalls) on \(agentRuntime) for the crowd (\(agentModel)), "
+            + "\(plannerCalls) on \(plannerRuntime) for planning (\(plannerModel))."
+    }
+
     /// One note about the engine or the chosen runtimes, with the fix; nil when everything is ready. `anyReady` says
     /// whether some other AI tool on this Mac could run the simulation.
     static func readinessNote(engineRunning: Bool, runtimes: [RuntimeInfo?], ids: [String],

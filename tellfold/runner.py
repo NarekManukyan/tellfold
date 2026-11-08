@@ -94,13 +94,25 @@ def write_report(run_dir: Path, report: Report, world: World, config: SimConfig)
     return html_path
 
 
-def estimate_calls(config: SimConfig, chunks: int) -> int:
-    """Model calls for a run when nothing needs a retry, shown so users can judge rate-limit cost."""
+# Share of the crowd expected to act in a round. Personas carry an activity of about 0.3 to 0.6 and news rounds
+# boost it, so batching every agent each round overstated a real 20-agent run by more than half.
+ESTIMATED_ACTIVE_SHARE = 0.4
+
+
+def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
+    """(agent, planner) model calls for a run when nothing needs a retry. Mirrored in the Mac app
+    (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both."""
     graph = math.ceil(chunks / 4)
     personas = math.ceil(config.num_agents / 10)
     opening = math.ceil(round(0.3 * config.num_agents) / config.batch_size) + 1  # opening posts + sentiment
-    per_round = math.ceil(config.num_agents / config.batch_size) + 1
-    return graph + personas + opening + config.rounds * per_round + 1
+    active = max(1, math.ceil(config.num_agents * ESTIMATED_ACTIVE_SHARE))
+    per_round = math.ceil(active / config.batch_size) + 1  # decisions + sentiment
+    return opening + config.rounds * per_round, graph + personas + 1
+
+
+def estimate_calls(config: SimConfig, chunks: int) -> int:
+    """Model calls for a run when nothing needs a retry, shown so users can judge rate-limit cost."""
+    return sum(estimate_call_split(config, chunks))
 
 
 # ---------- status.json ----------

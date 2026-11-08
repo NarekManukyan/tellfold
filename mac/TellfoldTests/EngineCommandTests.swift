@@ -146,12 +146,15 @@ struct KeychainNamingTests {
 }
 
 struct EstimateTests {
-    /// Reference values from `tellfold.runner.estimate_calls`.
+    /// Reference values from `tellfold.runner.estimate_call_split`; the same table is in tests/test_server.py.
     @Test(arguments: [
-        (20, 6, 6, 3, 36), (6, 3, 3, 1, 14), (5, 4, 2, 7, 22), (200, 50, 20, 40, 585), (25, 10, 4, 9, 90),
+        (20, 6, 6, 3, 20, 4), (6, 3, 3, 1, 8, 3), (5, 4, 2, 7, 10, 4), (200, 50, 20, 40, 254, 31), (25, 10, 4, 9, 43, 7),
     ])
-    func matchesEngineFormula(agents: Int, rounds: Int, batch: Int, chunks: Int, expected: Int) {
-        #expect(NewRunRequest.estimatedCalls(agents: agents, rounds: rounds, batch: batch, chunks: chunks) == expected)
+    func matchesEngineFormula(agents: Int, rounds: Int, batch: Int, chunks: Int, agentCalls: Int, plannerCalls: Int) {
+        let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
+        #expect(split.agent == agentCalls && split.planner == plannerCalls)
+        #expect(NewRunRequest.estimatedCalls(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
+                == agentCalls + plannerCalls)
     }
 }
 

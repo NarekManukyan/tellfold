@@ -213,4 +213,15 @@ struct ModelDecodingTests {
         let data = try TellfoldAPI.encoder.encode([ChatTurn(question: "q", answer: "a")])
         #expect(String(decoding: data, as: UTF8.self) == #"[["q","a"]]"#)
     }
+
+    @Test func callsSummarySplitsByRoleWhenTheEngineDoes() throws {
+        let split = try TellfoldAPI.decoder.decode(CallsSummary.self, from: Data(#"""
+        {"count":6,"failed":1,"seconds":36.75,"agent":{"count":3,"failed":0,"seconds":4.25},
+         "planner":{"count":3,"failed":1,"seconds":32.5}}
+        """#.utf8))
+        #expect(split.agent == CallTotals(count: 3, failed: 0, seconds: 4.25))
+        #expect(split.planner?.failed == 1)
+        let old = try TellfoldAPI.decoder.decode(CallsSummary.self, from: Data(#"{"count":2,"failed":0,"seconds":1}"#.utf8))
+        #expect(old.count == 2 && old.agent == nil && old.planner == nil)
+    }
 }
