@@ -141,6 +141,16 @@ struct RunDetailView: View {
                 .disabled(store.report == nil)
 
                 Button {
+                    guard let title = store.report?.title else { return }
+                    Task {
+                        do { try await app.exportPDF(store.runID, title: title) } catch { store.actionError = error.localizedDescription }
+                    }
+                } label: {
+                    Label("Export Report as PDF…", systemImage: "doc.richtext")
+                }
+                .disabled(store.report == nil || app.exportingPDF != nil)
+
+                Button {
                     app.revealInFinder(store.runID)
                 } label: {
                     Label("Reveal in Finder", systemImage: "folder")

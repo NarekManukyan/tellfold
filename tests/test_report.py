@@ -209,6 +209,20 @@ def test_render_html(world, config):
     assert not re.search(r'(src|href)="https?://', html)  # self-contained
 
 
+def test_render_html_print_rules(world, config):
+    # The Mac app's Export PDF prints this page, so the print rules decide how the PDF looks.
+    html = render_html(Report.model_validate(report_payload()), world, config)
+    assert "@page { size: auto;" in html  # A4 or Letter, whichever the printer asks for
+    css = html[html.index("@media print {") : html.index("</style>")]
+    assert "print-color-adjust: exact" in css  # the sentiment chart and action bars keep their colours
+    assert re.search(r"\.post, \.card[^{]*\{ break-inside: avoid; \}", css)
+    for section in ("analysis", "cited", "threads", "people"):
+        assert f'section[aria-labelledby="{section}"]' in css
+        assert f'aria-labelledby="{section}"' in html  # the selector still matches the markup
+    assert "details" in css and "display: none" in css  # the collapsed round table is screen-only
+    assert "--page: #fff;" in css  # always light on paper
+
+
 def test_render_html_without_rounds(tmp_path, config):
     w = World(tmp_path / "empty.db")
     w.add_personas([persona(1, "solo", "neutral")])

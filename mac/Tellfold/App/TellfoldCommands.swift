@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Menu bar: Tellfold > Check for Updates, File > Open Seed Files and the Simulation menu.
+/// Menu bar: Tellfold > Check for Updates, File > Open Seed Files and Export PDF, and the Simulation menu.
 struct TellfoldCommands: Commands {
     let model: AppModel
     let updater: AppUpdater
@@ -15,6 +15,19 @@ struct TellfoldCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button("Open Seed Files…") { model.presentOpenPanel() }
                 .keyboardShortcut("o")
+        }
+
+        CommandGroup(replacing: .importExport) {
+            Button("Export PDF…") {
+                guard let store, let report = store.report else { return }
+                Task {
+                    do { try await model.exportPDF(store.runID, title: report.title) } catch {
+                        store.actionError = error.localizedDescription
+                    }
+                }
+            }
+            .keyboardShortcut("e", modifiers: [.command, .shift])
+            .disabled(store?.report == nil || model.exportingPDF != nil)
         }
 
         CommandMenu("Simulation") {

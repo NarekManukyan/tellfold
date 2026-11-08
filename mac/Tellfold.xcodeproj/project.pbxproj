@@ -69,6 +69,7 @@
 		B5F0FDE6899A3EF2922DAE74 /* CrowdTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070B13C6E577208238070418 /* CrowdTabView.swift */; };
 		B91F63BB2E8368933D21BF9B /* NewSimulationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B689DC17C4F5B0391173685 /* NewSimulationSheet.swift */; };
 		BDAF0D17F8DAF1D65434AAAA /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207D573EF4EEF0DB45CFB467 /* FeedView.swift */; };
+		C141E2FB8C5071BD9E64202A /* ReportPDFExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F22FCEAE633938AF154E90 /* ReportPDFExporterTests.swift */; };
 		C1BB42B95EEBF57D4CA6F464 /* CrowdLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F9CA280798857D51755D79 /* CrowdLayout.swift */; };
 		C297562F482D0A01AA9EEC60 /* AgentsSettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4B4747BA1BFF9C5211AEDD /* AgentsSettingsTab.swift */; };
 		C6228ECECEB8F076C6DFF863 /* FinishReviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CF24CCA8D5ABE8F83FC8FE /* FinishReviewTests.swift */; };
@@ -94,6 +95,7 @@
 		F5F0F3B2FE95F744B7CC7EFA /* RunDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF573DF7D0A5FFA39532C5B3 /* RunDetailView.swift */; };
 		FA764F7496F7A3B5FAB2F9CF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56832E4D15E711CC9C015716 /* Theme.swift */; };
 		FA9726CB7465786B6458EB7E /* RunLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27525057346E22FE576E5346 /* RunLogTests.swift */; };
+		FC4E31B8B67F969AA3B201C3 /* ReportPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE6913DB71A874FEFC9D75F /* ReportPDFExporter.swift */; };
 		FCE904221ABA6D18CD052812 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 341375561B71A863B8DA9B22 /* OverviewView.swift */; };
 		FF59E1D7F568C6D0734DFFA7 /* EngineLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64BC99863B154BEEB0B63DD /* EngineLifecycleTests.swift */; };
 /* End PBXBuildFile section */
@@ -132,6 +134,7 @@
 		341375561B71A863B8DA9B22 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
 		345791018C76961A691AEB0A /* LegacyMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyMigration.swift; sourceTree = "<group>"; };
 		35E639C8CABEDE6D6D62E3A0 /* RunProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunProgress.swift; sourceTree = "<group>"; };
+		37F22FCEAE633938AF154E90 /* ReportPDFExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPDFExporterTests.swift; sourceTree = "<group>"; };
 		3B689DC17C4F5B0391173685 /* NewSimulationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSimulationSheet.swift; sourceTree = "<group>"; };
 		441968F320C0B80B7D961B00 /* Runtimes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Runtimes.swift; sourceTree = "<group>"; };
 		482A7AEFE5EDC2014CC33F14 /* ForceLayoutEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceLayoutEngine.swift; sourceTree = "<group>"; };
@@ -181,6 +184,7 @@
 		D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldApp.swift; sourceTree = "<group>"; };
 		D1FDEC67D74959C8BF41001E /* KnowledgeGraphRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphRenderer.swift; sourceTree = "<group>"; };
 		D83948E5B69139B149565F94 /* AgentSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSetupView.swift; sourceTree = "<group>"; };
+		DAE6913DB71A874FEFC9D75F /* ReportPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPDFExporter.swift; sourceTree = "<group>"; };
 		DAE9AD1D4E1B9C570F133A3F /* GraphCanvasController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCanvasController.swift; sourceTree = "<group>"; };
 		DBF7DBE633633A21ACCEFD37 /* RuntimeRecommendation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeRecommendation.swift; sourceTree = "<group>"; };
 		DCD81EE624AC2073AFBA13C0 /* InjectEventSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjectEventSheet.swift; sourceTree = "<group>"; };
@@ -289,6 +293,7 @@
 				9E9C1850803F8F7290B2419D /* LegacyMigrationTests.swift */,
 				7878DF07BEF260A8FD33EE91 /* ModelDecodingTests.swift */,
 				AC5CE91D023C0F5593590DCE /* NewSimulationTests.swift */,
+				37F22FCEAE633938AF154E90 /* ReportPDFExporterTests.swift */,
 				FFBBEED42AEF57FB5132C624 /* RunLayoutTests.swift */,
 				27525057346E22FE576E5346 /* RunLogTests.swift */,
 				2DFA44BAA71EC042D6DAE10C /* RunStoreTests.swift */,
@@ -399,6 +404,7 @@
 				207D573EF4EEF0DB45CFB467 /* FeedView.swift */,
 				341375561B71A863B8DA9B22 /* OverviewView.swift */,
 				75F4305413AD765C58CCC182 /* ReplayController.swift */,
+				DAE6913DB71A874FEFC9D75F /* ReportPDFExporter.swift */,
 				1DCB25C84A6DD1349D7EC25F /* ReportView.swift */,
 				5CA4CF6776943154CD37243A /* RunComponents.swift */,
 				EF573DF7D0A5FFA39532C5B3 /* RunDetailView.swift */,
@@ -570,6 +576,7 @@
 				D12DCD24F7710AFF4D24855D /* LegacyMigrationTests.swift in Sources */,
 				4CD17D1393BB7F2287C753EA /* ModelDecodingTests.swift in Sources */,
 				7567C6C7BFFA99BB8DE320F8 /* NewSimulationTests.swift in Sources */,
+				C141E2FB8C5071BD9E64202A /* ReportPDFExporterTests.swift in Sources */,
 				8512D3BE6FE4976CEAC08001 /* RunLayoutTests.swift in Sources */,
 				FA9726CB7465786B6458EB7E /* RunLogTests.swift in Sources */,
 				F001F169DD9031D1720FAEF8 /* RunStoreTests.swift in Sources */,
@@ -628,6 +635,7 @@
 				FCE904221ABA6D18CD052812 /* OverviewView.swift in Sources */,
 				C9CDA8D4635B36F9B371A6B0 /* QuadTree.swift in Sources */,
 				C84C41E755DF94AA63ED67ED /* ReplayController.swift in Sources */,
+				FC4E31B8B67F969AA3B201C3 /* ReportPDFExporter.swift in Sources */,
 				2C86EF8647C39844AF8FE267 /* ReportView.swift in Sources */,
 				CEB4049FE6439BDF182497D8 /* RoundScrubber.swift in Sources */,
 				7BB479D205AF49862D2941A0 /* RunComponents.swift in Sources */,
