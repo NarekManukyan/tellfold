@@ -7,15 +7,14 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Tellfold: see how people react before you tell them</title>
 <meta name="description" content="Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement and a question. A crowd of simulated people talks it over for a few rounds, then Tellfold writes a short answer. It runs on your Mac with the Claude Code you already have.">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#FCFCF8">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://narekmanukyan.github.io/tellfold/">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="preload" href="assets/fonts/big-shoulders-900.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="assets/img/app-window-2400.webp" imagesrcset="assets/img/app-window-1400.webp 1400w, assets/img/app-window-2400.webp 2400w" imagesizes="(max-width: 1100px) 94vw, 1040px">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tellfold">
 <meta property="og:title" content="Tellfold: see how people react before you tell them">
@@ -31,25 +30,26 @@
 
 <svg class="sprite" aria-hidden="true" focusable="false">
   <symbol id="fan" viewBox="30 30 196 196"><path d="M76.73 194.5L214 194.5L209.45 159.97L76.86 195.5A23 23 0 0 1 76.73 194.5Z"/><path d="M75.05 188.74L207.64 153.21L194.31 121.03L75.44 189.67A23 23 0 0 1 75.05 188.74Z"/><path d="M71.94 183.6L190.81 114.97L169.61 87.34L72.55 184.4A23 23 0 0 1 71.94 183.6Z"/><path d="M67.6 179.45L164.66 82.39L137.03 61.19L68.4 180.06A23 23 0 0 1 67.6 179.45Z"/><path d="M62.33 176.56L130.97 57.69L98.79 44.36L63.26 176.95A23 23 0 0 1 62.33 176.56Z"/><path d="M56.5 175.14L92.03 42.55L57.5 38L57.5 175.27A23 23 0 0 1 56.5 175.14Z"/><circle cx="54" cy="198" r="16"/></symbol>
-  <symbol id="lockup" viewBox="30 30 646 192"><use href="#fan" x="30" y="30" width="196" height="196"/><g transform="translate(262 55) scale(0.62)"><path d="M 16,56 V 88 H 0 v 24 h 16 v 88 H 40 V 112 H 56 V 88 H 40 V 56 Z"/><path d="M 125.76,88.01 c -23.05,0.12 -44.26,14.57 -52.37,36.85 -9.27,25.46 1.14,54.09 24.61,67.64 23.46,13.55 53.47,8.26 70.89,-12.49 L 150.51,164.58 C 140.47,176.54 123.51,179.53 110,171.72 96.49,163.92 90.61,147.74 95.95,133.07 101.28,118.4 116.19,109.79 131.56,112.5 c 11.19,1.97 20.04,9.53 24.06,19.5 H 126 v 24 h 56 L 182,144 c -0.01,-27.09 -19.6,-50.44 -46.28,-55.14 -3.34,-0.59 -6.66,-0.86 -9.96,-0.85 z"/><path d="M 204,40 v 160 h 24 V 40 Z"/><path d="M 256,40 v 160 h 24 V 40 Z"/><path d="M 356,36 c -26.37,0 -48,21.63 -48,48 v 4 h -16 v 24 h 16 v 88 h 24 v -88 h 16 V 88 h -16 v -4 c 0,-13.4 10.6,-24 24,-24 h 10 V 36 Z"/><path d="M 416,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 494,40 v 160 h 24 V 40 Z"/><path d="M 596,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 628,40 v 160 h 24 V 40 Z"/></g></symbol>
-  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></symbol>
-  <symbol id="i-heart" viewBox="0 0 16 16"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></symbol>
-  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.75 3.75 9h4l-1 5.25L12.25 7h-4z"/></symbol>
-  <symbol id="i-replay" viewBox="0 0 16 16"><path d="M3.25 8a4.75 4.75 0 1 0 1.4-3.37"/><path d="M3 2.75v2.5h2.5"/></symbol>
-  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.75h5L12.25 5v9.25H4z"/><path d="M8.75 1.75V5.25h3.5M6 8h4.5M6 10.5h4.5"/></symbol>
-  <symbol id="i-tick" viewBox="0 0 16 16"><path d="M3.5 8.25 6.5 11.25 12.5 5"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 20 20"><path d="M11.25 2 4.5 11h5l-1.25 7L15.5 9h-5z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 20 20"><circle cx="10" cy="6.5" r="3.25"/><path d="M3.75 17c.7-3.2 3.2-5 6.25-5s5.55 1.8 6.25 5"/></symbol>
+  <symbol id="i-bubble" viewBox="0 0 20 20"><path d="M3 4.75h14v9H9l-4 3v-3H3z"/><path d="M6.5 8.5h7M6.5 11h4.5"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 20 20"><path d="M4 10a6 6 0 1 0 1.8-4.3"/><path d="M3.75 3v3.5h3.5"/></symbol>
+  <symbol id="i-share" viewBox="0 0 20 20"><path d="M10 12.5V2.75M6.5 6.25 10 2.75l3.5 3.5"/><path d="M5.5 9H4v8.25h12V9h-1.5"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 20 20"><rect x="3.5" y="4" width="13" height="9" rx="1.25"/><path d="M1.75 16h16.5"/></symbol>
+  <symbol id="i-theatre" viewBox="0 0 20 20"><path d="M3 3.5h14v6.5a7 7 0 0 1-14 0z"/><path d="M7 8h.01M13 8h.01M7.25 12.25c1.5 1.3 4 1.3 5.5 0"/></symbol>
 </svg>
 
-<header class="top">
-  <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><use href="#lockup"/></svg></a>
-  <nav aria-label="Primary">
-    <ul class="nav">
+<header class="nav-bar">
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="./"><svg class="brand-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>Tellfold</a>
+    <ul class="nav-links">
       <li class="nav-wide"><a href="#uses">What it’s for</a></li>
       <li class="nav-wide"><a href="#how">How it works</a></li>
       <li class="nav-wide"><a href="#report">The report</a></li>
       <li class="nav-wide"><a href="#install">Install</a></li>
       <li class="nav-wide"><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-      <li><a class="btn btn-ink btn-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+      <li><a class="pill pill-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
     </ul>
   </nav>
 </header>
@@ -58,203 +58,152 @@
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-copy">
-    <h1 id="hero-title" class="display">See how people react <span class="band"><span>before you</span></span> tell them.</h1>
-    <div class="hero-foot">
-      <p class="lede">Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
-      <div class="actions">
-        <a class="btn btn-ink" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download for Mac</a>
-        <a class="btn btn-line" href="https://github.com/sponsors/NarekManukyan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart"/></svg>Sponsor</a>
-      </div>
-      <p class="reqs">Free. macOS 26 or later on Apple silicon, with <a href="https://claude.com/claude-code">Claude Code</a> signed in.</p>
+    <img class="hero-icon" src="assets/img/app-icon-256.webp" srcset="assets/img/app-icon-256.webp 1x, assets/img/app-icon-512.webp 2x" width="112" height="112" alt="">
+    <p class="hero-name">Tellfold for Mac</p>
+    <h1 id="hero-title">See how people react before you tell&nbsp;them.</h1>
+    <p class="lede">Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
+    <div class="actions">
+      <a class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+      <a class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
     </div>
+    <p class="reqs">Free. macOS 26 or later on Apple silicon, with <a href="https://claude.com/claude-code">Claude Code</a> signed in.</p>
   </div>
-
-  <aside class="slip" aria-labelledby="slip-title" data-round="2">
-    <div class="slip-head">
-      <h2 class="slip-title" id="slip-title">Have your say</h2>
-      <blockquote class="notice"><p>“Big news: Mossbook is going freemium on March 3. Existing users get Plus free for a year, then $17.99/year forever.”</p></blockquote>
-      <p class="slip-q"><b>Asked:</b> how will existing Mossbook users react to the switch to subscription pricing?</p>
-    </div>
-
-    <div class="tabs" role="group" aria-label="Replay the run by round">
-      <button type="button" class="tab" data-go="0" aria-pressed="false"><span class="tab-r">R0</span><span class="tab-m">Mood <b>+0.65</b></span></button>
-      <button type="button" class="tab" data-go="1" aria-pressed="false"><span class="tab-r">R1</span><span class="tab-m">Mood <b>+0.20</b></span></button>
-      <button type="button" class="tab" data-go="2" aria-pressed="true"><span class="tab-r">R2</span><span class="tab-m">Mood <b>+0.23</b></span></button>
-      <button type="button" class="replay" aria-label="Replay from the start"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-replay"/></svg></button>
-    </div>
-
-    <div class="rounds" aria-live="polite">
-      <ol class="round" data-r="0" aria-label="Round 0: the announcement goes out">
-        <li class="say"><span class="tile t-ink" aria-hidden="true">ML</span><div><p class="who"><b>Mossbook Labs</b> posted the announcement <span class="ref">#1</span></p></div></li>
-        <li class="say"><span class="tile t-yel" aria-hidden="true">IO</span><div><p class="who"><b>Ines Okafor-Brandt</b> posted <span class="ref">#2</span> <span class="flag">Most engaged post</span></p><p class="text">Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.</p></div></li>
-        <li class="quiet">Jamal, Maria, Robert and Alex stayed quiet.</li>
-      </ol>
-      <ol class="round" data-r="1" aria-label="Round 1: the crowd reacts">
-        <li class="say"><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> replied to <span class="ref">#1</span> <span class="flag">First pushback</span></p><p class="text">Appreciate the transparency, but subscriptions lock nonprofits into recurring costs we can’t always plan for.</p></div></li>
-        <li class="say"><span class="tile t-ink" aria-hidden="true">ML</span><div><p class="who"><b>Mossbook Labs</b> replied to <span class="ref">#2</span></p><p class="text">Exactly. We’re proud to stand behind that trust with transparency on costs.</p></div></li>
-        <li class="quiet">Maria Chen liked <span class="ref">#2</span>. Ines, Robert and Alex stayed quiet.</li>
-      </ol>
-      <ol class="round" data-r="2" aria-label="Round 2: breaking news">
-        <li class="news"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg><p><b>Breaking news:</b> a popular tech reviewer posts that the old lifetime licence will keep working offline forever.</p></li>
-        <li class="say"><span class="tile t-yel" aria-hidden="true">MC</span><div><p class="who"><b>Maria Chen</b> replied to <span class="ref">#2</span></p><p class="text">If my old $24.99 licence keeps working offline, I might not need Plus at all.</p></div></li>
-        <li class="say"><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> replied to <span class="ref">#3</span> <span class="flag">The open question</span></p><p class="text">This offline guarantee matters. But what happens in year two if the company changes direction again?</p></div></li>
-        <li class="quiet">Mossbook Labs replied about a community licence. Ines, Robert and Alex stayed quiet.</li>
-      </ol>
-    </div>
-
-    <div class="answer">
-      <p class="answer-wait">The answer is printed here when round 2 is done.</p>
-      <p class="verdict">Existing users accept the offer but question the long‑term subscription.</p>
-      <p class="conf">Medium confidence <i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i> <span class="conf-after">after round 2</span></p>
-    </div>
-    <p class="slip-note">A real run on the fictional Mossbook pricing example that ships with Tellfold: six simulated people, seven posts. Posts are shortened.</p>
-  </aside>
+  <figure class="hero-shot">
+    <img class="shot" src="assets/img/app-window-1400.webp" srcset="assets/img/app-window-1400.webp 1400w, assets/img/app-window-2400.webp 2400w" sizes="(max-width: 1100px) 94vw, 1040px" width="2400" height="1566" alt="The Tellfold app showing a finished run. Question: How will existing Mossbook users react to the switch to subscription pricing? Verdict: Existing users accept offer but question long-term subscription model, medium confidence. Six people, two rounds, seven posts, final sentiment +0.23. Below, the crowd graph and a sentiment chart falling from +0.65 to +0.20 and ending at +0.23.">
+    <figcaption>The Mossbook pricing example that ships with Tellfold, in the real app. Six simulated people, two rounds after the announcement.</figcaption>
+  </figure>
 </section>
 
 <section class="uses" id="uses" aria-labelledby="uses-title">
-  <div class="uses-head">
-    <h2 id="uses-title" class="display display-2"><span class="band"><span>Try it on anything</span></span> people will have an opinion about.</h2>
+  <div class="section-head reveal">
+    <h2 id="uses-title">Try it on anything people will have an opinion about.</h2>
     <p class="section-lede">Shops, schools, councils, teams, clubs, landlords, apps. If a group of people will hear about it, Tellfold can rehearse how they take it.</p>
   </div>
-  <ul class="uses-list">
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
-    <li><span class="box" aria-hidden="true"></span><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
+  <ul class="uses-list reveal">
+    <li><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
+    <li><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
+    <li><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
+    <li><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
+    <li><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
+    <li><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
   </ul>
 </section>
 
-<section class="how field-yel" id="how" aria-labelledby="how-title">
-  <div class="how-head">
-    <h2 id="how-title" class="display display-2">Three questions in, one answer out.</h2>
+<section class="how" id="how" aria-labelledby="how-title">
+  <div class="section-head reveal">
+    <h2 id="how-title">Three questions in. One answer out.</h2>
     <p class="section-lede">A run takes a few minutes and keeps going in the background. Watch every round, or come back to the answer.</p>
   </div>
-  <ol class="trifold">
-    <li class="panel">
-      <p class="step" aria-hidden="true">1</p>
-      <h3>Describe it</h3>
-      <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
-      <div class="sheet" aria-hidden="true">
-        <p class="field-label">What do you want to find out?</p>
-        <p class="field">How will existing Mossbook users react to the switch to subscription pricing?</p>
-        <p class="field-label">What is it about?</p>
-        <p class="field field-file"><svg class="icon" focusable="false"><use href="#i-doc"/></svg>mossbook_pricing.md</p>
-        <p class="field-label">How big?</p>
-        <p class="seg"><span>Quick look</span><span>Standard</span><span>Deep</span></p>
-        <p class="seg-note">Or your own size under Advanced. This example: 6 people, 2 rounds after the announcement.</p>
+
+  <ol class="steps">
+    <li class="step step-split">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 1</p>
+        <h3>Describe it.</h3>
+        <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
       </div>
+      <figure class="step-shot step-shot-sheet reveal">
+        <img class="shot" src="assets/img/app-new-550.webp" width="550" height="692" loading="lazy" alt="The New simulation sheet in Tellfold. The question reads: How will regular customers take a 20% price rise at our café? The description explains a coffee price rise from £3.00 to £3.60. Size options: Quick look, 10 people and 3 rounds; Standard, 20 people and 6 rounds, selected; Deep, 40 people and 10 rounds.">
+        <figcaption>The New simulation sheet, filled in with an example question.</figcaption>
+      </figure>
     </li>
-    <li class="panel">
-      <p class="step" aria-hidden="true">2</p>
-      <h3>The crowd reacts</h3>
-      <p>Each person has a private stance and a memory. Round by round they post, reply, repost, like and follow. Drop breaking news into a later round and see whether the mood turns.</p>
-      <div class="sheet">
-        <p class="field-label" aria-hidden="true">Mood by round</p>
-        <svg class="chart" viewBox="0 0 320 170" role="img" aria-label="Mood by round: +0.65 in round 0, +0.20 in round 1, +0.23 in round 2, with breaking news in round 2"><line class="grid" x1="28" x2="298" y1="18" y2="18"/><line class="grid" x1="28" x2="298" y1="49.5" y2="49.5"/><line class="grid" x1="28" x2="298" y1="112.5" y2="112.5"/><line class="grid" x1="28" x2="298" y1="144" y2="144"/><line class="zero" x1="28" x2="298" y1="81" y2="81"/><text class="axis" x="22" y="21.5" text-anchor="end">+1</text><text class="axis" x="22" y="84.5" text-anchor="end">0</text><text class="axis" x="22" y="147.5" text-anchor="end">−1</text><rect class="event-band" x="286" y="18" width="24" height="126"/><polyline class="line" pathLength="1" points="28,40 163,68.4 298,66.3"/><rect class="pt" x="23" y="35" width="10" height="10"/><text class="val" x="38" y="31" text-anchor="start">+0.65</text><text class="axis" x="28" y="164" text-anchor="middle">R0</text><rect class="pt" x="158" y="63.4" width="10" height="10"/><text class="val" x="163" y="56" text-anchor="middle">+0.20</text><text class="axis" x="163" y="164" text-anchor="middle">R1</text><rect class="pt" x="293" y="61.3" width="10" height="10"/><text class="val" x="280" y="54" text-anchor="end">+0.23</text><text class="axis" x="298" y="164" text-anchor="middle">R2</text></svg>
-        <p class="chart-key" aria-hidden="true"><i></i>Breaking news</p>
+    <li class="step">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 2</p>
+        <h3>The crowd reacts.</h3>
+        <p>Each person has a private stance and a memory. Round by round they post, reply, repost, like and follow. Drop breaking news into a later round and see whether the mood turns.</p>
       </div>
+      <figure class="step-shot step-shot-fade reveal">
+        <img class="shot" src="assets/img/app-crowd-1200.webp" srcset="assets/img/app-crowd-1200.webp 1200w, assets/img/app-crowd-2000.webp 2000w" sizes="(max-width: 1100px) 94vw, 1040px" width="2000" height="1053" loading="lazy" alt="The Crowd view in round 2 of the Mossbook run. On the left, the crowd graph links the organisations to four people. On the right, the round 2 feed: an event, a popular tech reviewer posts that the old lifetime licence will keep working offline forever, followed by replies from Mossbook Labs, Maria Chen and Jamal Williams.">
+        <figcaption>Round 2 of the Mossbook run: the breaking news, and who answered it.</figcaption>
+      </figure>
     </li>
-    <li class="panel">
-      <p class="step" aria-hidden="true">3</p>
-      <h3>Read the answer</h3>
-      <p>The report leads with a verdict, how sure it is, and why. Every claim cites the posts and people behind it, and you can interview anyone in the crowd afterwards.</p>
-      <div class="sheet" aria-hidden="true">
-        <p class="chips"><span class="chip"><svg class="icon" focusable="false"><use href="#i-tick"/></svg>Done</span><span class="chip">Medium confidence <i class="bars"><b></b><b></b><b class="off"></b></i></span></p>
-        <p class="mini-verdict">Existing users accept the offer but question the long‑term subscription.</p>
-        <ul class="reasons">
-          <li>Warm start at <b class="num">+0.65</b>, led by <span class="cite">@ines_okafor</span>.</li>
-          <li>Cooled to <b class="num">+0.20</b> when <span class="cite">@garden_collective_pm</span> asked about nonprofits <span class="cite">#4</span>.</li>
-        </ul>
+    <li class="step">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 3</p>
+        <h3>Read the answer.</h3>
+        <p>The report leads with a verdict, how sure it is, and why. Every claim cites the posts and people behind it, and you can interview anyone in the crowd afterwards.</p>
       </div>
+      <figure class="step-shot reveal">
+        <img class="shot" src="assets/img/app-report-1200.webp" srcset="assets/img/app-report-1200.webp 1200w, assets/img/app-report-2000.webp 2000w" sizes="(max-width: 1100px) 94vw, 1040px" width="2000" height="1273" loading="lazy" alt="The Report view: Existing Users Accept Offer but Question Long-Term Subscription Model. The summary and the prediction cite people such as @ines_okafor and @garden_collective_pm and posts such as #2 and #4. Medium confidence.">
+        <figcaption>The report for the Mossbook run.</figcaption>
+      </figure>
     </li>
   </ol>
 </section>
 
 <section class="report" id="report" aria-labelledby="report-title">
-  <div class="report-copy">
-    <h2 id="report-title" class="display display-2">Every claim leads back to <span class="band"><span>a post.</span></span></h2>
+  <div class="section-head reveal">
+    <h2 id="report-title">Every claim leads back to a&nbsp;post.</h2>
     <p class="section-lede">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite">@handle</span> and <span class="cite">#12</span> open the person and the post behind them.</p>
-    <dl class="abilities">
-      <div><dt>Inject breaking news</dt><dd>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</dd></div>
-      <div><dt>Interview anyone</dt><dd>Ask a person why they posted what they did. They answer in character, from their memory.</dd></div>
-      <div><dt>Ask about the outcome</dt><dd>Follow-up questions are answered from the report and the full record.</dd></div>
-      <div><dt>Replay the crowd</dt><dd>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</dd></div>
-      <div><dt>Export it</dt><dd>Save any report as one web page to share with the people deciding with you.</dd></div>
-    </dl>
   </div>
-
-  <article class="paper" aria-labelledby="paper-title">
-    <header class="paper-head">
-      <p class="chips"><span class="chip"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tick"/></svg>Done</span><span class="chip">Medium confidence <i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i></span></p>
-      <p class="paper-q">How will existing Mossbook users react to the switch to subscription pricing?</p>
-      <h3 id="paper-title">Existing users accept the offer but question the long‑term subscription model.</h3>
-    </header>
-    <p class="paper-body">The announcement landed warmly, at <b class="num">+0.65</b> in round 0. <span class="cite">@ines_okafor</span>’s post about honouring early buyers’ trust <span class="cite">#2</span> drew the most engagement. The mood fell to <b class="num">+0.20</b> once <span class="cite">@garden_collective_pm</span> <span class="cite">#4</span> and <span class="cite">@garden_skeptic</span> <span class="cite">#6</span> raised the move from one‑time ownership to recurring billing. News that old licences keep working offline didn’t lift it back: <b class="num">+0.23</b> in round 2.</p>
-    <h4>Key voices</h4>
-    <ul class="voices">
-      <li><span class="tile t-yel" aria-hidden="true">IO</span><div><p class="who"><b>Ines Okafor-Brandt</b> <span class="cite">@ines_okafor</span> <span class="cite">#2</span> <span class="rnd">R0</span></p><p>“Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.”</p></div></li>
-      <li><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> <span class="cite">@garden_collective_pm</span> <span class="cite">#7</span> <span class="rnd">R2</span></p><p>“This offline guarantee matters. But I’m still concerned: what happens in year two if the company changes direction again?”</p></div></li>
-      <li><span class="tile t-ink" aria-hidden="true">MC</span><div><p class="who"><b>Maria Chen</b> <span class="cite">@garden_skeptic</span> <span class="cite">#6</span> <span class="rnd">R2</span></p><p>“If my old $24.99 licence keeps working offline, I might not need Plus at all.”</p></div></li>
-    </ul>
-    <p class="paper-foot">A scenario exploration of a simulated crowd, not a poll of real people.</p>
-  </article>
+  <ul class="features reveal">
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg><h3>Inject breaking news</h3><p>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-person"/></svg><h3>Interview anyone</h3><p>Ask a person why they posted what they did. They answer in character, from their memory.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bubble"/></svg><h3>Ask about the outcome</h3><p>Follow-up questions are answered from the report and the full record.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-replay"/></svg><h3>Replay the crowd</h3><p>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-share"/></svg><h3>Export it</h3><p>Save any report as one web page to share with the people deciding with you.</p></li>
+  </ul>
 </section>
 
-<section class="honest field-ink" aria-labelledby="honest-title">
+<section class="honest" aria-labelledby="honest-title">
   <h2 id="honest-title" class="visually-hidden">Where it runs and what it isn’t</h2>
-  <div class="note">
-    <h3 class="display display-3">Runs on your Mac, with what you already have.</h3>
+  <div class="note reveal">
+    <svg class="nicon" aria-hidden="true" focusable="false"><use href="#i-laptop"/></svg>
+    <h3>Runs on your Mac, with what you already have.</h3>
     <p>Tellfold uses the Claude Code you already have installed and signed in. There’s no Tellfold account and nothing to set up. Your documents go only to the AI you choose, and every run stays on your Mac. Bigger runs use more of your Claude plan.</p>
     <p>It can also use other AI tools you may have, such as Codex or Gemini, or AI models that run on your own Mac.</p>
   </div>
-  <div class="note">
-    <h3 class="display display-3"><span class="band band-on-ink">A rehearsal,</span> not a poll.</h3>
+  <div class="note reveal">
+    <svg class="nicon" aria-hidden="true" focusable="false"><use href="#i-theatre"/></svg>
+    <h3>A rehearsal, not a poll.</h3>
     <p>The people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
     <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
   </div>
 </section>
 
 <section class="install" id="install" aria-labelledby="install-title">
-  <div class="install-steps">
-    <h2 id="install-title" class="display display-2">Install</h2>
-    <ol class="steps">
+  <div class="section-head reveal">
+    <h2 id="install-title">Install.</h2>
+  </div>
+  <div class="install-grid reveal">
+    <ol class="install-steps">
       <li><span>Download <a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Tellfold.dmg</a>.</span></li>
       <li><span>Open it and drag Tellfold to Applications.</span></li>
       <li><span>Open Tellfold. If Claude Code isn’t signed in yet, run <code>claude</code> once in Terminal and use <code>/login</code>.</span></li>
     </ol>
-    <p class="aside">Updates arrive inside the app. To check yourself, choose <b>Tellfold › Check for Updates…</b></p>
+    <dl class="specs">
+      <div><dt>macOS</dt><dd>26 or later</dd></div>
+      <div><dt>Mac</dt><dd>Apple silicon</dd></div>
+      <div><dt>AI</dt><dd><a href="https://claude.com/claude-code">Claude Code</a>, installed and signed in</dd></div>
+      <div><dt>Everything else</dt><dd>Included. The simulation engine ships inside the app, so there’s no Python to set up.</dd></div>
+      <div><dt>Updates</dt><dd>Arrive inside the app. To check yourself, choose Tellfold › Check for Updates…</dd></div>
+    </dl>
   </div>
-  <dl class="reqs-list">
-    <div><dt>macOS</dt><dd>26 or later</dd></div>
-    <div><dt>Mac</dt><dd>Apple silicon</dd></div>
-    <div><dt>AI</dt><dd><a href="https://claude.com/claude-code">Claude Code</a>, installed and signed in</dd></div>
-    <div><dt>Everything else</dt><dd>Included. The simulation engine ships inside the app, so there’s no Python to set up.</dd></div>
-  </dl>
 </section>
 
-<section class="close field-yel" id="sponsor" aria-labelledby="close-title">
-  <svg class="close-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>
-  <div class="close-copy">
-    <h2 id="close-title" class="display">Tellfold is free.</h2>
-    <p>Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
-    <div class="actions">
-      <a class="btn btn-ink" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download for Mac</a>
-      <a class="btn btn-line" href="https://github.com/sponsors/NarekManukyan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart"/></svg>Sponsor on GitHub</a>
-    </div>
+<section class="close" id="sponsor" aria-labelledby="close-title">
+  <img class="close-icon reveal" src="assets/img/app-icon-256.webp" srcset="assets/img/app-icon-256.webp 1x, assets/img/app-icon-512.webp 2x" width="160" height="160" alt="" loading="lazy">
+  <h2 id="close-title" class="reveal">Tellfold is free.</h2>
+  <p class="reveal">Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
+  <div class="actions reveal">
+    <a class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+    <a class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
   </div>
 </section>
 
 </main>
 
 <footer class="foot">
-  <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><use href="#lockup"/></svg></a>
+  <div class="foot-row">
+    <a class="brand brand-foot" href="./"><svg class="brand-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>Tellfold</a>
+    <ul class="foot-links">
+      <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
+      <li><a href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
+      <li><a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+    </ul>
+  </div>
   <p class="legal">© 2026 Narek Manukyan. All rights reserved. The source is public to read; no licence is granted.</p>
-  <ul class="foot-links">
-    <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-    <li><a href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
-  </ul>
 </footer>
 </body>
 </html>
