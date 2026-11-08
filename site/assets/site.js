@@ -1,19 +1,17 @@
 // Tellfold site. Loaded in <head> so the page knows before first paint whether scripts and motion are on; the rest
-// waits for the DOM. Without this file the page shows the finished run (round 2 and its verdict) and nothing moves.
+// waits for the DOM. Without this file the reply slip shows every round stacked, with the answer, and nothing moves.
 (function () {
   var root = document.documentElement;
   var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   root.classList.add('js');
   if (!still) root.classList.add('motion');
 
-  var ROUNDS = 3;
-  var STEP_MS = 3200;      // how long each round holds during the replay
-  var FAN_MS = 1500;       // the fan and its slips are out by then
-  var FOLD_MS = 460;       // folding shut before a replay
+  var LAST = 2;            // rounds run 0..2 in the Mossbook example
+  var STEP_MS = 3400;      // how long each round holds during the replay
 
   document.addEventListener('DOMContentLoaded', function () {
-    var hero = document.querySelector('.hero');
-    if (hero) setUpHero(hero);
+    var slip = document.querySelector('.slip');
+    if (slip) setUpSlip(slip);
     revealSections();
   });
 
@@ -25,102 +23,70 @@
     io.observe(el);
   }
 
-  function setUpHero(hero) {
-    var buttons = hero.querySelectorAll('.scrub-btn');
-    var play = hero.querySelector('.scrub-play');
-    var readout = hero.querySelector('.readout');
-    var stageLabel = hero.querySelector('.js-stage');
-    var STAGES = ['The announcement goes out', 'Round 1 of 2: the crowd reacts', 'Round 2 of 2'];
+  function setUpSlip(slip) {
+    var tabs = slip.querySelectorAll('.tab');
+    var replay = slip.querySelector('.replay');
+    var live = slip.querySelector('.rounds');
+    var answer = slip.querySelector('.answer');
     var timers = [];
 
-    hero.style.setProperty('--step', STEP_MS + 'ms');
-
-    var postBoxes = hero.querySelectorAll('.posts');
-
-    // Each slip grows or shrinks to the round's post instead of jumping: measure the incoming post, ease the box.
-    function fitPosts(round) {
-      postBoxes.forEach(function (box) {
-        var post = box.querySelector('.post[data-r="' + round + '"]');
-        if (post) box.style.height = post.offsetHeight + 'px';
-      });
-    }
-
     function show(round) {
-      fitPosts(round);
-      hero.setAttribute('data-round', String(round));
-      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.go) === round)); });
-      if (stageLabel) stageLabel.textContent = STAGES[round];
+      slip.setAttribute('data-round', String(round));
+      tabs.forEach(function (t) { t.setAttribute('aria-pressed', String(Number(t.dataset.go) === round)); });
+      var panel = slip.querySelector('.round[data-r="' + round + '"]');
+      if (panel && root.classList.contains('motion')) {
+        // Drop the class and flush so the same round can print again.
+        panel.classList.remove('printing');
+        void panel.offsetWidth;
+        panel.classList.add('printing');
+      }
+      if (round === LAST && !slip.hasAttribute('data-done')) {
+        slip.setAttribute('data-done', '');
+        if (answer && root.classList.contains('motion')) {
+          answer.classList.remove('landing');
+          void answer.offsetWidth;
+          answer.classList.add('landing');
+        }
+      }
     }
 
     function stop() {
       timers.forEach(clearTimeout);
       timers = [];
-      hero.classList.remove('playing');
-      if (readout) readout.setAttribute('aria-live', 'polite');
+      if (live) live.setAttribute('aria-live', 'polite');
     }
 
-    // Show a round and restart the timer on its button: drop the class, flush, add it back.
-    function tick(round) {
-      show(round);
-      hero.classList.remove('playing');
-      if (round < ROUNDS - 1) { void hero.offsetWidth; hero.classList.add('playing'); }
-      else if (readout) readout.setAttribute('aria-live', 'polite');
-    }
-
-    function autoplay(delay) {
+    function play() {
+      stop();
+      slip.removeAttribute('data-done');
       // The replay speaks for itself; announcing every automatic step would talk over the page.
-      if (readout) readout.setAttribute('aria-live', 'off');
-      for (var r = 0; r < ROUNDS; r++) timers.push(setTimeout(tick.bind(null, r), delay + STEP_MS * r));
+      if (live) live.setAttribute('aria-live', 'off');
+      for (var r = 0; r <= LAST; r++) timers.push(setTimeout(show.bind(null, r), STEP_MS * r));
+      timers.push(setTimeout(function () { if (live) live.setAttribute('aria-live', 'polite'); }, STEP_MS * LAST + 50));
     }
 
-    function open() {
-      // Two frames, so the folded state is painted before the transition to open starts.
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () { hero.classList.add('open'); });
-      });
-      autoplay(FAN_MS);
-    }
-
-    // Text reflows when the web font arrives or the window resizes; refit the current round without easing.
-    function refit() {
-      hero.classList.remove('fitted');
-      fitPosts(Number(hero.getAttribute('data-round')));
-      requestAnimationFrame(function () { hero.classList.add('fitted'); });
-    }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
-    var resizeTimer;
-    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(refit, 120); });
-
-    buttons.forEach(function (b) {
-      b.addEventListener('click', function () { stop(); hero.classList.add('open'); show(Number(b.dataset.go)); });
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () { stop(); show(Number(t.dataset.go)); });
     });
+    if (replay) replay.addEventListener('click', play);
 
     if (!root.classList.contains('motion')) {
-      hero.classList.add('open');
-      show(ROUNDS - 1);
-      if (play) play.addEventListener('click', function () { stop(); autoplay(0); });
+      show(LAST);
       return;
     }
 
-    // Folded, waiting on round 0, until the hero is actually on screen.
-    show(0);
-    requestAnimationFrame(function () { hero.classList.add('fitted'); });
-    whenSeen(hero, 0.3, open);
-
-    if (play) play.addEventListener('click', function () {
-      stop();
-      hero.classList.remove('open');
-      show(0);
-      timers.push(setTimeout(open, FOLD_MS));
-    });
+    // Wait on round 0 until the slip is actually on screen, then print the run.
+    slip.setAttribute('data-round', '0');
+    tabs.forEach(function (t) { t.setAttribute('aria-pressed', String(Number(t.dataset.go) === 0)); });
+    whenSeen(slip, 0.25, play);
   }
 
   function revealSections() {
-    var sections = document.querySelectorAll('main > section:not(.hero)');
+    var sections = document.querySelectorAll('main > section');
     if (!root.classList.contains('motion')) {
       sections.forEach(function (s) { s.classList.add('in'); });
       return;
     }
-    sections.forEach(function (s) { whenSeen(s, 0.08, function () { s.classList.add('in'); }); });
+    sections.forEach(function (s) { whenSeen(s, 0.12, function () { s.classList.add('in'); }); });
   }
 })();

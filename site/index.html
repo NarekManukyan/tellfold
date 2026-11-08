@@ -7,14 +7,15 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Tellfold: see how people react before you tell them</title>
 <meta name="description" content="Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement and a question. A crowd of simulated people talks it over for a few rounds, then Tellfold writes a short answer. It runs on your Mac with the Claude Code you already have.">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#1E1B4B">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FCFCF8">
 <link rel="canonical" href="https://narekmanukyan.github.io/tellfold/">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/big-shoulders-900.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tellfold">
 <meta property="og:title" content="Tellfold: see how people react before you tell them">
@@ -28,214 +29,219 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="fan" viewBox="30 30 196 196"><path d="M76.73 194.5L214 194.5L209.45 159.97L76.86 195.5A23 23 0 0 1 76.73 194.5Z"/><path d="M75.05 188.74L207.64 153.21L194.31 121.03L75.44 189.67A23 23 0 0 1 75.05 188.74Z"/><path d="M71.94 183.6L190.81 114.97L169.61 87.34L72.55 184.4A23 23 0 0 1 71.94 183.6Z"/><path d="M67.6 179.45L164.66 82.39L137.03 61.19L68.4 180.06A23 23 0 0 1 67.6 179.45Z"/><path d="M62.33 176.56L130.97 57.69L98.79 44.36L63.26 176.95A23 23 0 0 1 62.33 176.56Z"/><path d="M56.5 175.14L92.03 42.55L57.5 38L57.5 175.27A23 23 0 0 1 56.5 175.14Z"/><circle cx="54" cy="198" r="16"/></symbol>
+  <symbol id="lockup" viewBox="30 30 646 192"><use href="#fan" x="30" y="30" width="196" height="196"/><g transform="translate(262 55) scale(0.62)"><path d="M 16,56 V 88 H 0 v 24 h 16 v 88 H 40 V 112 H 56 V 88 H 40 V 56 Z"/><path d="M 125.76,88.01 c -23.05,0.12 -44.26,14.57 -52.37,36.85 -9.27,25.46 1.14,54.09 24.61,67.64 23.46,13.55 53.47,8.26 70.89,-12.49 L 150.51,164.58 C 140.47,176.54 123.51,179.53 110,171.72 96.49,163.92 90.61,147.74 95.95,133.07 101.28,118.4 116.19,109.79 131.56,112.5 c 11.19,1.97 20.04,9.53 24.06,19.5 H 126 v 24 h 56 L 182,144 c -0.01,-27.09 -19.6,-50.44 -46.28,-55.14 -3.34,-0.59 -6.66,-0.86 -9.96,-0.85 z"/><path d="M 204,40 v 160 h 24 V 40 Z"/><path d="M 256,40 v 160 h 24 V 40 Z"/><path d="M 356,36 c -26.37,0 -48,21.63 -48,48 v 4 h -16 v 24 h 16 v 88 h 24 v -88 h 16 V 88 h -16 v -4 c 0,-13.4 10.6,-24 24,-24 h 10 V 36 Z"/><path d="M 416,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 494,40 v 160 h 24 V 40 Z"/><path d="M 596,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 628,40 v 160 h 24 V 40 Z"/></g></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 16 16"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.75 3.75 9h4l-1 5.25L12.25 7h-4z"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 16 16"><path d="M3.25 8a4.75 4.75 0 1 0 1.4-3.37"/><path d="M3 2.75v2.5h2.5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.75h5L12.25 5v9.25H4z"/><path d="M8.75 1.75V5.25h3.5M6 8h4.5M6 10.5h4.5"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 16 16"><path d="M3.5 8.25 6.5 11.25 12.5 5"/></symbol>
+</svg>
+
 <header class="top">
-  <div class="wrap top-row">
-    <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><g><path class="p1" d="M54 198L214 198L208.55 156.59L54 198Z"/><path class="p2" d="M54 198L208.55 156.59L192.56 118L54 198Z"/><path class="p1" d="M54 198L192.56 118L167.14 84.86L54 198Z"/><path class="p2" d="M54 198L167.14 84.86L134 59.44L54 198Z"/><path class="p1" d="M54 198L134 59.44L95.41 43.45L54 198Z"/><path class="p2" d="M54 198L95.41 43.45L54 38L54 198Z"/><circle class="hg" cx="54" cy="198" r="16"/></g><g class="wm" transform="translate(262 55) scale(0.62)"><path d="M 16,56 V 88 H 0 v 24 h 16 v 88 H 40 V 112 H 56 V 88 H 40 V 56 Z"/><path d="M 125.76,88.01 c -23.05,0.12 -44.26,14.57 -52.37,36.85 -9.27,25.46 1.14,54.09 24.61,67.64 23.46,13.55 53.47,8.26 70.89,-12.49 L 150.51,164.58 C 140.47,176.54 123.51,179.53 110,171.72 96.49,163.92 90.61,147.74 95.95,133.07 101.28,118.4 116.19,109.79 131.56,112.5 c 11.19,1.97 20.04,9.53 24.06,19.5 H 126 v 24 h 56 L 182,144 c -0.01,-27.09 -19.6,-50.44 -46.28,-55.14 -3.34,-0.59 -6.66,-0.86 -9.96,-0.85 z"/><path d="M 204,40 v 160 h 24 V 40 Z"/><path d="M 256,40 v 160 h 24 V 40 Z"/><path d="M 356,36 c -26.37,0 -48,21.63 -48,48 v 4 h -16 v 24 h 16 v 88 h 24 v -88 h 16 V 88 h -16 v -4 c 0,-13.4 10.6,-24 24,-24 h 10 V 36 Z"/><path d="M 416,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 494,40 v 160 h 24 V 40 Z"/><path d="M 596,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 628,40 v 160 h 24 V 40 Z"/></g></svg></a>
-    <nav aria-label="Primary">
-      <ul class="nav">
-        <li class="nav-wide"><a href="#uses">What it’s for</a></li>
-        <li class="nav-wide"><a href="#how">How it works</a></li>
-        <li class="nav-wide"><a href="#report">The report</a></li>
-        <li class="nav-wide"><a href="#install">Install</a></li>
-        <li class="nav-wide"><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-        <li><a class="btn btn-quiet btn-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
-      </ul>
-    </nav>
-  </div>
+  <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><use href="#lockup"/></svg></a>
+  <nav aria-label="Primary">
+    <ul class="nav">
+      <li class="nav-wide"><a href="#uses">What it’s for</a></li>
+      <li class="nav-wide"><a href="#how">How it works</a></li>
+      <li class="nav-wide"><a href="#report">The report</a></li>
+      <li class="nav-wide"><a href="#install">Install</a></li>
+      <li class="nav-wide"><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
+      <li><a class="btn btn-ink btn-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+    </ul>
+  </nav>
 </header>
 
 <main id="main">
 
-<section class="hero" data-round="2" aria-labelledby="hero-title">
-  <div class="hero-side">
+<section class="hero" aria-labelledby="hero-title">
   <div class="hero-copy">
-    <h1 id="hero-title">See how people react before you tell them.</h1>
-    <p class="lede">Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
-    <div class="actions">
-      <a class="btn btn-primary" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon icon-download" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></svg>Download for Mac</a>
-      <a class="btn btn-ghost" href="https://github.com/sponsors/NarekManukyan"><svg class="icon icon-heart" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></svg>Sponsor</a>
-    </div>
-    <p class="reqs">Free. macOS 26 or later on Apple silicon, with <a href="https://claude.com/claude-code">Claude Code</a> signed in.</p>
-  </div>
-    <div class="readout" aria-live="polite">
-    <div class="scrub" role="group" aria-label="Replay the run by round">
-      <span class="scrub-label">Round</span>
-      <button type="button" class="scrub-btn" data-go="0" aria-pressed="false">r0</button>
-      <button type="button" class="scrub-btn" data-go="1" aria-pressed="false">r1</button>
-      <button type="button" class="scrub-btn" data-go="2" aria-pressed="true">r2</button>
-      <button type="button" class="scrub-play" aria-label="Replay from the start"><svg class="icon icon-replay" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.25 8a4.75 4.75 0 1 0 1.4-3.37"/><path d="M3 2.75v2.5h2.5"/></svg></button>
-    </div>
-    <div class="states">
-      <div class="state state-running">
-        <p class="state-title js-stage">Round 1 of 2: the crowd reacts</p>
-        <p class="state-note">The answer appears here when the run finishes.</p>
+    <h1 id="hero-title" class="display">See how people react <span class="band"><span>before you</span></span> tell them.</h1>
+    <div class="hero-foot">
+      <p class="lede">Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
+      <div class="actions">
+        <a class="btn btn-ink" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download for Mac</a>
+        <a class="btn btn-line" href="https://github.com/sponsors/NarekManukyan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart"/></svg>Sponsor</a>
       </div>
-      <div class="state state-done">
-        <p class="event"><svg class="icon icon-bolt" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M9 1.75 3.75 9h4l-1 5.25L12.25 7h-4z"/></svg><span><b>Breaking news in round 2:</b> a popular tech reviewer posts that the old lifetime licence will keep working offline forever.</span></p>
-        <p class="chips"><span class="chip"><svg class="icon icon-done" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.5 8.25 6.5 11.25 12.5 5"/></svg>Done</span><span class="chip chip-conf">Medium confidence<i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i></span></p>
-        <p class="verdict">Existing users accept the offer but question the long‑term subscription.</p>
-      </div>
+      <p class="reqs">Free. macOS 26 or later on Apple silicon, with <a href="https://claude.com/claude-code">Claude Code</a> signed in.</p>
     </div>
-    <p class="mood">Mood <span class="mono mood-r" data-r="0"><i>r0</i> <span class="pos">+0.65</span></span><span class="mono mood-r" data-r="1"><i>r1</i> <span class="pos">+0.20</span></span><span class="mono mood-r" data-r="2"><i>r2</i> <span class="pos">+0.23</span></span></p>
   </div>
 
-  </div>
+  <aside class="slip" aria-labelledby="slip-title" data-round="2">
+    <div class="slip-head">
+      <h2 class="slip-title" id="slip-title">Have your say</h2>
+      <blockquote class="notice"><p>“Big news: Mossbook is going freemium on March 3. Existing users get Plus free for a year, then $17.99/year forever.”</p></blockquote>
+      <p class="slip-q"><b>Asked:</b> how will existing Mossbook users react to the switch to subscription pricing?</p>
+    </div>
 
-  <figure class="stage" aria-labelledby="stage-caption">
-    <div class="fan-stage">
-      <svg class="fan" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path class="pleat pleat-1 tone-a on-r0 on-r1 on-r2" d="M60 940L940.0 940.0L910.0 712.2Z"/><path class="pleat pleat-2 tone-b on-r0" d="M60 940L910.0 712.2L822.1 500.0Z"/><path class="pleat pleat-3 tone-a on-r1 on-r2" d="M60 940L822.1 500.0L682.3 317.7Z"/><path class="pleat pleat-4 tone-b on-r1 on-r2" d="M60 940L682.3 317.7L500.0 177.9Z"/><path class="pleat pleat-5 tone-a " d="M60 940L500.0 177.9L287.8 90.0Z"/><path class="pleat pleat-6 tone-b " d="M60 940L287.8 90.0L60.0 60.0Z"/><circle class="hinge-ring" cx="60" cy="940" r="46"/><circle class="hinge" cx="60" cy="940" r="30"/></svg>
-      <ol class="seats" aria-label="The six simulated people in this run">
-        <li class="seat seat-1"><div class="slip"><div class="slip-head"><svg class="avatar org" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="14" fill="#0369A1"/><text x="32" y="33" text-anchor="middle" dominant-baseline="central" fill="#fff" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif" font-weight="600" font-size="24">ML</text></svg><p><b>Mossbook Labs</b><span class="handle">@mossbook_labs</span></p></div><div class="posts"><div class="post" data-r="0"><p class="act">posted <span class="ref">#1</span></p><p class="text">Big news: Mossbook is going freemium on March 3. Existing users get Plus free for a year, then $17.99/year forever.</p></div><div class="post" data-r="1"><p class="act">replied to <span class="ref">#2</span></p><p class="text">Exactly. We’re proud to stand behind that trust with transparency on costs.</p></div><div class="post" data-r="2"><p class="act">replied to <span class="ref">#4</span></p><p class="text">We’re actively exploring a community license tier. Let’s discuss specifics at the Feb 24 town hall.</p></div></div></div></li>
-        <li class="seat seat-2"><div class="slip"><div class="slip-head"><svg class="avatar" width="30" height="30" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1e18onw-2"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1e18onw-2)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#E0E7FF"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#8B5CF6"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#EBBE9B"/><circle cx="16.5" cy="35" r="3.6" fill="#EBBE9B"/><circle cx="47.5" cy="35" r="3.6" fill="#EBBE9B"/><circle cx="32" cy="34" r="15.5" fill="#EBBE9B"/><ellipse cx="32" cy="23.5" rx="16.5" ry="8.5" fill="#7A4E2D"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><path d="M27.5 40.2 Q32 44.6 36.5 40.2" stroke="#1F2937" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><p><b>Ines Okafor-Brandt</b><span class="handle">@ines_okafor</span></p></div><div class="posts"><div class="post" data-r="0"><p class="tag">Most engaged post</p><p class="act">posted <span class="ref">#2</span></p><p class="text">Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.</p></div><div class="post quiet" data-r="1"><p class="act">Stayed quiet</p></div><div class="post quiet" data-r="2"><p class="act">Stayed quiet</p></div></div></div></li>
-        <li class="seat seat-3"><div class="slip"><div class="slip-head"><svg class="avatar" width="30" height="30" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1ijs8ln-3"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1ijs8ln-3)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#DCFCE7"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#EC4899"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#B98059"/><circle cx="16.5" cy="35" r="3.6" fill="#B98059"/><circle cx="47.5" cy="35" r="3.6" fill="#B98059"/><circle cx="32" cy="34" r="15.5" fill="#B98059"/><ellipse cx="32" cy="24" rx="16.5" ry="8" fill="#B4452C"/><circle cx="32" cy="12.5" r="6" fill="#B4452C"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><rect x="28.5" y="41" width="7" height="1.8" rx="0.9" fill="#1F2937"/><circle cx="26.5" cy="34.5" r="4.6" fill="none" stroke="#1F2937" stroke-width="1.4"/><circle cx="37.5" cy="34.5" r="4.6" fill="none" stroke="#1F2937" stroke-width="1.4"/><line x1="31.1" y1="34.5" x2="32.9" y2="34.5" stroke="#1F2937" stroke-width="1.4"/></g></svg><p><b>Jamal Williams</b><span class="handle">@garden_collective_pm</span></p></div><div class="posts"><div class="post quiet" data-r="0"><p class="act">Stayed quiet</p></div><div class="post" data-r="1"><p class="tag">First pushback</p><p class="act">replied to <span class="ref">#1</span></p><p class="text">Appreciate the transparency, but subscriptions lock nonprofits into recurring costs we can’t always plan for.</p></div><div class="post" data-r="2"><p class="tag">The open question</p><p class="act">replied to <span class="ref">#3</span></p><p class="text">This offline guarantee matters. But what happens in year two if the company changes direction again?</p></div></div></div></li>
-        <li class="seat seat-4"><div class="slip"><div class="slip-head"><svg class="avatar" width="30" height="30" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1h2qsmm-4"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1h2qsmm-4)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#EDE9FE"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#64748B"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#F6D3B8"/><circle cx="16.5" cy="35" r="3.6" fill="#F6D3B8"/><circle cx="47.5" cy="35" r="3.6" fill="#F6D3B8"/><circle cx="32" cy="34" r="15.5" fill="#F6D3B8"/><ellipse cx="32" cy="24" rx="15.5" ry="7.5" fill="#231A14" opacity="0.55"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><rect x="28.5" y="41" width="7" height="1.8" rx="0.9" fill="#1F2937"/></g></svg><p><b>Maria Chen</b><span class="handle">@garden_skeptic</span></p></div><div class="posts"><div class="post quiet" data-r="0"><p class="act">Stayed quiet</p></div><div class="post" data-r="1"><p class="act">liked <span class="ref">#2</span></p></div><div class="post" data-r="2"><p class="act">replied to <span class="ref">#2</span></p><p class="text">If my old $24.99 licence keeps working offline, I might not need Plus at all.</p></div></div></div></li>
-        <li class="seat seat-5"><div class="slip"><div class="slip-head"><svg class="avatar" width="30" height="30" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="avv8z8lx-5"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#avv8z8lx-5)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#DCFCE7"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#8B5CF6"/><rect x="13" y="24" width="9" height="20" rx="4.5" fill="#B4452C"/><rect x="42" y="24" width="9" height="20" rx="4.5" fill="#B4452C"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#B98059"/><circle cx="16.5" cy="35" r="3.6" fill="#B98059"/><circle cx="47.5" cy="35" r="3.6" fill="#B98059"/><circle cx="32" cy="34" r="15.5" fill="#B98059"/><ellipse cx="32" cy="23" rx="18" ry="9.5" fill="#B4452C"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><path d="M27.8 40 Q32 46.2 36.2 40 Z" fill="#1F2937"/></g></svg><p><b>Robert Thompson</b><span class="handle">@retired_plant_dad</span></p></div><div class="posts"><div class="post quiet" data-r="0"><p class="act">Stayed quiet</p></div><div class="post quiet" data-r="1"><p class="act">Stayed quiet</p></div><div class="post quiet" data-r="2"><p class="act">Stayed quiet</p></div></div></div></li>
-        <li class="seat seat-6"><div class="slip"><div class="slip-head"><svg class="avatar" width="30" height="30" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="avv6ej3p-6"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#avv6ej3p-6)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#E0E7FF"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#14B8A6"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#B98059"/><circle cx="16.5" cy="35" r="3.6" fill="#B98059"/><circle cx="47.5" cy="35" r="3.6" fill="#B98059"/><circle cx="32" cy="34" r="15.5" fill="#B98059"/><path d="M18.5 37 Q32 57 45.5 37" stroke="#DDB874" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><path d="M27.5 40.2 Q32 44.6 36.5 40.2" stroke="#1F2937" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><p><b>Alex Rodriguez</b><span class="handle">@alex_tech_casual</span></p></div><div class="posts"><div class="post quiet" data-r="0"><p class="act">Stayed quiet</p></div><div class="post quiet" data-r="1"><p class="act">Stayed quiet</p></div><div class="post quiet" data-r="2"><p class="act">Stayed quiet</p></div></div></div></li>
+    <div class="tabs" role="group" aria-label="Replay the run by round">
+      <button type="button" class="tab" data-go="0" aria-pressed="false"><span class="tab-r">R0</span><span class="tab-m">Mood <b>+0.65</b></span></button>
+      <button type="button" class="tab" data-go="1" aria-pressed="false"><span class="tab-r">R1</span><span class="tab-m">Mood <b>+0.20</b></span></button>
+      <button type="button" class="tab" data-go="2" aria-pressed="true"><span class="tab-r">R2</span><span class="tab-m">Mood <b>+0.23</b></span></button>
+      <button type="button" class="replay" aria-label="Replay from the start"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-replay"/></svg></button>
+    </div>
+
+    <div class="rounds" aria-live="polite">
+      <ol class="round" data-r="0" aria-label="Round 0: the announcement goes out">
+        <li class="say"><span class="tile t-ink" aria-hidden="true">ML</span><div><p class="who"><b>Mossbook Labs</b> posted the announcement <span class="ref">#1</span></p></div></li>
+        <li class="say"><span class="tile t-yel" aria-hidden="true">IO</span><div><p class="who"><b>Ines Okafor-Brandt</b> posted <span class="ref">#2</span> <span class="flag">Most engaged post</span></p><p class="text">Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.</p></div></li>
+        <li class="quiet">Jamal, Maria, Robert and Alex stayed quiet.</li>
+      </ol>
+      <ol class="round" data-r="1" aria-label="Round 1: the crowd reacts">
+        <li class="say"><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> replied to <span class="ref">#1</span> <span class="flag">First pushback</span></p><p class="text">Appreciate the transparency, but subscriptions lock nonprofits into recurring costs we can’t always plan for.</p></div></li>
+        <li class="say"><span class="tile t-ink" aria-hidden="true">ML</span><div><p class="who"><b>Mossbook Labs</b> replied to <span class="ref">#2</span></p><p class="text">Exactly. We’re proud to stand behind that trust with transparency on costs.</p></div></li>
+        <li class="quiet">Maria Chen liked <span class="ref">#2</span>. Ines, Robert and Alex stayed quiet.</li>
+      </ol>
+      <ol class="round" data-r="2" aria-label="Round 2: breaking news">
+        <li class="news"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg><p><b>Breaking news:</b> a popular tech reviewer posts that the old lifetime licence will keep working offline forever.</p></li>
+        <li class="say"><span class="tile t-yel" aria-hidden="true">MC</span><div><p class="who"><b>Maria Chen</b> replied to <span class="ref">#2</span></p><p class="text">If my old $24.99 licence keeps working offline, I might not need Plus at all.</p></div></li>
+        <li class="say"><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> replied to <span class="ref">#3</span> <span class="flag">The open question</span></p><p class="text">This offline guarantee matters. But what happens in year two if the company changes direction again?</p></div></li>
+        <li class="quiet">Mossbook Labs replied about a community licence. Ines, Robert and Alex stayed quiet.</li>
       </ol>
     </div>
 
-    <figcaption id="stage-caption">A real run on the fictional Mossbook pricing example that ships with Tellfold: six simulated people, two rounds after the announcement, seven posts. Posts are shortened.</figcaption>
-  </figure>
+    <div class="answer">
+      <p class="answer-wait">The answer is printed here when round 2 is done.</p>
+      <p class="verdict">Existing users accept the offer but question the long‑term subscription.</p>
+      <p class="conf">Medium confidence <i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i> <span class="conf-after">after round 2</span></p>
+    </div>
+    <p class="slip-note">A real run on the fictional Mossbook pricing example that ships with Tellfold: six simulated people, seven posts. Posts are shortened.</p>
+  </aside>
 </section>
 
 <section class="uses" id="uses" aria-labelledby="uses-title">
-  <div class="wrap">
-    <h2 id="uses-title" class="rise">Try it on anything people will have an opinion about.</h2>
-    <p class="section-lede rise d1">Shops, schools, councils, teams, clubs, landlords, apps. If a group of people will hear about it, Tellfold can rehearse how they take it.</p>
-    <ul class="uses-list">
-      <li class="rise"><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
-      <li class="rise d1"><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
-      <li class="rise d2"><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
-      <li class="rise"><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
-      <li class="rise d1"><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
-      <li class="rise d2"><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
-    </ul>
+  <div class="uses-head">
+    <h2 id="uses-title" class="display display-2"><span class="band"><span>Try it on anything</span></span> people will have an opinion about.</h2>
+    <p class="section-lede">Shops, schools, councils, teams, clubs, landlords, apps. If a group of people will hear about it, Tellfold can rehearse how they take it.</p>
   </div>
+  <ul class="uses-list">
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
+    <li><span class="box" aria-hidden="true"></span><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
+  </ul>
 </section>
 
-<section class="how" id="how" aria-labelledby="how-title">
-  <div class="wrap">
-    <h2 id="how-title" class="rise">Three questions in, one answer out.</h2>
-    <p class="section-lede rise d1">A run takes a few minutes and keeps going in the background. Watch every round, or come back to the answer.</p>
-
-    <ol class="leaflet">
-      <li class="leaf">
-        <h3>Describe it</h3>
-        <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
-        <div class="sheet" aria-hidden="true">
-          <p class="field-label">What do you want to find out?</p>
-          <p class="field">How will existing Mossbook users react to the switch to subscription pricing?</p>
-          <p class="field-label">What is it about?</p>
-          <p class="field field-file"><svg class="icon icon-doc" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 1.75h5L12.25 5v9.25H4z"/><path d="M8.75 1.75V5.25h3.5M6 8h4.5M6 10.5h4.5"/></svg>mossbook_pricing.md</p>
-          <p class="field-label">How big?</p>
-          <p class="seg"><span>Quick look</span><span class="on">Standard</span><span>Deep</span></p>
-          <p class="seg-note">20 people · 6 rounds · about 8 min</p>
-        </div>
-      </li>
-      <li class="leaf">
-        <h3>The crowd reacts</h3>
-        <p>Each person has a private stance and a memory. Round by round they post, reply, repost, like and follow. Drop breaking news into a later round and see whether the mood turns.</p>
-        <div class="sheet sheet-chart" aria-hidden="true">
-          <p class="field-label">Sentiment by round</p>
-          <svg class="chart" viewBox="0 0 320 170" role="img" aria-label="Sentiment by round: +0.65 in r0, +0.20 in r1, +0.23 in r2, with breaking news in r2"><line class="grid" x1="28" x2="298" y1="18.0" y2="18.0"/><line class="grid" x1="28" x2="298" y1="49.5" y2="49.5"/><line class="grid" x1="28" x2="298" y1="112.5" y2="112.5"/><line class="grid" x1="28" x2="298" y1="144.0" y2="144.0"/><line class="zero" x1="28" x2="298" y1="81.0" y2="81.0"/><text class="axis" x="22" y="21.5" text-anchor="end">+1</text><text class="axis" x="22" y="84.5" text-anchor="end">0</text><text class="axis" x="22" y="147.5" text-anchor="end">−1</text><line class="event-rule" x1="298.0" x2="298.0" y1="18" y2="144"/><path class="event-mark" d="M298.0 12l6 6-6 6-6-6z"/><polyline class="line" pathLength="1" points="28.0,40.0 163.0,68.4 298.0,66.3"/><circle class="pt" cx="28.0" cy="40.0" r="4"/><text class="val" x="36.0" y="30.0" text-anchor="start">+0.65</text><text class="axis" x="28.0" y="164" text-anchor="middle">r0</text><circle class="pt" cx="163.0" cy="68.4" r="4"/><text class="val" x="163.0" y="58.4" text-anchor="middle">+0.20</text><text class="axis" x="163.0" y="164" text-anchor="middle">r1</text><circle class="pt" cx="298.0" cy="66.3" r="4"/><text class="val" x="292.0" y="56.3" text-anchor="end">+0.23</text><text class="axis" x="298.0" y="164" text-anchor="middle">r2</text></svg>
-        </div>
-      </li>
-      <li class="leaf">
-        <h3>Read the answer</h3>
-        <p>The report leads with a verdict, how sure it is, and why. Every claim cites the posts and people behind it, and you can interview anyone in the crowd afterwards.</p>
-        <div class="sheet" aria-hidden="true">
-          <p class="chips"><span class="chip chip-light"><svg class="icon icon-done" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.5 8.25 6.5 11.25 12.5 5"/></svg>Done</span><span class="chip chip-light chip-conf">Medium confidence<i class="bars"><b></b><b></b><b class="off"></b></i></span></p>
-          <p class="mini-verdict">Existing users accept the offer but question the long‑term subscription.</p>
-          <ul class="reasons">
-            <li>Warm start at <span class="mono pos-ink">+0.65</span>, led by <span class="cite">@ines_okafor</span>.</li>
-            <li>Cooled to <span class="mono pos-ink">+0.20</span> when <span class="cite">@garden_collective_pm</span> asked about nonprofits <span class="cite">#4</span>.</li>
-          </ul>
-        </div>
-      </li>
-    </ol>
+<section class="how field-yel" id="how" aria-labelledby="how-title">
+  <div class="how-head">
+    <h2 id="how-title" class="display display-2">Three questions in, one answer out.</h2>
+    <p class="section-lede">A run takes a few minutes and keeps going in the background. Watch every round, or come back to the answer.</p>
   </div>
+  <ol class="trifold">
+    <li class="panel">
+      <p class="step" aria-hidden="true">1</p>
+      <h3>Describe it</h3>
+      <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
+      <div class="sheet" aria-hidden="true">
+        <p class="field-label">What do you want to find out?</p>
+        <p class="field">How will existing Mossbook users react to the switch to subscription pricing?</p>
+        <p class="field-label">What is it about?</p>
+        <p class="field field-file"><svg class="icon" focusable="false"><use href="#i-doc"/></svg>mossbook_pricing.md</p>
+        <p class="field-label">How big?</p>
+        <p class="seg"><span>Quick look</span><span>Standard</span><span>Deep</span></p>
+        <p class="seg-note">Or your own size under Advanced. This example: 6 people, 2 rounds after the announcement.</p>
+      </div>
+    </li>
+    <li class="panel">
+      <p class="step" aria-hidden="true">2</p>
+      <h3>The crowd reacts</h3>
+      <p>Each person has a private stance and a memory. Round by round they post, reply, repost, like and follow. Drop breaking news into a later round and see whether the mood turns.</p>
+      <div class="sheet">
+        <p class="field-label" aria-hidden="true">Mood by round</p>
+        <svg class="chart" viewBox="0 0 320 170" role="img" aria-label="Mood by round: +0.65 in round 0, +0.20 in round 1, +0.23 in round 2, with breaking news in round 2"><line class="grid" x1="28" x2="298" y1="18" y2="18"/><line class="grid" x1="28" x2="298" y1="49.5" y2="49.5"/><line class="grid" x1="28" x2="298" y1="112.5" y2="112.5"/><line class="grid" x1="28" x2="298" y1="144" y2="144"/><line class="zero" x1="28" x2="298" y1="81" y2="81"/><text class="axis" x="22" y="21.5" text-anchor="end">+1</text><text class="axis" x="22" y="84.5" text-anchor="end">0</text><text class="axis" x="22" y="147.5" text-anchor="end">−1</text><rect class="event-band" x="286" y="18" width="24" height="126"/><polyline class="line" pathLength="1" points="28,40 163,68.4 298,66.3"/><rect class="pt" x="23" y="35" width="10" height="10"/><text class="val" x="38" y="31" text-anchor="start">+0.65</text><text class="axis" x="28" y="164" text-anchor="middle">R0</text><rect class="pt" x="158" y="63.4" width="10" height="10"/><text class="val" x="163" y="56" text-anchor="middle">+0.20</text><text class="axis" x="163" y="164" text-anchor="middle">R1</text><rect class="pt" x="293" y="61.3" width="10" height="10"/><text class="val" x="280" y="54" text-anchor="end">+0.23</text><text class="axis" x="298" y="164" text-anchor="middle">R2</text></svg>
+        <p class="chart-key" aria-hidden="true"><i></i>Breaking news</p>
+      </div>
+    </li>
+    <li class="panel">
+      <p class="step" aria-hidden="true">3</p>
+      <h3>Read the answer</h3>
+      <p>The report leads with a verdict, how sure it is, and why. Every claim cites the posts and people behind it, and you can interview anyone in the crowd afterwards.</p>
+      <div class="sheet" aria-hidden="true">
+        <p class="chips"><span class="chip"><svg class="icon" focusable="false"><use href="#i-tick"/></svg>Done</span><span class="chip">Medium confidence <i class="bars"><b></b><b></b><b class="off"></b></i></span></p>
+        <p class="mini-verdict">Existing users accept the offer but question the long‑term subscription.</p>
+        <ul class="reasons">
+          <li>Warm start at <b class="num">+0.65</b>, led by <span class="cite">@ines_okafor</span>.</li>
+          <li>Cooled to <b class="num">+0.20</b> when <span class="cite">@garden_collective_pm</span> asked about nonprofits <span class="cite">#4</span>.</li>
+        </ul>
+      </div>
+    </li>
+  </ol>
 </section>
 
 <section class="report" id="report" aria-labelledby="report-title">
-  <div class="wrap report-grid">
-    <div class="report-copy">
-      <h2 id="report-title" class="rise">Every claim leads back to a post.</h2>
-      <p class="rise d1">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite cite-dark">@handle</span> and <span class="cite cite-dark">#12</span> open the person and the post behind them.</p>
-      <dl class="abilities">
-        <div><dt>Inject breaking news</dt><dd>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</dd></div>
-        <div><dt>Interview anyone</dt><dd>Ask a person why they posted what they did. They answer in character, from their memory.</dd></div>
-        <div><dt>Ask about the outcome</dt><dd>Follow-up questions are answered from the report and the full record.</dd></div>
-        <div><dt>Replay the crowd</dt><dd>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</dd></div>
-        <div><dt>Export it</dt><dd>Save any report as one web page to share with the people deciding with you.</dd></div>
-      </dl>
-    </div>
-
-    <article class="paper" aria-labelledby="paper-title">
-      <header class="paper-head">
-        <p class="chips"><span class="chip chip-light"><svg class="icon icon-done" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.5 8.25 6.5 11.25 12.5 5"/></svg>Done</span><span class="chip chip-light chip-conf">Medium confidence<i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i></span></p>
-        <p class="paper-q">How will existing Mossbook users react to the switch to subscription pricing?</p>
-        <h3 id="paper-title">Existing users accept the offer but question the long‑term subscription model.</h3>
-      </header>
-      <p class="paper-body">The announcement landed warmly, at <span class="mono pos-ink">+0.65</span> in r0. <span class="cite">@ines_okafor</span>’s post about honouring early buyers’ trust <span class="cite">#2</span> drew the most engagement. The mood fell to <span class="mono pos-ink">+0.20</span> once <span class="cite">@garden_collective_pm</span> <span class="cite">#4</span> and <span class="cite">@garden_skeptic</span> <span class="cite">#6</span> raised the move from one‑time ownership to recurring billing. News that old licences keep working offline didn’t lift it back: <span class="mono pos-ink">+0.23</span> in r2.</p>
-      <h4>Key voices</h4>
-      <ul class="voices">
-        <li><svg class="avatar" width="36" height="36" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1e18onw-7"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1e18onw-7)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#E0E7FF"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#8B5CF6"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#EBBE9B"/><circle cx="16.5" cy="35" r="3.6" fill="#EBBE9B"/><circle cx="47.5" cy="35" r="3.6" fill="#EBBE9B"/><circle cx="32" cy="34" r="15.5" fill="#EBBE9B"/><ellipse cx="32" cy="23.5" rx="16.5" ry="8.5" fill="#7A4E2D"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><path d="M27.5 40.2 Q32 44.6 36.5 40.2" stroke="#1F2937" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><div><p class="who"><b>Ines Okafor-Brandt</b> <span class="mono">@ines_okafor</span> <span class="cite">#2</span> <span class="mono dim">r0</span></p><p>“Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.”</p></div></li>
-        <li><svg class="avatar" width="36" height="36" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1ijs8ln-8"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1ijs8ln-8)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#DCFCE7"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#EC4899"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#B98059"/><circle cx="16.5" cy="35" r="3.6" fill="#B98059"/><circle cx="47.5" cy="35" r="3.6" fill="#B98059"/><circle cx="32" cy="34" r="15.5" fill="#B98059"/><ellipse cx="32" cy="24" rx="16.5" ry="8" fill="#B4452C"/><circle cx="32" cy="12.5" r="6" fill="#B4452C"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><rect x="28.5" y="41" width="7" height="1.8" rx="0.9" fill="#1F2937"/><circle cx="26.5" cy="34.5" r="4.6" fill="none" stroke="#1F2937" stroke-width="1.4"/><circle cx="37.5" cy="34.5" r="4.6" fill="none" stroke="#1F2937" stroke-width="1.4"/><line x1="31.1" y1="34.5" x2="32.9" y2="34.5" stroke="#1F2937" stroke-width="1.4"/></g></svg><div><p class="who"><b>Jamal Williams</b> <span class="mono">@garden_collective_pm</span> <span class="cite">#7</span> <span class="mono dim">r2</span></p><p>“This offline guarantee matters. But I’m still concerned: what happens in year two if the company changes direction again?”</p></div></li>
-        <li><svg class="avatar" width="36" height="36" viewBox="5 5 54 54" aria-hidden="true" focusable="false"><defs><clipPath id="av1h2qsmm-9"><circle cx="32" cy="32" r="27"/></clipPath></defs><g clip-path="url(#av1h2qsmm-9)"><rect x="0" y="0" width="64" height="64" rx="0" fill="#EDE9FE"/><ellipse cx="32" cy="66" rx="23" ry="15" fill="#64748B"/><rect x="28" y="44" width="8" height="9" rx="3" fill="#F6D3B8"/><circle cx="16.5" cy="35" r="3.6" fill="#F6D3B8"/><circle cx="47.5" cy="35" r="3.6" fill="#F6D3B8"/><circle cx="32" cy="34" r="15.5" fill="#F6D3B8"/><ellipse cx="32" cy="24" rx="15.5" ry="7.5" fill="#231A14" opacity="0.55"/><circle cx="26.5" cy="34.5" r="1.9" fill="#1F2937"/><circle cx="37.5" cy="34.5" r="1.9" fill="#1F2937"/><rect x="28.5" y="41" width="7" height="1.8" rx="0.9" fill="#1F2937"/></g></svg><div><p class="who"><b>Maria Chen</b> <span class="mono">@garden_skeptic</span> <span class="cite">#6</span> <span class="mono dim">r2</span></p><p>“If my old $24.99 licence keeps working offline, I might not need Plus at all.”</p></div></li>
-      </ul>
-      <p class="paper-foot">A scenario exploration of a simulated crowd, not a poll of real people.</p>
-    </article>
+  <div class="report-copy">
+    <h2 id="report-title" class="display display-2">Every claim leads back to <span class="band"><span>a post.</span></span></h2>
+    <p class="section-lede">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite">@handle</span> and <span class="cite">#12</span> open the person and the post behind them.</p>
+    <dl class="abilities">
+      <div><dt>Inject breaking news</dt><dd>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</dd></div>
+      <div><dt>Interview anyone</dt><dd>Ask a person why they posted what they did. They answer in character, from their memory.</dd></div>
+      <div><dt>Ask about the outcome</dt><dd>Follow-up questions are answered from the report and the full record.</dd></div>
+      <div><dt>Replay the crowd</dt><dd>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</dd></div>
+      <div><dt>Export it</dt><dd>Save any report as one web page to share with the people deciding with you.</dd></div>
+    </dl>
   </div>
+
+  <article class="paper" aria-labelledby="paper-title">
+    <header class="paper-head">
+      <p class="chips"><span class="chip"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tick"/></svg>Done</span><span class="chip">Medium confidence <i class="bars" aria-hidden="true"><b></b><b></b><b class="off"></b></i></span></p>
+      <p class="paper-q">How will existing Mossbook users react to the switch to subscription pricing?</p>
+      <h3 id="paper-title">Existing users accept the offer but question the long‑term subscription model.</h3>
+    </header>
+    <p class="paper-body">The announcement landed warmly, at <b class="num">+0.65</b> in round 0. <span class="cite">@ines_okafor</span>’s post about honouring early buyers’ trust <span class="cite">#2</span> drew the most engagement. The mood fell to <b class="num">+0.20</b> once <span class="cite">@garden_collective_pm</span> <span class="cite">#4</span> and <span class="cite">@garden_skeptic</span> <span class="cite">#6</span> raised the move from one‑time ownership to recurring billing. News that old licences keep working offline didn’t lift it back: <b class="num">+0.23</b> in round 2.</p>
+    <h4>Key voices</h4>
+    <ul class="voices">
+      <li><span class="tile t-yel" aria-hidden="true">IO</span><div><p class="who"><b>Ines Okafor-Brandt</b> <span class="cite">@ines_okafor</span> <span class="cite">#2</span> <span class="rnd">R0</span></p><p>“Six years ago, people trusted us with $24.99. That trust matters, so we’re honoring it.”</p></div></li>
+      <li><span class="tile t-line" aria-hidden="true">JW</span><div><p class="who"><b>Jamal Williams</b> <span class="cite">@garden_collective_pm</span> <span class="cite">#7</span> <span class="rnd">R2</span></p><p>“This offline guarantee matters. But I’m still concerned: what happens in year two if the company changes direction again?”</p></div></li>
+      <li><span class="tile t-ink" aria-hidden="true">MC</span><div><p class="who"><b>Maria Chen</b> <span class="cite">@garden_skeptic</span> <span class="cite">#6</span> <span class="rnd">R2</span></p><p>“If my old $24.99 licence keeps working offline, I might not need Plus at all.”</p></div></li>
+    </ul>
+    <p class="paper-foot">A scenario exploration of a simulated crowd, not a poll of real people.</p>
+  </article>
 </section>
 
-<section class="honest" aria-labelledby="honest-title">
-  <div class="wrap">
-    <h2 id="honest-title" class="visually-hidden">Where it runs and what it isn’t</h2>
-    <div class="pair">
-      <div class="note rise">
-        <h3>Runs on your Mac, with what you already have.</h3>
-        <p>Tellfold uses the Claude Code you already have installed and signed in. There’s no Tellfold account and nothing to set up. Your documents go only to the AI you choose, and every run stays on your Mac. Bigger runs use more of your Claude plan.</p>
-        <p>It can also use other AI tools you may have, such as Codex or Gemini, or AI models that run on your own Mac.</p>
-      </div>
-      <div class="note rise d2">
-        <h3>A rehearsal, not a poll.</h3>
-        <p>The people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
-        <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
-      </div>
-    </div>
+<section class="honest field-ink" aria-labelledby="honest-title">
+  <h2 id="honest-title" class="visually-hidden">Where it runs and what it isn’t</h2>
+  <div class="note">
+    <h3 class="display display-3">Runs on your Mac, with what you already have.</h3>
+    <p>Tellfold uses the Claude Code you already have installed and signed in. There’s no Tellfold account and nothing to set up. Your documents go only to the AI you choose, and every run stays on your Mac. Bigger runs use more of your Claude plan.</p>
+    <p>It can also use other AI tools you may have, such as Codex or Gemini, or AI models that run on your own Mac.</p>
+  </div>
+  <div class="note">
+    <h3 class="display display-3"><span class="band band-on-ink">A rehearsal,</span> not a poll.</h3>
+    <p>The people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
+    <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
   </div>
 </section>
 
 <section class="install" id="install" aria-labelledby="install-title">
-  <div class="wrap install-grid">
-    <div>
-      <h2 id="install-title" class="rise">Install</h2>
-      <ol class="steps rise d1">
-        <li><span>Download <a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><span class="mono">Tellfold.dmg</span></a>.</span></li>
-        <li><span>Open it and drag Tellfold to Applications.</span></li>
-        <li><span>Open Tellfold. If Claude Code isn’t signed in yet, run <code>claude</code> once in Terminal and use <code>/login</code>.</span></li>
-      </ol>
-      <p class="aside rise d2">Updates arrive inside the app. To check yourself, choose <b>Tellfold › Check for Updates…</b></p>
-    </div>
-    <dl class="reqs-list rise d2">
-      <div><dt>macOS</dt><dd>26 or later</dd></div>
-      <div><dt>Mac</dt><dd>Apple silicon</dd></div>
-      <div><dt>Models</dt><dd><a href="https://claude.com/claude-code">Claude Code</a>, installed and signed in</dd></div>
-      <div><dt>Everything else</dt><dd>Included. The simulation engine ships inside the app, so there’s no Python to set up.</dd></div>
-    </dl>
+  <div class="install-steps">
+    <h2 id="install-title" class="display display-2">Install</h2>
+    <ol class="steps">
+      <li><span>Download <a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Tellfold.dmg</a>.</span></li>
+      <li><span>Open it and drag Tellfold to Applications.</span></li>
+      <li><span>Open Tellfold. If Claude Code isn’t signed in yet, run <code>claude</code> once in Terminal and use <code>/login</code>.</span></li>
+    </ol>
+    <p class="aside">Updates arrive inside the app. To check yourself, choose <b>Tellfold › Check for Updates…</b></p>
   </div>
+  <dl class="reqs-list">
+    <div><dt>macOS</dt><dd>26 or later</dd></div>
+    <div><dt>Mac</dt><dd>Apple silicon</dd></div>
+    <div><dt>AI</dt><dd><a href="https://claude.com/claude-code">Claude Code</a>, installed and signed in</dd></div>
+    <div><dt>Everything else</dt><dd>Included. The simulation engine ships inside the app, so there’s no Python to set up.</dd></div>
+  </dl>
 </section>
 
-<section class="close" id="sponsor" aria-labelledby="close-title">
-  <div class="wrap close-row">
-    <svg class="close-fan" viewBox="30 30 196 196" aria-hidden="true" focusable="false"><path class="cpleat cpleat-1 p1" d="M54 198L214 198L208.55 156.59L54 198Z"/><path class="cpleat cpleat-2 p2" d="M54 198L208.55 156.59L192.56 118L54 198Z"/><path class="cpleat cpleat-3 p1" d="M54 198L192.56 118L167.14 84.86L54 198Z"/><path class="cpleat cpleat-4 p2" d="M54 198L167.14 84.86L134 59.44L54 198Z"/><path class="cpleat cpleat-5 p1" d="M54 198L134 59.44L95.41 43.45L54 198Z"/><path class="cpleat cpleat-6 p2" d="M54 198L95.41 43.45L54 38L54 198Z"/><circle class="hg" cx="54" cy="198" r="16"/></svg>
-    <div class="close-copy">
-      <h2 id="close-title" class="rise d1">Tellfold is free.</h2>
-      <p class="rise d2">Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
-      <div class="actions rise d3">
-        <a class="btn btn-primary" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon icon-download" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.5v8m0 0L4.75 7.25M8 10.5l3.25-3.25M3 13.5h10"/></svg>Download for Mac</a>
-        <a class="btn btn-ghost" href="https://github.com/sponsors/NarekManukyan"><svg class="icon icon-heart" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13.25S2.5 10 2.5 6.1A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.5 1.2C13.5 10 8 13.25 8 13.25z"/></svg>Sponsor on GitHub</a>
-      </div>
+<section class="close field-yel" id="sponsor" aria-labelledby="close-title">
+  <svg class="close-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>
+  <div class="close-copy">
+    <h2 id="close-title" class="display">Tellfold is free.</h2>
+    <p>Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
+    <div class="actions">
+      <a class="btn btn-ink" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download for Mac</a>
+      <a class="btn btn-line" href="https://github.com/sponsors/NarekManukyan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart"/></svg>Sponsor on GitHub</a>
     </div>
   </div>
 </section>
@@ -243,14 +249,12 @@
 </main>
 
 <footer class="foot">
-  <div class="wrap foot-row">
-    <a class="brand brand-small" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><g><path class="p1" d="M54 198L214 198L208.55 156.59L54 198Z"/><path class="p2" d="M54 198L208.55 156.59L192.56 118L54 198Z"/><path class="p1" d="M54 198L192.56 118L167.14 84.86L54 198Z"/><path class="p2" d="M54 198L167.14 84.86L134 59.44L54 198Z"/><path class="p1" d="M54 198L134 59.44L95.41 43.45L54 198Z"/><path class="p2" d="M54 198L95.41 43.45L54 38L54 198Z"/><circle class="hg" cx="54" cy="198" r="16"/></g><g class="wm" transform="translate(262 55) scale(0.62)"><path d="M 16,56 V 88 H 0 v 24 h 16 v 88 H 40 V 112 H 56 V 88 H 40 V 56 Z"/><path d="M 125.76,88.01 c -23.05,0.12 -44.26,14.57 -52.37,36.85 -9.27,25.46 1.14,54.09 24.61,67.64 23.46,13.55 53.47,8.26 70.89,-12.49 L 150.51,164.58 C 140.47,176.54 123.51,179.53 110,171.72 96.49,163.92 90.61,147.74 95.95,133.07 101.28,118.4 116.19,109.79 131.56,112.5 c 11.19,1.97 20.04,9.53 24.06,19.5 H 126 v 24 h 56 L 182,144 c -0.01,-27.09 -19.6,-50.44 -46.28,-55.14 -3.34,-0.59 -6.66,-0.86 -9.96,-0.85 z"/><path d="M 204,40 v 160 h 24 V 40 Z"/><path d="M 256,40 v 160 h 24 V 40 Z"/><path d="M 356,36 c -26.37,0 -48,21.63 -48,48 v 4 h -16 v 24 h 16 v 88 h 24 v -88 h 16 V 88 h -16 v -4 c 0,-13.4 10.6,-24 24,-24 h 10 V 36 Z"/><path d="M 416,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 494,40 v 160 h 24 V 40 Z"/><path d="M 596,88 c -30.79,0 -56,25.21 -56,56 0,30.79 25.21,56 56,56 30.79,0 56,-25.21 56,-56 0,-30.79 -25.21,-56 -56,-56 z m 0,24 c 17.82,0 32,14.18 32,32 0,17.82 -14.18,32 -32,32 -17.82,0 -32,-14.18 -32,-32 0,-17.82 14.18,-32 32,-32 z"/><path d="M 628,40 v 160 h 24 V 40 Z"/></g></svg></a>
-    <p class="legal">© 2026 Narek Manukyan. All rights reserved. The source is public to read; no licence is granted.</p>
-    <ul class="foot-links">
-      <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-      <li><a href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
-    </ul>
-  </div>
+  <a class="brand" href="./" aria-label="Tellfold home"><svg class="lockup" viewBox="30 30 646 192" role="img" aria-label="Tellfold"><use href="#lockup"/></svg></a>
+  <p class="legal">© 2026 Narek Manukyan. All rights reserved. The source is public to read; no licence is granted.</p>
+  <ul class="foot-links">
+    <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
+    <li><a href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
+  </ul>
 </footer>
 </body>
 </html>
