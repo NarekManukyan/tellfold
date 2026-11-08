@@ -1,4 +1,4 @@
 node_modules/
 .remotion/
 public/audio/
-out/tellfold-loop-master.mp4
+out/*-master.mp4

@@ -19,6 +19,8 @@ const JOBS = {
 	'main-45': {id: 'Main-45', file: 'tellfold-4x5.mp4', crf: 18},
 	// Rendered big and clean; encode.sh makes the small web and README files from it.
 	loop: {id: 'Loop', file: 'tellfold-loop-master.mp4', crf: 12, muted: true},
+	// The same loop, square, for phones.
+	'loop-11': {id: 'Loop-11', file: 'tellfold-loop-square-master.mp4', crf: 12, muted: true},
 };
 
 const pick = names.length ? names : draftDir ? ['main-169', 'main-11', 'main-45'] : Object.keys(JOBS);

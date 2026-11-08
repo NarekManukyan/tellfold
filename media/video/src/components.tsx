@@ -209,7 +209,9 @@ export const MoodChart: React.FC<{
 	const head = 70 * u;
 	const padL = 56 * u;
 	const inset = 54 * u;
-	const plotH = height - head - 40 * u;
+	// Short charts (square and portrait frames) drop the round labels to give the line room.
+	const compact = height < 190 * u;
+	const plotH = height - head - (compact ? 14 : 40) * u;
 	const n = run.mood.length;
 	const x = (i: number) => padL + inset + ((width - padL - inset * 2) * i) / Math.max(1, n - 1);
 	const y = (v: number) => head + ((1 - v) / 2) * plotH;
@@ -267,7 +269,7 @@ export const MoodChart: React.FC<{
 				<text x={padL - 14 * u} y={y(0) + 8 * u} fill={C.ink3} fontSize={22 * u} fontFamily={MONO} textAnchor="end">
 					0
 				</text>
-				{run.mood.map((_, i) => (
+				{compact ? null : run.mood.map((_, i) => (
 					<text key={i} x={x(i)} y={height - 4 * u} fill={C.ink3} fontSize={21 * u} fontFamily={MONO} textAnchor="middle">
 						{`R${i}`}
 					</text>
@@ -303,7 +305,7 @@ export const MoodChart: React.FC<{
 							<circle cx={px} cy={py} r={(7 + (1 - k) * 6) * u} fill={v >= 0 ? C.up : C.down} />
 							<text
 								x={px}
-								y={py + (below ? 40 : -20) * u}
+								y={Math.min(height - 2 * u, Math.max(head + 18 * u, py + (below ? (compact ? 32 : 40) : -18) * u))}
 								fill={C.ink2}
 								fontSize={24 * u}
 								fontFamily={MONO}

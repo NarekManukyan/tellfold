@@ -80,11 +80,16 @@
     <p class="section-lede">A café’s price rise, talked over round by round, then the Mossbook report with every claim tied to a post. Every post and number here comes from a real run.</p>
   </div>
   <figure class="film-frame reveal">
-    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" aria-describedby="film-caption">
+    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" data-poster-narrow="assets/video/tellfold-loop-square-poster.webp" aria-describedby="film-caption">
+      <source src="assets/video/tellfold-loop-square.webm" type="video/webm" media="(max-width: 759px)">
+      <source src="assets/video/tellfold-loop-square.mp4" type="video/mp4" media="(max-width: 759px)">
       <source src="assets/video/tellfold-loop.webm" type="video/webm">
       <source src="assets/video/tellfold-loop.mp4" type="video/mp4">
     </video>
-    <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
+    <picture>
+      <source srcset="assets/video/tellfold-loop-square-poster.webp" media="(max-width: 759px)" width="720" height="720">
+      <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
+    </picture>
     <figcaption id="film-caption">Silent, 20 seconds, on repeat. The Linden &amp; Rye café run, then the Mossbook report. The people are simulated.</figcaption>
   </figure>
 </section>

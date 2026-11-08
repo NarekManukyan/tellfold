@@ -24,7 +24,9 @@ The run data is copied into [`src/data.ts`](src/data.ts), which names the run fo
 | `out/tellfold-1x1.mp4` | 1080×1080, with sound. LinkedIn feed |
 | `out/tellfold-4x5.mp4` | 1080×1350, with sound. LinkedIn feed (takes more of a phone screen) |
 | `out/tellfold-preview.webp` | Animated WebP of the silent loop, for the README |
+| `out/producthunt/*.png` | Six 1270×760 gallery images of key moments: the notes, the crowd, the breaking news, the report, the app, the end card |
 | `../../site/assets/video/tellfold-loop.{webm,mp4}` | The silent 20-second loop on the landing page, with its poster |
+| `../../site/assets/video/tellfold-loop-square.*` | The same loop, square, which the page plays on phones |
 
 ## Render it again
 
@@ -34,8 +36,9 @@ You need Node 20 or later and ffmpeg (with libvpx-vp9), and `img2webp` from libw
 cd media/video
 npm install
 ./fetch-audio.sh     # music and sound effects (not committed, see below)
-node render.mjs      # the three main cuts and the loop master into out/
-./encode.sh          # the site loop, its poster and the README animation
+node render.mjs      # the three main cuts and both loop masters into out/
+./encode.sh          # the site loops, their posters and the README animation
+./stills.sh          # the Product Hunt gallery images
 ```
 
 `node render.mjs main-169` renders one cut; `node render.mjs --draft /tmp/drafts` makes quick half-size drafts. `npm run studio` opens Remotion Studio to scrub through the film.

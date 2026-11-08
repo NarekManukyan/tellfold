@@ -180,6 +180,10 @@ figcaption { margin-top: 18px; color: var(--ink-3); font-size: 14px; line-height
   box-shadow: 0 0 0 1px var(--line), 0 30px 80px rgba(0, 0, 0, 0.55);
 }
 .film-still { display: none; }
+@media (max-width: 759px) {
+  /* Phones get the square cut of the loop, so the posts stay big enough to read. */
+  .film-video, .film-still { aspect-ratio: 1 / 1; object-fit: cover; }
+}
 @media (prefers-reduced-motion: reduce) {
   .film-video { display: none; }
   .film-still { display: block; }

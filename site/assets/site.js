@@ -11,6 +11,12 @@
 
   // The film loop autoplays muted. For people who ask for less motion it never starts (CSS shows its poster instead).
   function holdFilm() {
+    // Phones play the square cut (picked by <source media>); give them the matching poster too.
+    if (window.matchMedia('(max-width: 759px)').matches) {
+      document.querySelectorAll('video[data-poster-narrow]').forEach(function (v) {
+        v.poster = v.getAttribute('data-poster-narrow');
+      });
+    }
     if (!still) return;
     document.querySelectorAll('video[autoplay]').forEach(function (v) {
       v.removeAttribute('autoplay');

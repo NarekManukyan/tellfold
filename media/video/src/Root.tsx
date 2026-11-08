@@ -15,5 +15,6 @@ export const Root: React.FC = () => (
 			<Composition key={k} id={`Main-${k}`} component={Main} durationInFrames={MAIN_FRAMES} fps={30} width={w} height={h} />
 		))}
 		<Composition id="Loop" component={Loop} durationInFrames={LOOP_FRAMES} fps={30} width={1920} height={1080} />
+		<Composition id="Loop-11" component={Loop} durationInFrames={LOOP_FRAMES} fps={30} width={1080} height={1080} />
 	</>
 );
