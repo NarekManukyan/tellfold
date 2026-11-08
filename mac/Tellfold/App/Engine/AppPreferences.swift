@@ -25,6 +25,8 @@ final class AppPreferences {
     /// Runs the engine with `TELLFOLD_FAKE_LLM=1` (offline canned model, for trying the app without an LLM).
     var offlineTestModel: Bool { didSet { defaults.set(offlineTestModel, forKey: Keys.offline) } }
     var askedNotificationPermission: Bool { didSet { defaults.set(askedNotificationPermission, forKey: Keys.askedNotifications) } }
+    /// The first-run step that picks an AI tool was finished or skipped.
+    var agentSetupDone: Bool { didSet { defaults.set(agentSetupDone, forKey: Keys.agentSetupDone) } }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -37,6 +39,7 @@ final class AppPreferences {
         defaultConcurrency = (1...16).contains(concurrency) ? concurrency : 4
         offlineTestModel = defaults.bool(forKey: Keys.offline)
         askedNotificationPermission = defaults.bool(forKey: Keys.askedNotifications)
+        agentSetupDone = defaults.bool(forKey: Keys.agentSetupDone)
     }
 
     private enum Keys {
@@ -48,6 +51,7 @@ final class AppPreferences {
         static let concurrency = "defaultConcurrency"
         static let offline = "offlineTestModel"
         static let askedNotifications = "askedNotificationPermission"
+        static let agentSetupDone = "agentSetupDone"
     }
 
     /// `~/Library/Application Support/Tellfold/runs`.

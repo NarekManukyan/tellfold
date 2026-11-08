@@ -84,6 +84,13 @@ struct NewSimulationTests {
         #expect(text == "40 people react over 10 rounds. Runs with Ollama (llama3) for the crowd and Claude Code (sonnet) for planning.")
     }
 
+    @Test func summaryAsksForAToolWhenNoneIsSetUp() {
+        let text = NewSimulationRules.summary(agents: 20, rounds: 6, agentRuntime: nil, agentRuntimeID: "claude-code",
+                                              agentModel: "haiku", plannerRuntime: nil, plannerRuntimeID: "claude-code",
+                                              plannerModel: "sonnet", noToolYet: true)
+        #expect(text == "20 people react over 6 rounds. Choose an AI tool to run it.")
+    }
+
     // MARK: readiness
 
     @Test func readinessNoteAppearsOnlyWhenSomethingNeedsFixing() {
@@ -92,8 +99,12 @@ struct NewSimulationTests {
         let missing = runtime(installed: false)
         #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing, missing], ids: ["claude-code", "claude-code"])?
             .contains("not installed") == true)
-        #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing], ids: ["claude-code"])?
-            .contains("claude.com/claude-code") == true)
+        #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing], ids: ["claude-code"])
+            == "Claude Code is not installed on this Mac. Install it, or pick another runtime under Advanced.")
+        // With no AI tool anywhere the note names several, not only Claude Code.
+        let none = NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missing], ids: ["claude-code"],
+                                                    anyReady: false)
+        #expect(none?.contains("Codex") == true && none?.contains("Ollama") == true)
         let missingOllama = runtime("ollama", name: "Ollama", kind: .http, installed: false)
         #expect(NewSimulationRules.readinessNote(engineRunning: true, runtimes: [missingOllama], ids: ["ollama"])
             == "Ollama is not installed on this Mac. Install it, or pick another runtime under Advanced.")

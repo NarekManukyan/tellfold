@@ -22,6 +22,9 @@ struct MainView: View {
         .sheet(isPresented: uvMissingBinding) {
             UVOnboardingView()
         }
+        .sheet(isPresented: $model.isAgentSetupPresented) {
+            AgentSetupView()
+        }
         .onAppear { model.openWindowAction = openWindow }
     }
 

@@ -9,6 +9,7 @@ struct AgentsSettingsTab: View {
     @State private var isAddingEndpoint = false
     @State private var keysChanged = false
     @State private var keyError: String?
+    @State private var showsAgentSetup = false
 
     enum TestState: Hashable {
         case running
@@ -19,6 +20,7 @@ struct AgentsSettingsTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
+                suggestionSection
                 runtimesSection
                 defaultsSection
                 ollamaSection
@@ -33,9 +35,49 @@ struct AgentsSettingsTab: View {
             if model.runtimes.isEmpty { await model.loadRuntimes() }
             if model.engineSettings == nil { await model.loadEngineSettings() }
         }
+        .sheet(isPresented: $showsAgentSetup) {
+            AgentSetupView()
+        }
         .sheet(item: $editingEndpoint) { endpoint in
             EndpointEditor(endpoint: endpoint, isNew: isAddingEndpoint) { saved, key in
                 save(endpoint: saved, key: key, replacing: isAddingEndpoint ? nil : endpoint.id)
+            }
+        }
+    }
+
+    // MARK: Suggestion
+
+    /// The tool Tellfold suggests for this Mac, with a one-click switch when the defaults use something else.
+    private var suggestionSection: some View {
+        ConsoleSection("AI tool") {
+            Button("Choose for Me…") { showsAgentSetup = true }
+                .buttonStyle(.consoleLink)
+                .disabled(!model.engine.state.isRunning)
+        } content: {
+            if let suggested = model.recommendedRuntime {
+                let isDefault = model.engineSettings?.agentRuntime == suggested.id
+                    && model.engineSettings?.plannerRuntime == suggested.id
+                HStack(alignment: .firstTextBaseline, spacing: Theme.space3) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isDefault ? "Using \(suggested.name), the suggested tool for this Mac."
+                                       : "Suggested for this Mac: \(suggested.name).")
+                            .font(Theme.body)
+                            .foregroundStyle(Theme.text)
+                        Text(RuntimeRecommendation.statusLine(suggested))
+                            .font(Theme.small)
+                            .foregroundStyle(Theme.muted)
+                    }
+                    Spacer()
+                    if !isDefault {
+                        Button("Use \(suggested.name)") { Task { await model.useRuntime(suggested.id) } }
+                            .buttonStyle(.console)
+                            .disabled(model.engineSettings == nil)
+                    }
+                }
+            } else if model.engine.state.isRunning && !model.isLoadingRuntimes {
+                Text("No AI tool on this Mac can run a simulation yet. Choose for Me… shows where to get one.")
+                    .font(Theme.small)
+                    .foregroundStyle(Theme.muted)
             }
         }
     }
