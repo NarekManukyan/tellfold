@@ -286,3 +286,104 @@ def test_finalize_camps_places_every_agent_once_and_scores_sentiment():
     out = _finalize_camps(camps, ev, {p.handle: p.id for p in people.values()})
     assert [(c.name, c.members) for c in out] == [("Against", ["a01"]), ("For", ["a02"]), ("Other", ["a03"])]
     assert out[0].sentiment == -0.5 and out[1].sentiment == 0.4 and out[2].sentiment is None
+
+
+# ---------------------------------------------------------------- citation audit
+
+
+BAD_CITATIONS = (
+    'Drivers were split. @nobody said it all in #999, and @cab_driver_sam wrote "the charge is a gift" (#2).'
+)
+
+
+def test_audit_finds_unknown_posts_handles_and_misquotes(world: World):
+    from tellfold.report import audit_citations
+
+    ev = collect_evidence(world)
+    report = Report.model_validate(report_payload(summary=BAD_CITATIONS))
+    audit = audit_citations(report, ev.posts, ev.people.values())
+    assert audit.unknown_posts == [999]
+    assert audit.unknown_handles == ["nobody"]
+    assert [(q.post_id, q.quote) for q in audit.misquotes] == [(2, "the charge is a gift")]
+    assert audit.problems == 3 and audit.checked > 3
+
+
+def test_audit_accepts_real_quotes_however_punctuated(world: World):
+    from tellfold.report import audit_citations
+
+    ev = collect_evidence(world)
+    summary = (
+        "@cab_driver_sam warned that “this charge will ruin small drivers” (#2), then admitted in #6: "
+        '"Okay, the revenue numbers... better than I feared". @quiet_reader only reposted #5 "cleaner air for everyone".'
+    )
+    report = Report.model_validate(report_payload(summary=summary, reasons=["Supporters held #1 @MAYOR_OFFICE"]))
+    audit = audit_citations(report, ev.posts, ev.people.values())
+    assert audit.problems == 0, audit
+    # a quote with no post id in its sentence is not checked; "@" inside a quote is not a handle citation
+    report = Report.model_validate(report_payload(summary='People kept saying "we will @ghost you all". See #1.'))
+    assert audit_citations(report, ev.posts, ev.people.values()).problems == 0
+
+
+async def test_build_report_repairs_bad_citations(world, graph, config):
+    def responder(purpose, prompt, schema):
+        if purpose == "report.write":
+            return report_payload(summary=BAD_CITATIONS)
+        assert purpose == "report.repair"
+        assert "#999 is not a post" in prompt and "@nobody is not an agent" in prompt
+        assert 'The quote "the charge is a gift" is not in post #2' in prompt
+        return report_payload()
+
+    llm = FakeLLM(responder)
+    report = await build_report(llm, world, graph, config, model="sonnet")
+    assert [c[0] for c in llm.calls] == ["report.write", "report.repair"]
+    assert report.citation_audit.problems == 0 and report.citation_audit.repaired
+    assert report.citation_audit.marked == 0 and report.citation_audit.checked > 0
+    assert "[unverified]" not in render_markdown(report)
+    assert sum("Scale:" in c for c in report.caveats) == 1  # fact caveats are not added twice
+
+
+async def test_build_report_marks_what_the_repair_did_not_fix(world, graph, config):
+    llm = FakeLLM(lambda *_: report_payload(summary=BAD_CITATIONS))
+    report = await build_report(llm, world, graph, config, model="sonnet")
+    assert report.summary == (
+        "Drivers were split. [unverified] said it all in [unverified], and @cab_driver_sam wrote [unverified] (#2)."
+    )
+    assert report.citation_audit.marked == 3 and report.citation_audit.repaired
+    assert report.caveats[-1] == "3 citations could not be matched to posts and were marked [unverified]."
+
+
+async def test_build_report_marks_when_the_repair_call_fails(world, graph, config):
+    from tellfold.llm import LLMError
+
+    def responder(purpose, prompt, schema):
+        return LLMError("boom") if purpose == "report.repair" else report_payload(summary=BAD_CITATIONS)
+
+    report = await build_report(FakeLLM(responder), world, graph, config, model="sonnet")
+    assert report.citation_audit.marked == 3 and "[unverified]" in report.summary
+
+
+async def test_clean_report_makes_one_call(world, graph, config):
+    llm = FakeLLM(lambda *_: report_payload())
+    report = await build_report(llm, world, graph, config, model="sonnet")
+    assert len(llm.calls) == 1
+    assert report.citation_audit.problems == 0 and not report.citation_audit.repaired
+
+
+def test_citation_line_and_html(world, config):
+    from tellfold.models import CitationAudit
+    from tellfold.report import citation_line
+
+    assert citation_line(None) is None and citation_line(CitationAudit()) is None
+    assert citation_line(CitationAudit(checked=14)) == "All 14 citations checked against the posts"
+    assert citation_line(CitationAudit(checked=14, marked=2)) == "12 of 14 citations checked against the posts, 2 marked"
+    report = Report.model_validate(report_payload()).model_copy(update={"citation_audit": CitationAudit(checked=7)})
+    assert "All 7 citations checked against the posts" in render_html(report, world, config)
+    assert "citations checked" not in render_html(Report.model_validate(report_payload()), world, config)
+
+
+def test_old_report_json_without_audit_still_loads():
+    report = Report.model_validate_json(
+        '{"title": "T", "summary": "s", "prediction": "p", "confidence": "low", "caveats": ["c"]}'
+    )
+    assert report.citation_audit is None
+    assert "citation_audit" not in str(Report.model_json_schema())  # never asked of the model
