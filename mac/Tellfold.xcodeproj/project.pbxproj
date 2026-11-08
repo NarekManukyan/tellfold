@@ -44,6 +44,7 @@
 		50CF40382903F89CD4232ED3 /* AgentInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24450E57B08C217925BC35CD /* AgentInspector.swift */; };
 		50D12F42811C8A7A9D7A3746 /* CanvasPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053F54738CAA115BA327C9FE /* CanvasPalette.swift */; };
 		5161667B8FEAD1169A48B2FE /* RunLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E49AABC692BDB07D512BE02 /* RunLog.swift */; };
+		5B6148A66787B62C7360B733 /* RuntimeRecommendation.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF7DBE633633A21ACCEFD37 /* RuntimeRecommendation.swift */; };
 		62D22ECBEE19AE40087F79F8 /* CrowdScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A79B21029287C62D4592592 /* CrowdScene.swift */; };
 		6403E353D4D13CFC278F1EE9 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7762B43804D6D3727ABF17 /* Glass.swift */; };
 		680829AD0C402C1B04BE2BC8 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A088782734981849C4BA7EC9 /* AppPreferences.swift */; };
@@ -59,6 +60,7 @@
 		8D0A4E4AE95DAFFF56055695 /* RunLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A9FF75428F33C23339C276 /* RunLogView.swift */; };
 		942D7CDA698982F47155C9A7 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = AFC48215361BEBE3B5A81C3C /* Sparkle */; };
 		978012294D550696E2E841D4 /* Runtimes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441968F320C0B80B7D961B00 /* Runtimes.swift */; };
+		9CF64E8873427CBA7276BD93 /* AgentSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83948E5B69139B149565F94 /* AgentSetupView.swift */; };
 		A12F7C8E535F1C0A59DBD4F6 /* CampsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FAF04603B799769CFA75FC7 /* CampsTests.swift */; };
 		A158B037DE9ECD2BA6691489 /* ServerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70076BA287BF21A099B5BA48 /* ServerEvent.swift */; };
 		A3608DC940B2E84F39841F7E /* CanvasCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F9FB2CFC7F3F23A124FB36A /* CanvasCamera.swift */; };
@@ -81,6 +83,7 @@
 		D3C96ED51E062B27CE461C6F /* TellfoldApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */; };
 		D6ABFAE7E1CD6BE3668DBB6B /* NewSimulationLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6E6BC9BA12B7F1C33E069D /* NewSimulationLogic.swift */; };
 		D95E6827EDAFF71612E7DC3C /* CanvasInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F97EB5A38964CAA043E33A /* CanvasInteraction.swift */; };
+		DAB27786832CB13746A240F4 /* RuntimeRecommendationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5FA68A2B2190D4E6A9DB22 /* RuntimeRecommendationTests.swift */; };
 		E5A7ABF8533407715F1BE998 /* RunMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC88AB8678F4B9F886B2064E /* RunMarkdown.swift */; };
 		E819ED75B1D37A89A5D45AE0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADC02F8EA95A044987D31037 /* Assets.xcassets */; };
 		E9FA10F69F03C0C94465CDF1 /* CanvasData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EE71EDBD306CFF87CB8094 /* CanvasData.swift */; };
@@ -134,6 +137,7 @@
 		482A7AEFE5EDC2014CC33F14 /* ForceLayoutEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceLayoutEngine.swift; sourceTree = "<group>"; };
 		490043DE8250FCB2F16996CC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		56832E4D15E711CC9C015716 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5C5FA68A2B2190D4E6A9DB22 /* RuntimeRecommendationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeRecommendationTests.swift; sourceTree = "<group>"; };
 		5CA4CF6776943154CD37243A /* RunComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunComponents.swift; sourceTree = "<group>"; };
 		5FADB95E54847F0BC2C47F2E /* TellfoldCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldCommands.swift; sourceTree = "<group>"; };
 		60C99A0CF1931A4C34C80B0B /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
@@ -176,7 +180,9 @@
 		CFDB15C4387BADEF5CF4ED19 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldApp.swift; sourceTree = "<group>"; };
 		D1FDEC67D74959C8BF41001E /* KnowledgeGraphRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphRenderer.swift; sourceTree = "<group>"; };
+		D83948E5B69139B149565F94 /* AgentSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSetupView.swift; sourceTree = "<group>"; };
 		DAE9AD1D4E1B9C570F133A3F /* GraphCanvasController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCanvasController.swift; sourceTree = "<group>"; };
+		DBF7DBE633633A21ACCEFD37 /* RuntimeRecommendation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeRecommendation.swift; sourceTree = "<group>"; };
 		DCD81EE624AC2073AFBA13C0 /* InjectEventSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjectEventSheet.swift; sourceTree = "<group>"; };
 		E0B653C118A3BC77A06221A3 /* RunStore+Canvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RunStore+Canvas.swift"; sourceTree = "<group>"; };
 		E12C962D1E7E51C1764C1D60 /* CrowdModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrowdModel.swift; sourceTree = "<group>"; };
@@ -212,6 +218,7 @@
 			children = (
 				B1FB799C6E9BF02656EBC4EC /* JSONValue.swift */,
 				E2B51AAAD72D407612EA8D53 /* Models.swift */,
+				DBF7DBE633633A21ACCEFD37 /* RuntimeRecommendation.swift */,
 				441968F320C0B80B7D961B00 /* Runtimes.swift */,
 				70076BA287BF21A099B5BA48 /* ServerEvent.swift */,
 			);
@@ -233,6 +240,7 @@
 		2DB14D8ACAD6646988ACC152 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D83948E5B69139B149565F94 /* AgentSetupView.swift */,
 				F56C70A2CEEFA9F8FDFD99BB /* DiagnosticsView.swift */,
 				DCD81EE624AC2073AFBA13C0 /* InjectEventSheet.swift */,
 				CFDB15C4387BADEF5CF4ED19 /* MainView.swift */,
@@ -284,6 +292,7 @@
 				FFBBEED42AEF57FB5132C624 /* RunLayoutTests.swift */,
 				27525057346E22FE576E5346 /* RunLogTests.swift */,
 				2DFA44BAA71EC042D6DAE10C /* RunStoreTests.swift */,
+				5C5FA68A2B2190D4E6A9DB22 /* RuntimeRecommendationTests.swift */,
 				2F2C806A1964F4887B9536D4 /* SSEParserTests.swift */,
 				B77383C527F9B4150424EB90 /* TellfoldAPITests.swift */,
 			);
@@ -564,6 +573,7 @@
 				8512D3BE6FE4976CEAC08001 /* RunLayoutTests.swift in Sources */,
 				FA9726CB7465786B6458EB7E /* RunLogTests.swift in Sources */,
 				F001F169DD9031D1720FAEF8 /* RunStoreTests.swift in Sources */,
+				DAB27786832CB13746A240F4 /* RuntimeRecommendationTests.swift in Sources */,
 				31C97CA42E6B4EFB03C5FBAF /* SSEParserTests.swift in Sources */,
 				092B865DA40BAD09B0686FE0 /* TellfoldAPITests.swift in Sources */,
 			);
@@ -574,6 +584,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50CF40382903F89CD4232ED3 /* AgentInspector.swift in Sources */,
+				9CF64E8873427CBA7276BD93 /* AgentSetupView.swift in Sources */,
 				C297562F482D0A01AA9EEC60 /* AgentsSettingsTab.swift in Sources */,
 				0510A612CE80E24783034C00 /* AppModel.swift in Sources */,
 				680829AD0C402C1B04BE2BC8 /* AppPreferences.swift in Sources */,
@@ -630,6 +641,7 @@
 				107959F98A34283825D50BF2 /* RunStore+Crowd.swift in Sources */,
 				43A67740E4A279DAD15D89C5 /* RunStore.swift in Sources */,
 				11FE784C3AAD941A4679C383 /* RunUI.swift in Sources */,
+				5B6148A66787B62C7360B733 /* RuntimeRecommendation.swift in Sources */,
 				978012294D550696E2E841D4 /* Runtimes.swift in Sources */,
 				3E7073504A8D0CB24767A393 /* SSEParser.swift in Sources */,
 				A158B037DE9ECD2BA6691489 /* ServerEvent.swift in Sources */,
