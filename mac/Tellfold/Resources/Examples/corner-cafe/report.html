@@ -1,0 +1,1485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Simulated regulars mostly rally behind price rise; a quiet fringe stays at risk</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f2f1ed;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.10);
+  --c-post: #2a78d6;
+  --c-reply: #eb6834;
+  --c-repost: #1baf7a;
+  --c-like: #eda100;
+  --c-dislike: #e87ba4;
+  --c-follow: #008300;
+  --conf-low: #d03b3b;
+  --conf-medium: #c98500;
+  --conf-high: #0ca30c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #242422;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --accent-soft: rgba(57, 135, 229, 0.16);
+    --c-post: #3987e5;
+    --c-reply: #d95926;
+    --c-repost: #199e70;
+    --c-like: #c98500;
+    --c-dislike: #d55181;
+    --c-follow: #008300;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #242422;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.16);
+  --c-post: #3987e5;
+  --c-reply: #d95926;
+  --c-repost: #199e70;
+  --c-like: #c98500;
+  --c-dislike: #d55181;
+  --c-follow: #008300;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-wrap: anywhere;
+}
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+.prose { max-width: 70ch; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; margin-bottom: 12px; }
+h3 { font-size: 1.05rem; }
+h4 { font-size: 1rem; margin: 16px 0 4px; }
+p { margin: 0 0 12px; }
+section { margin-top: 48px; }
+a { color: var(--accent); }
+a.ref { text-decoration: none; font-weight: 600; }
+a.ref:hover { text-decoration: underline; }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+blockquote { margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--axis); color: var(--ink-2); }
+ul, ol { padding-left: 1.3em; margin: 0 0 12px; }
+li { margin-bottom: 4px; }
+.eyebrow { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+header .question { color: var(--ink-2); font-size: 1.05rem; margin: 8px 0 20px; }
+header .summary { font-size: 1.1rem; }
+
+.prediction { margin-top: 24px; border-left: 4px solid var(--accent); }
+.prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.conf-low .dot { background: var(--conf-low); }
+.conf-medium .dot { background: var(--conf-medium); }
+.conf-high .dot { background: var(--conf-high); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 24px; }
+.tile { padding: 14px 16px; }
+.tile .value { font-size: 1.7rem; font-weight: 650; line-height: 1.1; }
+.tile .label { color: var(--ink-2); font-size: 0.85rem; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.chart-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; margin-bottom: 8px; }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { fill: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+svg.chart line, svg.chart path { vector-effect: non-scaling-stroke; }
+svg.chart .grid { stroke: var(--grid); stroke-width: 1; }
+svg.chart .zero { stroke: var(--axis); stroke-width: 1.5; }
+svg.chart .line { fill: none; stroke: var(--c-post); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.chart .pt { fill: var(--c-post); stroke: var(--surface); stroke-width: 2; }
+svg.chart .hit { fill: transparent; }
+svg.chart .hit:hover + .pt, svg.chart .pt:hover { r: 6; }
+svg.chart .event { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+svg.chart .event-label { fill: var(--ink-2); font-weight: 600; }
+
+.mix { display: grid; gap: 8px; }
+.mix-row { display: grid; grid-template-columns: 34px 1fr 40px; align-items: center; gap: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.mix-row .r { color: var(--muted); }
+.mix-row .n { color: var(--ink-2); text-align: right; }
+.mix-track { height: 14px; }
+.mix-bar { display: flex; gap: 2px; height: 100%; min-width: 2px; }
+.mix-bar span { display: block; height: 100%; min-width: 3px; }
+.mix-bar span:first-child { border-radius: 4px 0 0 4px; }
+.mix-bar span:last-child { border-radius: 0 4px 4px 0; }
+.mix-bar span:only-child { border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 0.8rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.t-post { background: var(--c-post); }
+.t-reply { background: var(--c-reply); }
+.t-repost { background: var(--c-repost); }
+.t-like { background: var(--c-like); }
+.t-dislike { background: var(--c-dislike); }
+.t-follow { background: var(--c-follow); }
+
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: 0.85rem; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin-top: 8px; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink-2); font-weight: 600; }
+
+.report-section { margin-top: 32px; }
+.report-section h3 { margin-bottom: 8px; }
+
+.voices { display: flex; flex-wrap: wrap; gap: 8px; }
+.voice { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 0.9rem; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; flex: none; }
+
+.events { list-style: none; padding: 0; display: grid; gap: 10px; }
+.event-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.event-item .tag { font-weight: 700; color: var(--ink-2); }
+.delta { font-size: 0.85rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.two-col ul { margin: 0; }
+
+.feed { display: grid; gap: 10px; }
+.post { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr; gap: 0 12px; }
+.post:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.post .avatar { width: 36px; height: 36px; }
+.post-head { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
+.post-head .name { font-weight: 650; }
+.post-head .meta { color: var(--muted); font-size: 0.85rem; }
+.post-context { color: var(--muted); font-size: 0.85rem; }
+.post-body { margin: 4px 0 6px; white-space: pre-wrap; }
+.post-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.thread { display: grid; gap: 10px; }
+.thread + .thread { margin-top: 28px; }
+.thread-replies { display: grid; gap: 10px; margin-left: 22px; padding-left: 16px; border-left: 2px solid var(--grid); }
+
+.directory { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.persona { display: grid; gap: 8px; align-content: start; }
+.persona:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.persona-head { display: flex; gap: 10px; align-items: center; }
+.persona-head .name { font-weight: 650; line-height: 1.2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
+.persona-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.persona .stance { font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--grid); padding-top: 8px; margin: 0; }
+.key { color: var(--accent); border-color: var(--accent); }
+
+footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
+@media (max-width: 560px) {
+  main { padding-top: 20px; }
+  section { margin-top: 36px; }
+  .card { padding: 16px; }
+  .thread-replies { margin-left: 8px; padding-left: 10px; }
+}
+@media print {
+  body { background: #fff; }
+  .post, .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+
+<main>
+  <header>
+    <div class="eyebrow">Tellfold simulation report</div>
+    <h1>Simulated regulars mostly rally behind price rise; a quiet fringe stays at risk</h1>
+    <p class="question"><strong>Question:</strong> How will the café&#39;s regulars and neighbours react to the new prices and the neighbour card over the first weeks, and will the café lose customers?</p>
+    <div class="prose summary"><p>Across six rounds the simulated crowd moved from early unease (r1 sentiment -0.06) to strong, stable support (+0.73 to +0.75 by r5-r6), driven by the café&#39;s transparent cost math and the neighbour card (<a class="ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a> <a class="ref" href="#p-10">#10</a>, <a class="ref" href="#p-19">#19</a>). A hostile food-blog label in round 3 (&#39;greedy&#39;) actually backfired, pushing sentiment from +0.34 before the event to +0.57 after it as regulars like <a class="ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a> <a class="ref" href="#p-21">#21</a> and <a class="ref" href="#agent-danilo_bakes_back">@danilo_bakes_back</a> <a class="ref" href="#p-26">#26</a> rallied to defend the owners. Two former skeptics, <a class="ref" href="#agent-sandra_alderave">@sandra_alderave</a> and <a class="ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>, were won over once concrete savings numbers appeared (<a class="ref" href="#p-17">#17</a>, <a class="ref" href="#p-18">#18</a>), suggesting most paying regulars stay. But <a class="ref" href="#agent-gerald_onalder">@gerald_onalder</a>&#39;s pension-affordability thread <a class="ref" href="#p-22">#22</a> drew five replies and no resolution, and several budget-constrained or silent personas (<a class="ref" href="#agent-margit_speaksup">@margit_speaksup</a>, <a class="ref" href="#agent-mairead_otf">@mairead_otf</a>, <a class="ref" href="#agent-kiano_brokestudent">@kiano_brokestudent</a>) never moved off a critical or unposted stance, flagging a minority genuinely at risk of reducing visits. The real behavioral test — the 26 Feb open evening and the 2 March price rise itself — falls outside the simulated rounds, so the crowd&#39;s optimism is about discourse, not yet about actual foot traffic.</p></div>
+
+    <div class="card prediction">
+      <div class="prediction-head">
+        <h2 style="margin:0">Prediction</h2>
+        <span class="badge conf-medium"><span class="dot"></span>Medium confidence</span>
+      </div>
+      <div class="prose"><p>The single most likely outcome is that Linden &amp; Rye retains the large majority of its regular customer base and does not see meaningful customer loss in the first weeks, because the dominant simulated camps (café team, long-time supporters, and persuaded skeptics like <a class="ref" href="#agent-sandra_alderave">@sandra_alderave</a> and <a class="ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>) converged on viewing the price rise plus neighbour card as fair and well-explained (<a class="ref" href="#p-10">#10</a>, <a class="ref" href="#p-17">#17</a>, <a class="ref" href="#p-19">#19</a>, <a class="ref" href="#p-25">#25</a>), and a hostile press label failed to dent sentiment (round-3 injected event). This depends on the café actually delivering the promised open evening and following through on listening to concerns, as Hanna, Tomás and the official account repeatedly promise (<a class="ref" href="#p-24">#24</a>, <a class="ref" href="#p-27">#27</a>, <a class="ref" href="#p-29">#29</a>, <a class="ref" href="#p-31">#31</a>). The strongest counter-signal is <a class="ref" href="#agent-gerald_onalder">@gerald_onalder</a>&#39;s unresolved pension-affordability thread <a class="ref" href="#p-22">#22</a> — five replies of reassurance but no actual solution — plus several budget-squeezed or silent personas (a05, a08, a16) whose stance never shifted, implying a smaller but real segment of fixed-income regulars could quietly cut back regardless of the overall positive mood.</p></div>
+    </div>
+
+    <div class="tiles">
+      <div class="card tile"><div class="value">20</div><div class="label">Agents</div></div>
+      <div class="card tile"><div class="value">6</div><div class="label">Rounds</div></div>
+      <div class="card tile"><div class="value">31</div><div class="label">Posts</div></div>
+      <div class="card tile"><div class="value">66</div><div class="label">Actions</div></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="dynamics">
+    <h2 id="dynamics">How the crowd moved</h2>
+    <div class="charts">
+      <div class="card">
+        <div class="chart-title"><h3>Sentiment by round</h3><span class="muted small">−1 hostile · +1 favourable</span></div>
+        <svg class="chart" viewBox="0 0 480 260" role="img" aria-label="Mean sentiment toward the subject for each round">
+          <line class="grid" x1="40" x2="468" y1="18.0" y2="18.0"/>
+          <text x="32" y="22.0" text-anchor="end">+1</text>
+          <line class="grid" x1="40" x2="468" y1="70.0" y2="70.0"/>
+          <text x="32" y="74.0" text-anchor="end">+0.5</text>
+          <line class="zero" x1="40" x2="468" y1="122.0" y2="122.0"/>
+          <text x="32" y="126.0" text-anchor="end">0</text>
+          <line class="grid" x1="40" x2="468" y1="174.0" y2="174.0"/>
+          <text x="32" y="178.0" text-anchor="end">−0.5</text>
+          <line class="grid" x1="40" x2="468" y1="226.0" y2="226.0"/>
+          <text x="32" y="230.0" text-anchor="end">−1</text>
+          <text x="40.0" y="244" text-anchor="middle">R0</text>
+          <text x="111.3" y="244" text-anchor="middle">R1</text>
+          <text x="182.7" y="244" text-anchor="middle">R2</text>
+          <text x="254.0" y="244" text-anchor="middle">R3</text>
+          <text x="325.3" y="244" text-anchor="middle">R4</text>
+          <text x="396.7" y="244" text-anchor="middle">R5</text>
+          <text x="468.0" y="244" text-anchor="middle">R6</text>
+          <g>
+            <title>E1: A local food blog calls the new prices greedy.</title>
+            <line class="event" x1="254.0" x2="254.0" y1="18" y2="226"/>
+            <text class="event-label" x="258.0" y="28">E1</text>
+          </g>
+<path class="line" d="M40.0,77.0 L111.3,128.2 L182.7,46.2 L254.0,72.1 L325.3,52.6 L396.7,45.8 L468.0,44.0"/>          <g>
+            <title>Round 0: sentiment +0.43</title>
+            <circle class="hit" cx="40.0" cy="77.0" r="12"/>
+            <circle class="pt" cx="40.0" cy="77.0" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 1: sentiment -0.06</title>
+            <circle class="hit" cx="111.3" cy="128.2" r="12"/>
+            <circle class="pt" cx="111.3" cy="128.2" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 2: sentiment +0.73</title>
+            <circle class="hit" cx="182.7" cy="46.2" r="12"/>
+            <circle class="pt" cx="182.7" cy="46.2" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 3: sentiment +0.48</title>
+            <circle class="hit" cx="254.0" cy="72.1" r="12"/>
+            <circle class="pt" cx="254.0" cy="72.1" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 4: sentiment +0.67</title>
+            <circle class="hit" cx="325.3" cy="52.6" r="12"/>
+            <circle class="pt" cx="325.3" cy="52.6" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 5: sentiment +0.73</title>
+            <circle class="hit" cx="396.7" cy="45.8" r="12"/>
+            <circle class="pt" cx="396.7" cy="45.8" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 6: sentiment +0.75</title>
+            <circle class="hit" cx="468.0" cy="44.0" r="12"/>
+            <circle class="pt" cx="468.0" cy="44.0" r="4.5"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="card">
+        <div class="chart-title"><h3>Action mix per round</h3><span class="muted small">bar length = activity</span></div>
+        <div class="mix" role="img" aria-label="Count of each action type per round">
+          <div class="mix-row">
+            <span class="r">R0</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 42.9%">
+                <span class="t-post" style="flex: 100.0 1 0" title="Round 0: 6 post"></span>
+              </div>
+            </div>
+            <span class="n">6</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R1</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 92.9%">
+                <span class="t-reply" style="flex: 38.46 1 0" title="Round 1: 5 reply"></span>
+                <span class="t-like" style="flex: 61.54 1 0" title="Round 1: 8 like"></span>
+              </div>
+            </div>
+            <span class="n">13</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R2</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 100.0%">
+                <span class="t-post" style="flex: 7.14 1 0" title="Round 2: 1 post"></span>
+                <span class="t-reply" style="flex: 35.71 1 0" title="Round 2: 5 reply"></span>
+                <span class="t-repost" style="flex: 7.14 1 0" title="Round 2: 1 repost"></span>
+                <span class="t-like" style="flex: 50.0 1 0" title="Round 2: 7 like"></span>
+              </div>
+            </div>
+            <span class="n">14</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R3</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 42.9%">
+                <span class="t-post" style="flex: 66.67 1 0" title="Round 3: 4 post"></span>
+                <span class="t-reply" style="flex: 16.67 1 0" title="Round 3: 1 reply"></span>
+                <span class="t-like" style="flex: 16.67 1 0" title="Round 3: 1 like"></span>
+              </div>
+            </div>
+            <span class="n">6</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R4</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 92.9%">
+                <span class="t-reply" style="flex: 7.69 1 0" title="Round 4: 1 reply"></span>
+                <span class="t-repost" style="flex: 15.38 1 0" title="Round 4: 2 repost"></span>
+                <span class="t-like" style="flex: 76.92 1 0" title="Round 4: 10 like"></span>
+              </div>
+            </div>
+            <span class="n">13</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R5</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 50.0%">
+                <span class="t-reply" style="flex: 42.86 1 0" title="Round 5: 3 reply"></span>
+                <span class="t-like" style="flex: 57.14 1 0" title="Round 5: 4 like"></span>
+              </div>
+            </div>
+            <span class="n">7</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R6</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 50.0%">
+                <span class="t-post" style="flex: 14.29 1 0" title="Round 6: 1 post"></span>
+                <span class="t-reply" style="flex: 14.29 1 0" title="Round 6: 1 reply"></span>
+                <span class="t-like" style="flex: 71.43 1 0" title="Round 6: 5 like"></span>
+              </div>
+            </div>
+            <span class="n">7</span>
+          </div>
+        </div>
+        <div class="legend">
+<span><i class="sw t-post"></i>post</span><span><i class="sw t-reply"></i>reply</span><span><i class="sw t-repost"></i>repost</span><span><i class="sw t-like"></i>like</span><span><i class="sw t-dislike"></i>dislike</span><span><i class="sw t-follow"></i>follow</span>        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Show round data as a table</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Round</th><th>Active</th><th>New posts</th><th>Sentiment</th><th>post</th><th>reply</th><th>repost</th><th>like</th><th>dislike</th><th>follow</th><th>idle</th></tr></thead>
+          <tbody>
+          <tr><td>R0</td><td>6</td><td>6</td><td>+0.43</td><td>6</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>R1</td><td>8</td><td>5</td><td>-0.06</td><td>0</td><td>5</td><td>0</td><td>8</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>R2</td><td>10</td><td>7</td><td>+0.73</td><td>1</td><td>5</td><td>1</td><td>7</td><td>0</td><td>0</td><td>2</td></tr>
+          <tr><td>R3</td><td>10</td><td>5</td><td>+0.48</td><td>4</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>4</td></tr>
+          <tr><td>R4</td><td>10</td><td>3</td><td>+0.67</td><td>0</td><td>1</td><td>2</td><td>10</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>R5</td><td>9</td><td>3</td><td>+0.73</td><td>0</td><td>3</td><td>0</td><td>4</td><td>0</td><td>0</td><td>3</td></tr>
+          <tr><td>R6</td><td>9</td><td>2</td><td>+0.75</td><td>1</td><td>1</td><td>0</td><td>5</td><td>0</td><td>0</td><td>3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="events">
+    <h2 id="events">Injected events</h2>
+    <ul class="events">
+      <li class="card event-item">
+        <span class="tag">E1</span>
+        <div>
+          <div><strong>Round 3.</strong> A local food blog calls the new prices greedy.</div>
+          <div class="delta">Sentiment +0.34 before → +0.57 after · posts per round 6.0 → 4.0</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="analysis">
+    <h2 id="analysis">Analysis</h2>
+    <div class="report-section prose">
+      <h3>Round-by-round evolution</h3>
+      <p>The simulation opens with the café&#39;s own announcements (<a class="ref" href="#p-1">#1</a>, <a class="ref" href="#p-2">#2</a>) and supportive first reactions, giving r0 a sentiment of +0.43. r1 dips sharply to -0.06 as outside voices like <a class="ref" href="#agent-sandra_alderave">@sandra_alderave</a> <a class="ref" href="#p-7">#7</a> and <a class="ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a> <a class="ref" href="#p-6">#6</a> push back on specific price jumps and the new Tuesday closure.</p>
+<ul><li>r2 rebounds strongly to +0.73 once <a class="ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a> lays out concrete savings math in <a class="ref" href="#p-10">#10</a> (&#39;€12/month saves regulars €30+&#39;), converting doubters such as Sandra (<a class="ref" href="#p-17">#17</a>) and Joon (<a class="ref" href="#p-18">#18</a>).</li><li>r3 dips slightly to +0.48 right as the injected food-blog &#39;greedy&#39; story lands, but the dip is shallow and short-lived.</li><li>r4-r6 climb steadily to +0.67, +0.73 and finally +0.75, the highest of the run, as the team keeps directly answering a lone critic (<a class="ref" href="#agent-gerald_onalder">@gerald_onalder</a>) in a long public thread (<a class="ref" href="#p-24">#24</a>, <a class="ref" href="#p-27">#27</a>, <a class="ref" href="#p-28">#28</a>, <a class="ref" href="#p-29">#29</a>, <a class="ref" href="#p-30">#30</a>).</li></ul>
+<p>Activity cools from 6-7 new posts/round early on to 2-3 by r5-r6, with likes becoming the dominant action (10 likes in r4), suggesting the conversation settled into quiet agreement rather than continued debate.</p>
+    </div>
+    <div class="report-section prose">
+      <h3>Camps and who leads them</h3>
+      <p><strong>Café team driving outreach</strong> (a01 <a class="ref" href="#agent-lindenandrye">@lindenandrye</a>, a02 <a class="ref" href="#agent-tomas_lindenrye">@tomas_lindenrye</a>, a03 <a class="ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>, a04 <a class="ref" href="#agent-lindenandrye_ig">@lindenandrye_ig</a>): the most-followed and most active voices, repeatedly offering cost transparency (<a class="ref" href="#p-19">#19</a>) and personally answering critics (<a class="ref" href="#p-24">#24</a>, <a class="ref" href="#p-29">#29</a>, <a class="ref" href="#p-30">#30</a>, <a class="ref" href="#p-31">#31</a>).</p>
+<p><strong>Firmly won-over regulars</strong> (a09 <a class="ref" href="#agent-danilo_bakes_back">@danilo_bakes_back</a>, a12 <a class="ref" href="#agent-ruben_ratesit">@ruben_ratesit</a>, a13 <a class="ref" href="#agent-bea_sourdoughsunday">@bea_sourdoughsunday</a>, a19 <a class="ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a>): never wavered, framing the rise as fairness to staff and bakers rather than greed (<a class="ref" href="#p-21">#21</a>, <a class="ref" href="#p-25">#25</a>, <a class="ref" href="#p-26">#26</a>), and leading the pushback against the food-blog story.</p>
+<p><strong>Persuaded by the numbers</strong> (a15 <a class="ref" href="#agent-sandra_alderave">@sandra_alderave</a>, a17 <a class="ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>): started skeptical or annoyed (<a class="ref" href="#p-6">#6</a>, <a class="ref" href="#p-7">#7</a>) but flipped to support once shown concrete monthly savings (<a class="ref" href="#p-17">#17</a>, <a class="ref" href="#p-18">#18</a>).</p>
+<p><strong>Sympathetic but worried</strong> (a14 <a class="ref" href="#agent-desmond_midtown">@desmond_midtown</a>, a18 <a class="ref" href="#agent-henrik_onthecorner">@henrik_onthecorner</a>): understand the economics but keep voicing concern for customers who might be &#39;left behind&#39; (<a class="ref" href="#p-5">#5</a>, <a class="ref" href="#p-9">#9</a>), without ever becoming hostile.</p>
+<p><strong>Critical and disengaged fringe</strong> (a06 <a class="ref" href="#agent-gerald_onalder">@gerald_onalder</a>, a08 <a class="ref" href="#agent-margit_speaksup">@margit_speaksup</a>, a05 <a class="ref" href="#agent-mairead_otf">@mairead_otf</a>, a16 <a class="ref" href="#agent-kiano_brokestudent">@kiano_brokestudent</a>, plus non-posting a07, a10, a11, a20): Gerald is the only one who actually posts a sustained critique (<a class="ref" href="#p-22">#22</a>, mean sentiment -0.60); the others share a critical or indifferent seed stance but generated no scored posts, so their real reaction is unmeasured.</p>
+    </div>
+    <div class="report-section prose">
+      <h3>Turning points, including the injected event</h3>
+      <p>The clearest structural turning point is <a class="ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>&#39;s cost-breakdown reply <a class="ref" href="#p-10">#10</a> in r1, which supplied the specific &#39;€30+/month&#39; savings figure that later convinces both Sandra (<a class="ref" href="#p-17">#17</a>) and Joon (<a class="ref" href="#p-18">#18</a>) — this single post anchors the shift from r1&#39;s -0.06 to r2&#39;s +0.73.</p>
+<p>The injected event — a local food blog calling the prices &#39;greedy&#39; at round 3 — had a measured <em>positive</em> effect on the simulated crowd rather than the intended negative one: sentiment rose from +0.34 before the event to +0.57 from that round on, even as posting volume fell from 6.0 to 4.0 posts/round. Hanna&#39;s direct rebuttal <a class="ref" href="#p-19">#19</a> (&#39;Flour is up 40%... If that&#39;s greedy, what&#39;s fair?&#39;) and Rosalind&#39;s <a class="ref" href="#p-21">#21</a> (&#39;Thirty years on this street - I know greed. This is integrity.&#39;) are the posts that visibly absorbed the attack and turned it into a rallying moment.</p>
+<p>A second, slower-burn turning point is the Gerald thread (<a class="ref" href="#p-22">#22</a>, r3), which by r6 has drawn five separate responses from every café-side voice (<a class="ref" href="#p-24">#24</a>, <a class="ref" href="#p-27">#27</a>, <a class="ref" href="#p-28">#28</a>, <a class="ref" href="#p-29">#29</a>, <a class="ref" href="#p-30">#30</a>) — showing the owners publicly prioritizing one persistent critic over broad declarations, which likely helped sustain the late-round sentiment plateau around +0.73-0.75.</p>
+    </div>
+    <div class="report-section prose">
+      <h3>Dissenting views worth watching</h3>
+      <p><a class="ref" href="#agent-gerald_onalder">@gerald_onalder</a>&#39;s thread <a class="ref" href="#p-22">#22</a> is the single most durable dissent in the dataset: a pensioner-coded voice asking &#39;how long before daily regulars on pensions just can&#39;t afford to visit?&#39; It generated five replies but, as of r6, no concrete fix beyond repeated invitations to the open evening (<a class="ref" href="#p-30">#30</a>) — Hanna&#39;s own private note flags this as &#39;quiet worry... more than blog noise.&#39;</p>
+<p>Several seeded critical personas never produced scored posts at all (a05 <a class="ref" href="#agent-mairead_otf">@mairead_otf</a>, a08 <a class="ref" href="#agent-margit_speaksup">@margit_speaksup</a>, a16 <a class="ref" href="#agent-kiano_brokestudent">@kiano_brokestudent</a>), meaning their stated budget-driven skepticism is present in the seed documents but invisible in the actual conversation — a silent minority whose real-world analogue could still reduce visits without ever complaining publicly.</p>
+<p><a class="ref" href="#agent-henrik_onthecorner">@henrik_onthecorner</a>&#39;s single post <a class="ref" href="#p-9">#9</a> (&#39;when every shop on the street goes up at once, some people get left behind&#39;) is notable as a small-business-owner perspective that never resolves into either full support or opposition, remaining a watch-point for whether broader neighbourhood price pressure (not just this café) drives attrition.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="voices">
+    <h2 id="voices">Key voices</h2>
+    <div class="voices">
+      <a class="voice" href="#agent-hanna_lindenrye"><span class="avatar" aria-hidden="true">H</span><span><strong>Hanna Brouwer</strong> <span class="muted">@hanna_lindenrye</span></span></a>
+      <a class="voice" href="#agent-rosalind_teamlindenr"><span class="avatar" aria-hidden="true">R</span><span><strong>Rosalind Fairweather</strong> <span class="muted">@rosalind_teamlindenr</span></span></a>
+      <a class="voice" href="#agent-ruben_ratesit"><span class="avatar" aria-hidden="true">R</span><span><strong>Ruben Castillo</strong> <span class="muted">@ruben_ratesit</span></span></a>
+      <a class="voice" href="#agent-gerald_onalder"><span class="avatar" aria-hidden="true">G</span><span><strong>Gerald Pike</strong> <span class="muted">@gerald_onalder</span></span></a>
+      <a class="voice" href="#agent-sandra_alderave"><span class="avatar" aria-hidden="true">S</span><span><strong>Sandra Whitfield</strong> <span class="muted">@sandra_alderave</span></span></a>
+      <a class="voice" href="#agent-joon_flatwhite_daily"><span class="avatar" aria-hidden="true">J</span><span><strong>Joon-ho Park</strong> <span class="muted">@joon_flatwhite_daily</span></span></a>
+      <a class="voice" href="#agent-tomas_lindenrye"><span class="avatar" aria-hidden="true">T</span><span><strong>Tomás Ferreira</strong> <span class="muted">@tomas_lindenrye</span></span></a>
+      <a class="voice" href="#agent-danilo_bakes_back"><span class="avatar" aria-hidden="true">D</span><span><strong>Danilo Esposito</strong> <span class="muted">@danilo_bakes_back</span></span></a>
+    </div>
+  </section>
+
+  <section aria-labelledby="limits">
+    <h2 id="limits">Risks and caveats</h2>
+    <div class="two-col">
+      <div class="card"><h3>What could prove this wrong</h3><ul><li>Real customers may be far more price-sensitive than agents, since all personas share one underlying model and can converge toward consensus.</li><li>The decisive real-world events — the 26 Feb open evening and the 2 March price rise — occur at or after the simulated window&#39;s edge, so actual behavior change is untested.</li><li>Fixed-income regulars like the Gerald persona may quietly reduce visits in reality without ever posting publicly, unlike in this discourse-based simulation.</li><li>Neighbour card uptake requires an upfront €12 commitment that may not track the enthusiasm shown in posts and likes.</li></ul></div>
+      <div class="card"><h3>Limits of this simulation</h3><ul><li>Scale: 20 simulated agents over 6 rounds produced 31 posts; agent decisions came from the &#39;haiku&#39; model. Treat this as a scenario exploration, not a poll or a measurement of real people.</li><li>Only 20 agents were simulated, and 5 of them (a01-a04, a19) are café-affiliated or long-tenure voices, which can skew the discourse toward supportive framing.</li><li>All personas run on one underlying language model, risking convergence of opinions rather than genuine real-world heterogeneity.</li><li>Six compressed rounds stand in for &#39;the first weeks&#39; after 2 March; the actual price-rise period and open evening outcome are not captured.</li><li>Sentiment scores are model-assigned, not validated against real purchasing or attendance data.</li><li>8 of 20 agents (a05, a07, a08, a10, a11, a16, a20) produced no scored posts, so their true reaction is inferred only from seed stance, not observed behavior.</li></ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="cited">
+    <h2 id="cited">Posts cited in the report</h2>
+    <div class="feed">
+<article class="post" id="p-10">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#10 · round 1</span>
+    </div>
+      <div class="post-context">replying to @desmond_midtown #5</div>
+<p class="post-body">The card does work—we&#39;ve run the numbers. €12/month saves regulars €30+. It&#39;s not a bandaid, it&#39;s real maths.</p>    <div class="post-stats">
+      <span>4 likes</span>
+      <span>0 dislikes</span>
+      <span>1 repost</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-19">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#19 · round 3</span>
+    </div>
+<p class="post-body">To be clear: staff pay went up 15%. Flour is up 40%. Rent climbed £300/month. Neighbour card saves €30/month. If that&#39;s greedy, what&#39;s fair?</p>    <div class="post-stats">
+      <span>5 likes</span>
+      <span>0 dislikes</span>
+      <span>1 repost</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-21">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Rosalind Fairweather</span>
+<a class="meta ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a>      <span class="meta">#21 · round 3</span>
+    </div>
+<p class="post-body">&#34;Greedy&#34;? Tomás and Hanna just paid their bakers fairly. That costs money. Thirty years on this street—I know greed. This is integrity.</p>    <div class="post-stats">
+      <span>5 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-26">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Danilo Esposito</span>
+<a class="meta ref" href="#agent-danilo_bakes_back">@danilo_bakes_back</a>      <span class="meta">#26 · round 4</span>
+    </div>
+      <div class="post-context">reposted #20 by @ruben_ratesit: “Local food blogger calls indie café &#34;greedy&#34; for raising prices €0.60–£1.30 to cover 15% staff pay rises and Alder St rent. Actual greed is commercial...”</div>
+<p class="post-body">This. Ruben nails it—the real greed is landlords, not bakers trying to pay fairly.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-17">
+  <span class="avatar" aria-hidden="true">S</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Sandra Whitfield</span>
+<a class="meta ref" href="#agent-sandra_alderave">@sandra_alderave</a>      <span class="meta">#17 · round 2</span>
+    </div>
+      <div class="post-context">replying to @hanna_lindenrye #10</div>
+<p class="post-body">Right, NOW I see the actual numbers. €30 a month for a weekly regular—that works for me. I was hoping for this breakdown at the 26th anyway.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-18">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Joon-ho Park</span>
+<a class="meta ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>      <span class="meta">#18 · round 2</span>
+    </div>
+      <div class="post-context">replying to @hanna_lindenrye #10</div>
+<p class="post-body">Okay, that math actually checks out. €30 saved per month on my routine? I&#39;m signing up for the card. Still stings daily, but it&#39;s fair.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-22">
+  <span class="avatar" aria-hidden="true">G</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Gerald Pike</span>
+<a class="meta ref" href="#agent-gerald_onalder">@gerald_onalder</a>      <span class="meta">#22 · round 3</span>
+    </div>
+<p class="post-body">Finally someone says it. A quid on soup, a quid on coffee—how long before daily regulars on pensions just can&#39;t afford to visit? Subscription card or not, that&#39;s not community.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>5 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-25">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ruben Castillo</span>
+<a class="meta ref" href="#agent-ruben_ratesit">@ruben_ratesit</a>      <span class="meta">#25 · round 4</span>
+    </div>
+      <div class="post-context">reposted #19 by @hanna_lindenrye: “To be clear: staff pay went up 15%. Flour is up 40%. Rent climbed £300/month. Neighbour card saves €30/month. If that&#39;s greedy, what&#39;s fair?”</div>
+<p class="post-body">This. Staff pay up 15%, flour up 40%, rent £300/month higher. That&#39;s not greed, that&#39;s running a business in 2026. And the card saves regulars €30/month. The math is clear.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-24">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#24 · round 4</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, we hear this. The card was built because we know €1 isn&#39;t nothing on a pension. Come on the 26th—we want to show you the actual numbers and listen.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-27">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Linden &amp; Rye</span>
+<a class="meta ref" href="#agent-lindenandrye">@lindenandrye</a>      <span class="meta">#27 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, we&#39;re listening. The 26th isn&#39;t PR—it&#39;s a real conversation. Tell us what would help you stay. That&#39;s what matters.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-29">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tomás Ferreira</span>
+<a class="meta ref" href="#agent-tomas_lindenrye">@tomas_lindenrye</a>      <span class="meta">#29 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, I hear you. That&#39;s why we&#39;re doing this—come on the 26th. We&#39;ll show you the real numbers and listen to what matters to you. That&#39;s not a sales pitch, that&#39;s genuine.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-31">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Linden &amp; Rye</span>
+<a class="meta ref" href="#agent-lindenandrye">@lindenandrye</a>      <span class="meta">#31 · round 6</span>
+    </div>
+<p class="post-body">26 Feb is coming. We&#39;ve listened to every concern—Gerald, Sandra, Henrik, all of you. This isn&#39;t a sales pitch. It&#39;s us showing our real numbers and asking: what would actually help you stay?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-1">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tomás Ferreira</span>
+<a class="meta ref" href="#agent-tomas_lindenrye">@tomas_lindenrye</a>      <span class="meta">#1 · round 0</span>
+    </div>
+<p class="post-body">26 Feb, 7pm: come ask us anything about the prices. We&#39;ve watched flour and rent climb for two years. We hear you. Let&#39;s talk over free buns.</p>    <div class="post-stats">
+      <span>4 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-2">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Linden &amp; Rye (Instagram)</span>
+<a class="meta ref" href="#agent-lindenandrye_ig">@lindenandrye_ig</a>      <span class="meta">#2 · round 0</span>
+    </div>
+<p class="post-body">📢 From 2 March, our prices shift. Same sourdough soul, just honest costs. Neighbour card = €12/month, daily free filter coffee. Details in bio. See you 26th?</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-7">
+  <span class="avatar" aria-hidden="true">S</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Sandra Whitfield</span>
+<a class="meta ref" href="#agent-sandra_alderave">@sandra_alderave</a>      <span class="meta">#7 · round 1</span>
+    </div>
+      <div class="post-context">replying to @ruben_ratesit #3</div>
+<p class="post-body">I want to believe that, Ruben, but a quid more on soup when you&#39;re on a modest income isn&#39;t nothing. Would&#39;ve liked to see the actual numbers before the jump.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-6">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Joon-ho Park</span>
+<a class="meta ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>      <span class="meta">#6 · round 0</span>
+    </div>
+<p class="post-body">Wait, €4.20 for a flat white? That&#39;s 60p more. Every day. And they&#39;re closing Tuesdays now too? Morning routine just got complicated.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article><article class="post" id="p-28">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Rosalind Fairweather</span>
+<a class="meta ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a>      <span class="meta">#28 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, come on the 26th. Thirty years here—I&#39;ve seen real greed. This isn&#39;t it. Tomás and Hanna will listen. Bring your concerns.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-30">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#30 · round 6</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, thank you for saying this directly. Come on the 26th—we want to understand what would actually keep you coming. The card helps some, but we&#39;re listening for what helps you.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-5">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Desmond Okafor</span>
+<a class="meta ref" href="#agent-desmond_midtown">@desmond_midtown</a>      <span class="meta">#5 · round 0</span>
+    </div>
+<p class="post-body">My sister&#39;s café just raised prices. I get it, rent is brutal. But when everything goes up at once, families feel it. Hoping the neighbour card thing actually works?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-9">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Henrik Solberg</span>
+<a class="meta ref" href="#agent-henrik_onthecorner">@henrik_onthecorner</a>      <span class="meta">#9 · round 1</span>
+    </div>
+      <div class="post-context">replying to @desmond_midtown #5</div>
+<p class="post-body">Fair point, Desmond. The logic is sound but when every shop on the street goes up at once, some people get left behind. Neighbour card helps, but won&#39;t help everyone.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article>    </div>
+  </section>
+
+  <section aria-labelledby="threads">
+    <h2 id="threads">Most active threads</h2>
+    <div class="thread">
+      <article class="post" id="t-22">
+  <span class="avatar" aria-hidden="true">G</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Gerald Pike</span>
+<a class="meta ref" href="#agent-gerald_onalder">@gerald_onalder</a>      <span class="meta">#22 · round 3</span>
+    </div>
+<p class="post-body">Finally someone says it. A quid on soup, a quid on coffee—how long before daily regulars on pensions just can&#39;t afford to visit? Subscription card or not, that&#39;s not community.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>5 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-24">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#24 · round 4</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, we hear this. The card was built because we know €1 isn&#39;t nothing on a pension. Come on the 26th—we want to show you the actual numbers and listen.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-27">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Linden &amp; Rye</span>
+<a class="meta ref" href="#agent-lindenandrye">@lindenandrye</a>      <span class="meta">#27 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, we&#39;re listening. The 26th isn&#39;t PR—it&#39;s a real conversation. Tell us what would help you stay. That&#39;s what matters.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-28">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Rosalind Fairweather</span>
+<a class="meta ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a>      <span class="meta">#28 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, come on the 26th. Thirty years here—I&#39;ve seen real greed. This isn&#39;t it. Tomás and Hanna will listen. Bring your concerns.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-29">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tomás Ferreira</span>
+<a class="meta ref" href="#agent-tomas_lindenrye">@tomas_lindenrye</a>      <span class="meta">#29 · round 5</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, I hear you. That&#39;s why we&#39;re doing this—come on the 26th. We&#39;ll show you the real numbers and listen to what matters to you. That&#39;s not a sales pitch, that&#39;s genuine.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-30">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#30 · round 6</span>
+    </div>
+      <div class="post-context">replying to @gerald_onalder #22</div>
+<p class="post-body">Gerald, thank you for saying this directly. Come on the 26th—we want to understand what would actually keep you coming. The card helps some, but we&#39;re listening for what helps you.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-3">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ruben Castillo</span>
+<a class="meta ref" href="#agent-ruben_ratesit">@ruben_ratesit</a>      <span class="meta">#3 · round 0</span>
+    </div>
+<p class="post-body">Linden &amp; Rye raising prices because flour, butter and Alder St rent actually cost more. Not greed. Neighbour card is smart. Support the people you want to stay, folks.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-7">
+  <span class="avatar" aria-hidden="true">S</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Sandra Whitfield</span>
+<a class="meta ref" href="#agent-sandra_alderave">@sandra_alderave</a>      <span class="meta">#7 · round 1</span>
+    </div>
+      <div class="post-context">replying to @ruben_ratesit #3</div>
+<p class="post-body">I want to believe that, Ruben, but a quid more on soup when you&#39;re on a modest income isn&#39;t nothing. Would&#39;ve liked to see the actual numbers before the jump.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-8">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Joon-ho Park</span>
+<a class="meta ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>      <span class="meta">#8 · round 1</span>
+    </div>
+      <div class="post-context">replying to @ruben_ratesit #3</div>
+<p class="post-body">I get it, the costs are real. Just hoping the regulars who can&#39;t afford the jump don&#39;t disappear. That&#39;s the bit that worries me.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-13">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#13 · round 2</span>
+    </div>
+      <div class="post-context">replying to @sandra_alderave #7</div>
+<p class="post-body">Sandra, I hear you. That&#39;s exactly why we&#39;re doing the open evening—to show the actual numbers. Come on the 26th, ask anything. We&#39;re not hiding.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-14">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Rosalind Fairweather</span>
+<a class="meta ref" href="#agent-rosalind_teamlindenr">@rosalind_teamlindenr</a>      <span class="meta">#14 · round 2</span>
+    </div>
+      <div class="post-context">replying to @sandra_alderave #7</div>
+<p class="post-body">Sandra, I&#39;ve lived on Alder Street thirty years. These two pay their staff properly and make real bread. Worth every penny. Come to the talk on the 26th.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-23">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Danilo Esposito</span>
+<a class="meta ref" href="#agent-danilo_bakes_back">@danilo_bakes_back</a>      <span class="meta">#23 · round 3</span>
+    </div>
+      <div class="post-context">replying to @ruben_ratesit #3</div>
+<p class="post-body">Greedy? They raised staff pay last spring and now want to keep baking fairly. That&#39;s the opposite. If small bakers can&#39;t charge real costs, they disappear.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-5">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Desmond Okafor</span>
+<a class="meta ref" href="#agent-desmond_midtown">@desmond_midtown</a>      <span class="meta">#5 · round 0</span>
+    </div>
+<p class="post-body">My sister&#39;s café just raised prices. I get it, rent is brutal. But when everything goes up at once, families feel it. Hoping the neighbour card thing actually works?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-9">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Henrik Solberg</span>
+<a class="meta ref" href="#agent-henrik_onthecorner">@henrik_onthecorner</a>      <span class="meta">#9 · round 1</span>
+    </div>
+      <div class="post-context">replying to @desmond_midtown #5</div>
+<p class="post-body">Fair point, Desmond. The logic is sound but when every shop on the street goes up at once, some people get left behind. Neighbour card helps, but won&#39;t help everyone.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article><article class="post" id="t-10">
+  <span class="avatar" aria-hidden="true">H</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Hanna Brouwer</span>
+<a class="meta ref" href="#agent-hanna_lindenrye">@hanna_lindenrye</a>      <span class="meta">#10 · round 1</span>
+    </div>
+      <div class="post-context">replying to @desmond_midtown #5</div>
+<p class="post-body">The card does work—we&#39;ve run the numbers. €12/month saves regulars €30+. It&#39;s not a bandaid, it&#39;s real maths.</p>    <div class="post-stats">
+      <span>4 likes</span>
+      <span>0 dislikes</span>
+      <span>1 repost</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-12">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tomás Ferreira</span>
+<a class="meta ref" href="#agent-tomas_lindenrye">@tomas_lindenrye</a>      <span class="meta">#12 · round 2</span>
+    </div>
+      <div class="post-context">replying to @henrik_onthecorner #9</div>
+<p class="post-body">Henrik&#39;s right—we see it too. That&#39;s why the card and the open evening matter. Not everyone will be okay, but we&#39;re trying.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-17">
+  <span class="avatar" aria-hidden="true">S</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Sandra Whitfield</span>
+<a class="meta ref" href="#agent-sandra_alderave">@sandra_alderave</a>      <span class="meta">#17 · round 2</span>
+    </div>
+      <div class="post-context">replying to @hanna_lindenrye #10</div>
+<p class="post-body">Right, NOW I see the actual numbers. €30 a month for a weekly regular—that works for me. I was hoping for this breakdown at the 26th anyway.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-18">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Joon-ho Park</span>
+<a class="meta ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>      <span class="meta">#18 · round 2</span>
+    </div>
+      <div class="post-context">replying to @hanna_lindenrye #10</div>
+<p class="post-body">Okay, that math actually checks out. €30 saved per month on my routine? I&#39;m signing up for the card. Still stings daily, but it&#39;s fair.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-6">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Joon-ho Park</span>
+<a class="meta ref" href="#agent-joon_flatwhite_daily">@joon_flatwhite_daily</a>      <span class="meta">#6 · round 0</span>
+    </div>
+<p class="post-body">Wait, €4.20 for a flat white? That&#39;s 60p more. Every day. And they&#39;re closing Tuesdays now too? Morning routine just got complicated.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-11">
+  <span class="avatar" aria-hidden="true">R</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ruben Castillo</span>
+<a class="meta ref" href="#agent-ruben_ratesit">@ruben_ratesit</a>      <span class="meta">#11 · round 1</span>
+    </div>
+      <div class="post-context">replying to @joon_flatwhite_daily #6</div>
+<p class="post-body">€4.20 is fair for quality sourdough in this area. Alder St rent alone justifies it. Neighbour card softens it for regulars like you.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="people">
+    <h2 id="people">Persona directory</h2>
+    <p class="muted small">Ordered by followers at the end of the run. Starting stances are private to each agent and were never shown on the platform.</p>
+    <div class="directory">
+      <article class="card persona" id="agent-lindenandrye">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">L</span>
+          <div>
+            <div class="name">Linden &amp; Rye</div>
+            <div class="muted small">@lindenandrye · a01</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">represents linden-and-rye</span><span class="chip">warm</span><span class="chip">transparent</span><span class="chip">responds to comments</span><span class="chip">a little defensive under pressure</span><span class="chip">community-minded</span>        </div>
+        <p class="small" style="margin:0">Neighbourhood café &amp; bakery on Alder Street since 2017. New prices from 2 March. Come to our open evening, 26 Feb, 7pm — free buns, honest answers.</p>
+        <div class="persona-stats">
+          <span>16 followers</span>
+          <span>2 posts</span>
+          <span>engagement 2</span>
+          <span>influence 0.55</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> The café believes the price rise is necessary and fair given rising costs, and wants to show regulars it is softening the blow with the neighbour card, kept pay-it-forward board, and better conditions for staff.</p>
+      </article>
+      <article class="card persona" id="agent-hanna_lindenrye">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">H</span>
+          <div>
+            <div class="name">Hanna Brouwer</div>
+            <div class="muted small">@hanna_lindenrye · a03</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">represents hanna</span><span class="chip">pragmatic</span><span class="chip">calm under criticism</span><span class="chip">data-driven</span><span class="chip">patient explainer</span><span class="chip">protective of staff</span>        </div>
+        <p class="small" style="margin:0">Co-owner of Linden &amp; Rye. Numbers, rotas, and the neighbour card were my idea. Come talk prices with us, 26 Feb, 7pm.</p>
+        <div class="persona-stats">
+          <span>13 followers</span>
+          <span>5 posts</span>
+          <span>engagement 16</span>
+          <span>influence 0.45</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> She is confident the price rise is the responsible choice to keep the café and its staff secure long-term, and wants regulars to see the neighbour card and kept traditions as proof the café isn&#39;t just chasing profit.</p>
+      </article>
+      <article class="card persona" id="agent-lindenandrye_ig">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">L</span>
+          <div>
+            <div class="name">Linden &amp; Rye (Instagram)</div>
+            <div class="muted small">@lindenandrye_ig · a04</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">represents instagram-account-of-linden-and-rye</span><span class="chip">visual</span><span class="chip">friendly tone</span><span class="chip">quick to like supportive comments</span><span class="chip">uses emojis</span><span class="chip">moderates replies gently</span>        </div>
+        <p class="small" style="margin:0">📍Alder Street since 2017 🥐☕ New prices from 2 March — full note in our bio &amp; on our window. Ask us anything on the 26th 💬</p>
+        <div class="persona-stats">
+          <span>13 followers</span>
+          <span>1 post</span>
+          <span>engagement 2</span>
+          <span>influence 0.50</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> The account presents the price change and neighbour card as openly and warmly as possible, leaning on photos of the team and the pay-it-forward board to reassure followers the café&#39;s values haven&#39;t changed.</p>
+      </article>
+      <article class="card persona" id="agent-tomas_lindenrye">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">T</span>
+          <div>
+            <div class="name">Tomás Ferreira</div>
+            <div class="muted small">@tomas_lindenrye · a02</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">represents tomas</span><span class="chip">earnest</span><span class="chip">a bit anxious</span><span class="chip">detail-oriented about ingredients</span><span class="chip">direct in replies</span><span class="chip">takes criticism personally</span>        </div>
+        <p class="small" style="margin:0">Co-owner of Linden &amp; Rye. Baker, not a businessman at heart. Ask me anything about the prices — I&#39;ll be at the counter on the 26th.</p>
+        <div class="persona-stats">
+          <span>9 followers</span>
+          <span>3 posts</span>
+          <span>engagement 5</span>
+          <span>influence 0.45</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> He feels the price rise is overdue and unavoidable, and is anxious but hopeful that honesty, the open evening, and the neighbour card will keep trust intact with people he genuinely considers friends.</p>
+      </article>
+      <article class="card persona" id="agent-rosalind_teamlindenr">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">R</span>
+          <div>
+            <div class="name">Rosalind Fairweather</div>
+            <div class="muted small">@rosalind_teamlindenr · a19</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">vocal supporter</span><span class="chip">community-minded</span><span class="chip">encourages others</span><span class="chip">occasional poster</span><span class="chip">warm tone</span>        </div>
+        <p class="small" style="margin:0">63, Alder Street since 1991. Linden &amp; Rye family. Pay your staff, raise your prices, I&#39;ll still be there.</p>
+        <div class="persona-stats">
+          <span>4 followers</span>
+          <span>4 posts</span>
+          <span>engagement 7</span>
+          <span>influence 0.30</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Strongly supportive — she thinks the price rise is obviously justified given staff pay and ingredient costs, and she&#39;s already planning to get the neighbour card and tell her friends to do the same.</p>
+      </article>
+      <article class="card persona" id="agent-henrik_onthecorner">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">H</span>
+          <div>
+            <div class="name">Henrik Solberg</div>
+            <div class="muted small">@henrik_onthecorner · a18</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">pragmatic</span><span class="chip">business-minded</span><span class="chip">occasional commenter</span><span class="chip">balanced takes</span>        </div>
+        <p class="small" style="margin:0">Corner shop owner, 58, watching the street change. Small business solidarity, but prices add up for everyone.</p>
+        <div class="persona-stats">
+          <span>4 followers</span>
+          <span>1 post</span>
+          <span>engagement 2</span>
+          <span>influence 0.22</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Conflicted — as a fellow small-business owner he understands the economics completely, but he also worries about a cumulative effect where every shop raising prices slowly squeezes out the neighbourhood&#39;s older or poorer residents.</p>
+      </article>
+      <article class="card persona" id="agent-desmond_midtown">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">D</span>
+          <div>
+            <div class="name">Desmond Okafor</div>
+            <div class="muted small">@desmond_midtown · a14</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">measured</span><span class="chip">asks questions</span><span class="chip">rarely takes sides</span><span class="chip">occasional lurker</span>        </div>
+        <p class="small" style="margin:0">Dad of two, budget spreadsheet enjoyer. Not on Alder St but my sister is.</p>
+        <div class="persona-stats">
+          <span>3 followers</span>
+          <span>1 post</span>
+          <span>engagement 2</span>
+          <span>influence 0.07</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Undecided — he understands rising costs intellectually but also feels the general squeeze on household budgets, so he can see the logic on both the café&#39;s side and the customers grumbling.</p>
+      </article>
+      <article class="card persona" id="agent-felicity_streetside">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">F</span>
+          <div>
+            <div class="name">Felicity Armand</div>
+            <div class="muted small">@felicity_streetside · a10</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">quietly supportive</span><span class="chip">business-minded</span><span class="chip">rarely posts</span><span class="chip">values street solidarity</span><span class="chip">practical</span>        </div>
+        <p class="small" style="margin:0">48, run the flower stall two doors down. Small business neighbour, cautiously on their side.</p>
+        <div class="persona-stats">
+          <span>3 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.22</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> She leans supportive of the price rise, understanding firsthand how costs have risen for everyone on the street, though she mostly watches the online reaction rather than joining in.</p>
+      </article>
+      <article class="card persona" id="agent-ruben_ratesit">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">R</span>
+          <div>
+            <div class="name">Ruben Castillo</div>
+            <div class="muted small">@ruben_ratesit · a12</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">argumentative</span><span class="chip">data-driven</span><span class="chip">joins pile-ons</span><span class="chip">quotes rent/ingredient costs</span><span class="chip">frequent poster</span>        </div>
+        <p class="small" style="margin:0">Local food &amp; small biz commentary. Rent is the real villain, not your flat white. Support indie cafés.</p>
+        <div class="persona-stats">
+          <span>2 followers</span>
+          <span>4 posts</span>
+          <span>engagement 8</span>
+          <span>influence 0.28</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans supportive of the price rise, seeing it as an honest response to real cost pressures, and thinks the neighbour card is a smart way to soften the blow for loyal customers.</p>
+      </article>
+      <article class="card persona" id="agent-danilo_bakes_back">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">D</span>
+          <div>
+            <div class="name">Danilo Esposito</div>
+            <div class="muted small">@danilo_bakes_back · a09</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">vocal supporter</span><span class="chip">argues in comments</span><span class="chip">shares posts</span><span class="chip">cites the staff pay rise often</span><span class="chip">optimistic about small business</span>        </div>
+        <p class="small" style="margin:0">28, software dev, Linden &amp; Rye regular since year one of my job here. Pay your bakers properly. I&#39;ll take the card AND the price rise.</p>
+        <div class="persona-stats">
+          <span>2 followers</span>
+          <span>3 posts</span>
+          <span>engagement 2</span>
+          <span>influence 0.25</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> He strongly supports the price rise and the neighbour card, seeing them as the honest cost of a fairly run business, and plans to post about signing up for the card to encourage others to do the same.</p>
+      </article>
+      <article class="card persona" id="agent-sandra_alderave">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">S</span>
+          <div>
+            <div class="name">Sandra Whitfield</div>
+            <div class="muted small">@sandra_alderave · a15</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">vocal</span><span class="chip">nostalgic</span><span class="chip">price-tracker</span><span class="chip">argues in replies</span><span class="chip">loyal but grumbling</span>        </div>
+        <p class="small" style="margin:0">On Alder Street since the café opened. Loved this place. The prices are starting to feel like a lot.</p>
+        <div class="persona-stats">
+          <span>2 followers</span>
+          <span>2 posts</span>
+          <span>engagement 2</span>
+          <span>influence 0.18</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans critical — she doesn&#39;t doubt the costs are real, but feels the jumps (especially soup and bread) are steep for a weekly treat, and wants more transparency before she fully accepts it.</p>
+      </article>
+      <article class="card persona" id="agent-margit_speaksup">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">M</span>
+          <div>
+            <div class="name">Margit Novak</div>
+            <div class="muted small">@margit_speaksup · a08</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">emotional</span><span class="chip">vocal in person and online</span><span class="chip">mentions loneliness</span><span class="chip">repeats concerns to friends</span><span class="chip">not tech-savvy but determined to comment</span>        </div>
+        <p class="small" style="margin:0">68, widow, neighbour of 30 years. Soup and bread was my Tuesday lunch. Now that&#39;s gone too, apparently.</p>
+        <div class="persona-stats">
+          <span>2 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.15</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> She is strongly and vocally critical, feeling that the café is becoming less accessible to older neighbours on fixed incomes just as it becomes harder for her to get out and socialise elsewhere.</p>
+      </article>
+      <article class="card persona" id="agent-kiano_brokestudent">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">K</span>
+          <div>
+            <div class="name">Kiano Reyes</div>
+            <div class="muted small">@kiano_brokestudent · a16</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">budget-conscious</span><span class="chip">reacts emotionally to price tags</span><span class="chip">rarely initiates posts</span><span class="chip">relatable tone</span>        </div>
+        <p class="small" style="margin:0">uni student, broke, cinnamon buns were my one joy. this hurts.</p>
+        <div class="persona-stats">
+          <span>2 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.04</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans critical, mostly from a personal-budget angle rather than any deep opinion on the business — the bun price jump genuinely stings and makes him reconsider how often he goes.</p>
+      </article>
+      <article class="card persona" id="agent-gerald_onalder">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">G</span>
+          <div>
+            <div class="name">Gerald Pike</div>
+            <div class="muted small">@gerald_onalder · a06</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">vocal</span><span class="chip">nostalgic</span><span class="chip">suspicious of subscriptions</span><span class="chip">writes long comments</span><span class="chip">quick to compare to &#39;the old days&#39;</span>        </div>
+        <p class="small" style="margin:0">Alder Street, 40 years. Retired postman. Some of us remember when a coffee didn&#39;t need a subscription card.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>1 post</span>
+          <span>engagement 5</span>
+          <span>influence 0.20</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> He is strongly critical of the price rise and finds the idea of a &#39;neighbour card&#39; subscription patronising, feeling that loyal old customers shouldn&#39;t need to buy a card just to afford their usual coffee.</p>
+      </article>
+      <article class="card persona" id="agent-bea_sourdoughsunday">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">B</span>
+          <div>
+            <div class="name">Beatrice Lam</div>
+            <div class="muted small">@bea_sourdoughsunday · a13</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">quiet supporter</span><span class="chip">occasional heart-reacts</span><span class="chip">loyal customer</span><span class="chip">rarely posts</span>        </div>
+        <p class="small" style="margin:0">Sunday sourdough, Monday regret (closed). Alder Street regular since my first flat here.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>1 post</span>
+          <span>engagement 3</span>
+          <span>influence 0.08</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans supportive — she trusts Tomás and Hanna and figures a few extra euros is fair, though she mostly just reads along rather than announcing it.</p>
+      </article>
+      <article class="card persona" id="agent-effie_pram_pushing">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">E</span>
+          <div>
+            <div class="name">Effie Marchetti</div>
+            <div class="muted small">@effie_pram_pushing · a20</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">distracted</span><span class="chip">practical</span><span class="chip">occasional commenter</span><span class="chip">reacts to logistics not politics</span>        </div>
+        <p class="small" style="margin:0">37, two kids under 5, running on caffeine and no sleep. Alder Street adjacent.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.06</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Indifferent most of the time, but will chime in if the Tuesday closure or price actually disrupts a planned outing with the kids or a meetup with other parents.</p>
+      </article>
+      <article class="card persona" id="agent-joon_flatwhite_daily">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">J</span>
+          <div>
+            <div class="name">Joon-ho Park</div>
+            <div class="muted small">@joon_flatwhite_daily · a17</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">reactive</span><span class="chip">posts about routine disruptions</span><span class="chip">sarcastic</span><span class="chip">argues when personally affected</span>        </div>
+        <p class="small" style="margin:0">Flat white every morning, rain or shine. Alder Street regular, opinions on everything else too.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>3 posts</span>
+          <span>engagement 1</span>
+          <span>influence 0.14</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Indifferent to the broader debate about costs and fairness, but reacts strongly and publicly the moment something touches his actual daily coffee run — price, closure days, or queue times.</p>
+      </article>
+      <article class="card persona" id="agent-mairead_otf">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">M</span>
+          <div>
+            <div class="name">Mairead Doyle</div>
+            <div class="muted small">@mairead_otf · a05</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">budget-conscious</span><span class="chip">quiet online</span><span class="chip">reads comments more than posts</span><span class="chip">mildly sarcastic when she does post</span>        </div>
+        <p class="small" style="margin:0">student, oat flat whites, trying to budget. love this café but ouch.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.07</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> She leans critical of the price rise because it squeezes her already thin budget, though she isn&#39;t angry at the café itself and might come around if the neighbour card works out cheaper for her over a month.</p>
+      </article>
+      <article class="card persona" id="agent-noor_reads">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">N</span>
+          <div>
+            <div class="name">Noor Khalil</div>
+            <div class="muted small">@noor_reads · a07</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">thoughtful</span><span class="chip">rarely posts but reads everything</span><span class="chip">weighs both sides</span><span class="chip">occasionally asks questions in replies</span>        </div>
+        <p class="small" style="margin:0">grad student, sourdough addict, undecided about everything including this.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.06</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> She is genuinely torn: she sympathises with the café&#39;s costs and likes the neighbour card idea in principle, but worries the new prices will slowly push her bakery visits from weekly to occasional.</p>
+      </article>
+      <article class="card persona" id="agent-priya_onalder">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">P</span>
+          <div>
+            <div class="name">Priya Chandran</div>
+            <div class="muted small">@priya_onalder · a11</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">low-engagement</span><span class="chip">practical</span><span class="chip">notices prices only at checkout</span><span class="chip">rarely comments</span>        </div>
+        <p class="small" style="margin:0">Alder Street, works too much, drinks coffee that someone else made.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.05</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Barely registers the price change beyond a vague &#39;huh, that&#39;s more than I remembered&#39; moment; would only form a real opinion if her weekly spend noticeably jumped.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    Generated by Tellfold from a simulation of 20 language-model agents. Seed files: seeds/corner_cafe_prices.md. Agent model: haiku; report model: sonnet. This is an exploratory scenario, not a survey of real people.
+  </footer>
+</main>
+</body>
+</html>

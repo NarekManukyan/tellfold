@@ -83,16 +83,23 @@ _TIER_WINDOW = 2  # replies/followed posts only jump the queue while younger tha
 
 
 class World:
-    def __init__(self, db_path: Path, *, seed: int = 0):
-        """`seed` only perturbs feed tie-breaks so equally ranked posts are not ordered identically for everyone."""
+    def __init__(self, db_path: Path, *, seed: int = 0, read_only: bool = False):
+        """`seed` only perturbs feed tie-breaks so equally ranked posts are not ordered identically for everyone.
+
+        `read_only` opens an existing finished world that must never change (the app's bundled examples): no
+        schema setup, no journal files, and any write raises `sqlite3.OperationalError`."""
         self._seed = seed
+        self._persona_cache: dict[str, Persona] | None = None
+        if read_only:
+            self._db = sqlite3.connect(f"{Path(db_path).resolve().as_uri()}?mode=ro&immutable=1", uri=True)
+            self._db.row_factory = sqlite3.Row
+            return
         self._db = sqlite3.connect(str(db_path))
         self._db.row_factory = sqlite3.Row
         self._db.execute("PRAGMA journal_mode=WAL")
         self._db.execute("PRAGMA synchronous=NORMAL")  # WAL + NORMAL survives app crashes, avoids an fsync per action
         self._db.executescript(_SCHEMA)
         self._db.commit()
-        self._persona_cache: dict[str, Persona] | None = None
 
     def close(self) -> None:
         self._db.close()

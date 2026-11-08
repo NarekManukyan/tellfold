@@ -563,13 +563,15 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     /// ISO 8601 UTC.
     var createdAt: String
     var hasReport: Bool
+    /// A built-in example run shipped with the app: read-only.
+    var example: Bool = false
 
     var createdDate: Date? { TellfoldDates.parse(createdAt) }
     /// 0...1 progress through the rounds.
     var progress: Double { totalRounds > 0 ? min(1, Double(round) / Double(totalRounds)) : 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, question, state, stage, round, agents
+        case id, question, state, stage, round, agents, example
         case totalRounds = "total_rounds"
         case createdAt = "created_at"
         case hasReport = "has_report"
@@ -588,6 +590,7 @@ extension RunSummary {
         agents = c.value(.agents, default: 0)
         createdAt = c.value(.createdAt, default: "")
         hasReport = c.value(.hasReport, default: false)
+        example = c.value(.example, default: false)
     }
 }
 
@@ -617,6 +620,8 @@ struct RunDetail: Codable, Hashable, Sendable, Identifiable {
     var report: Report?
     var calls: CallsSummary
     var reportRebuild: ReportRebuild = .init()
+    /// A built-in example run: the engine refuses events, stop and report rebuilds.
+    var example: Bool = false
 
     var followEdges: [FollowEdge] {
         follows.compactMap { $0.count >= 2 ? FollowEdge(follower: $0[0], followee: $0[1]) : nil }
@@ -627,7 +632,7 @@ struct RunDetail: Codable, Hashable, Sendable, Identifiable {
     var currentRound: Int { status?.round ?? stats.map(\.round).max() ?? 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, config, status, live, personas, graph, stats, events, follows, report, calls
+        case id, config, status, live, personas, graph, stats, events, follows, report, calls, example
         case reportRebuild = "report_rebuild"
     }
 }
@@ -647,6 +652,7 @@ extension RunDetail {
         report = try c.decodeIfPresent(Report.self, forKey: .report)
         calls = c.value(.calls, default: CallsSummary())
         reportRebuild = c.value(.reportRebuild, default: ReportRebuild())
+        example = c.value(.example, default: false)
     }
 }
 

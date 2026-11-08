@@ -1,0 +1,243 @@
+{
+  "entities": [
+    {
+      "id": "westbrook-secondary-school",
+      "name": "Westbrook Secondary School",
+      "kind": "organization",
+      "summary": "Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "phone-free-school-day-policy",
+      "name": "Phone-free school day policy",
+      "kind": "concept",
+      "summary": "Policy requiring students to lock phones in pouches on arrival, unlockable only at the end of the day, applied during lessons, breaks and lunch for all year groups.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "parents-and-carers-of-westbrook-students",
+      "name": "Parents and carers of Westbrook students",
+      "kind": "group",
+      "summary": "Addressees of the letter; some have concerns about travel and emergencies and are invited to raise them at an information evening or by email.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "students-of-westbrook-secondary-school",
+      "name": "Students of Westbrook Secondary School",
+      "kind": "group",
+      "summary": "Pupils aged 11-18 affected by the policy; surveyed last spring, with 64% reporting pressure to reply to messages and 41% having seen upsetting content on phones at school.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "duarte",
+      "name": "Duarte",
+      "kind": "person",
+      "summary": "Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "students-with-medical-needs-relying-on-phones",
+      "name": "Students with medical needs relying on phones",
+      "kind": "group",
+      "summary": "Subset of students (e.g. those needing glucose monitoring) exempted from the phone-free policy if they contact the pastoral lead before 1 August.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "sixth-form-students",
+      "name": "Sixth-form students",
+      "kind": "group",
+      "summary": "Students aged 16-18 who get a partial exemption, allowed to unlock phones in the sixth-form common room during free periods.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "teachers-of-westbrook-secondary-school",
+      "name": "Teachers of Westbrook Secondary School",
+      "kind": "group",
+      "summary": "School staff who report that lessons regularly stop because of phones, supporting the rationale for the new policy.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "parents-council",
+      "name": "Parents' council",
+      "kind": "organization",
+      "summary": "Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "amara-lewis",
+      "name": "Amara Lewis",
+      "kind": "person",
+      "summary": "Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.",
+      "source_chunk_ids": [
+        1
+      ]
+    },
+    {
+      "id": "personal-phone-pouch",
+      "name": "Personal phone pouch",
+      "kind": "product",
+      "summary": "Lockable pouch (costing the school €18 each) in which students must lock their phones on arrival; only opened at unlocking stations at day's end.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "nearby-schools-with-phone-free-policies",
+      "name": "Nearby schools with phone-free policies",
+      "kind": "group",
+      "summary": "Three schools near Westbrook that adopted the same phone-free change last year and reported calmer breaks and fewer online bullying incidents during school hours.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "information-evening-17-june",
+      "name": "Information evening (17 June)",
+      "kind": "event",
+      "summary": "Meeting at Westbrook's main hall on Tuesday 17 June at 6:30pm where parents can raise concerns about the new policy, e.g. about travel and emergencies.",
+      "source_chunk_ids": [
+        1
+      ]
+    },
+    {
+      "id": "online-bullying-during-school-hours",
+      "name": "Online bullying during school hours",
+      "kind": "concept",
+      "summary": "Issue cited as a motivation for the policy; nearby schools with phone bans reported fewer such incidents after adopting similar rules.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "student-survey-spring",
+      "name": "Student survey (spring)",
+      "kind": "event",
+      "summary": "Survey conducted last spring among Westbrook students that found 64% feel pressure to reply to messages during the school day and 41% had seen upsetting content on a phone at school.",
+      "source_chunk_ids": [
+        0
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "westbrook-secondary-school",
+      "target": "phone-free-school-day-policy",
+      "label": "introduces",
+      "evidence": "Westbrook will become a phone-free school day from the start of the autumn term on 3 September."
+    },
+    {
+      "source": "westbrook-secondary-school",
+      "target": "parents-council",
+      "label": "consulted",
+      "evidence": "After a year of discussion with staff, students and the parents' council, Westbrook adopted the policy."
+    },
+    {
+      "source": "westbrook-secondary-school",
+      "target": "teachers-of-westbrook-secondary-school",
+      "label": "consulted",
+      "evidence": "After a year of discussion with staff, students and the parents' council."
+    },
+    {
+      "source": "westbrook-secondary-school",
+      "target": "students-of-westbrook-secondary-school",
+      "label": "consulted",
+      "evidence": "After a year of discussion with staff, students and the parents' council."
+    },
+    {
+      "source": "teachers-of-westbrook-secondary-school",
+      "target": "phone-free-school-day-policy",
+      "label": "supports rationale for",
+      "evidence": "Teachers report that lessons regularly stop because of phones."
+    },
+    {
+      "source": "students-of-westbrook-secondary-school",
+      "target": "phone-free-school-day-policy",
+      "label": "is subject to",
+      "evidence": "This applies during lessons, breaks and lunch, for all year groups (ages 11 to 18)."
+    },
+    {
+      "source": "sixth-form-students",
+      "target": "phone-free-school-day-policy",
+      "label": "receives partial exemption from",
+      "evidence": "Sixth-form students (ages 16 to 18) may unlock their phones in the sixth-form common room during free periods."
+    },
+    {
+      "source": "parents-and-carers-of-westbrook-students",
+      "target": "phone-free-school-day-policy",
+      "label": "raises concerns about",
+      "evidence": "We know some of you have concerns, especially about travel to and from school, and about emergencies."
+    },
+    {
+      "source": "amara-lewis",
+      "target": "phone-free-school-day-policy",
+      "label": "announces",
+      "evidence": "Yours sincerely, Dr Amara Lewis, Headteacher, signs the letter announcing the policy."
+    },
+    {
+      "source": "duarte",
+      "target": "students-with-medical-needs-relying-on-phones",
+      "label": "handles exemptions for",
+      "evidence": "Students with medical needs that rely on a phone will be exempt; please contact Ms Duarte, our pastoral lead, before 1 August."
+    },
+    {
+      "source": "phone-free-school-day-policy",
+      "target": "personal-phone-pouch",
+      "label": "requires use of",
+      "evidence": "On arrival, phones are switched off and locked in a personal pouch."
+    },
+    {
+      "source": "nearby-schools-with-phone-free-policies",
+      "target": "phone-free-school-day-policy",
+      "label": "precedent for",
+      "evidence": "Three schools nearby made the same change last year and report calmer breaks and fewer incidents of online bullying during school hours."
+    },
+    {
+      "source": "nearby-schools-with-phone-free-policies",
+      "target": "online-bullying-during-school-hours",
+      "label": "reports reduction in",
+      "evidence": "report calmer breaks and fewer incidents of online bullying during school hours."
+    },
+    {
+      "source": "student-survey-spring",
+      "target": "phone-free-school-day-policy",
+      "label": "justifies",
+      "evidence": "In a survey last spring, 64% of our students said they feel pressure to reply to messages during the school day... Teachers report that lessons regularly stop because of phones."
+    },
+    {
+      "source": "westbrook-secondary-school",
+      "target": "information-evening-17-june",
+      "label": "hosts",
+      "evidence": "Please join us at the information evening on Tuesday 17 June at 6:30 pm in the main hall."
+    },
+    {
+      "source": "parents-and-carers-of-westbrook-students",
+      "target": "information-evening-17-june",
+      "label": "invited to attend",
+      "evidence": "Please join us at the information evening on Tuesday 17 June at 6:30 pm in the main hall, or reply to this email."
+    }
+  ]
+}

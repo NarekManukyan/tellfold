@@ -37,6 +37,23 @@ struct EngineCommandTests {
         #expect(python.path == "/App.app/Contents/Resources/engine/python/bin/python3")
     }
 
+    @Test func examplesFolderIsPassedWhenBundled() {
+        let args = EngineCommand.bundledArguments(runsFolder: "/runs", examplesFolder: "/App.app/Contents/Resources/Examples",
+                                                  logLevel: "warning")
+        #expect(args == ["-I", "-B", "-m", "tellfold", "serve", "--port", "0", "--runs", "/runs",
+                         "--examples", "/App.app/Contents/Resources/Examples", "--log-level", "warning"])
+        let dev = EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs", examplesFolder: "/ex", logLevel: "info")
+        #expect(dev.suffix(4) == ["--examples", "/ex", "--log-level", "info"])
+        #expect(!EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs", logLevel: "info").contains("--examples"))
+    }
+
+    @Test func appBundleShipsTheExamples() throws {
+        let examples = try #require(EngineCommand.bundledExamples())
+        let names = try FileManager.default.contentsOfDirectory(atPath: examples.path)
+        #expect(names.contains("corner-cafe"))
+        #expect(FileManager.default.fileExists(atPath: examples.appending(path: "corner-cafe/world.db").path))
+    }
+
     @Test func tokensAreRandomHex() {
         let a = EngineCommand.makeToken(), b = EngineCommand.makeToken()
         #expect(a.count == 64)

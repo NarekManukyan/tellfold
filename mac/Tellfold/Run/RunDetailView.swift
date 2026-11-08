@@ -91,7 +91,7 @@ struct RunDetailView: View {
             .pickerStyle(.segmented)
             .accessibilityLabel("Run view")
         }
-        if store.isLive {
+        if store.controls.stop {
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     confirmStop = true
@@ -115,19 +115,23 @@ struct RunDetailView: View {
                 }
                 .disabled(!store.canRunAgain)
 
-                Button {
-                    store.showsInjectEvent = true
-                } label: {
-                    Label("Inject Event…", systemImage: "bolt")
+                if store.controls.injectEvent {
+                    Button {
+                        store.showsInjectEvent = true
+                    } label: {
+                        Label("Inject Event…", systemImage: "bolt")
+                    }
+                    .disabled(!store.isLive || store.latestRound >= store.totalRounds)
                 }
-                .disabled(!store.isLive || store.latestRound >= store.totalRounds)
 
-                Button {
-                    Task { await ReportRebuilder.rebuild(store) }
-                } label: {
-                    Label("Rebuild Report", systemImage: "arrow.clockwise")
+                if store.controls.rebuildReport {
+                    Button {
+                        Task { await ReportRebuilder.rebuild(store) }
+                    } label: {
+                        Label("Rebuild Report", systemImage: "arrow.clockwise")
+                    }
+                    .disabled(!store.canRebuildReport)
                 }
-                .disabled(!store.canRebuildReport)
 
                 Divider()
 
@@ -140,10 +144,12 @@ struct RunDetailView: View {
                 }
                 .disabled(store.report == nil)
 
-                Button {
-                    app.revealInFinder(store.runID)
-                } label: {
-                    Label("Reveal in Finder", systemImage: "folder")
+                if !store.isExample {
+                    Button {
+                        app.revealInFinder(store.runID)
+                    } label: {
+                        Label("Reveal in Finder", systemImage: "folder")
+                    }
                 }
             } label: {
                 Label("More", systemImage: "ellipsis.circle")

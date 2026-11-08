@@ -7,6 +7,10 @@ queue; events from `run_pipeline`'s `on_event` are serialised once and pushed to
 For runs this server is not executing, a per-run watcher task (alive only while someone is subscribed) polls
 `status.json` and `world.db` once per `poll_interval` seconds and synthesises `status`, `posts_added`,
 `round_done` and terminal events, so watching a CLI run live works too.
+
+An optional read-only examples root (the Mac app's bundled example runs) is listed next to the normal runs. Each
+example's id is `example-<folder name>`; examples can be read, streamed and (with an AI tool set up) interviewed,
+but never changed: they are opened with SQLite's `immutable` flag and nothing is ever written next to them.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ import contextlib
 import json
 import logging
 import threading
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -30,11 +34,14 @@ from tellfold.models import GodEvent, KnowledgeGraph, RunState, RunStatus, SimCo
 from tellfold.report import build_report
 from tellfold.runner import create_run_dir, now_iso, run_pipeline, write_json, write_report, write_status
 from tellfold.server.reader import RunReader
+from tellfold.settings import load_settings
 from tellfold.world import World
 
 log = logging.getLogger(__name__)
 
 LLMFactory = Callable[[Path | None, int, bool], LLM]
+RuntimeReady = Callable[[], Awaitable[bool]]
+EXAMPLE_PREFIX = "example-"
 QUEUE_SIZE = 2000
 _CLOSE = None  # sentinel pushed into a client queue to end its stream
 _TERMINAL_EVENTS = {RunState.DONE: "run_done", RunState.FAILED: "run_failed", RunState.STOPPED: "run_stopped"}
@@ -46,6 +53,13 @@ class Conflict(Exception):
 
 class BadRequest(Exception):
     """Invalid input for the run (HTTP 400)."""
+
+
+class ReadOnly(Exception):
+    """The run is a built-in example, which cannot be changed (HTTP 403)."""
+
+
+EXAMPLE_READ_ONLY = "this is a built-in example run; it cannot be changed. Use Run again to make your own copy"
 
 
 @dataclass
@@ -80,6 +94,9 @@ class RunManager:
     llm_factory: LLMFactory
     poll_interval: float = 1.0
     shutdown_grace: float = 5.0
+    examples_dir: Path | None = None  # read-only example runs, listed as `example-<folder>`
+    settings_path: Path | None = None  # whose runtimes and models interviews of examples use
+    runtime_ready: RuntimeReady | None = None  # whether an AI tool is set up; None: assume it is
     _live: dict[str, LiveRun] = field(default_factory=dict)
     _subs: dict[str, set[asyncio.Queue]] = field(default_factory=dict)
     _watches: dict[str, _Watch] = field(default_factory=dict)
@@ -98,8 +115,33 @@ class RunManager:
     def live_ids(self) -> set[str]:
         return {rid for rid in self._live if self.is_live(rid)}
 
+    def examples(self) -> dict[str, Path]:
+        """Example id -> folder, for every folder in the examples root that holds a run."""
+        root = self.examples_dir
+        if root is None or not root.is_dir():
+            return {}
+        return {EXAMPLE_PREFIX + path.name: path for path in sorted(root.iterdir())
+                if path.is_dir() and not path.name.startswith(".") and (path / "config.json").is_file()}
+
+    def is_example(self, run_id: str) -> bool:
+        return run_id.startswith(EXAMPLE_PREFIX) and run_id in self.examples()
+
+    def run_path(self, run_id: str) -> Path:
+        """The folder of a run: an example's folder for an example id, else `runs_dir/run_id`."""
+        if run_id.startswith(EXAMPLE_PREFIX):
+            example = self.examples().get(run_id)
+            if example is not None:
+                return example
+        return self.runs_dir / run_id
+
     def reader(self, run_id: str) -> RunReader:
+        if self.is_example(run_id):
+            return RunReader(self.run_path(run_id), run_id=run_id, immutable=True)
         return RunReader(self.runs_dir / run_id)
+
+    def _writable(self, run_id: str) -> None:
+        if self.is_example(run_id):
+            raise ReadOnly(EXAMPLE_READ_ONLY)
 
     def effective_status(self, run_id: str) -> RunStatus | None:
         with self.reader(run_id) as r:
@@ -159,6 +201,7 @@ class RunManager:
         self.publish(run_id, name, data)
 
     def inject_event(self, run_id: str, round: int, content: str) -> None:
+        self._writable(run_id)
         live = self._live.get(run_id)
         if live is None or not self.is_live(run_id):
             raise Conflict("events can only be injected into a run that is live in this server")
@@ -178,6 +221,7 @@ class RunManager:
             world.close()
 
     def stop(self, run_id: str) -> None:
+        self._writable(run_id)
         live = self._live.get(run_id)
         if live is None or not self.is_live(run_id):
             raise Conflict("only a run that is live in this server can be stopped")
@@ -188,10 +232,26 @@ class RunManager:
     def _open_world(self, run_id: str) -> tuple[SimConfig, World]:
         with self.reader(run_id) as r:
             config = r.config()
-        db = self.runs_dir / run_id / "world.db"
+        db = self.run_path(run_id) / "world.db"
         if config is None or not db.is_file():
             raise Conflict("this run has no simulated world yet")
-        return config, World(db, seed=config.seed)
+        return config, World(db, seed=config.seed, read_only=self.is_example(run_id))
+
+    async def _talker(self, run_id: str, config: SimConfig) -> tuple[LLM, SimConfig]:
+        """The model for interviews and follow-up questions, and the config that names its models.
+
+        A normal run uses its own runtimes. An example uses the AI tool set up on this machine (its recorded
+        runtime may not be installed here), logs no calls (its folder is read-only), and needs a tool at all."""
+        if not self.is_example(run_id):
+            return self.llm_factory(self.runs_dir / run_id, 1, False), config
+        if self.runtime_ready is not None and not await self.runtime_ready():
+            raise Conflict("set up an AI tool first to interview people or ask questions in an example run")
+        settings = load_settings(self.settings_path)
+        config = config.model_copy(update={
+            "agent_runtime": settings.agent_runtime, "planner_runtime": settings.planner_runtime,
+            "agent_model": settings.agent_model or config.agent_model,
+            "planner_model": settings.planner_model or config.planner_model})
+        return self.llm_factory(None, 1, False), config
 
     async def chat(self, run_id: str, agent_id: str, message: str, history: list[tuple[str, str]]) -> str:
         config, world = self._open_world(run_id)
@@ -199,7 +259,7 @@ class RunManager:
             ids = {p.id for p in world.personas()}
             if agent_id not in ids:
                 raise KeyError(agent_id)
-            llm = self.llm_factory(self.runs_dir / run_id, 1, False)
+            llm, config = await self._talker(run_id, config)
             return await interview(llm, world, agent_id, message, model=config.agent_model, history=history)
         finally:
             world.close()
@@ -211,12 +271,13 @@ class RunManager:
             raise Conflict("this run has no report yet")
         config, world = self._open_world(run_id)
         try:
-            llm = self.llm_factory(self.runs_dir / run_id, 1, False)
+            llm, config = await self._talker(run_id, config)
             return await ask_report(llm, world, report, question, model=config.planner_model)
         finally:
             world.close()
 
     def rebuild_report(self, run_id: str) -> None:
+        self._writable(run_id)
         if self.is_live(run_id):
             raise Conflict("the run is still in progress; it writes its own report")
         task = self._rebuilding.get(run_id)

@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Sidebar: the brand mark and wordmark, New Simulation, search, and runs grouped by state (Running, Done, Stopped,
-/// Failed) with plain status chips, live progress and a context menu.
+/// Failed) with plain status chips, live progress and a context menu. The built-in example runs come last, in their
+/// own Examples section.
 struct RunSidebar: View {
     @Environment(AppModel.self) private var model
     @State private var pendingDelete: RunSummary?
@@ -89,7 +90,15 @@ struct RunSidebar: View {
 
     /// Runs filtered by the search field, grouped by state: running first, then the ones that need a look.
     private var stateSections: [(title: String, runs: [RunSummary])] {
-        let runs = model.groupedRuns.flatMap(\.runs)
+        Self.sections(for: model.groupedRuns.flatMap(\.runs))
+    }
+
+    static let examplesTitle = "Examples"
+
+    /// The user's runs grouped by state, then the built-in examples on their own. Empty sections are left out.
+    static func sections(for all: [RunSummary]) -> [(title: String, runs: [RunSummary])] {
+        let runs = all.filter { !$0.example }
+        let examples = all.filter(\.example)
         let order: [(String, (RunSummary) -> Bool)] = [
             ("Running", { $0.state.isActive }),
             ("Done", { $0.state == .done }),
@@ -97,10 +106,11 @@ struct RunSidebar: View {
             ("Failed", { $0.state == .failed }),
             ("Other", { !$0.state.isActive && ![.failed, .stopped, .done].contains($0.state) }),
         ]
-        return order.compactMap { title, matches in
+        let byState: [(title: String, runs: [RunSummary])] = order.compactMap { title, matches in
             let group = runs.filter(matches)
             return group.isEmpty ? nil : (title, group)
         }
+        return byState + (examples.isEmpty ? [] : [(examplesTitle, examples)])
     }
 
     @ViewBuilder private var emptyState: some View {
@@ -122,6 +132,19 @@ struct RunSidebar: View {
     }
 
     @ViewBuilder private func contextMenu(for run: RunSummary) -> some View {
+        if run.example {
+            Button("Open HTML Report") {
+                Task {
+                    do { try await model.openHTMLReport(run.id) } catch { errorMessage = error.localizedDescription }
+                }
+            }
+            .disabled(!run.hasReport)
+        } else {
+            runContextMenu(for: run)
+        }
+    }
+
+    @ViewBuilder private func runContextMenu(for run: RunSummary) -> some View {
         Button("Reveal in Finder") { model.revealInFinder(run.id) }
         Button("Open HTML Report") {
             Task {
@@ -217,10 +240,14 @@ private struct RunRow: View {
                 .font(Theme.ui(13, .medium))
                 .foregroundStyle(Theme.text)
             HStack(spacing: 6) {
-                StatusChip(state: run.state, compact: true)
+                if run.example {
+                    ExampleBadge()
+                } else {
+                    StatusChip(state: run.state, compact: true)
+                }
                 Text(detail)
                 Spacer(minLength: 0)
-                if let date = run.createdDate {
+                if !run.example, let date = run.createdDate {
                     Text(date, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
                         .foregroundStyle(Theme.faint)
                 }
@@ -234,7 +261,22 @@ private struct RunRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(run.question), \(run.state.title), round \(roundsDone) of \(run.totalRounds)")
+        .accessibilityLabel(run.example
+            ? "\(run.question), example run"
+            : "\(run.question), \(run.state.title), round \(roundsDone) of \(run.totalRounds)")
+    }
+}
+
+/// The small "Example" tag on a built-in example run.
+struct ExampleBadge: View {
+    var body: some View {
+        Text("Example")
+            .font(Theme.ui(10, .semibold))
+            .foregroundStyle(Theme.accent)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(Theme.accentSoft, in: Capsule())
+            .help("A finished example run that ships with Tellfold. It is read-only; Run again makes your own copy.")
     }
 }
 

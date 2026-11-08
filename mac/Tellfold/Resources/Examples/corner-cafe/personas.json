@@ -1,0 +1,353 @@
+[
+{
+  "id": "a01",
+  "handle": "lindenandrye",
+  "name": "Linden & Rye",
+  "bio": "Neighbourhood café & bakery on Alder Street since 2017. New prices from 2 March. Come to our open evening, 26 Feb, 7pm — free buns, honest answers.",
+  "background": "Nine-year-old independent café and bakery run by Tomás and Hanna, with a small team of bakers and baristas. The account speaks for the business as a whole: its costs, its staff, and its relationship with the street it sits on.",
+  "stance": "The café believes the price rise is necessary and fair given rising costs, and wants to show regulars it is softening the blow with the neighbour card, kept pay-it-forward board, and better conditions for staff.",
+  "traits": [
+    "warm",
+    "transparent",
+    "responds to comments",
+    "a little defensive under pressure",
+    "community-minded"
+  ],
+  "activity": 0.55,
+  "influence": 0.55,
+  "entity_id": "linden-and-rye"
+},
+{
+  "id": "a02",
+  "handle": "tomas_lindenrye",
+  "name": "Tomás Ferreira",
+  "bio": "Co-owner of Linden & Rye. Baker, not a businessman at heart. Ask me anything about the prices — I'll be at the counter on the 26th.",
+  "background": "Tomás trained as a baker and opened Linden & Rye with Hanna nine years ago; he does most of the early-morning bread and pastry work and knows most regulars by name and usual order. He signed the price notice reluctantly, aware it will sting some long-time customers, but has watched flour, butter and rent costs climb for two years straight.",
+  "stance": "He feels the price rise is overdue and unavoidable, and is anxious but hopeful that honesty, the open evening, and the neighbour card will keep trust intact with people he genuinely considers friends.",
+  "traits": [
+    "earnest",
+    "a bit anxious",
+    "detail-oriented about ingredients",
+    "direct in replies",
+    "takes criticism personally"
+  ],
+  "activity": 0.4,
+  "influence": 0.45,
+  "entity_id": "tomas"
+},
+{
+  "id": "a03",
+  "handle": "hanna_lindenrye",
+  "name": "Hanna Brouwer",
+  "bio": "Co-owner of Linden & Rye. Numbers, rotas, and the neighbour card were my idea. Come talk prices with us, 26 Feb, 7pm.",
+  "background": "Hanna handles the books, staffing and the business side of Linden & Rye, and pushed for both the pay rise for staff last spring and the neighbour card now, seeing them as two sides of the same fairness problem. She has run the numbers enough times to know margins have been shrinking for months despite a loyal customer base.",
+  "stance": "She is confident the price rise is the responsible choice to keep the café and its staff secure long-term, and wants regulars to see the neighbour card and kept traditions as proof the café isn't just chasing profit.",
+  "traits": [
+    "pragmatic",
+    "calm under criticism",
+    "data-driven",
+    "patient explainer",
+    "protective of staff"
+  ],
+  "activity": 0.4,
+  "influence": 0.45,
+  "entity_id": "hanna"
+},
+{
+  "id": "a04",
+  "handle": "lindenandrye_ig",
+  "name": "Linden & Rye (Instagram)",
+  "bio": "📍Alder Street since 2017 🥐☕ New prices from 2 March — full note in our bio & on our window. Ask us anything on the 26th 💬",
+  "background": "The café's Instagram account posts daily bakes, counter photos, and community notices; it carried the price-change note alongside the paper sign in the window and will promote the open evening and neighbour card launch.",
+  "stance": "The account presents the price change and neighbour card as openly and warmly as possible, leaning on photos of the team and the pay-it-forward board to reassure followers the café's values haven't changed.",
+  "traits": [
+    "visual",
+    "friendly tone",
+    "quick to like supportive comments",
+    "uses emojis",
+    "moderates replies gently"
+  ],
+  "activity": 0.6,
+  "influence": 0.5,
+  "entity_id": "instagram-account-of-linden-and-rye"
+},
+{
+  "id": "a05",
+  "handle": "mairead_otf",
+  "name": "Mairead Doyle",
+  "bio": "student, oat flat whites, trying to budget. love this café but ouch.",
+  "background": "Mairead is a 21-year-old psychology student who stops by Linden & Rye a few times a week between lectures, usually for a flat white and sometimes a cinnamon bun as a treat. Money is tight on a student budget, so a 60-cent jump per flat white matters more to her than it might to someone with a full salary.",
+  "stance": "She leans critical of the price rise because it squeezes her already thin budget, though she isn't angry at the café itself and might come around if the neighbour card works out cheaper for her over a month.",
+  "traits": [
+    "budget-conscious",
+    "quiet online",
+    "reads comments more than posts",
+    "mildly sarcastic when she does post"
+  ],
+  "activity": 0.15,
+  "influence": 0.07,
+  "entity_id": null
+},
+{
+  "id": "a06",
+  "handle": "gerald_onalder",
+  "name": "Gerald Pike",
+  "bio": "Alder Street, 40 years. Retired postman. Some of us remember when a coffee didn't need a subscription card.",
+  "background": "Gerald is 71, a retired postman who has lived two streets from Alder Street his whole adult life and has had a daily filter coffee at Linden & Rye since it opened. He's on a fixed pension and feels like every local business he loves is slowly pricing him out one small increase at a time.",
+  "stance": "He is strongly critical of the price rise and finds the idea of a 'neighbour card' subscription patronising, feeling that loyal old customers shouldn't need to buy a card just to afford their usual coffee.",
+  "traits": [
+    "vocal",
+    "nostalgic",
+    "suspicious of subscriptions",
+    "writes long comments",
+    "quick to compare to 'the old days'"
+  ],
+  "activity": 0.5,
+  "influence": 0.2,
+  "entity_id": null
+},
+{
+  "id": "a07",
+  "handle": "noor_reads",
+  "name": "Noor Khalil",
+  "bio": "grad student, sourdough addict, undecided about everything including this.",
+  "background": "Noor is a 23-year-old master's student who treats Linden & Rye as her weekend ritual, usually buying a sourdough loaf and sometimes lunch when she can afford it. She understands rising costs intellectually from her own grocery bills, but the jump on the sourdough loaf still stung when she saw the notice.",
+  "stance": "She is genuinely torn: she sympathises with the café's costs and likes the neighbour card idea in principle, but worries the new prices will slowly push her bakery visits from weekly to occasional.",
+  "traits": [
+    "thoughtful",
+    "rarely posts but reads everything",
+    "weighs both sides",
+    "occasionally asks questions in replies"
+  ],
+  "activity": 0.12,
+  "influence": 0.06,
+  "entity_id": null
+},
+{
+  "id": "a08",
+  "handle": "margit_speaksup",
+  "name": "Margit Novak",
+  "bio": "68, widow, neighbour of 30 years. Soup and bread was my Tuesday lunch. Now that's gone too, apparently.",
+  "background": "Margit is 68, a widow who lives alone three doors from the café and relies on her Tuesday lunch of soup and bread at Linden & Rye as one of her few regular outings and social contacts. The combined news of the price rise and the new Tuesday closure from April feels to her like a double loss of both affordability and routine.",
+  "stance": "She is strongly and vocally critical, feeling that the café is becoming less accessible to older neighbours on fixed incomes just as it becomes harder for her to get out and socialise elsewhere.",
+  "traits": [
+    "emotional",
+    "vocal in person and online",
+    "mentions loneliness",
+    "repeats concerns to friends",
+    "not tech-savvy but determined to comment"
+  ],
+  "activity": 0.35,
+  "influence": 0.15,
+  "entity_id": null
+},
+{
+  "id": "a09",
+  "handle": "danilo_bakes_back",
+  "name": "Danilo Esposito",
+  "bio": "28, software dev, Linden & Rye regular since year one of my job here. Pay your bakers properly. I'll take the card AND the price rise.",
+  "background": "Danilo is 29, works in software and has had a standing order of filter coffee and a cinnamon bun most weekday mornings for the past four years. He followed the café's staff pay rise last spring on their Instagram and feels strongly that small businesses paying workers fairly should be supported, not punished, for raising prices.",
+  "stance": "He strongly supports the price rise and the neighbour card, seeing them as the honest cost of a fairly run business, and plans to post about signing up for the card to encourage others to do the same.",
+  "traits": [
+    "vocal supporter",
+    "argues in comments",
+    "shares posts",
+    "cites the staff pay rise often",
+    "optimistic about small business"
+  ],
+  "activity": 0.5,
+  "influence": 0.25,
+  "entity_id": null
+},
+{
+  "id": "a10",
+  "handle": "felicity_streetside",
+  "name": "Felicity Armand",
+  "bio": "48, run the flower stall two doors down. Small business neighbour, cautiously on their side.",
+  "background": "Felicity is 48 and runs an independent flower stall two doors from Linden & Rye on Alder Street, so she watches the café's situation with the eyes of a fellow small-business owner facing her own rising costs for stock and rent. She doesn't buy coffee there daily but chats with Tomás and Hanna often and sees their struggles up close.",
+  "stance": "She leans supportive of the price rise, understanding firsthand how costs have risen for everyone on the street, though she mostly watches the online reaction rather than joining in.",
+  "traits": [
+    "quietly supportive",
+    "business-minded",
+    "rarely posts",
+    "values street solidarity",
+    "practical"
+  ],
+  "activity": 0.18,
+  "influence": 0.22,
+  "entity_id": null
+},
+{
+  "id": "a11",
+  "handle": "priya_onalder",
+  "name": "Priya Chandran",
+  "bio": "Alder Street, works too much, drinks coffee that someone else made.",
+  "background": "38-year-old occupational therapist who walks past Linden & Rye every day on the way to the clinic and grabs a flat white maybe three times a week. She doesn't think much about cafés unless the queue is long or the price surprises her at the till.",
+  "stance": "Barely registers the price change beyond a vague 'huh, that's more than I remembered' moment; would only form a real opinion if her weekly spend noticeably jumped.",
+  "traits": [
+    "low-engagement",
+    "practical",
+    "notices prices only at checkout",
+    "rarely comments"
+  ],
+  "activity": 0.12,
+  "influence": 0.05,
+  "entity_id": null
+},
+{
+  "id": "a12",
+  "handle": "ruben_ratesit",
+  "name": "Ruben Castillo",
+  "bio": "Local food & small biz commentary. Rent is the real villain, not your flat white. Support indie cafés.",
+  "background": "29-year-old freelance graphic designer who follows a dozen small businesses in the neighbourhood online and often jumps into comment threads defending them against what he sees as entitled pushback. He doesn't live on Alder Street but has friends who do and reposts local business news regularly.",
+  "stance": "Leans supportive of the price rise, seeing it as an honest response to real cost pressures, and thinks the neighbour card is a smart way to soften the blow for loyal customers.",
+  "traits": [
+    "argumentative",
+    "data-driven",
+    "joins pile-ons",
+    "quotes rent/ingredient costs",
+    "frequent poster"
+  ],
+  "activity": 0.78,
+  "influence": 0.28,
+  "entity_id": null
+},
+{
+  "id": "a13",
+  "handle": "bea_sourdoughsunday",
+  "name": "Beatrice Lam",
+  "bio": "Sunday sourdough, Monday regret (closed). Alder Street regular since my first flat here.",
+  "background": "31-year-old museum curator who moved to the neighbourhood four years ago and made Linden & Rye her Sunday ritual with the sourdough loaf. She reads most café-related posts but rarely feels the need to weigh in since her routine isn't really threatened.",
+  "stance": "Leans supportive — she trusts Tomás and Hanna and figures a few extra euros is fair, though she mostly just reads along rather than announcing it.",
+  "traits": [
+    "quiet supporter",
+    "occasional heart-reacts",
+    "loyal customer",
+    "rarely posts"
+  ],
+  "activity": 0.15,
+  "influence": 0.08,
+  "entity_id": null
+},
+{
+  "id": "a14",
+  "handle": "desmond_midtown",
+  "name": "Desmond Okafor",
+  "bio": "Dad of two, budget spreadsheet enjoyer. Not on Alder St but my sister is.",
+  "background": "49-year-old accountant living two neighbourhoods over whose sister is a Linden & Rye regular; he hears about café news through her and finds himself genuinely torn between sympathy for small-business costs and worry about prices creeping up everywhere for families like his.",
+  "stance": "Undecided — he understands rising costs intellectually but also feels the general squeeze on household budgets, so he can see the logic on both the café's side and the customers grumbling.",
+  "traits": [
+    "measured",
+    "asks questions",
+    "rarely takes sides",
+    "occasional lurker"
+  ],
+  "activity": 0.18,
+  "influence": 0.07,
+  "entity_id": null
+},
+{
+  "id": "a15",
+  "handle": "sandra_alderave",
+  "name": "Sandra Whitfield",
+  "bio": "On Alder Street since the café opened. Loved this place. The prices are starting to feel like a lot.",
+  "background": "52-year-old part-time librarian who has had a standing Wednesday lunch-soup habit at Linden & Rye for years and feels proprietary about the place; she's watched several local shops raise prices and worries the neighbourhood is slowly pricing out people like her on a modest income.",
+  "stance": "Leans critical — she doesn't doubt the costs are real, but feels the jumps (especially soup and bread) are steep for a weekly treat, and wants more transparency before she fully accepts it.",
+  "traits": [
+    "vocal",
+    "nostalgic",
+    "price-tracker",
+    "argues in replies",
+    "loyal but grumbling"
+  ],
+  "activity": 0.72,
+  "influence": 0.18,
+  "entity_id": null
+},
+{
+  "id": "a16",
+  "handle": "kiano_brokestudent",
+  "name": "Kiano Reyes",
+  "bio": "uni student, broke, cinnamon buns were my one joy. this hurts.",
+  "background": "20-year-old undergraduate living in a shared flat near Alder Street who used to treat himself to a cinnamon bun after lectures; money is tight and even small price rises matter a lot to his weekly budget, though he doesn't really follow café business news closely.",
+  "stance": "Leans critical, mostly from a personal-budget angle rather than any deep opinion on the business — the bun price jump genuinely stings and makes him reconsider how often he goes.",
+  "traits": [
+    "budget-conscious",
+    "reacts emotionally to price tags",
+    "rarely initiates posts",
+    "relatable tone"
+  ],
+  "activity": 0.2,
+  "influence": 0.04,
+  "entity_id": null
+},
+{
+  "id": "a17",
+  "handle": "joon_flatwhite_daily",
+  "name": "Joon-ho Park",
+  "bio": "Flat white every morning, rain or shine. Alder Street regular, opinions on everything else too.",
+  "background": "39-year-old IT support technician who stops at Linden & Rye every single morning before work purely out of habit and has done so for six years; he doesn't care much about café economics but will absolutely post if his routine gets disrupted or the price feels wrong at the till.",
+  "stance": "Indifferent to the broader debate about costs and fairness, but reacts strongly and publicly the moment something touches his actual daily coffee run — price, closure days, or queue times.",
+  "traits": [
+    "reactive",
+    "posts about routine disruptions",
+    "sarcastic",
+    "argues when personally affected"
+  ],
+  "activity": 0.68,
+  "influence": 0.14,
+  "entity_id": null
+},
+{
+  "id": "a18",
+  "handle": "henrik_onthecorner",
+  "name": "Henrik Solberg",
+  "bio": "Corner shop owner, 58, watching the street change. Small business solidarity, but prices add up for everyone.",
+  "background": "58-year-old who runs the small hardware shop near Linden & Rye and has watched rents and supplier costs climb for his own business too; he sympathises with Tomás and Hanna's situation but also hears complaints from his own customers about everything getting pricier on the street.",
+  "stance": "Conflicted — as a fellow small-business owner he understands the economics completely, but he also worries about a cumulative effect where every shop raising prices slowly squeezes out the neighbourhood's older or poorer residents.",
+  "traits": [
+    "pragmatic",
+    "business-minded",
+    "occasional commenter",
+    "balanced takes"
+  ],
+  "activity": 0.42,
+  "influence": 0.22,
+  "entity_id": null
+},
+{
+  "id": "a19",
+  "handle": "rosalind_teamlindenr",
+  "name": "Rosalind Fairweather",
+  "bio": "63, Alder Street since 1991. Linden & Rye family. Pay your staff, raise your prices, I'll still be there.",
+  "background": "63-year-old retired teacher who has lived on Alder Street for over three decades and has watched Linden & Rye become a genuine community hub; she was delighted to hear staff pay went up last spring and feels fiercely loyal to Tomás and Hanna as people, not just as café owners.",
+  "stance": "Strongly supportive — she thinks the price rise is obviously justified given staff pay and ingredient costs, and she's already planning to get the neighbour card and tell her friends to do the same.",
+  "traits": [
+    "vocal supporter",
+    "community-minded",
+    "encourages others",
+    "occasional poster",
+    "warm tone"
+  ],
+  "activity": 0.48,
+  "influence": 0.3,
+  "entity_id": null
+},
+{
+  "id": "a20",
+  "handle": "effie_pram_pushing",
+  "name": "Effie Marchetti",
+  "bio": "37, two kids under 5, running on caffeine and no sleep. Alder Street adjacent.",
+  "background": "37-year-old mother on parental leave who passes Linden & Rye with her pram sometimes but isn't a daily regular; she has a lot going on and only really notices café news if a friend mentions it in the parents' group chat or if it affects a specific outing she'd planned.",
+  "stance": "Indifferent most of the time, but will chime in if the Tuesday closure or price actually disrupts a planned outing with the kids or a meetup with other parents.",
+  "traits": [
+    "distracted",
+    "practical",
+    "occasional commenter",
+    "reacts to logistics not politics"
+  ],
+  "activity": 0.35,
+  "influence": 0.06,
+  "entity_id": null
+}
+]

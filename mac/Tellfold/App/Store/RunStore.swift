@@ -80,6 +80,8 @@ final class RunStore: Identifiable {
         (detail?.live ?? false) && (status?.state.isActive ?? false)
     }
     var config: SimConfig? { detail?.config }
+    /// A built-in example run, which the engine never changes.
+    var isExample: Bool { detail?.example ?? false }
     var question: String { detail?.config.question ?? "" }
     var personas: [Persona] { detail?.personas ?? [] }
     var personaByID: [String: Persona] { Dictionary(personas.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }) }

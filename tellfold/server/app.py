@@ -37,7 +37,15 @@ from tellfold.models import (
     RunStatus,
     SimConfig,
 )
-from tellfold.server.manager import BadRequest, Conflict, LLMFactory, RunManager, history_pairs
+from tellfold.server.manager import (
+    BadRequest,
+    Conflict,
+    LLMFactory,
+    ReadOnly,
+    RunManager,
+    RuntimeReady,
+    history_pairs,
+)
 from tellfold.server.runtime_routes import register_runtime_routes, runtime_form_fields
 from tellfold.settings import env, load_settings
 
@@ -73,6 +81,7 @@ class RunSummary(BaseModel):
     agents: int
     created_at: str
     has_report: bool
+    example: bool = False  # a built-in example run: read-only
 
 
 class CallsSummary(BaseModel):
@@ -99,6 +108,7 @@ class RunDetail(BaseModel):
     report: Report | None
     calls: CallsSummary
     report_rebuild: ReportRebuild = Field(default_factory=ReportRebuild)
+    example: bool = False  # a built-in example run: events, stop and report rebuild are refused
 
 
 class PostOut(Post):
@@ -293,14 +303,41 @@ def _sse(name: str, data: str) -> str:
 # ---------- app ----------
 
 
+def runtime_installed(settings_path: Path | None) -> RuntimeReady:
+    """Whether the AI tools the settings name for agents and planner are installed (no model call)."""
+
+    async def ready() -> bool:
+        from tellfold.runtimes import UnknownRuntime, get_runtime
+
+        settings = load_settings(settings_path)
+
+        def probe() -> bool:
+            try:
+                return all(get_runtime(rid, settings).detect(check_auth=False).installed
+                           for rid in {settings.agent_runtime, settings.planner_runtime})
+            except (UnknownRuntime, OSError):
+                return False
+
+        return await asyncio.to_thread(probe)
+
+    return ready
+
+
 def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None = None,
                allowed_hosts: Iterable[str] | None = None, poll_interval: float = 1.0,
-               shutdown_grace: float = 5.0, settings_path: Path | None = None) -> FastAPI:
-    """The Tellfold Studio app. `llm_factory(run_dir, concurrency, think) -> LLM` makes the model backend."""
+               shutdown_grace: float = 5.0, settings_path: Path | None = None,
+               examples_dir: Path | None = None, runtime_ready: RuntimeReady | None = None) -> FastAPI:
+    """The Tellfold Studio app. `llm_factory(run_dir, concurrency, think) -> LLM` makes the model backend.
+
+    `examples_dir` holds read-only example runs. `runtime_ready` says whether an AI tool is set up, which
+    interviewing an example needs; by default the settings' tools must be installed (always true with a fake LLM)."""
     runs_dir = Path(runs_dir)
-    manager = RunManager(runs_dir=runs_dir, llm_factory=llm_factory, poll_interval=poll_interval,
-                         shutdown_grace=shutdown_grace)
     fake = fake_mode() if fake_llm is None else fake_llm
+    if runtime_ready is None and not fake:
+        runtime_ready = runtime_installed(settings_path)
+    manager = RunManager(runs_dir=runs_dir, llm_factory=llm_factory, poll_interval=poll_interval,
+                         shutdown_grace=shutdown_grace, settings_path=settings_path,
+                         examples_dir=Path(examples_dir) if examples_dir else None, runtime_ready=runtime_ready)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -317,6 +354,8 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
     def run_dir_of(run_id: str) -> Path:
         if not _RUN_ID.match(run_id) or ".." in run_id:
             raise HTTPException(400, "invalid run id")
+        if manager.is_example(run_id):
+            return manager.run_path(run_id)
         path = runs_dir / run_id
         if path.resolve().parent != runs_dir.resolve() or not (path / "config.json").is_file():
             raise HTTPException(404, "run not found")
@@ -330,12 +369,17 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.get("/api/runs", response_model=list[RunSummary])
     async def list_runs() -> list[dict]:
-        if not runs_dir.is_dir():
-            return []
         live = manager.live_ids()
+        examples = manager.examples()
         out = []
-        for path in runs_dir.iterdir():
-            if not path.is_dir() or not _RUN_ID.match(path.name):
+        for run_id in examples:
+            with manager.reader(run_id) as r:
+                summary = r.summary(live=False)
+            if summary is not None:
+                out.append({**summary, "example": True})
+        for path in runs_dir.iterdir() if runs_dir.is_dir() else ():
+            # a normal run can never take an example's id: the example would shadow it on every route
+            if not path.is_dir() or not _RUN_ID.match(path.name) or path.name in examples:
                 continue
             with manager.reader(path.name) as r:
                 summary = r.summary(live=path.name in live)
@@ -402,34 +446,35 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.get("/api/runs/{run_id}", response_model=RunDetail)
     async def get_run(run_id: str) -> dict:
-        path = run_dir_of(run_id)
-        with manager.reader(path.name) as r:
+        run_dir_of(run_id)
+        with manager.reader(run_id) as r:
             detail = r.detail(live=manager.is_live(run_id))
         if detail is None:
             raise HTTPException(404, "run not found")
         if detail["status"] is None:
             detail["status"] = manager.effective_status(run_id)
-        detail["report_rebuild"] = manager.rebuild_state(path.name)
+        detail["report_rebuild"] = manager.rebuild_state(run_id)
+        detail["example"] = manager.is_example(run_id)
         return detail
 
     @app.get("/api/runs/{run_id}/posts", response_model=list[PostOut])
     async def get_posts(run_id: str, since_id: int = Query(0, ge=0)) -> list[dict]:
-        path = run_dir_of(run_id)
-        with manager.reader(path.name) as r:
+        run_dir_of(run_id)
+        with manager.reader(run_id) as r:
             return r.posts(since_id)
 
     @app.get("/api/runs/{run_id}/actions", response_model=list[ActionOut])
     async def get_actions(run_id: str, round: int | None = Query(None, ge=0)) -> list[dict]:
-        path = run_dir_of(run_id)
-        with manager.reader(path.name) as r:
+        run_dir_of(run_id)
+        with manager.reader(run_id) as r:
             return r.actions(round)
 
     @app.get("/api/runs/{run_id}/agents/{agent_id}", response_model=AgentDetail)
     async def get_agent(run_id: str, agent_id: str) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         if not _AGENT_ID.match(agent_id):
             raise HTTPException(400, "invalid agent id")
-        with manager.reader(path.name) as r:
+        with manager.reader(run_id) as r:
             agent = r.agent(agent_id)
             if agent is None:  # accept a handle too
                 wanted = agent_id.lstrip("@").lower()
@@ -441,9 +486,11 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.post("/api/runs/{run_id}/events", response_model=Ok)
     async def inject_event(run_id: str, body: EventIn) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         try:
-            manager.inject_event(path.name, body.round, body.content)
+            manager.inject_event(run_id, body.round, body.content)
+        except ReadOnly as e:
+            raise HTTPException(403, str(e)) from None
         except Conflict as e:
             raise HTTPException(409, str(e)) from None
         except BadRequest as e:
@@ -452,21 +499,23 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.post("/api/runs/{run_id}/stop", response_model=Ok)
     async def stop_run(run_id: str) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         try:
-            manager.stop(path.name)
+            manager.stop(run_id)
+        except ReadOnly as e:
+            raise HTTPException(403, str(e)) from None
         except Conflict as e:
             raise HTTPException(409, str(e)) from None
         return {"ok": True}
 
     @app.post("/api/runs/{run_id}/chat", response_model=Reply)
     async def chat(run_id: str, body: ChatIn) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         if not _AGENT_ID.match(body.agent_id):
             raise HTTPException(400, "invalid agent id")
         try:
             history = history_pairs(body.history)[-20:]
-            reply = await manager.chat(path.name, body.agent_id, body.message.strip(), history)
+            reply = await manager.chat(run_id, body.agent_id, body.message.strip(), history)
         except BadRequest as e:
             raise HTTPException(400, str(e)) from None
         except Conflict as e:
@@ -479,9 +528,9 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.post("/api/runs/{run_id}/ask", response_model=Reply)
     async def ask(run_id: str, body: AskIn) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         try:
-            reply = await manager.ask(path.name, body.question.strip())
+            reply = await manager.ask(run_id, body.question.strip())
         except Conflict as e:
             raise HTTPException(409, str(e)) from None
         except LLMError as e:
@@ -490,9 +539,11 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.post("/api/runs/{run_id}/report", response_model=Ok)
     async def rebuild_report(run_id: str) -> dict:
-        path = run_dir_of(run_id)
+        run_dir_of(run_id)
         try:
-            manager.rebuild_report(path.name)
+            manager.rebuild_report(run_id)
+        except ReadOnly as e:
+            raise HTTPException(403, str(e)) from None
         except Conflict as e:
             raise HTTPException(409, str(e)) from None
         return {"ok": True}
@@ -523,8 +574,8 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
 
     @app.get("/api/runs/{run_id}/stream")
     async def stream(run_id: str, request: Request) -> StreamingResponse:
-        path = run_dir_of(run_id)
-        rid = path.name
+        run_dir_of(run_id)
+        rid = run_id
         queue = manager.subscribe(rid)
 
         async def events() -> AsyncIterator[str]:

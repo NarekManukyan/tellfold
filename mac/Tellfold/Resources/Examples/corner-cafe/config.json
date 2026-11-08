@@ -1,0 +1,25 @@
+{
+  "question": "How will the café's regulars and neighbours react to the new prices and the neighbour card over the first weeks, and will the café lose customers?",
+  "seed_files": [
+    "seeds/corner_cafe_prices.md"
+  ],
+  "num_agents": 20,
+  "rounds": 6,
+  "batch_size": 6,
+  "feed_size": 12,
+  "memory_size": 8,
+  "agent_model": "haiku",
+  "planner_model": "sonnet",
+  "concurrency": 4,
+  "language": "English",
+  "events": [
+    {
+      "round": 3,
+      "content": "A local food blog calls the new prices greedy."
+    }
+  ],
+  "seed": 7,
+  "think": false,
+  "agent_runtime": "claude-code",
+  "planner_runtime": "claude-code"
+}

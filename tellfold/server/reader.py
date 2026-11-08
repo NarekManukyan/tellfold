@@ -80,9 +80,11 @@ def _pid_alive_windows(pid: int) -> bool:  # pragma: no cover - exercised on Win
 class RunReader:
     """Read-only view of `runs/<id>/`. Use as a context manager (or call `close()`) to release the DB."""
 
-    def __init__(self, run_dir: Path):
+    def __init__(self, run_dir: Path, *, run_id: str | None = None, immutable: bool = False):
+        """`immutable` is for runs on read-only media (the app's bundled examples): SQLite then skips all locking."""
         self.run_dir = run_dir
-        self.id = run_dir.name
+        self.id = run_id or run_dir.name
+        self.immutable = immutable
         self._conn: sqlite3.Connection | None = None
         self._conn_failed = False
         self._persona_cache: dict[str, Persona] | None = None
@@ -192,7 +194,8 @@ class RunReader:
         if not self.db_path.is_file():
             return None
         try:
-            conn = sqlite3.connect(f"{self.db_path.resolve().as_uri()}?mode=ro", uri=True, timeout=5)
+            query = "mode=ro&immutable=1" if self.immutable else "mode=ro"
+            conn = sqlite3.connect(f"{self.db_path.resolve().as_uri()}?{query}", uri=True, timeout=5)
             conn.execute("SELECT 1 FROM sqlite_master LIMIT 1").fetchall()
         except sqlite3.Error:
             self._conn_failed = True
