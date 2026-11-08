@@ -19,6 +19,7 @@
 		0FDF4AD50CFB05E33146AFEA /* Notifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D49412A37CFE44BAE00946 /* Notifier.swift */; };
 		105014F4F3D7BBB5CCCCB056 /* UVOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D79E3980A71BE652A2CCF7A /* UVOnboardingView.swift */; };
 		107959F98A34283825D50BF2 /* RunStore+Crowd.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35C23FA5158DB41A0E29CE3 /* RunStore+Crowd.swift */; };
+		11F675A88B08A18205C7F191 /* Examples in Resources */ = {isa = PBXBuildFile; fileRef = D5AC57907DB38029784913EE /* Examples */; };
 		11FE784C3AAD941A4679C383 /* RunUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABBB3CD9649D94EC60F4C7C /* RunUI.swift */; };
 		131D287F7A2BAF5A558145C8 /* AppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE658B55ECE2CB2F23B31976 /* AppUpdater.swift */; };
 		1640C5D0FB8F0E704D29AD8A /* CanvasOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2EF9D87195C57B24BD2F19 /* CanvasOverlays.swift */; };
@@ -82,6 +83,7 @@
 		D12DCD24F7710AFF4D24855D /* LegacyMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9C1850803F8F7290B2419D /* LegacyMigrationTests.swift */; };
 		D267F325A2E65125875E7811 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B51AAAD72D407612EA8D53 /* Models.swift */; };
 		D3C96ED51E062B27CE461C6F /* TellfoldApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */; };
+		D4BCBC9FE95D565441D0A71A /* ExampleRunTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F22B9E3A9C927D520C19D2 /* ExampleRunTests.swift */; };
 		D6ABFAE7E1CD6BE3668DBB6B /* NewSimulationLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6E6BC9BA12B7F1C33E069D /* NewSimulationLogic.swift */; };
 		D95E6827EDAFF71612E7DC3C /* CanvasInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F97EB5A38964CAA043E33A /* CanvasInteraction.swift */; };
 		DAB27786832CB13746A240F4 /* RuntimeRecommendationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5FA68A2B2190D4E6A9DB22 /* RuntimeRecommendationTests.swift */; };
@@ -111,6 +113,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		01F22B9E3A9C927D520C19D2 /* ExampleRunTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleRunTests.swift; sourceTree = "<group>"; };
 		053F54738CAA115BA327C9FE /* CanvasPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasPalette.swift; sourceTree = "<group>"; };
 		070B13C6E577208238070418 /* CrowdTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrowdTabView.swift; sourceTree = "<group>"; };
 		0FAF04603B799769CFA75FC7 /* CampsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsTests.swift; sourceTree = "<group>"; };
@@ -183,6 +186,7 @@
 		CFDB15C4387BADEF5CF4ED19 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		D1F8C64A15EC82D43A2CEB19 /* TellfoldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellfoldApp.swift; sourceTree = "<group>"; };
 		D1FDEC67D74959C8BF41001E /* KnowledgeGraphRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphRenderer.swift; sourceTree = "<group>"; };
+		D5AC57907DB38029784913EE /* Examples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Examples; path = Tellfold/Resources/Examples; sourceTree = SOURCE_ROOT; };
 		D83948E5B69139B149565F94 /* AgentSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSetupView.swift; sourceTree = "<group>"; };
 		DAE6913DB71A874FEFC9D75F /* ReportPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPDFExporter.swift; sourceTree = "<group>"; };
 		DAE9AD1D4E1B9C570F133A3F /* GraphCanvasController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCanvasController.swift; sourceTree = "<group>"; };
@@ -287,6 +291,7 @@
 				976877425423AB7D2EEA2E5E /* EngineCommandTests.swift */,
 				64563444DC2642FB625725D3 /* EngineIntegrationTests.swift */,
 				B64BC99863B154BEEB0B63DD /* EngineLifecycleTests.swift */,
+				01F22B9E3A9C927D520C19D2 /* ExampleRunTests.swift */,
 				83CF24CCA8D5ABE8F83FC8FE /* FinishReviewTests.swift */,
 				6B6A4E16E4D32AECEA25317A /* Fixtures */,
 				18CBF1F92BD39BE10F69B4D2 /* FixtureSupport.swift */,
@@ -390,9 +395,18 @@
 				6094B20EA7BBCC8BFC988B60 /* App */,
 				4DCD9993D709A587FC9A5577 /* Canvas */,
 				69B871DD0C3EBCE7BBA4A3A4 /* Crowd */,
+				9315D5A267DEAA195F11D080 /* Resources */,
 				9352D03EF773AD9A48885BD8 /* Run */,
 			);
 			path = Tellfold;
+			sourceTree = "<group>";
+		};
+		9315D5A267DEAA195F11D080 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D5AC57907DB38029784913EE /* Examples */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		9352D03EF773AD9A48885BD8 /* Run */ = {
@@ -532,6 +546,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E819ED75B1D37A89A5D45AE0 /* Assets.xcassets in Resources */,
+				11F675A88B08A18205C7F191 /* Examples in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -571,6 +586,7 @@
 				0CA8128C9F8F71A3E3F76C0A /* EngineCommandTests.swift in Sources */,
 				0FADD73D5A38BC9B27B50B12 /* EngineIntegrationTests.swift in Sources */,
 				FF59E1D7F568C6D0734DFFA7 /* EngineLifecycleTests.swift in Sources */,
+				D4BCBC9FE95D565441D0A71A /* ExampleRunTests.swift in Sources */,
 				C6228ECECEB8F076C6DFF863 /* FinishReviewTests.swift in Sources */,
 				7B804C4524F46C029300095F /* FixtureSupport.swift in Sources */,
 				D12DCD24F7710AFF4D24855D /* LegacyMigrationTests.swift in Sources */,

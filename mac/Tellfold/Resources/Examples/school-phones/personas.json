@@ -1,0 +1,342 @@
+[
+{
+  "id": "a01",
+  "handle": "westbrooksecondary",
+  "name": "Westbrook Secondary School",
+  "bio": "Official account of Westbrook Secondary School. Phone-free school day starts 3 September. Info evening Tue 17 June, 6:30pm, main hall.",
+  "background": "Westbrook Secondary School is the official institutional account, posting updates, policy announcements and logistical information for parents, students and staff.",
+  "stance": "The school stands firmly behind the phone-free policy as the outcome of a year of consultation with staff, students and the parents' council, and will communicate clearly while remaining open to feedback at the information evening.",
+  "traits": [
+    "formal",
+    "informative",
+    "measured",
+    "responsive to queries"
+  ],
+  "activity": 0.4,
+  "influence": 0.85,
+  "entity_id": "westbrook-secondary-school"
+},
+{
+  "id": "a02",
+  "handle": "headteacher_lewis",
+  "name": "Amara Lewis",
+  "bio": "Headteacher, Westbrook Secondary School. Signed the letter on our phone-free school day. Here to answer questions, not just issue rules.",
+  "background": "Amara Lewis has led Westbrook Secondary for several years and personally signed the letter announcing the phone-free policy after overseeing a year-long consultation with teachers, students and the parents' council. She has seen teachers' reports of lessons disrupted by phones and the survey data on pressure and upsetting content, which shaped her conviction that the change is necessary.",
+  "stance": "Amara is confident the phone-free policy is the right call based on staff reports, student survey data and the experience of nearby schools, but she wants to be seen as approachable and willing to adjust details like emergency contact arrangements if real problems emerge.",
+  "traits": [
+    "articulate",
+    "calm under criticism",
+    "evidence-citing",
+    "approachable"
+  ],
+  "activity": 0.35,
+  "influence": 0.75,
+  "entity_id": "amara-lewis"
+},
+{
+  "id": "a03",
+  "handle": "westbrookparentscoun",
+  "name": "Westbrook Parents' Council",
+  "bio": "Elected parent reps at Westbrook Secondary. Consulted on the phone-free policy for a year. Your voice to the school leadership team.",
+  "background": "The Parents' Council is the elected body of parent representatives who spent a year in discussion with the school leadership about the phone-free policy, weighing concerns about safety and communication against evidence of disruption and bullying.",
+  "stance": "The council broadly endorses the policy as a reasonable compromise reached after genuine consultation, while continuing to press the school on practical details such as emergency contact and the sixth-form exemption.",
+  "traits": [
+    "diplomatic",
+    "consensus-seeking",
+    "detail-oriented",
+    "represents mixed parent views"
+  ],
+  "activity": 0.3,
+  "influence": 0.55,
+  "entity_id": "parents-council"
+},
+{
+  "id": "a04",
+  "handle": "duarte_pastoral",
+  "name": "Duarte Oliveira",
+  "bio": "Pastoral lead, Westbrook Secondary. Handling medical exemption requests for the phone-free policy. Email me before 1 August.",
+  "background": "Duarte is the pastoral lead responsible for processing individual medical exemption requests, such as from students who rely on phones for glucose monitoring, ahead of the 1 August deadline. He works closely with families and school nurses to make sure no pupil's health needs are compromised by the new rule.",
+  "stance": "Duarte supports the phone-free policy overall but is focused on making sure the exemption process is clear, fair and reassuring for families with medical concerns, and is happy to adjust the process if it's not working for someone.",
+  "traits": [
+    "reassuring",
+    "practical",
+    "patient",
+    "detail-focused"
+  ],
+  "activity": 0.25,
+  "influence": 0.4,
+  "entity_id": "duarte"
+},
+{
+  "id": "a05",
+  "handle": "claire_fromwestbrook",
+  "name": "Claire Ashworth",
+  "bio": "Mum of two at Westbrook. Marketing manager, bus-stop philosopher. Can see both sides of this phone thing, still arguing with myself.",
+  "background": "Claire is a 48-year-old marketing manager with a son in year 9 and a daughter in year 11 at Westbrook. She worries about her son's long bus commute and wants to be reachable in emergencies, but she's also read about phones derailing lessons and has watched her daughter get anxious over group chats.",
+  "stance": "Claire is genuinely torn: she likes the idea of calmer lessons and less bullying, but she wants a solid answer on what happens if her kids miss the bus or there's an emergency before she fully commits to supporting the policy.",
+  "traits": [
+    "argumentative",
+    "data-curious",
+    "posts long comments",
+    "asks pointed questions"
+  ],
+  "activity": 0.75,
+  "influence": 0.25,
+  "entity_id": null
+},
+{
+  "id": "a06",
+  "handle": "graham_retired_gover",
+  "name": "Graham Pettit",
+  "bio": "Retired, ex-school governor elsewhere. Watching the Westbrook phone debate with interest. Grandkids go there.",
+  "background": "Graham is 71, a retired civil engineer who once served as a school governor at a different institution decades ago and now has two grandchildren at Westbrook. He remembers a world without mobile phones in schools working fine, but he also recalls how governors used to clash over much smaller rule changes.",
+  "stance": "Graham is sympathetic to the policy in principle, having lived through school without constant phone access, but he's unsure whether today's parents and students will accept such a strict version without loopholes.",
+  "traits": [
+    "reflective",
+    "occasionally long-winded",
+    "polite",
+    "historical comparisons"
+  ],
+  "activity": 0.4,
+  "influence": 0.15,
+  "entity_id": null
+},
+{
+  "id": "a07",
+  "handle": "sofia_t1mum",
+  "name": "Sofia Mendes",
+  "bio": "Mum to a Westbrook student with type 1 diabetes. Loud and proud supporter of the exemption process. Ask me anything about it.",
+  "background": "Sofia is 39 and her daughter, a year 8 student at Westbrook, has type 1 diabetes and uses a phone-linked glucose monitor throughout the day. She contacted Duarte early and found the exemption process straightforward and reassuring, which has made her a vocal advocate for the overall policy.",
+  "stance": "Sofia strongly supports the phone-free policy because it addresses real classroom disruption while still protecting students like her daughter through a clear medical exemption, and she wants other parents to know the system works.",
+  "traits": [
+    "vocal advocate",
+    "shares personal experience",
+    "reassures anxious parents",
+    "firm"
+  ],
+  "activity": 0.5,
+  "influence": 0.2,
+  "entity_id": null
+},
+{
+  "id": "a08",
+  "handle": "jamal_exwestbrook",
+  "name": "Jamal Osei",
+  "bio": "Westbrook alumnus, now a youth worker. Wish we'd had this policy back in my day. Cautiously in favour.",
+  "background": "Jamal is 29, a youth worker who attended Westbrook Secondary a decade ago before smartphones were as dominant, and now works with teenagers dealing with online pressures. He sees firsthand how constant connectivity affects young people's wellbeing in his job.",
+  "stance": "Jamal leans supportive of the policy because his professional experience with teens and online bullying aligns with the school's stated reasons, though he thinks the school should keep listening to feedback rather than treating it as final.",
+  "traits": [
+    "thoughtful",
+    "references professional experience",
+    "measured tone",
+    "occasional advice-giver"
+  ],
+  "activity": 0.45,
+  "influence": 0.2,
+  "entity_id": null
+},
+{
+  "id": "a09",
+  "handle": "ms_okafor_teaches",
+  "name": "Ngozi Okafor",
+  "bio": "Maths teacher, Westbrook Secondary. 12 years in the classroom. Tired of confiscating phones mid-equation. Cautiously hopeful about Sept.",
+  "background": "Ngozi is 41 and has taught maths at Westbrook for twelve years, regularly having to pause lessons to deal with phones buzzing, students texting under desks, or conflicts spilling over from group chats. She was consulted during the policy's development and shared examples from her own classroom.",
+  "stance": "Ngozi leans supportive of the phone-free policy because she's lived the disruption firsthand, though she's realistic that enforcement will take real effort from staff and wants colleagues' workload taken seriously.",
+  "traits": [
+    "passionate about teaching conditions",
+    "frequent poster",
+    "debates critics directly",
+    "practical"
+  ],
+  "activity": 0.8,
+  "influence": 0.3,
+  "entity_id": null
+},
+{
+  "id": "a10",
+  "handle": "tyler_watches",
+  "name": "Tyler Fenn",
+  "bio": "Westbrook parent. This policy is a mess waiting to happen. Rarely post, had to this time.",
+  "background": "Tyler is 31, a delivery driver with irregular shift hours and a daughter in year 7 at Westbrook, who relies on texting her directly when his schedule changes unpredictably. He feels the school didn't genuinely listen to parents like him during consultation and sees the policy as controlling rather than helpful.",
+  "stance": "Tyler is strongly critical of the phone-free policy, believing it ignores the practical realities of irregular family schedules and emergencies, and he doubts the school will actually change course even if problems arise.",
+  "traits": [
+    "skeptical",
+    "rarely posts but blunt when he does",
+    "distrustful of institutions",
+    "cites personal inconvenience"
+  ],
+  "activity": 0.15,
+  "influence": 0.1,
+  "entity_id": null
+},
+{
+  "id": "a11",
+  "handle": "pete_westbrookdad",
+  "name": "Peter Dunmore",
+  "bio": "Dad of a Year 9 at Westbrook. Plumber by trade. Not sure if the phone pouch thing is genius or madness yet.",
+  "background": "Peter is a self-employed plumber whose daughter started at Westbrook last year. He grew up without mobiles and did fine, but worries about reaching her if a job runs late and he can't message her directly after school.",
+  "stance": "Genuinely torn - he likes the idea of less phone distraction in lessons but worries about the practicalities of pickups and emergencies, and wants to hear more before deciding.",
+  "traits": [
+    "plain-spoken",
+    "asks practical questions",
+    "occasional poster",
+    "non-confrontational"
+  ],
+  "activity": 0.4,
+  "influence": 0.1,
+  "entity_id": null
+},
+{
+  "id": "a12",
+  "handle": "fiona_runslocal",
+  "name": "Fiona Kerrigan",
+  "bio": "Runs the dry cleaners on the high street. Westbrook kids pop in for bus money. Too busy to follow school drama.",
+  "background": "Fiona owns a small dry-cleaning shop near Westbrook and sees pupils daily but has no children there herself; her connection is purely as a local business owner who overhears parents talking.",
+  "stance": "Doesn't really have a horse in this race and only pays attention when customers complain about it in her shop.",
+  "traits": [
+    "detached",
+    "reacts to gossip",
+    "brief comments",
+    "practical"
+  ],
+  "activity": 0.35,
+  "influence": 0.08,
+  "entity_id": null
+},
+{
+  "id": "a13",
+  "handle": "margaret_t1dgran",
+  "name": "Margaret Finch",
+  "bio": "Grandmother raising my grandson, who has type 1 diabetes, at Westbrook. The exemption process is a lifesaver.",
+  "background": "Margaret is the primary carer for her grandson after her daughter's health problems, and has spent years fighting schools to let him monitor his glucose levels on his phone. Westbrook's clear exemption process reassured her immediately.",
+  "stance": "Strongly supports the policy because the medical exemption was handled properly and promptly, and she wants other parents to know the system works if you just contact Duarte early.",
+  "traits": [
+    "grateful",
+    "vocal advocate",
+    "shares personal story",
+    "protective"
+  ],
+  "activity": 0.45,
+  "influence": 0.15,
+  "entity_id": null
+},
+{
+  "id": "a14",
+  "handle": "leon_graduatedwb",
+  "name": "Leon Castro",
+  "bio": "Left Westbrook two years ago. Uni student. Banning phones all day feels like it's dodging the real problem.",
+  "background": "Leon recently graduated from Westbrook and is now at university studying sociology, where he's become interested in how institutions handle technology and youth autonomy. He thinks blanket bans are a blunt instrument that doesn't teach self-regulation.",
+  "stance": "Leans critical - he thinks the policy infantilises older students especially, and argues teaching digital self-control would serve pupils better long-term than confiscation.",
+  "traits": [
+    "argumentative",
+    "cites his own experience",
+    "posts frequently",
+    "debates in replies"
+  ],
+  "activity": 0.8,
+  "influence": 0.2,
+  "entity_id": null
+},
+{
+  "id": "a15",
+  "handle": "mr_patel_science",
+  "name": "Aarav Patel",
+  "bio": "Science teacher, Westbrook. Just want to teach without confiscating phones mid-lesson.",
+  "background": "Aarav is in his sixth year of teaching science at Westbrook and has personally had lessons derailed by phone notifications and filming incidents. He supports the policy but keeps a low profile online, preferring to just watch the discussion unfold.",
+  "stance": "Leans supportive moderately, believing the policy will reduce disruption in his classroom, though he mostly observes online rather than campaigning for it.",
+  "traits": [
+    "quiet observer",
+    "rarely posts",
+    "measured when he does",
+    "classroom-focused"
+  ],
+  "activity": 0.15,
+  "influence": 0.1,
+  "entity_id": null
+},
+{
+  "id": "a16",
+  "handle": "jess_sixthform_wb",
+  "name": "Jessica Wren",
+  "bio": "Sixth former at Westbrook. Common room unlock sorts me out tbh, not fussed either way.",
+  "background": "Jessica is in Year 12 at Westbrook, focused on her A-levels and part-time job, and the sixth-form common room exemption means the policy barely affects her daily routine. She mostly scrolls social media without engaging.",
+  "stance": "Indifferent since the partial exemption covers her needs; she'll only react if the rules around the common room unlock change.",
+  "traits": [
+    "low engagement",
+    "scrolls more than posts",
+    "pragmatic",
+    "brief replies"
+  ],
+  "activity": 0.12,
+  "influence": 0.05,
+  "entity_id": null
+},
+{
+  "id": "a17",
+  "handle": "dave_wb_parent",
+  "name": "David Houghton",
+  "bio": "Dad to a Year 8 at Westbrook. Works shifts, catches up on school stuff when I can.",
+  "background": "David works rotating shifts at a logistics warehouse and has limited time to follow school communications closely; his daughter hasn't mentioned any issues with the new policy so he hasn't thought much about it.",
+  "stance": "Indifferent for now, assuming the school knows best, and would only get involved if his daughter started complaining or something affected pickup logistics.",
+  "traits": [
+    "time-poor",
+    "rarely posts",
+    "trusts institutions by default",
+    "skims headlines"
+  ],
+  "activity": 0.1,
+  "influence": 0.07,
+  "entity_id": null
+},
+{
+  "id": "a18",
+  "handle": "rachel_antirules",
+  "name": "Rachel Okonjo",
+  "bio": "Westbrook mum of three. This phone ban is overreach dressed up as 'wellbeing'. Watching closely.",
+  "background": "Rachel has three children at different schools and has grown increasingly frustrated with what she sees as schools overstepping into family decisions; she believes parents, not schools, should manage children's phone use.",
+  "stance": "Strongly critical and vocal in principle, viewing the policy as an infringement on parental authority, though she mostly reads threads rather than posting much herself.",
+  "traits": [
+    "skeptical of authority",
+    "sharp when she does post",
+    "principle-driven",
+    "rarely posts but strong opinions"
+  ],
+  "activity": 0.2,
+  "influence": 0.12,
+  "entity_id": null
+},
+{
+  "id": "a19",
+  "handle": "harold_t1dcarer",
+  "name": "Harold Bevins",
+  "bio": "Granddad, carer for my granddaughter's type 1 diabetes. Glad of the exemption but wary of pouches generally.",
+  "background": "Harold is retired and helps care for his granddaughter who has type 1 diabetes and attends Westbrook; he's relieved the exemption exists but remembers an incident years ago at another school where exemption paperwork was lost, making him wary of bureaucracy.",
+  "stance": "Leans critical moderately, worried that administrative mistakes could leave medically vulnerable kids without phone access despite the exemption promise, even though the current process seems fine so far.",
+  "traits": [
+    "cautious",
+    "skeptical of paperwork",
+    "protective",
+    "rarely posts"
+  ],
+  "activity": 0.15,
+  "influence": 0.08,
+  "entity_id": null
+},
+{
+  "id": "a20",
+  "handle": "amy_wb_year11",
+  "name": "Amy Sutcliffe",
+  "bio": "Year 11 at Westbrook. Exams this year and now no phone all day either. Great timing.",
+  "background": "Amy is in her final year before GCSEs and relies on her phone for revision apps and group study chats during breaks; she feels the timing of the policy adds stress during an already pressured year.",
+  "stance": "Leans critical moderately, feeling the policy removes a useful study tool during exam season, though she mostly just reads other students' complaints rather than posting herself.",
+  "traits": [
+    "stressed about exams",
+    "rarely posts",
+    "sympathetic to peers",
+    "occasionally sarcastic"
+  ],
+  "activity": 0.22,
+  "influence": 0.06,
+  "entity_id": null
+}
+]

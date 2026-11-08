@@ -117,7 +117,7 @@ def fake_delay() -> float:
 def make_llm(run_dir: Path | None, concurrency: int, think: bool = False, config: SimConfig | None = None) -> LLM:
     """The run's model backend (`tellfold.runtimes.build_llm`), or a canned FakeLLM when TELLFOLD_FAKE_LLM=1.
 
-    The agent / planner runtimes come from `config`, else from `run_dir/config.json`, else Claude Code."""
+    The agent / planner runtimes come from `config`, else from `run_dir/config.json`, else the settings."""
     if fake_mode():
         delay = fake_delay()
         if delay <= 0:
@@ -132,15 +132,17 @@ def make_llm(run_dir: Path | None, concurrency: int, think: bool = False, config
     from tellfold.settings import load_settings
 
     log_path = run_dir / "calls.jsonl" if run_dir else None
+    settings = load_settings()
     if config is None and run_dir is not None:
         try:
             config = SimConfig.model_validate_json((run_dir / "config.json").read_text(encoding="utf-8"))
         except (OSError, ValueError):
             config = None
     if config is None:
-        config = SimConfig(question="", seed_files=[])
+        config = SimConfig(question="", seed_files=[], agent_runtime=settings.agent_runtime,
+                           planner_runtime=settings.planner_runtime)
     try:
-        return build_llm(config, load_settings(), concurrency=concurrency, log_path=log_path, think=think)
+        return build_llm(config, settings, concurrency=concurrency, log_path=log_path, think=think)
     except UnknownRuntime as e:
         raise LLMError(f"{e}. Run `tellfold runtimes` to see what is available.") from e
 
@@ -830,6 +832,8 @@ def serve(
     port: Annotated[int, typer.Option(min=0, max=65535, help="Port on 127.0.0.1; 0 picks a free one.")] = 0,
     runs: Annotated[Path | None, typer.Option(help="Folder that holds run directories "
                                               "(default: settings runs_dir, else ./runs).")] = None,
+    examples: Annotated[Path | None, typer.Option(help="Folder of read-only example runs to list next to the "
+                                                  "runs (the Mac app passes its bundled examples).")] = None,
     log_level: Annotated[str, typer.Option(help="debug, info, warning or error (logs go to stderr).")] = "warning",
     watch_stdin: Annotated[bool, typer.Option("--watch-stdin/--no-watch-stdin",
                                               help="Exit when stdin closes (the Mac app keeps it open).")] = True,
@@ -861,7 +865,11 @@ def serve(
     def llm_factory(run_dir: Path | None, concurrency: int, think: bool = False) -> LLM:
         return make_llm(run_dir, concurrency, think)
 
-    application = create_app(runs_dir, llm_factory)
+    examples_dir = examples.expanduser().resolve() if examples else None
+    if examples_dir is not None and not examples_dir.is_dir():
+        err.print(f"[yellow]warning:[/] --examples {examples_dir} is not a folder; no examples will be listed")
+        examples_dir = None
+    application = create_app(runs_dir, llm_factory, examples_dir=examples_dir)
     application.add_middleware(TokenAuthMiddleware, token=token)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -42,11 +42,11 @@ struct TellfoldCommands: Commands {
                 Task { await store.stop() }
             }
             .keyboardShortcut(".")
-            .disabled(!(store?.isLive ?? false))
+            .disabled(!(store?.controls.stop ?? false))
 
             Button("Inject Event…") { store?.showsInjectEvent = true }
                 .keyboardShortcut("e")
-                .disabled(!(store?.isLive ?? false))
+                .disabled(!(store?.controls.stop ?? false))
 
             Divider()
 
@@ -68,12 +68,12 @@ struct TellfoldCommands: Commands {
                 guard let store else { return }
                 Task { await store.rebuildReport() }
             }
-            .disabled(store == nil || (store?.isLive ?? true))
+            .disabled(store == nil || (store?.isLive ?? true) || !(store?.controls.rebuildReport ?? false))
 
             Button("Reveal in Finder") {
                 if let id = store?.runID { model.revealInFinder(id) }
             }
-            .disabled(store == nil)
+            .disabled(store == nil || (store?.isExample ?? false))
         }
         // Window > Diagnostics (⌥⌘D) comes from the Diagnostics `Window` scene itself.
     }

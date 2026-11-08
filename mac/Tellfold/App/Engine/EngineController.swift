@@ -182,11 +182,13 @@ final class EngineController {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let base = ProcessInfo.processInfo.environment
         let runs = prefs.resolvedRunsFolder
+        let examples = EngineCommand.bundledExamples()?.path
         let executable: URL, args: [String], workingDirectory: URL
         if let engine = prefs.bundledEngineFolder {
             // The engine built into the app: its own Python, nothing to install.
             executable = EngineCommand.bundledPython(in: engine)
-            args = EngineCommand.bundledArguments(runsFolder: runs.path, logLevel: prefs.logLevel.rawValue)
+            args = EngineCommand.bundledArguments(runsFolder: runs.path, examplesFolder: examples,
+                                                  logLevel: prefs.logLevel.rawValue)
             workingDirectory = runs
         } else {
             let path = EngineCommand.searchPath(existing: base["PATH"], home: home)
@@ -203,7 +205,8 @@ final class EngineController {
                 return
             }
             executable = uv
-            args = EngineCommand.arguments(enginePath: enginePath, runsFolder: runs.path, logLevel: prefs.logLevel.rawValue)
+            args = EngineCommand.arguments(enginePath: enginePath, runsFolder: runs.path, examplesFolder: examples,
+                                           logLevel: prefs.logLevel.rawValue)
             workingDirectory = URL(filePath: enginePath, directoryHint: .isDirectory)
         }
         do {

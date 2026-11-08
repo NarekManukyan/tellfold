@@ -53,11 +53,28 @@ extension RunStore {
     /// Rounds that actually completed: the recorded data wins over a stale status.
     var roundsCompleted: Int { latestRound }
 
-    /// The run's report text can be rebuilt (not while it runs, and not before any round completed).
-    var canRebuildReport: Bool { !isLive && api != nil && (latestRound > 0 || report != nil) }
+    /// The run's report text can be rebuilt (not while it runs, not before any round completed, never for an example).
+    var canRebuildReport: Bool { controls.rebuildReport && !isLive && api != nil && (latestRound > 0 || report != nil) }
+
+    /// Which run-changing controls appear for this run.
+    var controls: RunControls { RunControls(isLive: isLive, isExample: isExample) }
 
     /// A finished, stopped or failed run whose settings can seed a new simulation.
     var canRunAgain: Bool { !isLive && config != nil && (status?.state.isTerminal ?? false) }
+}
+
+/// The controls that change a run. A built-in example is read-only, so it shows none of them: no Stop, no Inject event
+/// and no Rebuild report. "Run again…" stays, since it makes a new run of the user's own.
+struct RunControls: Equatable {
+    var stop: Bool
+    var injectEvent: Bool
+    var rebuildReport: Bool
+
+    init(isLive: Bool, isExample: Bool) {
+        stop = isLive && !isExample
+        injectEvent = !isExample
+        rebuildReport = !isExample
+    }
 }
 
 /// "Run again…": opens the New simulation sheet with this run's question, size and options.
@@ -219,7 +236,7 @@ struct CampsFallbackNote: View {
                 .frame(minWidth: 220, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: Theme.space2)
-            rebuildButton
+            if store.controls.rebuildReport { rebuildButton }
         }
         Group {
             if glass {

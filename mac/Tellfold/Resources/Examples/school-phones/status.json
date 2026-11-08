@@ -1,0 +1,12 @@
+{
+  "state": "done",
+  "stage": "finished",
+  "round": 6,
+  "total_rounds": 6,
+  "detail": "",
+  "error": null,
+  "pid": null,
+  "started_at": "2026-11-08T19:25:34Z",
+  "updated_at": "2026-11-08T19:34:25Z",
+  "failed_batches": []
+}

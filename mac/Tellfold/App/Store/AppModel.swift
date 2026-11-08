@@ -91,7 +91,13 @@ final class AppModel {
             await refreshRuns()
             await loadRuntimes()
             await loadEngineSettings()
-            if !prefs.agentSetupDone && !runtimesUnsupported { isAgentSetupPresented = true }
+            if !prefs.agentSetupDone && !runtimesUnsupported {
+                // Behind the first-run sheet, a finished example: closing the sheet shows a real report.
+                if selectedRunID == nil, runs.contains(where: { $0.id == Self.firstRunExampleID }) {
+                    selectedRunID = Self.firstRunExampleID
+                }
+                isAgentSetupPresented = true
+            }
         }
         startPolling()
     }
@@ -191,6 +197,12 @@ final class AppModel {
 
     func summary(_ id: String) -> RunSummary? { runs.first { $0.id == id } }
 
+    /// The example opened behind the first-run sheet (`Resources/Examples/corner-cafe`).
+    static let firstRunExampleID = "example-corner-cafe"
+    static let examplePrefix = "example-"
+
+    func isExample(_ id: String) -> Bool { summary(id)?.example ?? false }
+
     enum RunGroup: String, CaseIterable, Identifiable {
         case running = "Running", recent = "Recent", older = "Older"
         var id: String { rawValue }
@@ -212,10 +224,14 @@ final class AppModel {
     }
 
     func runDirectory(_ id: String) -> URL {
-        prefs.resolvedRunsFolder.appending(path: id, directoryHint: .isDirectory)
+        if isExample(id), id.hasPrefix(Self.examplePrefix), let examples = EngineCommand.bundledExamples() {
+            return examples.appending(path: String(id.dropFirst(Self.examplePrefix.count)), directoryHint: .isDirectory)
+        }
+        return prefs.resolvedRunsFolder.appending(path: id, directoryHint: .isDirectory)
     }
 
     func revealInFinder(_ id: String) {
+        guard !isExample(id) else { return }  // inside the app bundle
         let dir = runDirectory(id)
         if FileManager.default.fileExists(atPath: dir.path) {
             NSWorkspace.shared.activateFileViewerSelecting([dir])
@@ -226,6 +242,9 @@ final class AppModel {
     func deleteRun(_ id: String) async throws {
         if let run = summary(id), run.state.isActive {
             throw TellfoldAPIError(status: 409, message: "Stop the simulation before deleting it.")
+        }
+        if isExample(id) {
+            throw TellfoldAPIError(status: 403, message: "Examples come with the app and cannot be deleted.")
         }
         let dir = runDirectory(id)
         guard !id.isEmpty, !id.contains("/"), !id.contains(".."),
@@ -312,7 +331,7 @@ final class AppModel {
                 // An engine without the endpoint is treated like an older run: the sheet asks for the documents again.
             }
         }
-        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed))
+        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromExample: isExample(runID)))
     }
 
     static let seedContentTypes: [UTType] = [

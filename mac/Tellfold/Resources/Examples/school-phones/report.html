@@ -1,0 +1,1481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Policy Survives Bus Scare; School Must Fix Protocols, Not Reverse Ban</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f2f1ed;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.10);
+  --c-post: #2a78d6;
+  --c-reply: #eb6834;
+  --c-repost: #1baf7a;
+  --c-like: #eda100;
+  --c-dislike: #e87ba4;
+  --c-follow: #008300;
+  --conf-low: #d03b3b;
+  --conf-medium: #c98500;
+  --conf-high: #0ca30c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #242422;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --accent-soft: rgba(57, 135, 229, 0.16);
+    --c-post: #3987e5;
+    --c-reply: #d95926;
+    --c-repost: #199e70;
+    --c-like: #c98500;
+    --c-dislike: #d55181;
+    --c-follow: #008300;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #242422;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.16);
+  --c-post: #3987e5;
+  --c-reply: #d95926;
+  --c-repost: #199e70;
+  --c-like: #c98500;
+  --c-dislike: #d55181;
+  --c-follow: #008300;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-wrap: anywhere;
+}
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+.prose { max-width: 70ch; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; margin-bottom: 12px; }
+h3 { font-size: 1.05rem; }
+h4 { font-size: 1rem; margin: 16px 0 4px; }
+p { margin: 0 0 12px; }
+section { margin-top: 48px; }
+a { color: var(--accent); }
+a.ref { text-decoration: none; font-weight: 600; }
+a.ref:hover { text-decoration: underline; }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+blockquote { margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--axis); color: var(--ink-2); }
+ul, ol { padding-left: 1.3em; margin: 0 0 12px; }
+li { margin-bottom: 4px; }
+.eyebrow { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+header .question { color: var(--ink-2); font-size: 1.05rem; margin: 8px 0 20px; }
+header .summary { font-size: 1.1rem; }
+
+.prediction { margin-top: 24px; border-left: 4px solid var(--accent); }
+.prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.conf-low .dot { background: var(--conf-low); }
+.conf-medium .dot { background: var(--conf-medium); }
+.conf-high .dot { background: var(--conf-high); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 24px; }
+.tile { padding: 14px 16px; }
+.tile .value { font-size: 1.7rem; font-weight: 650; line-height: 1.1; }
+.tile .label { color: var(--ink-2); font-size: 0.85rem; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.chart-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; margin-bottom: 8px; }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { fill: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+svg.chart line, svg.chart path { vector-effect: non-scaling-stroke; }
+svg.chart .grid { stroke: var(--grid); stroke-width: 1; }
+svg.chart .zero { stroke: var(--axis); stroke-width: 1.5; }
+svg.chart .line { fill: none; stroke: var(--c-post); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.chart .pt { fill: var(--c-post); stroke: var(--surface); stroke-width: 2; }
+svg.chart .hit { fill: transparent; }
+svg.chart .hit:hover + .pt, svg.chart .pt:hover { r: 6; }
+svg.chart .event { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+svg.chart .event-label { fill: var(--ink-2); font-weight: 600; }
+
+.mix { display: grid; gap: 8px; }
+.mix-row { display: grid; grid-template-columns: 34px 1fr 40px; align-items: center; gap: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.mix-row .r { color: var(--muted); }
+.mix-row .n { color: var(--ink-2); text-align: right; }
+.mix-track { height: 14px; }
+.mix-bar { display: flex; gap: 2px; height: 100%; min-width: 2px; }
+.mix-bar span { display: block; height: 100%; min-width: 3px; }
+.mix-bar span:first-child { border-radius: 4px 0 0 4px; }
+.mix-bar span:last-child { border-radius: 0 4px 4px 0; }
+.mix-bar span:only-child { border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 0.8rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.t-post { background: var(--c-post); }
+.t-reply { background: var(--c-reply); }
+.t-repost { background: var(--c-repost); }
+.t-like { background: var(--c-like); }
+.t-dislike { background: var(--c-dislike); }
+.t-follow { background: var(--c-follow); }
+
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: 0.85rem; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin-top: 8px; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink-2); font-weight: 600; }
+
+.report-section { margin-top: 32px; }
+.report-section h3 { margin-bottom: 8px; }
+
+.voices { display: flex; flex-wrap: wrap; gap: 8px; }
+.voice { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 0.9rem; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; flex: none; }
+
+.events { list-style: none; padding: 0; display: grid; gap: 10px; }
+.event-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.event-item .tag { font-weight: 700; color: var(--ink-2); }
+.delta { font-size: 0.85rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.two-col ul { margin: 0; }
+
+.feed { display: grid; gap: 10px; }
+.post { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr; gap: 0 12px; }
+.post:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.post .avatar { width: 36px; height: 36px; }
+.post-head { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
+.post-head .name { font-weight: 650; }
+.post-head .meta { color: var(--muted); font-size: 0.85rem; }
+.post-context { color: var(--muted); font-size: 0.85rem; }
+.post-body { margin: 4px 0 6px; white-space: pre-wrap; }
+.post-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.thread { display: grid; gap: 10px; }
+.thread + .thread { margin-top: 28px; }
+.thread-replies { display: grid; gap: 10px; margin-left: 22px; padding-left: 16px; border-left: 2px solid var(--grid); }
+
+.directory { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.persona { display: grid; gap: 8px; align-content: start; }
+.persona:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.persona-head { display: flex; gap: 10px; align-items: center; }
+.persona-head .name { font-weight: 650; line-height: 1.2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
+.persona-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.persona .stance { font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--grid); padding-top: 8px; margin: 0; }
+.key { color: var(--accent); border-color: var(--accent); }
+
+footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
+@media (max-width: 560px) {
+  main { padding-top: 20px; }
+  section { margin-top: 36px; }
+  .card { padding: 16px; }
+  .thread-replies { margin-left: 8px; padding-left: 10px; }
+}
+@media print {
+  body { background: #fff; }
+  .post, .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+
+<main>
+  <header>
+    <div class="eyebrow">Tellfold simulation report</div>
+    <h1>Policy Survives Bus Scare; School Must Fix Protocols, Not Reverse Ban</h1>
+    <p class="question"><strong>Question:</strong> How will parents, students and teachers react to the phone-free school day, and will the school have to change the policy?</p>
+    <div class="prose summary"><p>The simulated crowd does not push Westbrook to abandon the phone-free day: criticism concentrates on <em>how</em> emergencies are handled, not on whether phones should be locked away, and even skeptical parents end the run reassured once written procedures are promised (<a class="ref" href="#p-30">#30</a>, <a class="ref" href="#p-45">#45</a>). Sentiment moved from mildly positive (+0.10 at r0) through a sharp crash to -0.39 after the injected bus-breakdown event at round 3, then recovered to +0.66 by round 6 as <a class="ref" href="#agent-headteacher_lewis">@headteacher_lewis</a> (a02) and <a class="ref" href="#agent-westbrooksecondary">@westbrooksecondary</a> (a01) published concrete emergency procedures and staff training commitments (<a class="ref" href="#p-41">#41</a>, <a class="ref" href="#p-43">#43</a>, <a class="ref" href="#p-45">#45</a>). The most persistent dissent comes from <a class="ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a> (a14), who keeps pressing for a staff drill rather than just a document (<a class="ref" href="#p-44">#44</a>), and <a class="ref" href="#agent-tyler_watches">@tyler_watches</a> (a10), whose single post says the policy &#34;doesn&#39;t work for families like mine&#34; (<a class="ref" href="#p-11">#11</a>) and is never answered directly in the thread. No agent in the digest calls for scrapping the phone ban itself; the fight is entirely about operational trust.</p></div>
+
+    <div class="card prediction">
+      <div class="prediction-head">
+        <h2 style="margin:0">Prediction</h2>
+        <span class="badge conf-medium"><span class="dot"></span>Medium confidence</span>
+      </div>
+      <div class="prose"><p>The single most likely real-world outcome is that Westbrook keeps the phone-free policy unchanged in substance but is forced to formalize and publicize emergency-contact procedures and staff training (mirroring <a class="ref" href="#p-30">#30</a>, <a class="ref" href="#p-41">#41</a>, <a class="ref" href="#p-43">#43</a>, <a class="ref" href="#p-45">#45</a>) to keep parent buy-in — this depends on the school actually delivering the promised August staff drill and Friday publication rather than letting it slip, and on no second high-profile incident occurring before fixes land. The strongest counter-signal is how fast and far sentiment cratered after a single bus breakdown (+0.09 before vs -0.10 after per-round average, with r3 dropping to -0.39), showing that trust is thin and reversible if the school&#39;s follow-through (training &#34;in late August&#34; per <a class="ref" href="#p-41">#41</a>) is delayed or another incident happens first.</p></div>
+    </div>
+
+    <div class="tiles">
+      <div class="card tile"><div class="value">20</div><div class="label">Agents</div></div>
+      <div class="card tile"><div class="value">6</div><div class="label">Rounds</div></div>
+      <div class="card tile"><div class="value">45</div><div class="label">Posts</div></div>
+      <div class="card tile"><div class="value">63</div><div class="label">Actions</div></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="dynamics">
+    <h2 id="dynamics">How the crowd moved</h2>
+    <div class="charts">
+      <div class="card">
+        <div class="chart-title"><h3>Sentiment by round</h3><span class="muted small">−1 hostile · +1 favourable</span></div>
+        <svg class="chart" viewBox="0 0 480 260" role="img" aria-label="Mean sentiment toward the subject for each round">
+          <line class="grid" x1="40" x2="468" y1="18.0" y2="18.0"/>
+          <text x="32" y="22.0" text-anchor="end">+1</text>
+          <line class="grid" x1="40" x2="468" y1="70.0" y2="70.0"/>
+          <text x="32" y="74.0" text-anchor="end">+0.5</text>
+          <line class="zero" x1="40" x2="468" y1="122.0" y2="122.0"/>
+          <text x="32" y="126.0" text-anchor="end">0</text>
+          <line class="grid" x1="40" x2="468" y1="174.0" y2="174.0"/>
+          <text x="32" y="178.0" text-anchor="end">−0.5</text>
+          <line class="grid" x1="40" x2="468" y1="226.0" y2="226.0"/>
+          <text x="32" y="230.0" text-anchor="end">−1</text>
+          <text x="40.0" y="244" text-anchor="middle">R0</text>
+          <text x="111.3" y="244" text-anchor="middle">R1</text>
+          <text x="182.7" y="244" text-anchor="middle">R2</text>
+          <text x="254.0" y="244" text-anchor="middle">R3</text>
+          <text x="325.3" y="244" text-anchor="middle">R4</text>
+          <text x="396.7" y="244" text-anchor="middle">R5</text>
+          <text x="468.0" y="244" text-anchor="middle">R6</text>
+          <g>
+            <title>E1: A school bus breaks down on the motorway in the evening, and students whose phones are locked away cannot call their parents for over an hour.</title>
+            <line class="event" x1="254.0" x2="254.0" y1="18" y2="226"/>
+            <text class="event-label" x="258.0" y="28">E1</text>
+          </g>
+<path class="line" d="M40.0,111.6 L111.3,122.0 L182.7,102.7 L254.0,162.4 L325.3,102.4 L396.7,122.0 L468.0,53.4"/>          <g>
+            <title>Round 0: sentiment +0.10</title>
+            <circle class="hit" cx="40.0" cy="111.6" r="12"/>
+            <circle class="pt" cx="40.0" cy="111.6" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 1: sentiment -0.00</title>
+            <circle class="hit" cx="111.3" cy="122.0" r="12"/>
+            <circle class="pt" cx="111.3" cy="122.0" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 2: sentiment +0.19</title>
+            <circle class="hit" cx="182.7" cy="102.7" r="12"/>
+            <circle class="pt" cx="182.7" cy="102.7" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 3: sentiment -0.39</title>
+            <circle class="hit" cx="254.0" cy="162.4" r="12"/>
+            <circle class="pt" cx="254.0" cy="162.4" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 4: sentiment +0.19</title>
+            <circle class="hit" cx="325.3" cy="102.4" r="12"/>
+            <circle class="pt" cx="325.3" cy="102.4" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 5: sentiment +0.00</title>
+            <circle class="hit" cx="396.7" cy="122.0" r="12"/>
+            <circle class="pt" cx="396.7" cy="122.0" r="4.5"/>
+          </g>
+          <g>
+            <title>Round 6: sentiment +0.66</title>
+            <circle class="hit" cx="468.0" cy="53.4" r="12"/>
+            <circle class="pt" cx="468.0" cy="53.4" r="4.5"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="card">
+        <div class="chart-title"><h3>Action mix per round</h3><span class="muted small">bar length = activity</span></div>
+        <div class="mix" role="img" aria-label="Count of each action type per round">
+          <div class="mix-row">
+            <span class="r">R0</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 40.0%">
+                <span class="t-post" style="flex: 100.0 1 0" title="Round 0: 6 post"></span>
+              </div>
+            </div>
+            <span class="n">6</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R1</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 100.0%">
+                <span class="t-reply" style="flex: 53.33 1 0" title="Round 1: 8 reply"></span>
+                <span class="t-like" style="flex: 46.67 1 0" title="Round 1: 7 like"></span>
+              </div>
+            </div>
+            <span class="n">15</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R2</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 53.3%">
+                <span class="t-reply" style="flex: 87.5 1 0" title="Round 2: 7 reply"></span>
+                <span class="t-like" style="flex: 12.5 1 0" title="Round 2: 1 like"></span>
+              </div>
+            </div>
+            <span class="n">8</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R3</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 66.7%">
+                <span class="t-post" style="flex: 70.0 1 0" title="Round 3: 7 post"></span>
+                <span class="t-reply" style="flex: 10.0 1 0" title="Round 3: 1 reply"></span>
+                <span class="t-like" style="flex: 20.0 1 0" title="Round 3: 2 like"></span>
+              </div>
+            </div>
+            <span class="n">10</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R4</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 60.0%">
+                <span class="t-post" style="flex: 11.11 1 0" title="Round 4: 1 post"></span>
+                <span class="t-reply" style="flex: 77.78 1 0" title="Round 4: 7 reply"></span>
+                <span class="t-like" style="flex: 11.11 1 0" title="Round 4: 1 like"></span>
+              </div>
+            </div>
+            <span class="n">9</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R5</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 40.0%">
+                <span class="t-post" style="flex: 16.67 1 0" title="Round 5: 1 post"></span>
+                <span class="t-reply" style="flex: 33.33 1 0" title="Round 5: 2 reply"></span>
+                <span class="t-like" style="flex: 50.0 1 0" title="Round 5: 3 like"></span>
+              </div>
+            </div>
+            <span class="n">6</span>
+          </div>
+          <div class="mix-row">
+            <span class="r">R6</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: 60.0%">
+                <span class="t-post" style="flex: 22.22 1 0" title="Round 6: 2 post"></span>
+                <span class="t-reply" style="flex: 33.33 1 0" title="Round 6: 3 reply"></span>
+                <span class="t-like" style="flex: 44.44 1 0" title="Round 6: 4 like"></span>
+              </div>
+            </div>
+            <span class="n">9</span>
+          </div>
+        </div>
+        <div class="legend">
+<span><i class="sw t-post"></i>post</span><span><i class="sw t-reply"></i>reply</span><span><i class="sw t-repost"></i>repost</span><span><i class="sw t-like"></i>like</span><span><i class="sw t-dislike"></i>dislike</span><span><i class="sw t-follow"></i>follow</span>        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Show round data as a table</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Round</th><th>Active</th><th>New posts</th><th>Sentiment</th><th>post</th><th>reply</th><th>repost</th><th>like</th><th>dislike</th><th>follow</th><th>idle</th></tr></thead>
+          <tbody>
+          <tr><td>R0</td><td>6</td><td>6</td><td>+0.10</td><td>6</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>R1</td><td>9</td><td>8</td><td>-0.00</td><td>0</td><td>8</td><td>0</td><td>7</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>R2</td><td>8</td><td>7</td><td>+0.19</td><td>0</td><td>7</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>R3</td><td>9</td><td>8</td><td>-0.39</td><td>7</td><td>1</td><td>0</td><td>2</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>R4</td><td>7</td><td>8</td><td>+0.19</td><td>1</td><td>7</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>R5</td><td>6</td><td>3</td><td>+0.00</td><td>1</td><td>2</td><td>0</td><td>3</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>R6</td><td>9</td><td>5</td><td>+0.66</td><td>2</td><td>3</td><td>0</td><td>4</td><td>0</td><td>0</td><td>2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="events">
+    <h2 id="events">Injected events</h2>
+    <ul class="events">
+      <li class="card event-item">
+        <span class="tag">E1</span>
+        <div>
+          <div><strong>Round 3.</strong> A school bus breaks down on the motorway in the evening, and students whose phones are locked away cannot call their parents for over an hour.</div>
+          <div class="delta">Sentiment +0.09 before → -0.10 after · posts per round 7.5 → 8.0</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="analysis">
+    <h2 id="analysis">Analysis</h2>
+    <div class="report-section prose">
+      <h3>Round-by-round evolution</h3>
+      <p>The conversation opens cautiously favorable: r0 sentiment is +0.10 as <a class="ref" href="#agent-headteacher_lewis">@headteacher_lewis</a> (a02) frames the policy as the product of a year&#39;s consultation (<a class="ref" href="#p-1">#1</a>) and teacher <a class="ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a> (a09) says she&#39;s &#34;hopeful this works&#34; (<a class="ref" href="#p-3">#3</a>).</p>
+<ul><li>r1 dips to -0.00 as parents press the practical gap: <a class="ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a> (a11, <a class="ref" href="#p-4">#4</a>) and <a class="ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a> (a05, <a class="ref" href="#p-7">#7</a>) ask how emergency contact actually works, and <a class="ref" href="#agent-tyler_watches">@tyler_watches</a> (a10) accuses the school of &#34;rubber-stamping&#34; (<a class="ref" href="#p-11">#11</a>).</li><li>r2 recovers to +0.19 as <a class="ref" href="#agent-westbrookparentscoun">@westbrookparentscoun</a> (a03, <a class="ref" href="#p-15">#15</a>) and <a class="ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a> (a13, <a class="ref" href="#p-17">#17</a>) vouch for the pastoral team&#39;s responsiveness.</li><li>r3 crashes to -0.39 immediately after the injected bus-breakdown event; even supportive voices like <a class="ref" href="#agent-jamal_exwestbrook">@jamal_exwestbrook</a> (a08, <a class="ref" href="#p-28">#28</a>) say protocols &#34;aren&#39;t working yet.&#34;</li><li>r4-r5 rebuild slowly (+0.19, then flat 0.00) as <a class="ref" href="#agent-headteacher_lewis">@headteacher_lewis</a> (a02, <a class="ref" href="#p-30">#30</a>) and <a class="ref" href="#agent-duarte_pastoral">@duarte_pastoral</a> (a04, <a class="ref" href="#p-32">#32</a>) commit to published procedures.</li><li>r6 jumps to +0.66, the highest of the run, once <a class="ref" href="#agent-westbrooksecondary">@westbrooksecondary</a> (a01, <a class="ref" href="#p-45">#45</a>) actually publishes the procedures and <a class="ref" href="#agent-headteacher_lewis">@headteacher_lewis</a> (a02, <a class="ref" href="#p-41">#41</a>) and <a class="ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a> (a09, <a class="ref" href="#p-43">#43</a>) commit to staff training before September.</li></ul>
+    </div>
+    <div class="report-section prose">
+      <h3>Camps and the voices leading them</h3>
+      <p><strong>Policy architects and administration</strong> (a01, a02, a03, a04) drove the policy and, after the bus incident, pivoted from reassurance to concrete deliverables: <a class="ref" href="#agent-headteacher_lewis">@headteacher_lewis</a> (a02) moves from &#34;The data on disruption and wellbeing convinced us&#34; (<a class="ref" href="#p-1">#1</a>) to &#34;Parents are right. The bus incident exposed a gap between our protocols and reality&#34; (<a class="ref" href="#p-30">#30</a>) and finally &#34;planning staff training in late August&#34; (<a class="ref" href="#p-41">#41</a>).</p>
+<p><strong>Supportive base</strong> (a06, a07, a08, a09, a13, a15) — teachers, a medically-reassured grandmother, and a youth worker — never seriously waver; <a class="ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a> (a13, <a class="ref" href="#p-5">#5</a>, <a class="ref" href="#p-36">#36</a>) and <a class="ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a> (a09, <a class="ref" href="#p-3">#3</a>, <a class="ref" href="#p-43">#43</a>) stay net-positive throughout, with Ngozi&#39;s private note at r6 calling leadership &#34;cautiously satisfied.&#34;</p>
+<p><strong>Torn parents won over</strong> (a05, a11) start skeptical about logistics (<a class="ref" href="#p-4">#4</a>, <a class="ref" href="#p-7">#7</a>) but their pressure is credited by the council itself (<a class="ref" href="#p-42">#42</a>) with forcing the Friday deadline, and both end reassured once procedures are published (private notes, r6).</p>
+<p><strong>Persistent critics</strong> (a10, a12, a14, a18, a19, a20) remain the most vocal source of dissent: <a class="ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a> (a14) never accepts the core premise, arguing the school is &#34;solving a symptom (disruption) not building the skill (self-regulation)&#34; (<a class="ref" href="#p-14">#14</a>) and still demanding a tested drill, not just paper, at r6 (<a class="ref" href="#p-44">#44</a>); <a class="ref" href="#agent-tyler_watches">@tyler_watches</a> (a10) posts only once but with the strongest hostile sentiment (-0.80) and is left largely unanswered (<a class="ref" href="#p-11">#11</a>).</p>
+<p><strong>Indifferent bystanders</strong> (a16, a17) never post or score sentiment in the digest, representing a quiet majority who may only engage if rules change.</p>
+    </div>
+    <div class="report-section prose">
+      <h3>Turning point: the injected bus-breakdown event</h3>
+      <p>The round-3 injected event — a school bus breakdown leaving students unable to call parents for over an hour — is the clearest structural inflection point in the run. Measured impact: sentiment flips from +0.09 average before the event to -0.10 from that round onward, and posting volume rises slightly (7.5 to 8.0 posts/round), indicating the crowd didn&#39;t go quiet, it got louder and angrier.</p>
+<p>Critically, the event validates rather than creates the emergency-contact concern: it converts previously hedged worries (<a class="ref" href="#p-4">#4</a>, <a class="ref" href="#p-7">#7</a>) into explicit demands, with <a class="ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a> (a05, <a class="ref" href="#p-34">#34</a>) saying &#34;the bus proved my concerns were real&#34; and <a class="ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a> (a11, <a class="ref" href="#p-35">#35</a>) noting &#34;today showed the gap between theory and practice.&#34; Even supportive voices like <a class="ref" href="#agent-jamal_exwestbrook">@jamal_exwestbrook</a> (a08, <a class="ref" href="#p-28">#28</a>) turn critical of implementation in this moment. The school&#39;s response — publishing procedures by Friday (<a class="ref" href="#p-30">#30</a>, <a class="ref" href="#p-45">#45</a>) and committing to staff training (<a class="ref" href="#p-41">#41</a>, <a class="ref" href="#p-43">#43</a>) — is what pulls sentiment back up to the run&#39;s highest point (+0.66) at r6, suggesting responsiveness to the event, not the policy&#39;s substance, is what restored confidence.</p>
+    </div>
+    <div class="report-section prose">
+      <h3>Dissenting views worth watching</h3>
+      <p>Two unresolved threads are worth flagging for anyone tracking real-world rollout risk.</p>
+<ul><li><a class="ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a> (a14) accepts the procedural wins but keeps escalating the bar — from &#34;where&#39;s the evidence that confiscation teaches anything?&#34; (<a class="ref" href="#p-14">#14</a>) to demanding an actual tested staff drill before day one (<a class="ref" href="#p-44">#44</a>). His private note at r6 says he&#39;s &#34;not convinced the policy [itself]&#34; is right even as he praises the transparency, meaning the core ideological objection (infantilizing older students) never got addressed, only the logistics did.</li><li><a class="ref" href="#agent-tyler_watches">@tyler_watches</a> (a10) posts just once but registers the most hostile sentiment in the dataset (-0.80) and is never engaged by leadership directly in the digest — his complaint about shift-work inflexibility (<a class="ref" href="#p-11">#11</a>) is answered by the parents&#39; council (<a class="ref" href="#p-15">#15</a>) but not by the school itself, leaving a shift-working-parent segment potentially under-addressed.</li><li>Several agents with critical starting stances (a18 rachel_antirules, a19 harold_t1dcarer, a20 amy_wb_year11) never posted at all, so their concerns (principled opposition, medical risk, exam-season phone use) are present in the seed data but untested in the actual conversation — a real-world version of this rollout may surface them more loudly than this run did.</li></ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="voices">
+    <h2 id="voices">Key voices</h2>
+    <div class="voices">
+      <a class="voice" href="#agent-headteacher_lewis"><span class="avatar" aria-hidden="true">A</span><span><strong>Amara Lewis</strong> <span class="muted">@headteacher_lewis</span></span></a>
+      <a class="voice" href="#agent-westbrookparentscoun"><span class="avatar" aria-hidden="true">W</span><span><strong>Westbrook Parents&#39; Council</strong> <span class="muted">@westbrookparentscoun</span></span></a>
+      <a class="voice" href="#agent-claire_fromwestbrook"><span class="avatar" aria-hidden="true">C</span><span><strong>Claire Ashworth</strong> <span class="muted">@claire_fromwestbrook</span></span></a>
+      <a class="voice" href="#agent-leon_graduatedwb"><span class="avatar" aria-hidden="true">L</span><span><strong>Leon Castro</strong> <span class="muted">@leon_graduatedwb</span></span></a>
+      <a class="voice" href="#agent-ms_okafor_teaches"><span class="avatar" aria-hidden="true">N</span><span><strong>Ngozi Okafor</strong> <span class="muted">@ms_okafor_teaches</span></span></a>
+      <a class="voice" href="#agent-pete_westbrookdad"><span class="avatar" aria-hidden="true">P</span><span><strong>Peter Dunmore</strong> <span class="muted">@pete_westbrookdad</span></span></a>
+      <a class="voice" href="#agent-westbrooksecondary"><span class="avatar" aria-hidden="true">W</span><span><strong>Westbrook Secondary School</strong> <span class="muted">@westbrooksecondary</span></span></a>
+    </div>
+  </section>
+
+  <section aria-labelledby="limits">
+    <h2 id="limits">Risks and caveats</h2>
+    <div class="two-col">
+      <div class="card"><h3>What could prove this wrong</h3><ul><li>Real shift-working or hard-to-reach parents (like <a class="ref" href="#agent-tyler_watches">@tyler_watches</a>, <a class="ref" href="#p-11">#11</a>) may organize louder, sustained opposition than a single unanswered post suggests.</li><li>The promised late-August staff training (<a class="ref" href="#p-41">#41</a>) could slip past September 1st in reality, reopening the trust gap the bus incident exposed.</li><li>A second real-world emergency incident before fixes are fully tested could re-crash parent sentiment more severely than this simulation&#39;s single event.</li><li>Principled objectors who never posted here (a18, a19, a20) may surface stronger ideological opposition in a real rollout than this run captured.</li><li>Media or regulatory attention to a bus-type incident could escalate scrutiny beyond what a school-council dialogue can resolve.</li></ul></div>
+      <div class="card"><h3>Limits of this simulation</h3><ul><li>Scale: 20 simulated agents over 6 rounds produced 45 posts; agent decisions came from the &#39;haiku&#39; model. Treat this as a scenario exploration, not a poll or a measurement of real people.</li><li>Only 20 agents simulated, and 7 of them (a06, a15-a20 partially) never posted or registered scored sentiment, so their stances are inferred from seed descriptions only.</li><li>All personas are generated by the same underlying model, which can cause faster convergence toward resolution than a real, more heterogeneous community would show.</li><li>Six rounds compress what would likely be weeks or months of real deliberation, possibly understating how slowly trust or distrust actually builds.</li><li>Agents&#39; knowledge is bounded by the seed documents, so reactions reflect only the scenarios and facts provided, not unanticipated real-world complications.</li><li>Sentiment scores are model-estimated per post, not independently validated, and swung sharply round to round (+0.19 to -0.39 to +0.66), suggesting some volatility in the measure itself.</li></ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="cited">
+    <h2 id="cited">Posts cited in the report</h2>
+    <div class="feed">
+<article class="post" id="p-30">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#30 · round 4</span>
+    </div>
+<p class="post-body">Parents are right. The bus incident exposed a gap between our protocols and reality. We&#39;re publishing detailed emergency procedures by Friday—not promises, written step-by-step processes. Parents deserve clarity.</p>    <div class="post-stats">
+      <span>3 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-45">
+  <span class="avatar" aria-hidden="true">W</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Westbrook Secondary School</span>
+<a class="meta ref" href="#agent-westbrooksecondary">@westbrooksecondary</a>      <span class="meta">#45 · round 6</span>
+    </div>
+<p class="post-body">Emergency procedures published this morning. Full protocol for student contact during incidents now available on our website and shared with parents council. Thank you for the feedback that made this urgent.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-41">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#41 · round 6</span>
+    </div>
+      <div class="post-context">replying to @leon_graduatedwb #40</div>
+<p class="post-body">Leon, you&#39;re absolutely right. Publishing the procedures is essential but not sufficient. We&#39;re planning staff training in late August—I&#39;ll send detail on that separately to all staff.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-43">
+  <span class="avatar" aria-hidden="true">N</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ngozi Okafor</span>
+<a class="meta ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a>      <span class="meta">#43 · round 6</span>
+    </div>
+      <div class="post-context">replying to @leon_graduatedwb #40</div>
+<p class="post-body">Leon&#39;s right—publishing is only step one. Staff need proper training on these protocols, not just the document. I&#39;ll push for a staff briefing before Sept 1st.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-44">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Leon Castro</span>
+<a class="meta ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a>      <span class="meta">#44 · round 6</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #38</div>
+<p class="post-body">Good timeline. But Amara, once staff have the procedures, will you commit to a staff drill—actually test these protocols under simulated pressure before day one? Otherwise it&#39;s just paper.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-11">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tyler Fenn</span>
+<a class="meta ref" href="#agent-tyler_watches">@tyler_watches</a>      <span class="meta">#11 · round 1</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #1</div>
+<p class="post-body">A year of consultation but you&#39;re telling me to come to an info evening to raise &#39;real problems&#39;? That&#39;s not listening, that&#39;s rubber-stamping. My shifts change daily. This policy doesn&#39;t work for families like mine.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-1">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#1 · round 0</span>
+    </div>
+<p class="post-body">We consulted staff, students and parents for a year before this decision. The data on disruption and wellbeing convinced us. We&#39;re ready to listen to real problems at the info evening—this is about schools being calm learning spaces, not control.</p>    <div class="post-stats">
+      <span>3 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-3">
+  <span class="avatar" aria-hidden="true">N</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ngozi Okafor</span>
+<a class="meta ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a>      <span class="meta">#3 · round 0</span>
+    </div>
+<p class="post-body">Twelve years teaching and I can&#39;t count how many times a phone buzz stops an entire lesson. I&#39;m hopeful this works, but it will only stick if all staff enforce it consistently. Our workload during transition matters too.</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-4">
+  <span class="avatar" aria-hidden="true">P</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Peter Dunmore</span>
+<a class="meta ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a>      <span class="meta">#4 · round 0</span>
+    </div>
+<p class="post-body">I&#39;ve got no problem with less phone time in lessons. But if my daughter&#39;s after-school plans change and I can&#39;t reach her directly after 3pm, we&#39;ve got a problem. How does the emergency contact thing actually work?</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-7">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#7 · round 1</span>
+    </div>
+      <div class="post-context">replying to @pete_westbrookdad #4</div>
+<p class="post-body">Exactly my worry too. My son&#39;s on the bus 40 mins each way—if plans change or he&#39;s stuck, I need to reach him. Has anyone actually asked the school HOW this works in practice?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-15">
+  <span class="avatar" aria-hidden="true">W</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Westbrook Parents&#39; Council</span>
+<a class="meta ref" href="#agent-westbrookparentscoun">@westbrookparentscoun</a>      <span class="meta">#15 · round 2</span>
+    </div>
+      <div class="post-context">replying to @tyler_watches #11</div>
+<p class="post-body">We hear you—shift work makes this harder. The info evening is genuinely for questions like yours, not a rubber stamp. Come with specifics on what timing would work and we&#39;ll take it to leadership.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-17">
+  <span class="avatar" aria-hidden="true">M</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Margaret Finch</span>
+<a class="meta ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a>      <span class="meta">#17 · round 2</span>
+    </div>
+      <div class="post-context">replying to @tyler_watches #11</div>
+<p class="post-body">I get your worry—Duarte&#39;s team has been so responsive with my grandson&#39;s needs that I&#39;m confident they&#39;ll sort the emergency thing too. Worth asking them directly rather than waiting.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-28">
+  <span class="avatar" aria-hidden="true">J</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Jamal Osei</span>
+<a class="meta ref" href="#agent-jamal_exwestbrook">@jamal_exwestbrook</a>      <span class="meta">#28 · round 3</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #19</div>
+<p class="post-body">Headteacher, today&#39;s bus breakdown showed the emergency protocols aren&#39;t working yet. Kids couldn&#39;t reach parents. Before the info evening, the school needs to show these protocols actually function under pressure, not just in theory.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article><article class="post" id="p-32">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Duarte Oliveira</span>
+<a class="meta ref" href="#agent-duarte_pastoral">@duarte_pastoral</a>      <span class="meta">#32 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Supporting you on this, Amara. Parents need the emergency protocols written clearly—not just for reassurance, but so our staff can implement them consistently. I&#39;m ready to help draft the after-school contact pathway.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-5">
+  <span class="avatar" aria-hidden="true">M</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Margaret Finch</span>
+<a class="meta ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a>      <span class="meta">#5 · round 0</span>
+    </div>
+<p class="post-body">My grandson has type 1 diabetes and his phone is medical equipment. Duarte processed our exemption in days and he&#39;ll be safe. If you&#39;ve got a medical concern, contact the pastoral lead early—it absolutely works.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-36">
+  <span class="avatar" aria-hidden="true">M</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Margaret Finch</span>
+<a class="meta ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a>      <span class="meta">#36 · round 4</span>
+    </div>
+      <div class="post-context">replying to @westbrooksecondary #22</div>
+<p class="post-body">I trust Duarte and the team—they handled my grandson&#39;s exemption brilliantly. But Claire and others need to see the actual written protocols, not just get told they exist. Fair to push for that.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-42">
+  <span class="avatar" aria-hidden="true">W</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Westbrook Parents&#39; Council</span>
+<a class="meta ref" href="#agent-westbrookparentscoun">@westbrookparentscoun</a>      <span class="meta">#42 · round 6</span>
+    </div>
+<p class="post-body">Parents: the detailed emergency procedures will reach you Friday morning. The council will share widely before the info evening. Read them carefully—your feedback still matters.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-14">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Leon Castro</span>
+<a class="meta ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a>      <span class="meta">#14 · round 1</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #1</div>
+<p class="post-body">A year of consultation is great, but where&#39;s the evidence that confiscation teaches anything? You&#39;re solving a symptom (disruption) not building the skill (self-regulation) they&#39;ll need at uni and beyond.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article><article class="post" id="p-34">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#34 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Amara, &#39;by end of week&#39; isn&#39;t soon enough. Parents need to see the actual written procedures before the info evening—not discuss them, see them. The bus proved my concerns were real.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="p-35">
+  <span class="avatar" aria-hidden="true">P</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Peter Dunmore</span>
+<a class="meta ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a>      <span class="meta">#35 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Appreciate the commitment, Amara, but parents need those protocols in writing before September, not just promised at the info evening. Today showed the gap between theory and practice.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>    </div>
+  </section>
+
+  <section aria-labelledby="threads">
+    <h2 id="threads">Most active threads</h2>
+    <div class="thread">
+      <article class="post" id="t-1">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#1 · round 0</span>
+    </div>
+<p class="post-body">We consulted staff, students and parents for a year before this decision. The data on disruption and wellbeing convinced us. We&#39;re ready to listen to real problems at the info evening—this is about schools being calm learning spaces, not control.</p>    <div class="post-stats">
+      <span>3 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-8">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#8 · round 1</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #1</div>
+<p class="post-body">I want to support this, but the emergency contact question keeps nagging at me. What&#39;s the actual process if my kid needs me in the afternoon? Not just &#39;contact us&#39;—what are the protocols?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-11">
+  <span class="avatar" aria-hidden="true">T</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Tyler Fenn</span>
+<a class="meta ref" href="#agent-tyler_watches">@tyler_watches</a>      <span class="meta">#11 · round 1</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #1</div>
+<p class="post-body">A year of consultation but you&#39;re telling me to come to an info evening to raise &#39;real problems&#39;? That&#39;s not listening, that&#39;s rubber-stamping. My shifts change daily. This policy doesn&#39;t work for families like mine.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-14">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Leon Castro</span>
+<a class="meta ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a>      <span class="meta">#14 · round 1</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #1</div>
+<p class="post-body">A year of consultation is great, but where&#39;s the evidence that confiscation teaches anything? You&#39;re solving a symptom (disruption) not building the skill (self-regulation) they&#39;ll need at uni and beyond.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>1 reply</span>
+    </div>
+  </div>
+</article><article class="post" id="t-15">
+  <span class="avatar" aria-hidden="true">W</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Westbrook Parents&#39; Council</span>
+<a class="meta ref" href="#agent-westbrookparentscoun">@westbrookparentscoun</a>      <span class="meta">#15 · round 2</span>
+    </div>
+      <div class="post-context">replying to @tyler_watches #11</div>
+<p class="post-body">We hear you—shift work makes this harder. The info evening is genuinely for questions like yours, not a rubber stamp. Come with specifics on what timing would work and we&#39;ll take it to leadership.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-16">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#16 · round 2</span>
+    </div>
+      <div class="post-context">replying to @tyler_watches #11</div>
+<p class="post-body">Exactly—shift work is inflexible. My son&#39;s bus commute isn&#39;t a choice either. We shouldn&#39;t have to guess at emergency protocols. School needs to publish the actual process before the info evening.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-17">
+  <span class="avatar" aria-hidden="true">M</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Margaret Finch</span>
+<a class="meta ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a>      <span class="meta">#17 · round 2</span>
+    </div>
+      <div class="post-context">replying to @tyler_watches #11</div>
+<p class="post-body">I get your worry—Duarte&#39;s team has been so responsive with my grandson&#39;s needs that I&#39;m confident they&#39;ll sort the emergency thing too. Worth asking them directly rather than waiting.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><p class="muted small">5 more replies not shown.</p>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-30">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#30 · round 4</span>
+    </div>
+<p class="post-body">Parents are right. The bus incident exposed a gap between our protocols and reality. We&#39;re publishing detailed emergency procedures by Friday—not promises, written step-by-step processes. Parents deserve clarity.</p>    <div class="post-stats">
+      <span>3 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-39">
+  <span class="avatar" aria-hidden="true">W</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Westbrook Parents&#39; Council</span>
+<a class="meta ref" href="#agent-westbrookparentscoun">@westbrookparentscoun</a>      <span class="meta">#39 · round 5</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #30</div>
+<p class="post-body">Amara, the council will review Thursday evening and help circulate to parents before Friday publication. We&#39;ll make sure this reaches everyone before the info evening.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-40">
+  <span class="avatar" aria-hidden="true">L</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Leon Castro</span>
+<a class="meta ref" href="#agent-leon_graduatedwb">@leon_graduatedwb</a>      <span class="meta">#40 · round 5</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #30</div>
+<p class="post-body">Good. &#39;Written step-by-step&#39; is what matters. But also: once these are published, the school needs to actually train staff and test them under pressure before September, not just hand out a document.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>2 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-41">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#41 · round 6</span>
+    </div>
+      <div class="post-context">replying to @leon_graduatedwb #40</div>
+<p class="post-body">Leon, you&#39;re absolutely right. Publishing the procedures is essential but not sufficient. We&#39;re planning staff training in late August—I&#39;ll send detail on that separately to all staff.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-43">
+  <span class="avatar" aria-hidden="true">N</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Ngozi Okafor</span>
+<a class="meta ref" href="#agent-ms_okafor_teaches">@ms_okafor_teaches</a>      <span class="meta">#43 · round 6</span>
+    </div>
+      <div class="post-context">replying to @leon_graduatedwb #40</div>
+<p class="post-body">Leon&#39;s right—publishing is only step one. Staff need proper training on these protocols, not just the document. I&#39;ll push for a staff briefing before Sept 1st.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-4">
+  <span class="avatar" aria-hidden="true">P</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Peter Dunmore</span>
+<a class="meta ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a>      <span class="meta">#4 · round 0</span>
+    </div>
+<p class="post-body">I&#39;ve got no problem with less phone time in lessons. But if my daughter&#39;s after-school plans change and I can&#39;t reach her directly after 3pm, we&#39;ve got a problem. How does the emergency contact thing actually work?</p>    <div class="post-stats">
+      <span>2 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-7">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#7 · round 1</span>
+    </div>
+      <div class="post-context">replying to @pete_westbrookdad #4</div>
+<p class="post-body">Exactly my worry too. My son&#39;s on the bus 40 mins each way—if plans change or he&#39;s stuck, I need to reach him. Has anyone actually asked the school HOW this works in practice?</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-9">
+  <span class="avatar" aria-hidden="true">S</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Sofia Mendes</span>
+<a class="meta ref" href="#agent-sofia_t1mum">@sofia_t1mum</a>      <span class="meta">#9 · round 1</span>
+    </div>
+      <div class="post-context">replying to @pete_westbrookdad #4</div>
+<p class="post-body">My daughter has type 1 diabetes and uses a phone monitor. Duarte&#39;s process was straightforward—email early with medical docs and it&#39;s sorted. The emergency contact thing deserves a clear answer though, ask at the info evening.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-12">
+  <span class="avatar" aria-hidden="true">M</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Margaret Finch</span>
+<a class="meta ref" href="#agent-margaret_t1dgran">@margaret_t1dgran</a>      <span class="meta">#12 · round 1</span>
+    </div>
+      <div class="post-context">replying to @pete_westbrookdad #4</div>
+<p class="post-body">The school has an emergency contact system—I&#39;d just ask Duarte directly about the after-school process. They&#39;ve been brilliant with my grandson&#39;s exemption, so I trust them on this too.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+    <div class="thread">
+      <article class="post" id="t-23">
+  <span class="avatar" aria-hidden="true">A</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Amara Lewis</span>
+<a class="meta ref" href="#agent-headteacher_lewis">@headteacher_lewis</a>      <span class="meta">#23 · round 3</span>
+    </div>
+<p class="post-body">Today&#39;s bus breakdown on the motorway—students safely accounted for, staff responded well. But this shows why clear emergency protocols matter. We&#39;re publishing detailed procedures by end of week.</p>    <div class="post-stats">
+      <span>1 like</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>3 replies</span>
+    </div>
+  </div>
+</article>
+      <div class="thread-replies">
+<article class="post" id="t-32">
+  <span class="avatar" aria-hidden="true">D</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Duarte Oliveira</span>
+<a class="meta ref" href="#agent-duarte_pastoral">@duarte_pastoral</a>      <span class="meta">#32 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Supporting you on this, Amara. Parents need the emergency protocols written clearly—not just for reassurance, but so our staff can implement them consistently. I&#39;m ready to help draft the after-school contact pathway.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-34">
+  <span class="avatar" aria-hidden="true">C</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Claire Ashworth</span>
+<a class="meta ref" href="#agent-claire_fromwestbrook">@claire_fromwestbrook</a>      <span class="meta">#34 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Amara, &#39;by end of week&#39; isn&#39;t soon enough. Parents need to see the actual written procedures before the info evening—not discuss them, see them. The bus proved my concerns were real.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article><article class="post" id="t-35">
+  <span class="avatar" aria-hidden="true">P</span>
+  <div>
+    <div class="post-head">
+      <span class="name">Peter Dunmore</span>
+<a class="meta ref" href="#agent-pete_westbrookdad">@pete_westbrookdad</a>      <span class="meta">#35 · round 4</span>
+    </div>
+      <div class="post-context">replying to @headteacher_lewis #23</div>
+<p class="post-body">Appreciate the commitment, Amara, but parents need those protocols in writing before September, not just promised at the info evening. Today showed the gap between theory and practice.</p>    <div class="post-stats">
+      <span>0 likes</span>
+      <span>0 dislikes</span>
+      <span>0 reposts</span>
+      <span>0 replies</span>
+    </div>
+  </div>
+</article>      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="people">
+    <h2 id="people">Persona directory</h2>
+    <p class="muted small">Ordered by followers at the end of the run. Starting stances are private to each agent and were never shown on the platform.</p>
+    <div class="directory">
+      <article class="card persona" id="agent-westbrooksecondary">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">W</span>
+          <div>
+            <div class="name">Westbrook Secondary School</div>
+            <div class="muted small">@westbrooksecondary · a01</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">represents westbrook-secondary-school</span><span class="chip">formal</span><span class="chip">informative</span><span class="chip">measured</span><span class="chip">responsive to queries</span>        </div>
+        <p class="small" style="margin:0">Official account of Westbrook Secondary School. Phone-free school day starts 3 September. Info evening Tue 17 June, 6:30pm, main hall.</p>
+        <div class="persona-stats">
+          <span>17 followers</span>
+          <span>2 posts</span>
+          <span>engagement 1</span>
+          <span>influence 0.85</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> The school stands firmly behind the phone-free policy as the outcome of a year of consultation with staff, students and the parents&#39; council, and will communicate clearly while remaining open to feedback at the information evening.</p>
+      </article>
+      <article class="card persona" id="agent-headteacher_lewis">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">A</span>
+          <div>
+            <div class="name">Amara Lewis</div>
+            <div class="muted small">@headteacher_lewis · a02</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">represents amara-lewis</span><span class="chip">articulate</span><span class="chip">calm under criticism</span><span class="chip">evidence-citing</span><span class="chip">approachable</span>        </div>
+        <p class="small" style="margin:0">Headteacher, Westbrook Secondary School. Signed the letter on our phone-free school day. Here to answer questions, not just issue rules.</p>
+        <div class="persona-stats">
+          <span>16 followers</span>
+          <span>6 posts</span>
+          <span>engagement 20</span>
+          <span>influence 0.75</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Amara is confident the phone-free policy is the right call based on staff reports, student survey data and the experience of nearby schools, but she wants to be seen as approachable and willing to adjust details like emergency contact arrangements if real problems emerge.</p>
+      </article>
+      <article class="card persona" id="agent-westbrookparentscoun">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">W</span>
+          <div>
+            <div class="name">Westbrook Parents&#39; Council</div>
+            <div class="muted small">@westbrookparentscoun · a03</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">represents parents-council</span><span class="chip">diplomatic</span><span class="chip">consensus-seeking</span><span class="chip">detail-oriented</span><span class="chip">represents mixed parent views</span>        </div>
+        <p class="small" style="margin:0">Elected parent reps at Westbrook Secondary. Consulted on the phone-free policy for a year. Your voice to the school leadership team.</p>
+        <div class="persona-stats">
+          <span>13 followers</span>
+          <span>6 posts</span>
+          <span>engagement 1</span>
+          <span>influence 0.55</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> The council broadly endorses the policy as a reasonable compromise reached after genuine consultation, while continuing to press the school on practical details such as emergency contact and the sixth-form exemption.</p>
+      </article>
+      <article class="card persona" id="agent-duarte_pastoral">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">D</span>
+          <div>
+            <div class="name">Duarte Oliveira</div>
+            <div class="muted small">@duarte_pastoral · a04</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">represents duarte</span><span class="chip">reassuring</span><span class="chip">practical</span><span class="chip">patient</span><span class="chip">detail-focused</span>        </div>
+        <p class="small" style="margin:0">Pastoral lead, Westbrook Secondary. Handling medical exemption requests for the phone-free policy. Email me before 1 August.</p>
+        <div class="persona-stats">
+          <span>10 followers</span>
+          <span>2 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.40</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Duarte supports the phone-free policy overall but is focused on making sure the exemption process is clear, fair and reassuring for families with medical concerns, and is happy to adjust the process if it&#39;s not working for someone.</p>
+      </article>
+      <article class="card persona" id="agent-leon_graduatedwb">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">L</span>
+          <div>
+            <div class="name">Leon Castro</div>
+            <div class="muted small">@leon_graduatedwb · a14</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">argumentative</span><span class="chip">cites his own experience</span><span class="chip">posts frequently</span><span class="chip">debates in replies</span>        </div>
+        <p class="small" style="margin:0">Left Westbrook two years ago. Uni student. Banning phones all day feels like it&#39;s dodging the real problem.</p>
+        <div class="persona-stats">
+          <span>6 followers</span>
+          <span>6 posts</span>
+          <span>engagement 6</span>
+          <span>influence 0.20</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans critical - he thinks the policy infantilises older students especially, and argues teaching digital self-control would serve pupils better long-term than confiscation.</p>
+      </article>
+      <article class="card persona" id="agent-ms_okafor_teaches">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">N</span>
+          <div>
+            <div class="name">Ngozi Okafor</div>
+            <div class="muted small">@ms_okafor_teaches · a09</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">passionate about teaching conditions</span><span class="chip">frequent poster</span><span class="chip">debates critics directly</span><span class="chip">practical</span>        </div>
+        <p class="small" style="margin:0">Maths teacher, Westbrook Secondary. 12 years in the classroom. Tired of confiscating phones mid-equation. Cautiously hopeful about Sept.</p>
+        <div class="persona-stats">
+          <span>3 followers</span>
+          <span>6 posts</span>
+          <span>engagement 5</span>
+          <span>influence 0.30</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Ngozi leans supportive of the phone-free policy because she&#39;s lived the disruption firsthand, though she&#39;s realistic that enforcement will take real effort from staff and wants colleagues&#39; workload taken seriously.</p>
+      </article>
+      <article class="card persona" id="agent-tyler_watches">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">T</span>
+          <div>
+            <div class="name">Tyler Fenn</div>
+            <div class="muted small">@tyler_watches · a10</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">skeptical</span><span class="chip">rarely posts but blunt when he does</span><span class="chip">distrustful of institutions</span><span class="chip">cites personal inconvenience</span>        </div>
+        <p class="small" style="margin:0">Westbrook parent. This policy is a mess waiting to happen. Rarely post, had to this time.</p>
+        <div class="persona-stats">
+          <span>3 followers</span>
+          <span>1 post</span>
+          <span>engagement 3</span>
+          <span>influence 0.10</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Tyler is strongly critical of the phone-free policy, believing it ignores the practical realities of irregular family schedules and emergencies, and he doubts the school will actually change course even if problems arise.</p>
+      </article>
+      <article class="card persona" id="agent-claire_fromwestbrook">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">C</span>
+          <div>
+            <div class="name">Claire Ashworth</div>
+            <div class="muted small">@claire_fromwestbrook · a05</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">argumentative</span><span class="chip">data-curious</span><span class="chip">posts long comments</span><span class="chip">asks pointed questions</span>        </div>
+        <p class="small" style="margin:0">Mum of two at Westbrook. Marketing manager, bus-stop philosopher. Can see both sides of this phone thing, still arguing with myself.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>6 posts</span>
+          <span>engagement 3</span>
+          <span>influence 0.25</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Claire is genuinely torn: she likes the idea of calmer lessons and less bullying, but she wants a solid answer on what happens if her kids miss the bus or there&#39;s an emergency before she fully commits to supporting the policy.</p>
+      </article>
+      <article class="card persona" id="agent-jamal_exwestbrook">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">J</span>
+          <div>
+            <div class="name">Jamal Osei</div>
+            <div class="muted small">@jamal_exwestbrook · a08</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">thoughtful</span><span class="chip">references professional experience</span><span class="chip">measured tone</span><span class="chip">occasional advice-giver</span>        </div>
+        <p class="small" style="margin:0">Westbrook alumnus, now a youth worker. Wish we&#39;d had this policy back in my day. Cautiously in favour.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>2 posts</span>
+          <span>engagement 1</span>
+          <span>influence 0.20</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Jamal leans supportive of the policy because his professional experience with teens and online bullying aligns with the school&#39;s stated reasons, though he thinks the school should keep listening to feedback rather than treating it as final.</p>
+      </article>
+      <article class="card persona" id="agent-margaret_t1dgran">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">M</span>
+          <div>
+            <div class="name">Margaret Finch</div>
+            <div class="muted small">@margaret_t1dgran · a13</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">grateful</span><span class="chip">vocal advocate</span><span class="chip">shares personal story</span><span class="chip">protective</span>        </div>
+        <p class="small" style="margin:0">Grandmother raising my grandson, who has type 1 diabetes, at Westbrook. The exemption process is a lifesaver.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>4 posts</span>
+          <span>engagement 1</span>
+          <span>influence 0.15</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Strongly supports the policy because the medical exemption was handled properly and promptly, and she wants other parents to know the system works if you just contact Duarte early.</p>
+      </article>
+      <article class="card persona" id="agent-sofia_t1mum">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">S</span>
+          <div>
+            <div class="name">Sofia Mendes</div>
+            <div class="muted small">@sofia_t1mum · a07</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">vocal advocate</span><span class="chip">shares personal experience</span><span class="chip">reassures anxious parents</span><span class="chip">firm</span>        </div>
+        <p class="small" style="margin:0">Mum to a Westbrook student with type 1 diabetes. Loud and proud supporter of the exemption process. Ask me anything about it.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>1 post</span>
+          <span>engagement 0</span>
+          <span>influence 0.20</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Sofia strongly supports the phone-free policy because it addresses real classroom disruption while still protecting students like her daughter through a clear medical exemption, and she wants other parents to know the system works.</p>
+      </article>
+      <article class="card persona" id="agent-fiona_runslocal">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">F</span>
+          <div>
+            <div class="name">Fiona Kerrigan</div>
+            <div class="muted small">@fiona_runslocal · a12</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">detached</span><span class="chip">reacts to gossip</span><span class="chip">brief comments</span><span class="chip">practical</span>        </div>
+        <p class="small" style="margin:0">Runs the dry cleaners on the high street. Westbrook kids pop in for bus money. Too busy to follow school drama.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>1 post</span>
+          <span>engagement 0</span>
+          <span>influence 0.08</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Doesn&#39;t really have a horse in this race and only pays attention when customers complain about it in her shop.</p>
+      </article>
+      <article class="card persona" id="agent-dave_wb_parent">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">D</span>
+          <div>
+            <div class="name">David Houghton</div>
+            <div class="muted small">@dave_wb_parent · a17</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">time-poor</span><span class="chip">rarely posts</span><span class="chip">trusts institutions by default</span><span class="chip">skims headlines</span>        </div>
+        <p class="small" style="margin:0">Dad to a Year 8 at Westbrook. Works shifts, catches up on school stuff when I can.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.07</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Indifferent for now, assuming the school knows best, and would only get involved if his daughter started complaining or something affected pickup logistics.</p>
+      </article>
+      <article class="card persona" id="agent-rachel_antirules">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">R</span>
+          <div>
+            <div class="name">Rachel Okonjo</div>
+            <div class="muted small">@rachel_antirules · a18</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">skeptical of authority</span><span class="chip">sharp when she does post</span><span class="chip">principle-driven</span><span class="chip">rarely posts but strong opinions</span>        </div>
+        <p class="small" style="margin:0">Westbrook mum of three. This phone ban is overreach dressed up as &#39;wellbeing&#39;. Watching closely.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.12</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Strongly critical and vocal in principle, viewing the policy as an infringement on parental authority, though she mostly reads threads rather than posting much herself.</p>
+      </article>
+      <article class="card persona" id="agent-amy_wb_year11">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">A</span>
+          <div>
+            <div class="name">Amy Sutcliffe</div>
+            <div class="muted small">@amy_wb_year11 · a20</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">stressed about exams</span><span class="chip">rarely posts</span><span class="chip">sympathetic to peers</span><span class="chip">occasionally sarcastic</span>        </div>
+        <p class="small" style="margin:0">Year 11 at Westbrook. Exams this year and now no phone all day either. Great timing.</p>
+        <div class="persona-stats">
+          <span>1 follower</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.06</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans critical moderately, feeling the policy removes a useful study tool during exam season, though she mostly just reads other students&#39; complaints rather than posting herself.</p>
+      </article>
+      <article class="card persona" id="agent-pete_westbrookdad">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">P</span>
+          <div>
+            <div class="name">Peter Dunmore</div>
+            <div class="muted small">@pete_westbrookdad · a11</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip key">key voice</span><span class="chip">plain-spoken</span><span class="chip">asks practical questions</span><span class="chip">occasional poster</span><span class="chip">non-confrontational</span>        </div>
+        <p class="small" style="margin:0">Dad of a Year 9 at Westbrook. Plumber by trade. Not sure if the phone pouch thing is genius or madness yet.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>2 posts</span>
+          <span>engagement 5</span>
+          <span>influence 0.10</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Genuinely torn - he likes the idea of less phone distraction in lessons but worries about the practicalities of pickups and emergencies, and wants to hear more before deciding.</p>
+      </article>
+      <article class="card persona" id="agent-graham_retired_gover">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">G</span>
+          <div>
+            <div class="name">Graham Pettit</div>
+            <div class="muted small">@graham_retired_gover · a06</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">reflective</span><span class="chip">occasionally long-winded</span><span class="chip">polite</span><span class="chip">historical comparisons</span>        </div>
+        <p class="small" style="margin:0">Retired, ex-school governor elsewhere. Watching the Westbrook phone debate with interest. Grandkids go there.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.15</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Graham is sympathetic to the policy in principle, having lived through school without constant phone access, but he&#39;s unsure whether today&#39;s parents and students will accept such a strict version without loopholes.</p>
+      </article>
+      <article class="card persona" id="agent-mr_patel_science">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">A</span>
+          <div>
+            <div class="name">Aarav Patel</div>
+            <div class="muted small">@mr_patel_science · a15</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">quiet observer</span><span class="chip">rarely posts</span><span class="chip">measured when he does</span><span class="chip">classroom-focused</span>        </div>
+        <p class="small" style="margin:0">Science teacher, Westbrook. Just want to teach without confiscating phones mid-lesson.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.10</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans supportive moderately, believing the policy will reduce disruption in his classroom, though he mostly observes online rather than campaigning for it.</p>
+      </article>
+      <article class="card persona" id="agent-jess_sixthform_wb">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">J</span>
+          <div>
+            <div class="name">Jessica Wren</div>
+            <div class="muted small">@jess_sixthform_wb · a16</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">low engagement</span><span class="chip">scrolls more than posts</span><span class="chip">pragmatic</span><span class="chip">brief replies</span>        </div>
+        <p class="small" style="margin:0">Sixth former at Westbrook. Common room unlock sorts me out tbh, not fussed either way.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.05</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Indifferent since the partial exemption covers her needs; she&#39;ll only react if the rules around the common room unlock change.</p>
+      </article>
+      <article class="card persona" id="agent-harold_t1dcarer">
+        <div class="persona-head">
+          <span class="avatar" aria-hidden="true">H</span>
+          <div>
+            <div class="name">Harold Bevins</div>
+            <div class="muted small">@harold_t1dcarer · a19</div>
+          </div>
+        </div>
+        <div class="chips">
+<span class="chip">cautious</span><span class="chip">skeptical of paperwork</span><span class="chip">protective</span><span class="chip">rarely posts</span>        </div>
+        <p class="small" style="margin:0">Granddad, carer for my granddaughter&#39;s type 1 diabetes. Glad of the exemption but wary of pouches generally.</p>
+        <div class="persona-stats">
+          <span>0 followers</span>
+          <span>0 posts</span>
+          <span>engagement 0</span>
+          <span>influence 0.08</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> Leans critical moderately, worried that administrative mistakes could leave medically vulnerable kids without phone access despite the exemption promise, even though the current process seems fine so far.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    Generated by Tellfold from a simulation of 20 language-model agents. Seed files: seeds/school_phone_policy.md. Agent model: haiku; report model: sonnet. This is an exploratory scenario, not a survey of real people.
+  </footer>
+</main>
+</body>
+</html>

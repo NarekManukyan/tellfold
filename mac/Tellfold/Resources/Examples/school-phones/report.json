@@ -1,0 +1,111 @@
+{
+  "title": "Policy Survives Bus Scare; School Must Fix Protocols, Not Reverse Ban",
+  "summary": "The simulated crowd does not push Westbrook to abandon the phone-free day: criticism concentrates on *how* emergencies are handled, not on whether phones should be locked away, and even skeptical parents end the run reassured once written procedures are promised (#30, #45). Sentiment moved from mildly positive (+0.10 at r0) through a sharp crash to -0.39 after the injected bus-breakdown event at round 3, then recovered to +0.66 by round 6 as @headteacher_lewis (a02) and @westbrooksecondary (a01) published concrete emergency procedures and staff training commitments (#41, #43, #45). The most persistent dissent comes from @leon_graduatedwb (a14), who keeps pressing for a staff drill rather than just a document (#44), and @tyler_watches (a10), whose single post says the policy \"doesn't work for families like mine\" (#11) and is never answered directly in the thread. No agent in the digest calls for scrapping the phone ban itself; the fight is entirely about operational trust.",
+  "prediction": "The single most likely real-world outcome is that Westbrook keeps the phone-free policy unchanged in substance but is forced to formalize and publicize emergency-contact procedures and staff training (mirroring #30, #41, #43, #45) to keep parent buy-in — this depends on the school actually delivering the promised August staff drill and Friday publication rather than letting it slip, and on no second high-profile incident occurring before fixes land. The strongest counter-signal is how fast and far sentiment cratered after a single bus breakdown (+0.09 before vs -0.10 after per-round average, with r3 dropping to -0.39), showing that trust is thin and reversible if the school's follow-through (training \"in late August\" per #41) is delayed or another incident happens first.",
+  "confidence": "medium",
+  "sections": [
+    {
+      "title": "Round-by-round evolution",
+      "body_markdown": "The conversation opens cautiously favorable: r0 sentiment is +0.10 as @headteacher_lewis (a02) frames the policy as the product of a year's consultation (#1) and teacher @ms_okafor_teaches (a09) says she's \"hopeful this works\" (#3).\n\n- r1 dips to -0.00 as parents press the practical gap: @pete_westbrookdad (a11, #4) and @claire_fromwestbrook (a05, #7) ask how emergency contact actually works, and @tyler_watches (a10) accuses the school of \"rubber-stamping\" (#11).\n- r2 recovers to +0.19 as @westbrookparentscoun (a03, #15) and @margaret_t1dgran (a13, #17) vouch for the pastoral team's responsiveness.\n- r3 crashes to -0.39 immediately after the injected bus-breakdown event; even supportive voices like @jamal_exwestbrook (a08, #28) say protocols \"aren't working yet.\"\n- r4-r5 rebuild slowly (+0.19, then flat 0.00) as @headteacher_lewis (a02, #30) and @duarte_pastoral (a04, #32) commit to published procedures.\n- r6 jumps to +0.66, the highest of the run, once @westbrooksecondary (a01, #45) actually publishes the procedures and @headteacher_lewis (a02, #41) and @ms_okafor_teaches (a09, #43) commit to staff training before September."
+    },
+    {
+      "title": "Camps and the voices leading them",
+      "body_markdown": "**Policy architects and administration** (a01, a02, a03, a04) drove the policy and, after the bus incident, pivoted from reassurance to concrete deliverables: @headteacher_lewis (a02) moves from \"The data on disruption and wellbeing convinced us\" (#1) to \"Parents are right. The bus incident exposed a gap between our protocols and reality\" (#30) and finally \"planning staff training in late August\" (#41).\n\n**Supportive base** (a06, a07, a08, a09, a13, a15) — teachers, a medically-reassured grandmother, and a youth worker — never seriously waver; @margaret_t1dgran (a13, #5, #36) and @ms_okafor_teaches (a09, #3, #43) stay net-positive throughout, with Ngozi's private note at r6 calling leadership \"cautiously satisfied.\"\n\n**Torn parents won over** (a05, a11) start skeptical about logistics (#4, #7) but their pressure is credited by the council itself (#42) with forcing the Friday deadline, and both end reassured once procedures are published (private notes, r6).\n\n**Persistent critics** (a10, a12, a14, a18, a19, a20) remain the most vocal source of dissent: @leon_graduatedwb (a14) never accepts the core premise, arguing the school is \"solving a symptom (disruption) not building the skill (self-regulation)\" (#14) and still demanding a tested drill, not just paper, at r6 (#44); @tyler_watches (a10) posts only once but with the strongest hostile sentiment (-0.80) and is left largely unanswered (#11).\n\n**Indifferent bystanders** (a16, a17) never post or score sentiment in the digest, representing a quiet majority who may only engage if rules change."
+    },
+    {
+      "title": "Turning point: the injected bus-breakdown event",
+      "body_markdown": "The round-3 injected event — a school bus breakdown leaving students unable to call parents for over an hour — is the clearest structural inflection point in the run. Measured impact: sentiment flips from +0.09 average before the event to -0.10 from that round onward, and posting volume rises slightly (7.5 to 8.0 posts/round), indicating the crowd didn't go quiet, it got louder and angrier.\n\nCritically, the event validates rather than creates the emergency-contact concern: it converts previously hedged worries (#4, #7) into explicit demands, with @claire_fromwestbrook (a05, #34) saying \"the bus proved my concerns were real\" and @pete_westbrookdad (a11, #35) noting \"today showed the gap between theory and practice.\" Even supportive voices like @jamal_exwestbrook (a08, #28) turn critical of implementation in this moment. The school's response — publishing procedures by Friday (#30, #45) and committing to staff training (#41, #43) — is what pulls sentiment back up to the run's highest point (+0.66) at r6, suggesting responsiveness to the event, not the policy's substance, is what restored confidence."
+    },
+    {
+      "title": "Dissenting views worth watching",
+      "body_markdown": "Two unresolved threads are worth flagging for anyone tracking real-world rollout risk.\n\n- @leon_graduatedwb (a14) accepts the procedural wins but keeps escalating the bar — from \"where's the evidence that confiscation teaches anything?\" (#14) to demanding an actual tested staff drill before day one (#44). His private note at r6 says he's \"not convinced the policy [itself]\" is right even as he praises the transparency, meaning the core ideological objection (infantilizing older students) never got addressed, only the logistics did.\n- @tyler_watches (a10) posts just once but registers the most hostile sentiment in the dataset (-0.80) and is never engaged by leadership directly in the digest — his complaint about shift-work inflexibility (#11) is answered by the parents' council (#15) but not by the school itself, leaving a shift-working-parent segment potentially under-addressed.\n- Several agents with critical starting stances (a18 rachel_antirules, a19 harold_t1dcarer, a20 amy_wb_year11) never posted at all, so their concerns (principled opposition, medical risk, exam-season phone use) are present in the seed data but untested in the actual conversation — a real-world version of this rollout may surface them more loudly than this run did."
+    }
+  ],
+  "key_voices": [
+    "a02",
+    "a03",
+    "a05",
+    "a14",
+    "a09",
+    "a11",
+    "a01"
+  ],
+  "reasons": [
+    "No agent calls for scrapping the ban; critique targets emergency protocols, which the school fixes by r6 (#30, #45).",
+    "Sentiment crashed to -0.39 after the injected bus incident but recovered to +0.66 once procedures were published (#41, #43).",
+    "Torn parents like @claire_fromwestbrook (#34) and @pete_westbrookdad (#35) end reassured once written protocols appear.",
+    "@leon_graduatedwb (#44) and @tyler_watches (#11) show unresolved dissent that leadership never fully answers."
+  ],
+  "camps": [
+    {
+      "name": "Policy architects & admin",
+      "summary": "School leadership and the parents' council designed the policy and, after the bus incident, shifted from reassurance to concrete written procedures and staff training (#1, #30, #41, #45).",
+      "members": [
+        "a01",
+        "a02",
+        "a03",
+        "a04"
+      ],
+      "sentiment": 0.412
+    },
+    {
+      "name": "Supportive base",
+      "summary": "Teachers, a reassured grandmother, and a youth worker stay net-favorable throughout, citing classroom disruption and successful medical exemptions (#3, #5, #43).",
+      "members": [
+        "a06",
+        "a07",
+        "a08",
+        "a09",
+        "a13",
+        "a15"
+      ],
+      "sentiment": 0.269
+    },
+    {
+      "name": "Torn parents won over",
+      "summary": "Initially anxious about after-school contact (#4, #7), these parents credit the bus incident with forcing real fixes and end reassured by published protocols.",
+      "members": [
+        "a05",
+        "a11"
+      ],
+      "sentiment": -0.463
+    },
+    {
+      "name": "Persistent critics",
+      "summary": "A mix of principled objectors and logistics-focused skeptics who remain unconvinced on either the policy's rationale or its execution (#11, #14, #44).",
+      "members": [
+        "a10",
+        "a12",
+        "a14",
+        "a18",
+        "a19",
+        "a20"
+      ],
+      "sentiment": -0.35
+    },
+    {
+      "name": "Indifferent bystanders",
+      "summary": "Agents who never posted or registered sentiment in the digest, representing a quiet segment waiting to see how rules play out.",
+      "members": [
+        "a16",
+        "a17"
+      ],
+      "sentiment": null
+    }
+  ],
+  "risks": [
+    "Real shift-working or hard-to-reach parents (like @tyler_watches, #11) may organize louder, sustained opposition than a single unanswered post suggests.",
+    "The promised late-August staff training (#41) could slip past September 1st in reality, reopening the trust gap the bus incident exposed.",
+    "A second real-world emergency incident before fixes are fully tested could re-crash parent sentiment more severely than this simulation's single event.",
+    "Principled objectors who never posted here (a18, a19, a20) may surface stronger ideological opposition in a real rollout than this run captured.",
+    "Media or regulatory attention to a bus-type incident could escalate scrutiny beyond what a school-council dialogue can resolve."
+  ],
+  "caveats": [
+    "Scale: 20 simulated agents over 6 rounds produced 45 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.",
+    "Only 20 agents simulated, and 7 of them (a06, a15-a20 partially) never posted or registered scored sentiment, so their stances are inferred from seed descriptions only.",
+    "All personas are generated by the same underlying model, which can cause faster convergence toward resolution than a real, more heterogeneous community would show.",
+    "Six rounds compress what would likely be weeks or months of real deliberation, possibly understating how slowly trust or distrust actually builds.",
+    "Agents' knowledge is bounded by the seed documents, so reactions reflect only the scenarios and facts provided, not unanticipated real-world complications.",
+    "Sentiment scores are model-estimated per post, not independently validated, and swung sharply round to round (+0.19 to -0.39 to +0.66), suggesting some volatility in the measure itself."
+  ]
+}

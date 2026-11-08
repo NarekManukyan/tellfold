@@ -1,0 +1,25 @@
+{
+  "question": "How will parents, students and teachers react to the phone-free school day, and will the school have to change the policy?",
+  "seed_files": [
+    "seeds/school_phone_policy.md"
+  ],
+  "num_agents": 20,
+  "rounds": 6,
+  "batch_size": 6,
+  "feed_size": 12,
+  "memory_size": 8,
+  "agent_model": "haiku",
+  "planner_model": "sonnet",
+  "concurrency": 4,
+  "language": "English",
+  "events": [
+    {
+      "round": 3,
+      "content": "A school bus breaks down on the motorway in the evening, and students whose phones are locked away cannot call their parents for over an hour."
+    }
+  ],
+  "seed": 7,
+  "think": false,
+  "agent_runtime": "claude-code",
+  "planner_runtime": "claude-code"
+}

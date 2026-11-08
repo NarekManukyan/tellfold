@@ -47,6 +47,11 @@ targets:
         excludes:
           - "**/Info.plist"
           - "**/*.entitlements"
+          - "Resources/Examples/**"
+      # Finished example runs the engine lists read-only (`tellfold serve --examples`), copied as one folder.
+      - path: Tellfold/Resources/Examples
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: Sparkle
     info:

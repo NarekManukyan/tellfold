@@ -222,24 +222,26 @@ struct DetailsView: View {
         VStack(alignment: .leading, spacing: Theme.space3) {
             SectionTitle("Actions")
             RunFlowLayout(spacing: Theme.space2, lineSpacing: Theme.space2) {
-                if store.isLive {
+                if store.controls.stop {
                     Button { confirmStop = true } label: { Label("Stop run", systemImage: "stop.fill") }
                         .buttonStyle(.console(.danger))
                     Button { store.showsInjectEvent = true } label: { Label("Inject event", systemImage: "bolt") }
                         .buttonStyle(.console(.event))
                         .disabled(store.latestRound >= store.totalRounds)
                 }
-                Button {
-                    Task { rebuilding = true; await ReportRebuilder.rebuild(store); rebuilding = false }
-                } label: {
-                    if rebuilding || store.detail?.reportRebuild.running == true {
-                        HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Rebuilding…") }
-                    } else {
-                        Label("Rebuild report", systemImage: "arrow.clockwise")
+                if store.controls.rebuildReport {
+                    Button {
+                        Task { rebuilding = true; await ReportRebuilder.rebuild(store); rebuilding = false }
+                    } label: {
+                        if rebuilding || store.detail?.reportRebuild.running == true {
+                            HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Rebuilding…") }
+                        } else {
+                            Label("Rebuild report", systemImage: "arrow.clockwise")
+                        }
                     }
+                    .buttonStyle(.console)
+                    .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
                 }
-                .buttonStyle(.console)
-                .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
                 Button {
                     Task {
                         do { try await app.openHTMLReport(store.runID) } catch { store.actionError = error.localizedDescription }
@@ -247,8 +249,10 @@ struct DetailsView: View {
                 } label: { Label("Export report as web page", systemImage: "square.and.arrow.up") }
                     .buttonStyle(.console)
                     .disabled(store.report == nil)
-                Button { app.revealInFinder(store.runID) } label: { Label("Reveal in Finder", systemImage: "folder") }
-                    .buttonStyle(.console)
+                if !store.isExample {
+                    Button { app.revealInFinder(store.runID) } label: { Label("Reveal in Finder", systemImage: "folder") }
+                        .buttonStyle(.console)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -533,8 +533,10 @@ struct NewSimulationSheet: View {
         think = c.think
         seed = c.seed
         events = c.events.map { PlannedEvent(round: min(max(1, $0.round), c.rounds), content: $0.content) }
-        if model.runtime(c.agentRuntime) != nil { agentRuntime = c.agentRuntime; agentModel = c.agentModel }
-        if model.runtime(c.plannerRuntime) != nil { plannerRuntime = c.plannerRuntime; plannerModel = c.plannerModel }
+        if !prefill.keepsDefaultRuntimes {
+            if model.runtime(c.agentRuntime) != nil { agentRuntime = c.agentRuntime; agentModel = c.agentModel }
+            if model.runtime(c.plannerRuntime) != nil { plannerRuntime = c.plannerRuntime; plannerModel = c.plannerModel }
+        }
         runtimesChosen = true
         files = prefill.seedFiles
         missingSeedNames = prefill.missingSeedNames

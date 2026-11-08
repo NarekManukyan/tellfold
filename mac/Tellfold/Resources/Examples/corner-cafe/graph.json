@@ -1,0 +1,260 @@
+{
+  "entities": [
+    {
+      "id": "linden-and-rye",
+      "name": "Linden & Rye",
+      "kind": "organization",
+      "summary": "Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "regulars-of-linden-and-rye",
+      "name": "Regulars of Linden & Rye",
+      "kind": "group",
+      "summary": "Long-time customers, some since the café's first week, who formed relationships and history there; their reaction to the price rise and neighbour card is the central question.",
+      "source_chunk_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "tomas",
+      "name": "Tomás",
+      "kind": "person",
+      "summary": "Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "source_chunk_ids": [
+        1
+      ]
+    },
+    {
+      "id": "hanna",
+      "name": "Hanna",
+      "kind": "person",
+      "summary": "Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "source_chunk_ids": [
+        1
+      ]
+    },
+    {
+      "id": "linden-and-rye-team",
+      "name": "Linden & Rye team",
+      "kind": "group",
+      "summary": "Café staff whose pay was raised to at least €15/hour last spring and who will now get two days off together from April.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "price-increase-2-march",
+      "name": "Price increase (2 March)",
+      "kind": "event",
+      "summary": "New prices for coffee, bread and lunch items taking effect Monday 2 March, driven by rising costs of butter, flour, coffee beans and rent.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "neighbour-card",
+      "name": "Neighbour card",
+      "kind": "product",
+      "summary": "New €12/month subscription offering one free filter coffee every day, aimed at making daily visits cheaper for regulars.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "filter-coffee",
+      "name": "Filter coffee",
+      "kind": "product",
+      "summary": "Café drink whose price rises from €2.40 to €2.90; refills remain free and it is included daily in the neighbour card.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "flat-white",
+      "name": "Flat white",
+      "kind": "product",
+      "summary": "Café drink whose price rises from €3.60 to €4.20.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "sourdough-loaf",
+      "name": "Sourdough loaf",
+      "kind": "product",
+      "summary": "Bakery item whose price rises from €5.50 to €6.80.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "cinnamon-bun",
+      "name": "Cinnamon bun",
+      "kind": "product",
+      "summary": "Bakery item whose price rises from €3.20 to €3.90.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "lunch-soup-with-bread",
+      "name": "Lunch soup with bread",
+      "kind": "product",
+      "summary": "Lunch item whose price rises from €7.50 to €8.90.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "pay-it-forward-board",
+      "name": "Pay-it-forward board",
+      "kind": "concept",
+      "summary": "Existing café practice letting customers buy coffee for someone in need; explicitly kept unchanged despite price rise.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "tuesday-closure",
+      "name": "Tuesday closure",
+      "kind": "event",
+      "summary": "New policy from April closing the café on Tuesdays in addition to Mondays, to give the small team two days off together.",
+      "source_chunk_ids": [
+        0
+      ]
+    },
+    {
+      "id": "open-evening-26-february",
+      "name": "Open evening (26 February)",
+      "kind": "event",
+      "summary": "Café event on Thursday 26 February at 7pm where owners will answer customer questions about the price changes over free buns.",
+      "source_chunk_ids": [
+        1
+      ]
+    },
+    {
+      "id": "instagram-account-of-linden-and-rye",
+      "name": "Instagram account of Linden & Rye",
+      "kind": "organization",
+      "summary": "Social media channel where the café posted its note about price changes, alongside posting it on the café window.",
+      "source_chunk_ids": [
+        0
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "linden-and-rye",
+      "target": "price-increase-2-march",
+      "label": "announces",
+      "evidence": "The café posted a note announcing that starting Monday 2 March, prices for coffee, bread and lunch items will change."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "neighbour-card",
+      "label": "introduces",
+      "evidence": "The café introduces a new €12/month neighbour card offering one free filter coffee every day."
+    },
+    {
+      "source": "regulars-of-linden-and-rye",
+      "target": "price-increase-2-march",
+      "label": "reacts to",
+      "evidence": "The note is addressed to long-time neighbours and customers who will experience the new prices starting 2 March."
+    },
+    {
+      "source": "regulars-of-linden-and-rye",
+      "target": "neighbour-card",
+      "label": "may subscribe to",
+      "evidence": "The neighbour card is pitched at those who come in most mornings, implying regulars are the target audience."
+    },
+    {
+      "source": "tomas",
+      "target": "linden-and-rye",
+      "label": "co-owns",
+      "evidence": "The note is signed 'Tomás and Hanna, Linden & Rye'."
+    },
+    {
+      "source": "hanna",
+      "target": "linden-and-rye",
+      "label": "co-owns",
+      "evidence": "The note is signed 'Tomás and Hanna, Linden & Rye'."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "linden-and-rye-team",
+      "label": "raised pay for",
+      "evidence": "The café raised every team member's pay to at least €15 an hour last spring."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "tuesday-closure",
+      "label": "implements",
+      "evidence": "From April the café will close on Tuesdays as well as Mondays so the small team gets two days off together."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "open-evening-26-february",
+      "label": "hosts",
+      "evidence": "Customers with questions are invited to the open evening on Thursday 26 February at 7pm, with free buns."
+    },
+    {
+      "source": "regulars-of-linden-and-rye",
+      "target": "open-evening-26-february",
+      "label": "invited to",
+      "evidence": "The note invites neighbours with questions to come to the open evening."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "pay-it-forward-board",
+      "label": "keeps unchanged",
+      "evidence": "The pay-it-forward board stays, letting customers still buy a coffee for someone who needs one."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "filter-coffee",
+      "label": "raises price of",
+      "evidence": "Filter coffee price rises from €2.40 to €2.90."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "flat-white",
+      "label": "raises price of",
+      "evidence": "Flat white price rises from €3.60 to €4.20."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "sourdough-loaf",
+      "label": "raises price of",
+      "evidence": "Sourdough loaf price rises from €5.50 to €6.80."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "cinnamon-bun",
+      "label": "raises price of",
+      "evidence": "Cinnamon bun price rises from €3.20 to €3.90."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "lunch-soup-with-bread",
+      "label": "raises price of",
+      "evidence": "Lunch soup with bread price rises from €7.50 to €8.90."
+    },
+    {
+      "source": "linden-and-rye",
+      "target": "instagram-account-of-linden-and-rye",
+      "label": "posts notice on",
+      "evidence": "The note was posted on the window and on the Instagram account of Linden & Rye."
+    },
+    {
+      "source": "neighbour-card",
+      "target": "filter-coffee",
+      "label": "includes",
+      "evidence": "The neighbour card gives one filter coffee every day for €12 a month."
+    }
+  ]
+}

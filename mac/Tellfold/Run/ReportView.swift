@@ -86,21 +86,23 @@ struct ReportView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 8) {
-            Button {
-                confirmRebuild = true
-            } label: {
-                if rebuilding || store.detail?.reportRebuild.running == true {
-                    HStack(spacing: 6) {
-                        ProgressView().controlSize(.small)
-                        Text("Rebuilding…")
+            if store.controls.rebuildReport {
+                Button {
+                    confirmRebuild = true
+                } label: {
+                    if rebuilding || store.detail?.reportRebuild.running == true {
+                        HStack(spacing: 6) {
+                            ProgressView().controlSize(.small)
+                            Text("Rebuilding…")
+                        }
+                    } else {
+                        Label("Rebuild", systemImage: "arrow.clockwise")
                     }
-                } else {
-                    Label("Rebuild", systemImage: "arrow.clockwise")
                 }
+                .buttonStyle(.console(.secondary, compact: true))
+                .disabled(rebuilding || store.isLive || store.detail?.reportRebuild.running == true)
+                .help(store.isLive ? "Available once the run has finished" : "Write the report again from this run")
             }
-            .buttonStyle(.console(.secondary, compact: true))
-            .disabled(rebuilding || store.isLive || store.detail?.reportRebuild.running == true)
-            .help(store.isLive ? "Available once the run has finished" : "Write the report again from this run")
 
             Button {
                 Task {
