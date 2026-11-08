@@ -5,7 +5,8 @@
 #   mac/scripts/release.sh <version> --publish   also create the GitHub release and push the appcast, which GitHub Pages serves
 #
 # Needs, once per Mac (see README "Releasing"):
-#   - a "Developer ID Application" certificate in the login keychain
+#   - a "Developer ID Application" certificate in the login keychain, or TELLFOLD_TEAM_ID and an Xcode account
+#     for that team that can use Apple's cloud-managed Developer ID certificate
 #   - notary credentials: an App Store Connect API key saved as an `asc` profile (set TELLFOLD_ASC_PROFILE),
 #     or `xcrun notarytool store-credentials tellfold-notary ...`
 #   - the Sparkle signing key in the keychain (`generate_keys --account tellfold`)
@@ -42,16 +43,27 @@ step "Checking the release can be built"
 grep -q '<language>en</language>' "$APPCAST" || fail "$APPCAST is missing its <language>en</language> line"
 grep -q "<sparkle:shortVersionString>$VERSION<" "$APPCAST" && fail "$VERSION is already in the appcast"
 
+# Local mode signs with a Developer ID certificate in the keychain. Cloud mode lets Xcode sign the export with the
+# team's cloud-managed Developer ID certificate; the disk image is then notarized but carries no signature of its own.
 IDENTITY=${TELLFOLD_SIGN_IDENTITY:-}
 if [ -z "$IDENTITY" ]; then
     IDENTITIES=$(security find-identity -v -p codesigning | grep '"Developer ID Application:' || true)
-    [ -n "$IDENTITIES" ] || fail "no Developer ID Application certificate in the keychain (Xcode > Settings > Accounts > Manage Certificates)"
-    [ "$(printf '%s\n' "$IDENTITIES" | wc -l | tr -d ' ')" = 1 ] || fail "several Developer ID certificates; set TELLFOLD_SIGN_IDENTITY to one of them"
-    IDENTITY=$(printf '%s\n' "$IDENTITIES" | sed -E 's/.*"(.*)"/\1/')
+    if [ -n "$IDENTITIES" ]; then
+        [ "$(printf '%s\n' "$IDENTITIES" | wc -l | tr -d ' ')" = 1 ] || fail "several Developer ID certificates; set TELLFOLD_SIGN_IDENTITY to one of them"
+        IDENTITY=$(printf '%s\n' "$IDENTITIES" | sed -E 's/.*"(.*)"/\1/')
+    fi
 fi
-TEAM_ID=$(printf '%s\n' "$IDENTITY" | sed -nE 's/.*\(([A-Z0-9]{10})\)$/\1/p')
-[ -n "$TEAM_ID" ] || TEAM_ID=${TELLFOLD_TEAM_ID:?set TELLFOLD_TEAM_ID when TELLFOLD_SIGN_IDENTITY is a hash}
-echo "Signing as: $IDENTITY"
+if [ -n "$IDENTITY" ]; then
+    MODE=local
+    TEAM_ID=$(printf '%s\n' "$IDENTITY" | sed -nE 's/.*\(([A-Z0-9]{10})\)$/\1/p')
+    [ -n "$TEAM_ID" ] || TEAM_ID=${TELLFOLD_TEAM_ID:?set TELLFOLD_TEAM_ID when TELLFOLD_SIGN_IDENTITY is a hash}
+    echo "Signing as: $IDENTITY"
+else
+    MODE=cloud
+    TEAM_ID=${TELLFOLD_TEAM_ID:-}
+    [ -n "$TEAM_ID" ] || fail "no Developer ID Application certificate in the keychain; add one, or set TELLFOLD_TEAM_ID to sign with the team's cloud-managed certificate"
+    echo "Signing with the cloud-managed Developer ID certificate of team $TEAM_ID"
+fi
 
 if [ -n "$ASC_PROFILE" ]; then
     asc --profile "$ASC_PROFILE" notarization list >/dev/null 2>&1 \
@@ -85,13 +97,34 @@ mkdir -p "$OUT"
 
 step "Archiving Tellfold $VERSION ($BUILD)"
 (cd "$MAC" && xcodegen generate --quiet)
+if [ "$MODE" = local ]; then
+    SIGNING=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY")
+else
+    SIGNING=(CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" -allowProvisioningUpdates)
+fi
 xcodebuild -project "$MAC/Tellfold.xcodeproj" -scheme Tellfold -configuration Release \
     -derivedDataPath "$MAC/build/release-dd" -archivePath "$OUT/Tellfold.xcarchive" archive \
-    MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
-    OTHER_CODE_SIGN_FLAGS="--timestamp" -quiet
+    MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" DEVELOPMENT_TEAM="$TEAM_ID" \
+    "${SIGNING[@]}" OTHER_CODE_SIGN_FLAGS="--timestamp" -quiet
 
 APP="$OUT/Tellfold.app"
+if [ "$MODE" = cloud ]; then
+    step "Exporting with the cloud-managed Developer ID certificate"
+    cat > "$OUT/ExportOptions.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>developer-id</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>teamID</key><string>$TEAM_ID</string>
+  <key>destination</key><string>export</string>
+</dict></plist>
+EOF
+    xcodebuild -exportArchive -archivePath "$OUT/Tellfold.xcarchive" -exportPath "$OUT/export" \
+        -exportOptionsPlist "$OUT/ExportOptions.plist" -allowProvisioningUpdates -quiet
+    ditto "$OUT/export/Tellfold.app" "$APP"
+    codesign --verify --deep --strict "$APP"
+else
 ditto "$OUT/Tellfold.xcarchive/Products/Applications/Tellfold.app" "$APP"
 
 step "Signing Sparkle and the app for Developer ID"
@@ -105,6 +138,7 @@ sign "$SPARKLE_FW/Versions/B/Updater.app"
 sign "$SPARKLE_FW"
 sign --entitlements "$MAC/Tellfold/App/Tellfold.entitlements" "$APP"
 codesign --verify --deep --strict "$APP"
+fi
 
 # Pulls the submission id and status out of either tool's JSON.
 submission() {
@@ -150,12 +184,13 @@ ln -s /Applications "$STAGE/Applications"
 DMG="$OUT/Tellfold.dmg"
 hdiutil create -quiet -volname Tellfold -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"
 rm -rf "$STAGE"
-codesign --sign "$IDENTITY" --timestamp "$DMG"
+[ "$MODE" = local ] && codesign --sign "$IDENTITY" --timestamp "$DMG"
 
 step "Notarizing the disk image"
 notarize "$DMG"
 xcrun stapler staple -q "$DMG"
-spctl --assess --type open --context context:primary-signature "$DMG"
+xcrun stapler validate -q "$DMG"
+[ "$MODE" = local ] && spctl --assess --type open --context context:primary-signature "$DMG"
 spctl --assess --type execute "$APP"
 
 # --- appcast ---------------------------------------------------------------------------------------------------------
