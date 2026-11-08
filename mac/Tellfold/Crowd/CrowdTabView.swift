@@ -103,7 +103,7 @@ struct CrowdTabView: View {
             .fixedSize()
             .padding(.horizontal, 12)
             .frame(height: 32)
-            .glassEffect(.regular, in: .capsule)
+            .glassSurface(in: .capsule)
             Spacer(minLength: Theme.space2)
             CanvasZoomControls(controller: model, hasUserCamera: model.userCamera != nil)
             modeSwitch
@@ -120,7 +120,7 @@ struct CrowdTabView: View {
         .accessibilityLabel("Crowd view")
         .padding(.horizontal, 4)
         .frame(height: 32)
-        .glassEffect(.regular, in: .capsule)
+        .glassSurface(in: .capsule)
     }
 
     /// What the arrows mean (Camps, Influence) or what grey means (Spectrum), as a glass capsule over the graph.
