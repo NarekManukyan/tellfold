@@ -63,7 +63,7 @@ class FakeLLM:  # implements LLM, for tests: deterministic, no subprocess
 responder is called as `responder(purpose, prompt, schema)` (sync or async); return a str for `text()`,
 a dict or JSON string for `json()`, or an `Exception` instance to make the call raise it. `FakeLLM.calls`
 records `(purpose, model, prompt)`. Every module must pass a short, stable `purpose` string to each call
-(e.g. `"graph.extract"`, `"personas.batch"`, `"engine.round"`, `"engine.sentiment"`, `"report.write"`,
+(e.g. `"graph.extract"`, `"personas.batch"`, `"engine.round"`, `"engine.sentiment"`, `"report.write"`, `"report.repair"`,
 `"chat.interview"`, `"chat.ask"`) so tests can route fake responses by purpose.
 - Uses `claude_agent_sdk.query` with `ClaudeAgentOptions(system_prompt=system, model=model, max_turns=1,
   tools=[], allowed_tools=[], setting_sources=[], cli_path=cli_path or shutil.which("claude"))`.

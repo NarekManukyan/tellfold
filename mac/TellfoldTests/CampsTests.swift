@@ -38,6 +38,22 @@ struct CampsTests {
         #expect(r.camps[1].members == ["a1"])
     }
 
+    @Test func decodesTheCitationAudit() throws {
+        let r = try report(#"""
+        {"title":"T","summary":"s","prediction":"p","confidence":"low",
+         "citation_audit":{"checked":14,"unknown_posts":[999],"unknown_handles":["nobody"],
+                           "misquotes":[{"post_id":2,"quote":"a gift"}],"repaired":true,"marked":2}}
+        """#)
+        let audit = try #require(r.citationAudit)
+        #expect(audit.unknownPosts == [999] && audit.unknownHandles == ["nobody"])
+        #expect(audit.misquotes == [Misquote(postID: 2, quote: "a gift")])
+        #expect(audit.repaired)
+        #expect(audit.summaryLine == "12 of 14 citations checked against the posts, 2 marked")
+        #expect(CitationAudit(checked: 14).summaryLine == "All 14 citations checked against the posts")
+        #expect(CitationAudit(checked: 0).summaryLine == nil)
+        #expect(try report(#"{"title":"T","summary":"s","prediction":"p","confidence":"low"}"#).citationAudit == nil)
+    }
+
     @Test func roundTripsThroughJSON() throws {
         let r = Report(title: "T", summary: "s", prediction: "p", confidence: .low, reasons: ["r"],
                        camps: [Camp(name: "A", summary: "x", members: ["a1"], sentiment: 0.4)])

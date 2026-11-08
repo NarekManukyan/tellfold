@@ -810,6 +810,18 @@ function menuButton(label, items) {
 
 // ------------------------------------------------------------------ run screen
 
+// The line under the report heading saying how many citations were checked (same wording as citation_line in
+// tellfold/report.py); nothing for reports written before citations were checked.
+function citationNote(audit) {
+  const checked = audit && Number(audit.checked) || 0;
+  if (!checked) return null;
+  const marked = Number(audit.marked) || 0;
+  const text = marked
+    ? `${checked - marked} of ${checked} citations checked against the posts, ${marked} marked`
+    : checked === 1 ? "The 1 citation was checked against the posts" : `All ${checked} citations checked against the posts`;
+  return el("p", { class: "note", text });
+}
+
 function mountRun(root, runId, query) {
   setCrumbs([{ label: "Runs", href: "#/" }, { label: runId }]);
   document.title = "Run · Tellfold";
@@ -2060,7 +2072,8 @@ function mountRun(root, runId, query) {
         el("span", { class: "spacer", style: "flex:1" }),
         rebuildButton(),
         el("a", { class: "btn", href: api.reportUrl(runId), target: "_blank", rel: "noopener" }, icon("external", "icon sm"), "Report page")),
-      el("p", { class: "note", text: "A scenario exploration of a simulated crowd, not a poll or measurement of real people." }));
+      el("p", { class: "note", text: "A scenario exploration of a simulated crowd, not a poll or measurement of real people." }),
+      citationNote(rep.citation_audit));
 
     const parts = [head, inline(rep.summary || "", el("p", { class: "lead" }))];
     parts.push(el("div", { class: "prediction" }, el("h3", { text: "Prediction" }), inline(rep.prediction || "", el("p"))));
