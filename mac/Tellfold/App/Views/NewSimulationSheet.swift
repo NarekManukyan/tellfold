@@ -30,6 +30,9 @@ struct NewSimulationSheet: View {
     @State private var isSubmitting = false
     @State private var errorMessage: String?
     @State private var didSetDefaults = false
+    @State private var showsAgentSetup = false
+    /// The user (or "Run again…") picked the runtimes; later detection results no longer replace them.
+    @State private var runtimesChosen = false
     @AppStorage("newSimulation.advancedOpen") private var advancedOpen = false
     @FocusState private var focus: Field?
 
@@ -55,7 +58,11 @@ struct NewSimulationSheet: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.space5) {
-                        if let note = readinessNote { ReadinessNote(text: note) }
+                        if let note = readinessNote {
+                            ReadinessNote(text: note, actionTitle: needsAgentSetup ? "Choose AI Tool…" : nil) {
+                                showsAgentSetup = true
+                            }
+                        }
                         questionStep
                         aboutStep
                         sizeStep
@@ -88,6 +95,14 @@ struct NewSimulationSheet: View {
         .onChange(of: model.pendingSeedFiles) { _, new in
             if !new.isEmpty { add(new); model.pendingSeedFiles = [] }
         }
+        .sheet(isPresented: $showsAgentSetup, onDismiss: {
+            runtimesChosen = false
+            useDefaultRuntimes()
+        }) {
+            AgentSetupView()
+        }
+        .onChange(of: model.runtimes) { _, _ in if !runtimesChosen { useDefaultRuntimes() } }
+        .onChange(of: model.engineSettings?.agentRuntime) { _, _ in if !runtimesChosen { useDefaultRuntimes() } }
         .onChange(of: rounds) { _, new in
             for i in events.indices where events[i].round > new { events[i].round = new }
         }
@@ -382,6 +397,7 @@ struct NewSimulationSheet: View {
     /// Choosing a runtime also picks that runtime's default model for the role.
     private func runtimeBinding(role: String) -> Binding<String> {
         Binding(get: { role == "agent" ? agentRuntime : plannerRuntime }, set: { new in
+            runtimesChosen = true
             if role == "agent" {
                 agentRuntime = new
                 agentModel = model.defaultModel(runtime: new, role: "agent")
@@ -434,7 +450,14 @@ struct NewSimulationSheet: View {
 
     private var readinessNote: String? {
         NewSimulationRules.readinessNote(engineRunning: model.engine.state.isRunning, runtimes: runtimeInfos,
-                                         ids: [agentRuntime, plannerRuntime])
+                                         ids: [agentRuntime, plannerRuntime], anyReady: model.recommendedRuntime != nil)
+    }
+
+    /// The chosen tool cannot run (missing or signed out): offer the setup step next to the note.
+    private var needsAgentSetup: Bool {
+        model.engine.state.isRunning && runtimeInfos.contains {
+            $0.map { RuntimeRecommendation.readiness($0) != .ready } ?? true
+        }
     }
 
     private var disabledReason: String? {
@@ -449,7 +472,9 @@ struct NewSimulationSheet: View {
         NewSimulationRules.summary(
             agents: agents, rounds: rounds, agentRuntime: model.runtime(agentRuntime), agentRuntimeID: agentRuntime,
             agentModel: agentModel, plannerRuntime: model.runtime(plannerRuntime), plannerRuntimeID: plannerRuntime,
-            plannerModel: plannerModel)
+            plannerModel: plannerModel,
+            noToolYet: model.engine.state.isRunning && !model.runtimes.isEmpty && model.recommendedRuntime == nil
+                && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos))
     }
 
     private func sizeText(_ url: URL) -> String {
@@ -479,15 +504,20 @@ struct NewSimulationSheet: View {
         concurrency = model.engineSettings?.concurrency ?? model.prefs.defaultConcurrency
         think = model.engineSettings?.think ?? false
         if model.runtimes.isEmpty { await model.loadRuntimes() }
-        agentRuntime = model.defaultAgentRuntime
-        plannerRuntime = model.defaultPlannerRuntime
-        agentModel = model.defaultModel(runtime: agentRuntime, role: "agent")
-        plannerModel = model.defaultModel(runtime: plannerRuntime, role: "planner")
+        useDefaultRuntimes()
         if let prefill = model.newSimulationPrefill {
             model.newSimulationPrefill = nil
             apply(prefill)
         }
         focus = NewSimulationRules.trimmed(question).isEmpty ? .question : (aboutMode == .describe ? .description : nil)
+    }
+
+    /// The runtimes and models from Settings > Agents (or the suggested tool when that one is not installed).
+    private func useDefaultRuntimes() {
+        agentRuntime = model.defaultAgentRuntime
+        plannerRuntime = model.defaultPlannerRuntime
+        agentModel = model.defaultModel(runtime: agentRuntime, role: "agent")
+        plannerModel = model.defaultModel(runtime: plannerRuntime, role: "planner")
     }
 
     /// Fills the form from a question typed in the empty state, or from an earlier run's configuration.
@@ -505,6 +535,7 @@ struct NewSimulationSheet: View {
         events = c.events.map { PlannedEvent(round: min(max(1, $0.round), c.rounds), content: $0.content) }
         if model.runtime(c.agentRuntime) != nil { agentRuntime = c.agentRuntime; agentModel = c.agentModel }
         if model.runtime(c.plannerRuntime) != nil { plannerRuntime = c.plannerRuntime; plannerModel = c.plannerModel }
+        runtimesChosen = true
         files = prefill.seedFiles
         missingSeedNames = prefill.missingSeedNames
         if !files.isEmpty || !missingSeedNames.isEmpty { aboutMode = .files }
@@ -535,9 +566,11 @@ struct NewSimulationSheet: View {
     }
 }
 
-/// One inline note about the engine or the chosen runtime, with the fix.
+/// One inline note about the engine or the chosen runtime, with the fix and an optional button for it.
 private struct ReadinessNote: View {
     let text: String
+    var actionTitle: String?
+    var action: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.space2) {
@@ -549,6 +582,11 @@ private struct ReadinessNote: View {
                 .foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
+            if let actionTitle {
+                Button(actionTitle, action: action)
+                    .buttonStyle(.console(.secondary, compact: true))
+                    .fixedSize()
+            }
         }
         .padding(Theme.space3)
         .frame(maxWidth: .infinity, alignment: .leading)

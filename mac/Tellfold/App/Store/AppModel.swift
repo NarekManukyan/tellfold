@@ -43,6 +43,10 @@ final class AppModel {
     private(set) var runtimesUnsupported = false
     var engineSettings: EngineSettings?
     private(set) var engineSettingsError: String?
+    /// The first-run step that suggests an AI tool (also opened from Settings > Agents).
+    var isAgentSetupPresented = false
+    /// Local model servers that answer on their usual port but are not among the engine's endpoints yet.
+    private(set) var localServers: [LocalModelServer] = []
     /// The last settings the engine confirmed; a failed save reverts to them.
     @ObservationIgnored private var confirmedEngineSettings: EngineSettings?
     /// One save in flight at a time, newest local value wins (see `updateEngineSettings`).
@@ -87,6 +91,7 @@ final class AppModel {
             await refreshRuns()
             await loadRuntimes()
             await loadEngineSettings()
+            if !prefs.agentSetupDone && !runtimesUnsupported { isAgentSetupPresented = true }
         }
         startPolling()
     }
@@ -415,14 +420,70 @@ final class AppModel {
     /// Waits until every queued settings save has finished.
     func waitForEngineSettingsSaves() async { await settingsSaver.waitUntilIdle() }
 
+    // MARK: Choosing an AI tool
+
+    /// Detects runtimes with a real sign-in check and looks for LM Studio on its usual port.
+    func detectAgents() async {
+        async let lmStudio = LocalModelServer.probe(.lmStudio)
+        await loadRuntimes(checkAuth: true)
+        let configured = Set((engineSettings?.openAICompatible ?? []).flatMap { [$0.id, $0.baseURL] })
+        localServers = [await lmStudio].compactMap { $0 }.filter {
+            !configured.contains($0.endpointID) && !configured.contains($0.baseURL) && runtime($0.runtimeID) == nil
+        }
+    }
+
+    /// The runtime suggested for this Mac, or nil when nothing can run a simulation yet.
+    var recommendedRuntime: RuntimeInfo? { RuntimeRecommendation.recommended(runtimes + localServers.map(\.asRuntime)) }
+
+    /// Detected AI tools and local servers, best first.
+    var detectedRuntimes: [RuntimeInfo] { RuntimeRecommendation.detected(runtimes + localServers.map(\.asRuntime)) }
+
+    /// Makes `id` the default for both roles, with its default models. A local server found by `detectAgents` is added
+    /// to the engine's endpoints first.
+    func useRuntime(_ id: String) async {
+        if let server = localServers.first(where: { $0.runtimeID == id }) {
+            updateEngineSettings { settings in
+                var list = settings.openAICompatible
+                list.removeAll { $0.id == server.endpointID }
+                list.append(server.endpoint)
+                settings.openAICompatible = list
+            }
+            await waitForEngineSettingsSaves()
+            localServers.removeAll { $0 == server }
+            await loadRuntimes()
+        }
+        let info = runtime(id)
+        let agentModel = info?.defaultModels["agent"] ?? info?.models.first ?? ""
+        let plannerModel = info?.defaultModels["planner"] ?? info?.models.first ?? ""
+        updateEngineSettings { settings in
+            settings.agentRuntime = id
+            settings.plannerRuntime = id
+            settings.agentModel = agentModel
+            settings.plannerModel = plannerModel
+        }
+        await waitForEngineSettingsSaves()
+        prefs.agentSetupDone = true
+    }
+
+    func skipAgentSetup() { prefs.agentSetupDone = true }
+
     // MARK: Defaults for the New Simulation sheet
 
-    var defaultAgentRuntime: String { engineSettings?.agentRuntime ?? "claude-code" }
-    var defaultPlannerRuntime: String { engineSettings?.plannerRuntime ?? "claude-code" }
+    var defaultAgentRuntime: String { preferredRuntime(engineSettings?.agentRuntime) }
+    var defaultPlannerRuntime: String { preferredRuntime(engineSettings?.plannerRuntime) }
+
+    /// The configured runtime while it is installed; otherwise the suggested one, so a Mac without Claude Code does
+    /// not open the sheet on a tool it does not have.
+    private func preferredRuntime(_ configured: String?) -> String {
+        if let configured, runtime(configured)?.installed == true { return configured }
+        return RuntimeRecommendation.recommended(runtimes)?.id ?? configured ?? "claude-code"
+    }
 
     func defaultModel(runtime: String, role: String) -> String {
-        if role == "agent", runtime == defaultAgentRuntime, let m = engineSettings?.agentModel { return m }
-        if role == "planner", runtime == defaultPlannerRuntime, let m = engineSettings?.plannerModel { return m }
+        if role == "agent", runtime == engineSettings?.agentRuntime, let m = engineSettings?.agentModel, !m.isEmpty { return m }
+        if role == "planner", runtime == engineSettings?.plannerRuntime, let m = engineSettings?.plannerModel, !m.isEmpty {
+            return m
+        }
         let info = self.runtime(runtime)
         return info?.defaultModels[role] ?? info?.models.first ?? (role == "agent" ? "haiku" : "sonnet")
     }

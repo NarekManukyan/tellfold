@@ -22,7 +22,7 @@ struct CanvasTooltip<Content: View>: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             // A tooltip floats above the graph, so it is glass: the avatars and lines behind it refract through.
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+            .glassSurface(in: RoundedRectangle(cornerRadius: 12))
             .onGeometryChange(for: CGSize.self, of: { $0.size }, action: { size = $0 })
             .offset(x: x, y: y)
             .allowsHitTesting(false)
@@ -140,6 +140,6 @@ struct KnowledgeGraphLegend: View {
             }
         }
         .padding(8)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+        .glassSurface(in: RoundedRectangle(cornerRadius: 12))
     }
 }

@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
+import logging
 import re
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from statistics import fmean
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup, escape
 
-from tellfold.llm import LLM
+from tellfold.llm import LLM, LLMError
 from tellfold.models import (
     ActionType,
+    CitationAudit,
     GodEvent,
     KnowledgeGraph,
+    Misquote,
     Persona,
     Post,
     Camp,
@@ -27,6 +31,8 @@ from tellfold.models import (
 
 if TYPE_CHECKING:
     from tellfold.world import World
+
+log = logging.getLogger(__name__)
 
 TEMPLATES = Path(__file__).parent / "templates"
 SNIPPET_CHARS = 280
@@ -381,14 +387,27 @@ EVIDENCE DIGEST
 async def build_report(llm: LLM, world: World, graph: KnowledgeGraph, config: SimConfig, *, model: str) -> Report:
     ev = collect_evidence(world)
     prompt = REPORT_TASK.format(question=config.question, digest=digest_text(ev, graph=graph))
-    report = await llm.json(
-        prompt,
-        system=REPORT_SYSTEM.format(language=config.language),
-        model=model,
-        purpose="report.write",
-        schema=Report,
-    )
-    return _finalize(report, ev, config)
+    system = REPORT_SYSTEM.format(language=config.language)
+    draft = await llm.json(prompt, system=system, model=model, purpose="report.write", schema=Report)
+    report = _finalize(draft, ev, config)
+    audit = audit_citations(report, ev.posts, ev.people.values())
+    repaired = False
+    if audit.problems:
+        # One repair call, like the JSON repair in llm.py: show the model what did not match and ask again.
+        repaired = True
+        try:
+            draft = await llm.json(
+                _citation_repair_prompt(prompt, draft, audit, ev.posts),
+                system=system,
+                model=model,
+                purpose="report.repair",
+                schema=Report,
+            )
+            report = _finalize(draft, ev, config)
+            audit = audit_citations(report, ev.posts, ev.people.values())
+        except LLMError:
+            log.warning("citation repair call failed; marking the unmatched citations instead", exc_info=True)
+    return _mark_unverified(report, audit, ev, repaired=repaired)
 
 
 def _finalize(report: Report, ev: Evidence, config: SimConfig) -> Report:
@@ -454,6 +473,193 @@ def _fact_caveats(ev: Evidence, config: SimConfig) -> list[str]:
     if _rounds_done(ev) < config.rounds:
         caveats.append(f"Only {_rounds_done(ev)} of {config.rounds} planned rounds completed.")
     return caveats
+
+
+# ---------------------------------------------------------------- citation audit
+
+UNVERIFIED = "[unverified]"
+# A quoted fragment: straight, curly, German low-high or guillemet quotes, on one line.
+_QUOTE = re.compile(r'"([^"\n]+)"|“([^”\n]+)”|„([^“”\n]+)[“”]|«\s*([^»\n]+?)\s*»')
+_SENTENCE_END = re.compile(r"[.!?。！？](?=\s|$)|\n")
+_ELLIPSIS = re.compile(r"\.{3}|…")
+_MIN_QUOTE_WORDS = 3
+
+
+@dataclass
+class _Citation:
+    kind: Literal["post", "handle", "quote"]
+    start: int  # span in the text, replaced by UNVERIFIED when the citation is marked
+    end: int
+    ok: bool
+    post_id: int | None = None
+    handle: str | None = None
+    quote: str | None = None
+
+
+def _report_texts(report: Report) -> list[str]:
+    """Every prose field that can carry citations."""
+    return [
+        report.summary,
+        report.prediction,
+        *report.reasons,
+        *(s.body_markdown for s in report.sections),
+        *(c.summary for c in report.camps),
+        *report.risks,
+        *report.caveats,
+    ]
+
+
+def _map_texts(report: Report, fn: Callable[[str], str]) -> Report:
+    return report.model_copy(update={
+        "summary": fn(report.summary),
+        "prediction": fn(report.prediction),
+        "reasons": [fn(t) for t in report.reasons],
+        "sections": [s.model_copy(update={"body_markdown": fn(s.body_markdown)}) for s in report.sections],
+        "camps": [c.model_copy(update={"summary": fn(c.summary)}) for c in report.camps],
+        "risks": [fn(t) for t in report.risks],
+        "caveats": [fn(t) for t in report.caveats],
+    })
+
+
+def _normalise(text: str) -> str:
+    """Case, whitespace and punctuation folded away, so a quote matches however the model punctuated it."""
+    text = text.lower().replace("’", "'").replace("‘", "'")
+    return " ".join(re.sub(r"[^\w\s]", " ", text).split())
+
+
+def _quote_matches(quote: str, sources: list[str]) -> bool:
+    """Every piece of the quote (split at "..." elisions) appears, as whole words, in one of the sources."""
+    parts = [p for p in (_normalise(x) for x in _ELLIPSIS.split(quote)) if p]
+    if not parts:
+        return True
+    for source in sources:
+        hay = f" {_normalise(source)} "
+        if all(f" {part} " in hay for part in parts):
+            return True
+    return False
+
+
+def _post_sources(post_id: int, posts: dict[int, Post]) -> list[str]:
+    post = posts[post_id]
+    sources = [post.content]
+    if post.repost_of is not None and post.repost_of in posts:
+        sources.append(posts[post.repost_of].content)
+    return sources
+
+
+def _sentence_bounds(masked: str, start: int, end: int) -> tuple[int, int]:
+    lo = 0
+    for m in _SENTENCE_END.finditer(masked, 0, start):
+        lo = m.end()
+    nxt = _SENTENCE_END.search(masked, end)
+    return lo, nxt.end() if nxt else len(masked)
+
+
+def _citations(text: str, posts: dict[int, Post], handles: set[str]) -> list[_Citation]:
+    """#ids, @handles and quoted fragments (3+ words) in one text, each checked against the run."""
+    quotes = [(m.start(), m.end(), next(g for g in m.groups() if g)) for m in _QUOTE.finditer(text)]
+
+    def inside_quote(i: int) -> bool:
+        return any(a <= i < b for a, b, _ in quotes)
+
+    found: list[_Citation] = []
+    for m in _POST_REF.finditer(text):
+        if not inside_quote(m.start()):
+            pid = int(m.group(1))
+            found.append(_Citation("post", m.start(), m.end(), pid in posts, post_id=pid))
+    for m in _HANDLE_REF.finditer(text):
+        if not inside_quote(m.start()):
+            handle = m.group(1)
+            found.append(_Citation("handle", m.start(), m.end(), handle.lower() in handles, handle=handle))
+    # Sentence ends inside quotes don't count, so a quote is paired with the #ids of the sentence around it.
+    masked = list(text)
+    for a, b, _ in quotes:
+        masked[a:b] = "\0" * (b - a)
+    masked_text = "".join(masked)
+    for a, b, quote in quotes:
+        if len(quote.split()) < _MIN_QUOTE_WORDS:
+            continue
+        lo, hi = _sentence_bounds(masked_text, a, b)
+        ids = [int(m.group(1)) for m in _POST_REF.finditer(masked_text[lo:hi])]
+        ids = [pid for pid in ids if pid in posts]
+        if not ids:
+            continue  # not tied to a post that exists (an unknown #id is reported on its own)
+        ok = any(_quote_matches(quote, _post_sources(pid, posts)) for pid in ids)
+        found.append(_Citation("quote", a, b, ok, post_id=ids[0], quote=quote.strip()))
+    return found
+
+
+def audit_citations(report: Report, posts: dict[int, Post], personas: Iterable[Persona]) -> CitationAudit:
+    """Check every #id, @handle and quoted fragment in the report against the run's posts and agents."""
+    handles = {p.handle.lower() for p in personas}
+    found = [c for text in _report_texts(report) for c in _citations(text, posts, handles)]
+    unknown_posts: list[int] = []
+    unknown_handles: list[str] = []
+    misquotes: list[Misquote] = []
+    for c in found:
+        if c.ok:
+            continue
+        if c.kind == "post" and c.post_id not in unknown_posts:
+            unknown_posts.append(c.post_id)
+        elif c.kind == "handle" and c.handle not in unknown_handles:
+            unknown_handles.append(c.handle)
+        elif c.kind == "quote" and not any(q.post_id == c.post_id and q.quote == c.quote for q in misquotes):
+            misquotes.append(Misquote(post_id=c.post_id, quote=c.quote))
+    return CitationAudit(
+        checked=len(found), unknown_posts=unknown_posts, unknown_handles=unknown_handles, misquotes=misquotes
+    )
+
+
+def _citation_repair_prompt(prompt: str, draft: Report, audit: CitationAudit, posts: dict[int, Post]) -> str:
+    problems = [f"- #{pid} is not a post in this run." for pid in audit.unknown_posts]
+    problems += [f"- @{h} is not an agent in this run." for h in audit.unknown_handles]
+    problems += [
+        f'- The quote "{clip(q.quote, 160)}" is not in post #{q.post_id}, which says: "{clip(posts[q.post_id].content, 240)}"'
+        for q in audit.misquotes
+    ]
+    previous = draft.model_dump_json(exclude={"citation_audit"})
+    return (
+        f"{prompt}\n\n---\nYour previous report cites things that are not in the digest:\n" + "\n".join(problems)
+        + f"\n\nPrevious report:\n{previous}\n\n"
+        "Return the whole report again with every citation fixed: cite a post or agent that exists in the digest, "
+        "quote the post's exact words, or drop the claim. Keep everything else as it was."
+    )
+
+
+def citation_line(audit: CitationAudit | None) -> str | None:
+    """The one-line summary shown under the confidence badge; None for older reports and reports without citations."""
+    if audit is None or audit.checked == 0:
+        return None
+    if audit.marked:
+        return f"{audit.checked - audit.marked} of {audit.checked} citations checked against the posts, {audit.marked} marked"
+    if audit.checked == 1:
+        return "The 1 citation was checked against the posts"
+    return f"All {audit.checked} citations checked against the posts"
+
+
+def _mark_unverified(report: Report, audit: CitationAudit, ev: Evidence, *, repaired: bool) -> Report:
+    """Replace every citation that still doesn't match with [unverified] and say so in a caveat."""
+    handles = {p.handle.lower() for p in ev.people.values()}
+    marked = 0
+
+    def mark(text: str) -> str:
+        nonlocal marked
+        bad = sorted((c for c in _citations(text, ev.posts, handles) if not c.ok), key=lambda c: -c.start)
+        for c in bad:
+            text = text[: c.start] + UNVERIFIED + text[c.end :]
+        marked += len(bad)
+        return text
+
+    if audit.problems:
+        report = _map_texts(report, mark)
+    caveats = report.caveats
+    if marked:
+        noun = "citation" if marked == 1 else "citations"
+        caveats = [*caveats, f"{marked} {noun} could not be matched to posts and were marked {UNVERIFIED}."]
+    return report.model_copy(update={
+        "caveats": caveats,
+        "citation_audit": audit.model_copy(update={"repaired": repaired, "marked": marked}),
+    })
 
 
 # ---------------------------------------------------------------- markdown
@@ -682,6 +888,7 @@ def render_html(report: Report, world: World, config: SimConfig) -> str:
         .render(
             report=report,
             config=config,
+            citations=citation_line(report.citation_audit),
             md=partial(_markdown, refs=refs),
             inline=lambda text: Markup(_inline(text, refs)),
             people=ev.people,

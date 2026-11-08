@@ -158,6 +158,13 @@ struct ReportView: View {
                 Spacer()
                 ConfidenceBadge(confidence: report.confidence)
             }
+            if let line = report.citationAudit?.summaryLine {
+                Label(line, systemImage: report.citationAudit?.marked == 0 ? "checkmark.seal" : "exclamationmark.triangle")
+                    .font(Theme.small)
+                    .foregroundStyle(Theme.muted)
+                    .help("Every #post, @agent and quote in this report was checked against the simulation. "
+                          + "Citations that did not match were replaced with [unverified].")
+            }
             RunMarkdownView(markdown: report.prediction, linkifier: linkifier, size: 15, spacing: 10)
                 .foregroundStyle(Theme.text)
         }

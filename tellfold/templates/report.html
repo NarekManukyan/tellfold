@@ -107,6 +107,7 @@ header .summary { font-size: 1.1rem; }
 
 .prediction { margin-top: 24px; border-left: 4px solid var(--accent); }
 .prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.audit { margin: -4px 0 10px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 .conf-low .dot { background: var(--conf-low); }
@@ -312,6 +313,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
         <h2 style="margin:0">Prediction</h2>
         <span class="badge conf-{{ report.confidence }}"><span class="dot"></span>{{ report.confidence | capitalize }} confidence</span>
       </div>
+      {% if citations %}<p class="audit muted small">{{ citations }}</p>{% endif %}
       <div class="prose">{{ md(report.prediction) }}</div>
     </div>
 

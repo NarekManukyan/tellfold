@@ -142,12 +142,15 @@ nonisolated enum NewSimulationRules {
     }
 
     /// "20 people react over 6 rounds. Runs locally with Claude Code (haiku + sonnet)."
+    /// With `noToolYet` (nothing on this Mac can run it) the second sentence asks for a tool instead of naming one.
     static func summary(agents: Int, rounds: Int, agentRuntime: RuntimeInfo?, agentRuntimeID: String, agentModel: String,
-                        plannerRuntime: RuntimeInfo?, plannerRuntimeID: String, plannerModel: String) -> String {
+                        plannerRuntime: RuntimeInfo?, plannerRuntimeID: String, plannerModel: String,
+                        noToolYet: Bool = false) -> String {
         let people = "\(agents) \(agents == 1 ? "person reacts" : "people react") over \(rounds) \(rounds == 1 ? "round" : "rounds")."
+        if noToolYet { return "\(people) Choose an AI tool to run it." }
         let agentName = agentRuntime?.name ?? agentRuntimeID
         let plannerName = plannerRuntime?.name ?? plannerRuntimeID
-        let local = (agentRuntime?.kind ?? .cli) == .cli && (plannerRuntime?.kind ?? .cli) == .cli
+        let local = (agentRuntime?.isLocal ?? true) && (plannerRuntime?.isLocal ?? true)
         let verb = local ? "Runs locally with" : "Runs with"
         if agentRuntimeID == plannerRuntimeID {
             return "\(people) \(verb) \(agentName) (\(agentModel) + \(plannerModel))."
@@ -155,17 +158,19 @@ nonisolated enum NewSimulationRules {
         return "\(people) \(verb) \(agentName) (\(agentModel)) for the crowd and \(plannerName) (\(plannerModel)) for planning."
     }
 
-    /// One note about the engine or the chosen runtimes, with the fix; nil when everything is ready.
-    static func readinessNote(engineRunning: Bool, runtimes: [RuntimeInfo?], ids: [String]) -> String? {
+    /// One note about the engine or the chosen runtimes, with the fix; nil when everything is ready. `anyReady` says
+    /// whether some other AI tool on this Mac could run the simulation.
+    static func readinessNote(engineRunning: Bool, runtimes: [RuntimeInfo?], ids: [String],
+                              anyReady: Bool = true) -> String? {
         if !engineRunning { return "The engine is still starting. You can fill this in while you wait." }
         var seen = Set<String>()
         for (info, id) in zip(runtimes, ids) where seen.insert(id).inserted {
             guard let info else { return "\(id) is not one of the runtimes this engine knows. Pick another under Advanced." }
             if !info.installed {
-                if info.id == "claude-code" {
-                    // The usual first-run case on a Mac without Claude Code: say exactly how to get it.
-                    return "Tellfold runs its crowd with Claude Code, which is not installed on this Mac. Install it "
-                        + "from claude.com/claude-code, run `claude` once in Terminal to sign in, then start."
+                if !anyReady {
+                    // The usual first-run case on a Mac with no AI tool yet: name a few and point at the setup step.
+                    return "Tellfold plays the crowd with an AI tool on this Mac, such as Claude Code, Codex, Gemini CLI "
+                        + "or Ollama. None is set up yet."
                 }
                 return "\(info.name) is not installed on this Mac. Install it, or pick another runtime under Advanced."
             }

@@ -199,6 +199,8 @@ step "Adding $VERSION to the appcast"
 SIGNATURE=$("$SPARKLE/bin/sign_update" --account tellfold "$DMG")
 mkdir -p "$ROOT/site/releases"
 cp "$NOTES" "$ROOT/site/releases/$VERSION.md"
+# The appcast declares the same minimum macOS as the app, so Sparkle never offers an update the Mac cannot open.
+MIN_OS=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$APP/Contents/Info.plist")
 ITEM="$OUT/item.xml"
 cat > "$ITEM" <<EOF
     <item>
@@ -206,7 +208,7 @@ cat > "$ITEM" <<EOF
       <pubDate>$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S +0000')</pubDate>
       <sparkle:version>$BUILD</sparkle:version>
       <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>26.0.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>$MIN_OS</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>$SITE_URL/releases/$VERSION.md</sparkle:releaseNotesLink>
       <enclosure url="https://github.com/$REPO/releases/download/v$VERSION/Tellfold.dmg" type="application/octet-stream" $SIGNATURE />
     </item>
