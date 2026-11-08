@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 /// The full report in a readable column: verdict, prediction with its confidence, the narrative sections, key voices,
-/// risks and caveats, with `@handle` and `#id` citations as links; plus an "Ask about this outcome" field, Rebuild and
-/// the standalone page.
+/// risks and caveats, with `@handle` and `#id` citations as links; plus an "Ask about this outcome" field, Rebuild, the
+/// standalone page, PDF export and the run folder.
 struct ReportView: View {
     let store: RunStore
 
@@ -111,7 +111,37 @@ struct ReportView: View {
             }
             .buttonStyle(.console(.secondary, compact: true))
             .help("Open the standalone HTML report")
+
+            Button {
+                Task { await exportPDF() }
+            } label: {
+                if app.exportingPDF == store.runID {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text("Exporting…")
+                    }
+                } else {
+                    Label("Export PDF…", systemImage: "doc.richtext")
+                }
+            }
+            .buttonStyle(.console(.secondary, compact: true))
+            .disabled(app.exportingPDF != nil)
+            .help("Save the report as a PDF to share or print")
+
+            Button {
+                app.revealInFinder(store.runID)
+            } label: {
+                Label("Reveal in Finder", systemImage: "folder")
+                    .labelStyle(.iconOnly)
+            }
+            .buttonStyle(.console(.secondary, compact: true))
+            .help("Show the run folder in Finder")
         }
+    }
+
+    private func exportPDF() async {
+        let title = store.detail?.report?.title ?? store.runID
+        do { try await app.exportPDF(store.runID, title: title) } catch { actionError = error.localizedDescription }
     }
 
     @ViewBuilder
