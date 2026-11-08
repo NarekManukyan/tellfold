@@ -7,6 +7,17 @@
   if (!still) root.classList.add('motion');
 
   document.addEventListener('DOMContentLoaded', revealOnScroll);
+  document.addEventListener('DOMContentLoaded', holdFilm);
+
+  // The film loop autoplays muted. For people who ask for less motion it never starts (CSS shows its poster instead).
+  function holdFilm() {
+    if (!still) return;
+    document.querySelectorAll('video[autoplay]').forEach(function (v) {
+      v.removeAttribute('autoplay');
+      v.preload = 'none';
+      v.pause();
+    });
+  }
 
   function revealOnScroll() {
     var items = document.querySelectorAll('.reveal');

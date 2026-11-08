@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Tellfold: see how people react before you tell them</title>
 <meta name="description" content="Tellfold is a free Mac app. Give it a price change, a new rule, a plan or an announcement and a question. A crowd of simulated people talks it over for a few rounds, then Tellfold writes a short answer. It runs on your Mac with the Claude Code you already have.">
@@ -71,6 +71,21 @@
   <figure class="hero-shot">
     <img class="shot" src="assets/img/app-window-1400.webp" srcset="assets/img/app-window-1400.webp 1400w, assets/img/app-window-2400.webp 2400w" sizes="(max-width: 1100px) 94vw, 1040px" width="2400" height="1566" alt="The Tellfold app showing a finished run. Question: How will existing Mossbook users react to the switch to subscription pricing? Verdict: Existing users accept offer but question long-term subscription model, medium confidence. Six people, two rounds, seven posts, final sentiment +0.23. Below, the crowd graph and a sentiment chart falling from +0.65 to +0.20 and ending at +0.23.">
     <figcaption>The Mossbook pricing example that ships with Tellfold, in the real app. Six simulated people, two rounds after the announcement.</figcaption>
+  </figure>
+</section>
+
+<section class="film" id="film" aria-labelledby="film-title">
+  <div class="section-head reveal">
+    <h2 id="film-title">Watch a run fold into an answer.</h2>
+    <p class="section-lede">A café’s price rise, talked over round by round, then the Mossbook report with every claim tied to a post. Every post and number here comes from a real run.</p>
+  </div>
+  <figure class="film-frame reveal">
+    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" aria-describedby="film-caption">
+      <source src="assets/video/tellfold-loop.webm" type="video/webm">
+      <source src="assets/video/tellfold-loop.mp4" type="video/mp4">
+    </video>
+    <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
+    <figcaption id="film-caption">Silent, 20 seconds, on repeat. The Linden &amp; Rye café run, then the Mossbook report. The people are simulated.</figcaption>
   </figure>
 </section>
 
