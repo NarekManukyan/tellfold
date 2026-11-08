@@ -6,6 +6,10 @@ Tellfold is a free Mac app. You describe something you are about to announce or 
 
 [**Download for Mac**](https://narekmanukyan.github.io/tellfold/) · [Website](https://narekmanukyan.github.io/tellfold/) · [Sponsor](https://github.com/sponsors/NarekManukyan)
 
+<p align="center"><a href="media/video/out/tellfold-16x9.mp4"><img src="media/video/out/tellfold-preview.webp" width="800" alt="A crowd of eight simulated people talks over a café's price rise round by round while a mood line rises from −0.15 to +0.70. Then six people fold into the Tellfold fan, and the fan opens into a report whose claims cite the posts behind them."></a></p>
+
+<p align="center"><sub>Real runs, played back. <a href="media/video/out/tellfold-16x9.mp4">Watch the 45-second film with sound</a>.</sub></p>
+
 ## What you can use it for
 
 Anything where you want to know how a group of people will take news before they hear it. For example:
