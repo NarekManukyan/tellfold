@@ -2,3 +2,4 @@ node_modules/
 .remotion/
 public/audio/
 out/*-master.mp4
+out/producthunt/

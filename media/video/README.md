@@ -24,7 +24,6 @@ The run data is copied into [`src/data.ts`](src/data.ts), which names the run fo
 | `out/tellfold-1x1.mp4` | 1080×1080, with sound. LinkedIn feed |
 | `out/tellfold-4x5.mp4` | 1080×1350, with sound. LinkedIn feed (takes more of a phone screen) |
 | `out/tellfold-preview.webp` | Animated WebP of the silent loop, for the README |
-| `out/producthunt/*.png` | Six 1270×760 gallery images of key moments: the notes, the crowd, the breaking news, the report, the app, the end card |
 | `../../site/assets/video/tellfold-loop.{webm,mp4}` | The silent 20-second loop on the landing page, with its poster |
 | `../../site/assets/video/tellfold-loop-square.*` | The same loop, square, which the page plays on phones |
 

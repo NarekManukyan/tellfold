@@ -2,8 +2,6 @@
 
 The mark is a **folding fan**. Its six pleats are the simulated crowd, and they fold into one hinge, which is the answer. The fold shading comes from the name, and nothing in it is a fish or a swarm. The wordmark is drawn by hand from geometric strokes (circles and straight stems), so it needs no font licence.
 
-The name is not trademark-cleared yet. See [`docs/naming-research.md`](../docs/naming-research.md) and get a professional clearance search before any commercial launch.
-
 ## Files
 
 | File | Use |
@@ -18,9 +16,6 @@ The name is not trademark-cleared yet. See [`docs/naming-research.md`](../docs/n
 | `app-icon/tellfold-app-icon.svg` | macOS icon master on the 1024 grid: 824-unit squircle body and 100-unit margin, glyph about 68 % of the body. |
 | `app-icon/tellfold-app-icon-small.svg` | Icon used for the 16 and 32 px slots. |
 | `web/` | `favicon.svg`, `favicon.ico` (16/32/48), PNG favicons, `apple-touch-icon.png`, PWA icons (192, 512, maskable 512), `site.webmanifest`, and `head-snippet.html`. |
-| `presentation/tellfold-board.html`, `presentation/slides/` | Presentation board and its slides as PNG. |
-| `presentation/dock-screenshot.png` | The built Mac app in the Dock. |
-| `concepts/` | Exploration from rounds 1 and 2. Not for use. |
 | `src/build_brand.py` | Generates every SVG above from one geometry. Edit it, never the outputs. |
 
 The macOS app icon PNGs live in `mac/Tellfold/App/Assets.xcassets/AppIcon.appiconset`, and `mac/project.yml` names `AppIcon` as the icon set.
@@ -36,7 +31,7 @@ The macOS app icon PNGs live in `mac/Tellfold/App/Assets.xcassets/AppIcon.appico
 | Wordmark ink | #1E1B4B | 30, 27, 75 |
 | Reversed pleats | #E0E7FF / #A5B4FC, hinge #FFFFFF | |
 
-These are the Calm Readout indigo tokens from `DESIGN.md`. For print, convert with the printer's profile and proof it, because indigo shifts a lot in CMYK.
+These are the app's indigo colours. For print, convert with the printer's profile and proof it, because indigo shifts a lot in CMYK.
 
 ## Rules
 

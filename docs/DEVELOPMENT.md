@@ -2,7 +2,7 @@
 
 This page is for people who want to build Tellfold from source, use the command-line engine, or cut a release. If you just want to use the app, see the [README](../README.md).
 
-The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. The logo and brand files live in `brand/` (see `brand/README.md`), and the research behind the name is in `docs/naming-research.md`.
+The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. The logo and brand files live in `brand/` (see `brand/README.md`).
 
 > **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
