@@ -16,9 +16,12 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import json as _json
 import os
+import re
 import signal
+import subprocess
 import tempfile
 import threading
 from collections.abc import Awaitable, Callable
@@ -322,12 +325,17 @@ class CodexLLM(CLIAdapterLLM):
 
 class GeminiLLM(CLIAdapterLLM):
     """`gemini -p PROMPT --output-format json --approval-mode default [-m M]` (official CLI reference).
-    JSON output is `{response, stats, error?}`. `default` approval never auto-approves a tool."""
+    JSON output is `{response, stats, error?}`. `default` approval never auto-approves a tool. Folder trust is on by
+    default since v0.39.1 and headless runs exit in an untrusted folder, so GEMINI_CLI_TRUST_WORKSPACE trusts the
+    empty scratch folder (older versions ignore the variable)."""
 
     runtime_id = "gemini-cli"
     auth_hint = "Gemini CLI is not signed in: run `gemini` once to log in, or set GEMINI_API_KEY."
     passthrough_env = ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION",
                        "GOOGLE_GENAI_USE_VERTEXAI", "GOOGLE_APPLICATION_CREDENTIALS", "GEMINI_CLI_HOME")
+
+    def extra_env(self) -> dict[str, str]:
+        return {"GEMINI_CLI_TRUST_WORKSPACE": "true"}
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
         argv = [self.binary, "--output-format", "json", "--approval-mode", "default"]
@@ -337,15 +345,16 @@ class GeminiLLM(CLIAdapterLLM):
 
 
 class QwenLLM(GeminiLLM):
-    """`qwen -p PROMPT --output-format json [-m M]` (Qwen Code headless docs; a Gemini CLI fork). The JSON shape
-    varies across versions (`{response}` or a list of messages ending in a `result`); both are handled."""
+    """`qwen -p PROMPT --output-format json --approval-mode default [-m M]` (Qwen Code headless docs; a Gemini CLI
+    fork). The JSON shape varies across versions (`{response}` or a list of messages ending in a `result`); both are
+    handled. Without `--approval-mode` Qwen now defaults to `auto`, which approves edits and "safe" commands."""
 
     runtime_id = "qwen-code"
     auth_hint = "Qwen Code is not signed in: run `qwen` once to log in, or set DASHSCOPE_API_KEY."
     passthrough_env = ("DASHSCOPE_API_KEY",)
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "--output-format", "json"]
+        argv = [self.binary, "--output-format", "json", "--approval-mode", "default"]
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
         return [*argv, "--prompt", request.combined()], None
@@ -359,10 +368,23 @@ OPENCODE_LOCKDOWN_CONFIG = _json.dumps({
 }, separators=(",", ":"))
 
 
+@functools.lru_cache(maxsize=8)
+def opencode_major_version(binary: str) -> int:
+    """The major version `opencode --version` prints, or 1 when it can't be read."""
+    try:
+        out = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return 1
+    match = re.search(r"(\d+)\.\d+", out)
+    return int(match.group(1)) if match else 1
+
+
 class OpenCodeLLM(CLIAdapterLLM):
-    """`opencode run --format json --dir <tmp> [-m provider/model] PROMPT` (opencode.ai/docs/cli). JSON format is
-    a stream of events; text parts are concatenated. Never passes `--auto`, and OPENCODE_CONFIG_CONTENT denies the
-    bash, edit and webfetch permissions (OpenCode allows them by default and `run` never asks)."""
+    """`opencode run --format json [--standalone] [-m provider/model] PROMPT` in the scratch folder
+    (opencode.ai/docs/cli). JSON format is a stream of events; text parts are concatenated. Never passes `--auto`,
+    and OPENCODE_CONFIG_CONTENT denies the bash, edit and webfetch permissions (OpenCode allows them by default and
+    `run` never asks). v2 dropped `--dir` and attaches `run` to an already running background server, which never
+    sees that config, so v2 gets `--standalone` (a private server started with this environment)."""
 
     runtime_id = "opencode"
     auth_hint = "OpenCode has no provider configured: run `opencode auth login`."
@@ -371,7 +393,9 @@ class OpenCodeLLM(CLIAdapterLLM):
         return {"OPENCODE_CONFIG_CONTENT": OPENCODE_LOCKDOWN_CONFIG}
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "run", "--format", "json", "--dir", workdir]
+        argv = [self.binary, "run", "--format", "json"]
+        if opencode_major_version(self.binary) >= 2:
+            argv.append("--standalone")
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
         return [*argv, request.combined()], None

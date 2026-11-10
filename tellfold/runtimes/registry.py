@@ -129,7 +129,7 @@ CLI_SPECS: tuple[CLISpec, ...] = (
         "cursor-agent", "Cursor Agent", ("cursor-agent", "agent"), cli_tools.CursorAgentLLM, _cursor_auth,
         models=(TOOL_DEFAULT, "gpt-5", "sonnet-4", "sonnet-4-thinking"),
         notes="cursor-agent -p --output-format json --mode ask --sandbox enabled --trust; a real JSON call "
-              "verified with cursor-agent 2026.01.23.",
+              "and a full run verified with cursor-agent 2026.11.05.",
     ),
     CLISpec(
         "codex", "Codex CLI", ("codex",), cli_tools.CodexLLM, _codex_auth,

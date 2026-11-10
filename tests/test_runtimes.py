@@ -396,9 +396,10 @@ def test_codex_prompt_on_stdin_and_last_message_file(fake_bin: str) -> None:
 
 @pytest.mark.parametrize(("cls", "stdout", "expected", "flags"), [
     (cli_tools.GeminiLLM, json.dumps({"response": "gem", "stats": {}}), "gem", ["--approval-mode", "default"]),
-    (cli_tools.QwenLLM, json.dumps([{"type": "system"}, {"type": "result", "result": "qw"}]), "qw", ["--prompt"]),
+    (cli_tools.QwenLLM, json.dumps([{"type": "system"}, {"type": "result", "result": "qw"}]), "qw",
+     ["--prompt", "--approval-mode"]),
     (cli_tools.OpenCodeLLM, '{"type":"step_start"}\n{"type":"text","part":{"type":"text","text":"op"}}\n'
-                            '{"type":"text","part":{"type":"text","text":"en"}}\n', "open", ["run", "--dir"]),
+                            '{"type":"text","part":{"type":"text","text":"en"}}\n', "open", ["run", "--format"]),
     (cli_tools.CopilotLLM, "plain copilot answer\n", "plain copilot answer", ["--deny-tool", "--no-ask-user"]),
     (cli_tools.GrokLLM, "\x1b[1mgrok says\x1b[0m\n", "grok says", ["--directory", "--prompt"]),
     (cli_tools.DroidLLM, json.dumps({"type": "result", "is_error": False, "result": "dr"}), "dr", ["exec", "--cwd"]),
@@ -450,6 +451,32 @@ def test_opencode_child_denies_bash_edit_and_webfetch(fake_bin: str, monkeypatch
     config = json.loads(runner.calls[0]["env"]["OPENCODE_CONFIG_CONTENT"])
     assert config["permission"] == {"edit": "deny", "bash": "deny", "webfetch": "deny"}
     assert config["tools"]["bash"] is False and config["tools"]["edit"] is False
+
+
+def test_gemini_trusts_only_the_empty_scratch_folder(fake_bin: str) -> None:
+    runner = FakeRunner(ProcessResult(0, json.dumps({"response": "ok"}), ""))
+    run(cli_tools.GeminiLLM(fake_bin, runner=runner).text, "p", system="s", model="", purpose="x")
+    call = runner.calls[0]
+    # folder trust is on by default and headless runs exit in an untrusted folder
+    assert call["env"]["GEMINI_CLI_TRUST_WORKSPACE"] == "true" and call["cwd_was_empty"]
+    assert "--yolo" not in call["argv"] and call["argv"][call["argv"].index("--approval-mode") + 1] == "default"
+
+
+@pytest.mark.parametrize(("version", "standalone"), [("1.19.5", False), ("opencode 2.2.6", True), ("", False)])
+def test_opencode_v2_runs_its_own_server(tmp_path: Path, version: str, standalone: bool) -> None:
+    binary = make_script(tmp_path / "bin", "opencode", f'echo "{version}"')
+    cli_tools.opencode_major_version.cache_clear()
+    runner = FakeRunner(ProcessResult(0, '{"type":"step_start"}\n{"type":"text","part":{"type":"text","text":"hi"}}\n', ""))
+    run(cli_tools.OpenCodeLLM(str(binary), runner=runner).text, "p", system="s", model="", purpose="x")
+    argv = runner.calls[0]["argv"]
+    assert ("--standalone" in argv) == standalone
+    assert "--dir" not in argv  # v2 removed it; the scratch folder is the working directory instead
+
+
+def test_ollama_context_fits_long_prompts() -> None:
+    assert http_api.ollama_context_length("short") == 8192
+    assert http_api.ollama_context_length("x" * 60_000) == 32768
+    assert http_api.ollama_context_length("x" * 10_000_000) == 65536
 
 
 def test_grok_is_disabled_unless_opted_in(fake_bin: str, isolated_home: Path,

@@ -108,6 +108,16 @@ class HTTPAdapterLLM(AdapterLLM):
             raise Transient(f"{self.runtime_id}: the server did not return JSON") from err
 
 
+def ollama_context_length(text: str) -> int:
+    """A context window that fits the prompt plus room for the answer. Ollama's default (4k tokens below 24 GB of
+    VRAM) is shorter than most Tellfold prompts and silently cuts the middle out of them."""
+    needed = len(text) // 3 + 4096  # about 3 characters per token, plus the reply
+    size = 8192
+    while size < needed and size < 65536:
+        size *= 2
+    return size
+
+
 class OllamaLLM(HTTPAdapterLLM):
     """`POST {base}/api/chat` with `stream: false` and `format` = the JSON schema for json() calls."""
 
@@ -141,6 +151,7 @@ class OllamaLLM(HTTPAdapterLLM):
         }
         if request.json_schema is not None:
             body["format"] = request.json_schema
+        body["options"] = {"num_ctx": ollama_context_length(request.system + request.prompt)}
         try:
             data = await self.request("POST", "/api/chat", body)
         except Fatal as err:
