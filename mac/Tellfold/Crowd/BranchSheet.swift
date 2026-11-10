@@ -21,6 +21,14 @@ nonisolated enum BranchLogic {
         }
     }
 
+    /// Model calls for the branch when nothing needs a retry: only the rounds after `round`, then the report. It has no
+    /// topic map, new people or opening posts (`tellfold.runner.estimate_call_split` for a branched config).
+    static func estimatedCalls(agents: Int, batch: Int, round: Int, totalRounds: Int) -> Int {
+        let perRound = NewRunRequest.estimatedCallSplit(agents: agents, rounds: 1, batch: batch, chunks: 0).agent
+            - NewRunRequest.estimatedCallSplit(agents: agents, rounds: 0, batch: batch, chunks: 0).agent
+        return max(0, totalRounds - round) * perRound + 1
+    }
+
     static func summary(round: Int) -> String {
         round == 0
             ? "The opening posts stay exactly as they were. Everything after them runs again with the events below."
@@ -92,6 +100,13 @@ struct BranchSheet: View {
                     Text("With no events, the branch shows how much of the outcome is chance.")
                         .font(Theme.caption).foregroundStyle(Theme.muted)
                 }
+            }
+            if let config = store.config {
+                let calls = BranchLogic.estimatedCalls(agents: config.numAgents, batch: config.batchSize,
+                                                       round: round, totalRounds: store.totalRounds)
+                Text("Uses about \(calls) model calls: the rounds after round \(round) and a report.")
+                    .font(Theme.caption)
+                    .foregroundStyle(Theme.muted)
             }
             if let errorMessage {
                 Text(errorMessage).font(Theme.small).foregroundStyle(Theme.negative)

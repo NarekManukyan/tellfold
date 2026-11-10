@@ -4,6 +4,14 @@ import Testing
 
 @Suite("Branch from a round")
 struct BranchTests {
+    /// The engine's own figures for branched configs (`tellfold.runner.estimate_calls`), so the sheet and the engine agree.
+    @Test func branchEstimateMatchesTheEngine() {
+        #expect(BranchLogic.estimatedCalls(agents: 8, batch: 4, round: 1, totalRounds: 3) == 5)
+        #expect(BranchLogic.estimatedCalls(agents: 20, batch: 5, round: 2, totalRounds: 6) == 13)
+        #expect(BranchLogic.estimatedCalls(agents: 40, batch: 8, round: 0, totalRounds: 10) == 31)
+        #expect(BranchLogic.estimatedCalls(agents: 6, batch: 3, round: 2, totalRounds: 3) == 3)
+    }
+
     @Test func whenARunCanBeBranched() {
         #expect(BranchLogic.canBranch(round: 2, latestRound: 6, totalRounds: 6, isLive: false))
         #expect(BranchLogic.canBranch(round: 0, latestRound: 6, totalRounds: 6, isLive: false))
