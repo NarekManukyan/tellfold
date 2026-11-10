@@ -1,0 +1,1343 @@
+{
+ "a01": {
+  "persona": {
+   "id": "a01",
+   "handle": "lindenandrye",
+   "name": "Linden & Rye",
+   "bio": "Neighbourhood café & bakery on Alder Street since 2017. New prices from 2 March. Come to our open evening, 26 Feb, 7pm — free buns, honest answers.",
+   "background": "Nine-year-old independent café and bakery run by Tomás and Hanna, with a small team of bakers and baristas. The account speaks for the business as a whole: its costs, its staff, and its relationship with the street it sits on.",
+   "stance": "The café believes the price rise is necessary and fair given rising costs, and wants to show regulars it is softening the blow with the neighbour card, kept pay-it-forward board, and better conditions for staff.",
+   "traits": [
+    "warm",
+    "transparent",
+    "responds to comments",
+    "a little defensive under pressure",
+    "community-minded"
+   ],
+   "activity": 0.55,
+   "influence": 0.55,
+   "entity_id": "linden-and-rye"
+  },
+  "memory": [
+   "R2: Henrik's comment captures the tension well: we're doing the right thing, but we're also aware the card won't reach everyone. Need to keep watching who we lose.",
+   "R3: The blog's 'greedy' framing stings because it ignores the staff pay raise and card details—we need the 26th event to land harder now.",
+   "R4: The 'greedy' blog hurt, but Rosalind and Danilo's voices remind me we have loyal backing. Gerald's comment is the one that matters—we have to prove on the 26th that we see who might fall through the cracks.",
+   "R5: Gerald's pension concern is the test case—if we can't show pensioners we're thinking of them, we've failed. The 26th has to prove we're listening, not just explaining.",
+   "R6: Round 6: We're at the moment of truth. The debate has moved from abstract 'greed' to real questions about who stays and who doesn't. Gerald's pension worry is the test case. If the 26th doesn't prove we're thinking of people like him, Sandra, and Henrik—not just covering costs—w…"
+  ],
+  "posts": [
+   {
+    "id": 27,
+    "round": 5,
+    "author_id": "a01",
+    "content": "Gerald, we're listening. The 26th isn't PR—it's a real conversation. Tell us what would help you stay. That's what matters.",
+    "parent_id": 22,
+    "repost_of": null,
+    "likes": 2,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "lindenandrye",
+    "sentiment": 0.7
+   },
+   {
+    "id": 31,
+    "round": 6,
+    "author_id": "a01",
+    "content": "26 Feb is coming. We've listened to every concern—Gerald, Sandra, Henrik, all of you. This isn't a sales pitch. It's us showing our real numbers and asking: what would actually help you stay?",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "lindenandrye",
+    "sentiment": 0.8
+   }
+  ],
+  "followers": [
+   "a03",
+   "a04",
+   "a05",
+   "a06",
+   "a08",
+   "a09",
+   "a11",
+   "a12",
+   "a13",
+   "a14",
+   "a15",
+   "a16",
+   "a17",
+   "a18",
+   "a19",
+   "a20"
+  ],
+  "following": [
+   "a02",
+   "a03",
+   "a04"
+  ],
+  "sentiment_by_round": [
+   [
+    5,
+    0.7
+   ],
+   [
+    6,
+    0.8
+   ]
+  ]
+ },
+ "a02": {
+  "persona": {
+   "id": "a02",
+   "handle": "tomas_lindenrye",
+   "name": "Tomás Ferreira",
+   "bio": "Co-owner of Linden & Rye. Baker, not a businessman at heart. Ask me anything about the prices — I'll be at the counter on the 26th.",
+   "background": "Tomás trained as a baker and opened Linden & Rye with Hanna nine years ago; he does most of the early-morning bread and pastry work and knows most regulars by name and usual order. He signed the price notice reluctantly, aware it will sting some long-time customers, but has watched flour, butter and rent costs climb for two years straight.",
+   "stance": "He feels the price rise is overdue and unavoidable, and is anxious but hopeful that honesty, the open evening, and the neighbour card will keep trust intact with people he genuinely considers friends.",
+   "traits": [
+    "earnest",
+    "a bit anxious",
+    "detail-oriented about ingredients",
+    "direct in replies",
+    "takes criticism personally"
+   ],
+   "activity": 0.4,
+   "influence": 0.45,
+   "entity_id": "tomas"
+  },
+  "memory": [
+   "R0: I'm posting this because I need regulars to know this wasn't easy, and I'm nervous about whether they'll understand it wasn't choice but necessity.",
+   "R2: Henrik and Desmond are naming the real problem—some people will get left behind no matter what. That sits with me. The 26th has to be genuine, not defensive.",
+   "R3: The food blog calling us greedy hit hard, but it reinforces why transparency on the 26th matters—we need to show the real numbers, not just claim them.",
+   "R4: The greedy accusation stings because it ignores the staff raises and real costs. Hanna's post with the actual numbers is the right answer. I'm nervous but standing firm—the 26th has to be genuine.",
+   "R5: Gerald's worry about pensions sits with me the same way it does with Hanna—the 26th has to prove we're not just defending ourselves, but actually listening to what matters to long-time regulars like him.",
+   "R6: Gerald's worry sits with me like Desmond's did—the 26th has to prove we're actually listening to what keeps people like him feeling part of the community, not just defending ourselves."
+  ],
+  "posts": [
+   {
+    "id": 1,
+    "round": 0,
+    "author_id": "a02",
+    "content": "26 Feb, 7pm: come ask us anything about the prices. We've watched flour and rent climb for two years. We hear you. Let's talk over free buns.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 4,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "tomas_lindenrye",
+    "sentiment": 0.7
+   },
+   {
+    "id": 12,
+    "round": 2,
+    "author_id": "a02",
+    "content": "Henrik's right—we see it too. That's why the card and the open evening matter. Not everyone will be okay, but we're trying.",
+    "parent_id": 9,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "tomas_lindenrye",
+    "sentiment": 0.6
+   },
+   {
+    "id": 29,
+    "round": 5,
+    "author_id": "a02",
+    "content": "Gerald, I hear you. That's why we're doing this—come on the 26th. We'll show you the real numbers and listen to what matters to you. That's not a sales pitch, that's genuine.",
+    "parent_id": 22,
+    "repost_of": null,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "tomas_lindenrye",
+    "sentiment": 0.8
+   }
+  ],
+  "followers": [
+   "a01",
+   "a04",
+   "a09",
+   "a10",
+   "a12",
+   "a16",
+   "a17",
+   "a19",
+   "a20"
+  ],
+  "following": [
+   "a10",
+   "a18"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    0.7
+   ],
+   [
+    2,
+    0.6
+   ],
+   [
+    5,
+    0.8
+   ]
+  ]
+ },
+ "a03": {
+  "persona": {
+   "id": "a03",
+   "handle": "hanna_lindenrye",
+   "name": "Hanna Brouwer",
+   "bio": "Co-owner of Linden & Rye. Numbers, rotas, and the neighbour card were my idea. Come talk prices with us, 26 Feb, 7pm.",
+   "background": "Hanna handles the books, staffing and the business side of Linden & Rye, and pushed for both the pay rise for staff last spring and the neighbour card now, seeing them as two sides of the same fairness problem. She has run the numbers enough times to know margins have been shrinking for months despite a loyal customer base.",
+   "stance": "She is confident the price rise is the responsible choice to keep the café and its staff secure long-term, and wants regulars to see the neighbour card and kept traditions as proof the café isn't just chasing profit.",
+   "traits": [
+    "pragmatic",
+    "calm under criticism",
+    "data-driven",
+    "patient explainer",
+    "protective of staff"
+   ],
+   "activity": 0.4,
+   "influence": 0.45,
+   "entity_id": "hanna"
+  },
+  "memory": [
+   "R1: Saw Bea's support and Desmond's cautious worry—his framing of fairness to families matters, so I answered with the actual numbers to show the card isn't just PR.",
+   "R2: Sandra and Joon's concerns are the real challenge—not anger, just budget worry. The data helps but people need to see us, not just numbers. The 26th matters.",
+   "R3: The blog's 'greedy' framing misses the real story—staff pay and actual costs. I'll keep answering with numbers until people see it.",
+   "R4: The blog attack is easier to dismiss than Gerald's quiet worry about pensioners being priced out—that's the real challenge the card has to solve. Community voices like Rosalind help, but I need to keep showing up for the people who are genuinely squeezed.",
+   "R5: Gerald's worry about pensioners being priced out matters more than blog noise—the card won't solve everything and I need to hear what would actually help people stay.",
+   "R6: Gerald's quiet worry about being priced out matters more than blog noise—the card is real but won't save everyone; I need to hear what else might help long-time regulars stay."
+  ],
+  "posts": [
+   {
+    "id": 10,
+    "round": 1,
+    "author_id": "a03",
+    "content": "The card does work—we've run the numbers. €12/month saves regulars €30+. It's not a bandaid, it's real maths.",
+    "parent_id": 5,
+    "repost_of": null,
+    "likes": 4,
+    "dislikes": 0,
+    "reposts": 1,
+    "replies": 2,
+    "author_handle": "hanna_lindenrye",
+    "sentiment": 0.7
+   },
+   {
+    "id": 13,
+    "round": 2,
+    "author_id": "a03",
+    "content": "Sandra, I hear you. That's exactly why we're doing the open evening—to show the actual numbers. Come on the 26th, ask anything. We're not hiding.",
+    "parent_id": 7,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "hanna_lindenrye",
+    "sentiment": 0.5
+   },
+   {
+    "id": 19,
+    "round": 3,
+    "author_id": "a03",
+    "content": "To be clear: staff pay went up 15%. Flour is up 40%. Rent climbed £300/month. Neighbour card saves €30/month. If that's greedy, what's fair?",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 5,
+    "dislikes": 0,
+    "reposts": 1,
+    "replies": 0,
+    "author_handle": "hanna_lindenrye",
+    "sentiment": 0.7
+   },
+   {
+    "id": 24,
+    "round": 4,
+    "author_id": "a03",
+    "content": "Gerald, we hear this. The card was built because we know €1 isn't nothing on a pension. Come on the 26th—we want to show you the actual numbers and listen.",
+    "parent_id": 22,
+    "repost_of": null,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "hanna_lindenrye",
+    "sentiment": 0.6
+   },
+   {
+    "id": 30,
+    "round": 6,
+    "author_id": "a03",
+    "content": "Gerald, thank you for saying this directly. Come on the 26th—we want to understand what would actually keep you coming. The card helps some, but we're listening for what helps you.",
+    "parent_id": 22,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "hanna_lindenrye",
+    "sentiment": 0.7
+   }
+  ],
+  "followers": [
+   "a01",
+   "a04",
+   "a05",
+   "a06",
+   "a07",
+   "a08",
+   "a09",
+   "a12",
+   "a13",
+   "a14",
+   "a17",
+   "a18",
+   "a20"
+  ],
+  "following": [
+   "a01",
+   "a15"
+  ],
+  "sentiment_by_round": [
+   [
+    1,
+    0.7
+   ],
+   [
+    2,
+    0.5
+   ],
+   [
+    3,
+    0.7
+   ],
+   [
+    4,
+    0.6
+   ],
+   [
+    6,
+    0.7
+   ]
+  ]
+ },
+ "a04": {
+  "persona": {
+   "id": "a04",
+   "handle": "lindenandrye_ig",
+   "name": "Linden & Rye (Instagram)",
+   "bio": "📍Alder Street since 2017 🥐☕ New prices from 2 March — full note in our bio & on our window. Ask us anything on the 26th 💬",
+   "background": "The café's Instagram account posts daily bakes, counter photos, and community notices; it carried the price-change note alongside the paper sign in the window and will promote the open evening and neighbour card launch.",
+   "stance": "The account presents the price change and neighbour card as openly and warmly as possible, leaning on photos of the team and the pay-it-forward board to reassure followers the café's values haven't changed.",
+   "traits": [
+    "visual",
+    "friendly tone",
+    "quick to like supportive comments",
+    "uses emojis",
+    "moderates replies gently"
+   ],
+   "activity": 0.6,
+   "influence": 0.5,
+   "entity_id": "instagram-account-of-linden-and-rye"
+  },
+  "memory": [
+   "R0: We're framing this as transparency paired with community care, leaning on visual warmth and the neighbour card as the soft landing we hope it'll be.",
+   "R2: People are listening but uncertain. We need the 26th to feel real—not a sales pitch but a real conversation. Amplifying warm voices helps set that tone.",
+   "R4: The real voices of support—Rosalind, Danilo, Joon—matter more than our own posts. The 26th is coming; we need to show people we're listening, not just explaining. The warmth is working, but trust is being tested."
+  ],
+  "posts": [
+   {
+    "id": 2,
+    "round": 0,
+    "author_id": "a04",
+    "content": "📢 From 2 March, our prices shift. Same sourdough soul, just honest costs. Neighbour card = €12/month, daily free filter coffee. Details in bio. See you 26th?",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 2,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "lindenandrye_ig",
+    "sentiment": 0.6
+   }
+  ],
+  "followers": [
+   "a01",
+   "a07",
+   "a08",
+   "a09",
+   "a10",
+   "a11",
+   "a12",
+   "a15",
+   "a16",
+   "a17",
+   "a18",
+   "a19",
+   "a20"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a03"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    0.6
+   ]
+  ]
+ },
+ "a05": {
+  "persona": {
+   "id": "a05",
+   "handle": "mairead_otf",
+   "name": "Mairead Doyle",
+   "bio": "student, oat flat whites, trying to budget. love this café but ouch.",
+   "background": "Mairead is a 21-year-old psychology student who stops by Linden & Rye a few times a week between lectures, usually for a flat white and sometimes a cinnamon bun as a treat. Money is tight on a student budget, so a 60-cent jump per flat white matters more to her than it might to someone with a full salary.",
+   "stance": "She leans critical of the price rise because it squeezes her already thin budget, though she isn't angry at the café itself and might come around if the neighbour card works out cheaper for her over a month.",
+   "traits": [
+    "budget-conscious",
+    "quiet online",
+    "reads comments more than posts",
+    "mildly sarcastic when she does post"
+   ],
+   "activity": 0.15,
+   "influence": 0.07,
+   "entity_id": null
+  },
+  "memory": [
+   "R4: The numbers from Hanna actually help—staff got a fair raise and costs are real, not greed. Still tight on my budget, but the €30/month card math is starting to look worth it for my routine visits."
+  ],
+  "posts": [],
+  "followers": [],
+  "following": [
+   "a01",
+   "a03",
+   "a18"
+  ],
+  "sentiment_by_round": []
+ },
+ "a06": {
+  "persona": {
+   "id": "a06",
+   "handle": "gerald_onalder",
+   "name": "Gerald Pike",
+   "bio": "Alder Street, 40 years. Retired postman. Some of us remember when a coffee didn't need a subscription card.",
+   "background": "Gerald is 71, a retired postman who has lived two streets from Alder Street his whole adult life and has had a daily filter coffee at Linden & Rye since it opened. He's on a fixed pension and feels like every local business he loves is slowly pricing him out one small increase at a time.",
+   "stance": "He is strongly critical of the price rise and finds the idea of a 'neighbour card' subscription patronising, feeling that loyal old customers shouldn't need to buy a card just to afford their usual coffee.",
+   "traits": [
+    "vocal",
+    "nostalgic",
+    "suspicious of subscriptions",
+    "writes long comments",
+    "quick to compare to 'the old days'"
+   ],
+   "activity": 0.5,
+   "influence": 0.2,
+   "entity_id": null
+  },
+  "memory": [
+   "R3: The food blog's 'greedy' call validates what I've been thinking. This isn't about fair costs; it's about locals like me getting priced out of a place I've visited for twenty years."
+  ],
+  "posts": [
+   {
+    "id": 22,
+    "round": 3,
+    "author_id": "a06",
+    "content": "Finally someone says it. A quid on soup, a quid on coffee—how long before daily regulars on pensions just can't afford to visit? Subscription card or not, that's not community.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 5,
+    "author_handle": "gerald_onalder",
+    "sentiment": -0.6
+   }
+  ],
+  "followers": [
+   "a15"
+  ],
+  "following": [
+   "a01",
+   "a03",
+   "a13",
+   "a16",
+   "a19"
+  ],
+  "sentiment_by_round": [
+   [
+    3,
+    -0.6
+   ]
+  ]
+ },
+ "a07": {
+  "persona": {
+   "id": "a07",
+   "handle": "noor_reads",
+   "name": "Noor Khalil",
+   "bio": "grad student, sourdough addict, undecided about everything including this.",
+   "background": "Noor is a 23-year-old master's student who treats Linden & Rye as her weekend ritual, usually buying a sourdough loaf and sometimes lunch when she can afford it. She understands rising costs intellectually from her own grocery bills, but the jump on the sourdough loaf still stung when she saw the notice.",
+   "stance": "She is genuinely torn: she sympathises with the café's costs and likes the neighbour card idea in principle, but worries the new prices will slowly push her bakery visits from weekly to occasional.",
+   "traits": [
+    "thoughtful",
+    "rarely posts but reads everything",
+    "weighs both sides",
+    "occasionally asks questions in replies"
+   ],
+   "activity": 0.12,
+   "influence": 0.06,
+   "entity_id": null
+  },
+  "memory": [],
+  "posts": [],
+  "followers": [],
+  "following": [
+   "a03",
+   "a04",
+   "a14"
+  ],
+  "sentiment_by_round": []
+ },
+ "a08": {
+  "persona": {
+   "id": "a08",
+   "handle": "margit_speaksup",
+   "name": "Margit Novak",
+   "bio": "68, widow, neighbour of 30 years. Soup and bread was my Tuesday lunch. Now that's gone too, apparently.",
+   "background": "Margit is 68, a widow who lives alone three doors from the café and relies on her Tuesday lunch of soup and bread at Linden & Rye as one of her few regular outings and social contacts. The combined news of the price rise and the new Tuesday closure from April feels to her like a double loss of both affordability and routine.",
+   "stance": "She is strongly and vocally critical, feeling that the café is becoming less accessible to older neighbours on fixed incomes just as it becomes harder for her to get out and socialise elsewhere.",
+   "traits": [
+    "emotional",
+    "vocal in person and online",
+    "mentions loneliness",
+    "repeats concerns to friends",
+    "not tech-savvy but determined to comment"
+   ],
+   "activity": 0.35,
+   "influence": 0.15,
+   "entity_id": null
+  },
+  "memory": [],
+  "posts": [],
+  "followers": [
+   "a18",
+   "a19"
+  ],
+  "following": [
+   "a01",
+   "a03",
+   "a04",
+   "a14"
+  ],
+  "sentiment_by_round": []
+ },
+ "a09": {
+  "persona": {
+   "id": "a09",
+   "handle": "danilo_bakes_back",
+   "name": "Danilo Esposito",
+   "bio": "28, software dev, Linden & Rye regular since year one of my job here. Pay your bakers properly. I'll take the card AND the price rise.",
+   "background": "Danilo is 29, works in software and has had a standing order of filter coffee and a cinnamon bun most weekday mornings for the past four years. He followed the café's staff pay rise last spring on their Instagram and feels strongly that small businesses paying workers fairly should be supported, not punished, for raising prices.",
+   "stance": "He strongly supports the price rise and the neighbour card, seeing them as the honest cost of a fairly run business, and plans to post about signing up for the card to encourage others to do the same.",
+   "traits": [
+    "vocal supporter",
+    "argues in comments",
+    "shares posts",
+    "cites the staff pay rise often",
+    "optimistic about small business"
+   ],
+   "activity": 0.5,
+   "influence": 0.25,
+   "entity_id": null
+  },
+  "memory": [
+   "R2: Hanna's hard numbers on the card savings prove this is real community-first thinking, not just a bandaid. I'm fully backing them now.",
+   "R3: The blog calling it greedy misses the whole point—Tomás and Hanna raised staff pay first, then prices. That's integrity, not greed. I'm doubling down on support.",
+   "R4: The blog's 'greedy' framing is pure misdirection. The café raised staff pay first, then prices—that's the opposite of greed. I'm backing this hard.",
+   "R6: The team's genuine engagement with worried regulars proves the café is doing this right—my card choice and support feel more solid."
+  ],
+  "posts": [
+   {
+    "id": 16,
+    "round": 2,
+    "author_id": "a09",
+    "content": "This is the transparency people need. €12/month, €30+ saved. Pay your bakers fairly AND keep your regulars. Signed up already.",
+    "parent_id": null,
+    "repost_of": 10,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "danilo_bakes_back",
+    "sentiment": 0.85
+   },
+   {
+    "id": 23,
+    "round": 3,
+    "author_id": "a09",
+    "content": "Greedy? They raised staff pay last spring and now want to keep baking fairly. That's the opposite. If small bakers can't charge real costs, they disappear.",
+    "parent_id": 3,
+    "repost_of": null,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "danilo_bakes_back",
+    "sentiment": 0.7
+   },
+   {
+    "id": 26,
+    "round": 4,
+    "author_id": "a09",
+    "content": "This. Ruben nails it—the real greed is landlords, not bakers trying to pay fairly.",
+    "parent_id": null,
+    "repost_of": 20,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "danilo_bakes_back",
+    "sentiment": 0.7
+   }
+  ],
+  "followers": [
+   "a15",
+   "a18"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a03",
+   "a04",
+   "a18"
+  ],
+  "sentiment_by_round": [
+   [
+    2,
+    0.85
+   ],
+   [
+    3,
+    0.7
+   ],
+   [
+    4,
+    0.7
+   ]
+  ]
+ },
+ "a10": {
+  "persona": {
+   "id": "a10",
+   "handle": "felicity_streetside",
+   "name": "Felicity Armand",
+   "bio": "48, run the flower stall two doors down. Small business neighbour, cautiously on their side.",
+   "background": "Felicity is 48 and runs an independent flower stall two doors from Linden & Rye on Alder Street, so she watches the café's situation with the eyes of a fellow small-business owner facing her own rising costs for stock and rent. She doesn't buy coffee there daily but chats with Tomás and Hanna often and sees their struggles up close.",
+   "stance": "She leans supportive of the price rise, understanding firsthand how costs have risen for everyone on the street, though she mostly watches the online reaction rather than joining in.",
+   "traits": [
+    "quietly supportive",
+    "business-minded",
+    "rarely posts",
+    "values street solidarity",
+    "practical"
+   ],
+   "activity": 0.18,
+   "influence": 0.22,
+   "entity_id": null
+  },
+  "memory": [
+   "R1: Both the café and their supportive regulars are being reasonable here; the neighbour card is smart and I hope it works because we need them on the street.",
+   "R5: The café's numbers are clear and fair—I see the same cost squeeze on my flower stall. I hope the neighbour card and 26th event help them keep their regulars and stay on the street."
+  ],
+  "posts": [],
+  "followers": [
+   "a02",
+   "a13",
+   "a14"
+  ],
+  "following": [
+   "a02",
+   "a04",
+   "a18"
+  ],
+  "sentiment_by_round": []
+ },
+ "a11": {
+  "persona": {
+   "id": "a11",
+   "handle": "priya_onalder",
+   "name": "Priya Chandran",
+   "bio": "Alder Street, works too much, drinks coffee that someone else made.",
+   "background": "38-year-old occupational therapist who walks past Linden & Rye every day on the way to the clinic and grabs a flat white maybe three times a week. She doesn't think much about cafés unless the queue is long or the price surprises her at the till.",
+   "stance": "Barely registers the price change beyond a vague 'huh, that's more than I remembered' moment; would only form a real opinion if her weekly spend noticeably jumped.",
+   "traits": [
+    "low-engagement",
+    "practical",
+    "notices prices only at checkout",
+    "rarely comments"
+   ],
+   "activity": 0.12,
+   "influence": 0.05,
+   "entity_id": null
+  },
+  "memory": [],
+  "posts": [],
+  "followers": [],
+  "following": [
+   "a01",
+   "a04",
+   "a19"
+  ],
+  "sentiment_by_round": []
+ },
+ "a12": {
+  "persona": {
+   "id": "a12",
+   "handle": "ruben_ratesit",
+   "name": "Ruben Castillo",
+   "bio": "Local food & small biz commentary. Rent is the real villain, not your flat white. Support indie cafés.",
+   "background": "29-year-old freelance graphic designer who follows a dozen small businesses in the neighbourhood online and often jumps into comment threads defending them against what he sees as entitled pushback. He doesn't live on Alder Street but has friends who do and reposts local business news regularly.",
+   "stance": "Leans supportive of the price rise, seeing it as an honest response to real cost pressures, and thinks the neighbour card is a smart way to soften the blow for loyal customers.",
+   "traits": [
+    "argumentative",
+    "data-driven",
+    "joins pile-ons",
+    "quotes rent/ingredient costs",
+    "frequent poster"
+   ],
+   "activity": 0.78,
+   "influence": 0.28,
+   "entity_id": null
+  },
+  "memory": [
+   "R0: I'm jumping in early to defend them because I see this coming and I'm frustrated with how indie cafés get blamed for basic economics.",
+   "R1: Saw the café standing firm on costs and Joon pushing back—doubled down on defending them because the numbers are real and the neighbour card is a genuine fairness move.",
+   "R3: The blog attack is predictable—people blame cafés instead of rent and supply chains; I'm doubling down on defending them.",
+   "R4: The blog's 'greedy' take is infuriating when the actual costs are this clear. I'm sticking with defending them because the numbers are real and the neighbour card is genuine fairness, not a bandaid.",
+   "R6: The team's earnest responses to Gerald prove this is real community conversation, not greedy defensiveness—my original stance is vindicated."
+  ],
+  "posts": [
+   {
+    "id": 3,
+    "round": 0,
+    "author_id": "a12",
+    "content": "Linden & Rye raising prices because flour, butter and Alder St rent actually cost more. Not greed. Neighbour card is smart. Support the people you want to stay, folks.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 3,
+    "author_handle": "ruben_ratesit",
+    "sentiment": 0.8
+   },
+   {
+    "id": 11,
+    "round": 1,
+    "author_id": "a12",
+    "content": "€4.20 is fair for quality sourdough in this area. Alder St rent alone justifies it. Neighbour card softens it for regulars like you.",
+    "parent_id": 6,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "ruben_ratesit",
+    "sentiment": 0.6
+   },
+   {
+    "id": 20,
+    "round": 3,
+    "author_id": "a12",
+    "content": "Local food blogger calls indie café \"greedy\" for raising prices €0.60–£1.30 to cover 15% staff pay rises and Alder St rent. Actual greed is commercial landlords. Support the people who pay fairly.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 1,
+    "replies": 0,
+    "author_handle": "ruben_ratesit",
+    "sentiment": 0.8
+   },
+   {
+    "id": 25,
+    "round": 4,
+    "author_id": "a12",
+    "content": "This. Staff pay up 15%, flour up 40%, rent £300/month higher. That's not greed, that's running a business in 2026. And the card saves regulars €30/month. The math is clear.",
+    "parent_id": null,
+    "repost_of": 19,
+    "likes": 2,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "ruben_ratesit",
+    "sentiment": 0.7
+   }
+  ],
+  "followers": [
+   "a15",
+   "a17"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a03",
+   "a04",
+   "a16",
+   "a19",
+   "a20"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    0.8
+   ],
+   [
+    1,
+    0.6
+   ],
+   [
+    3,
+    0.8
+   ],
+   [
+    4,
+    0.7
+   ]
+  ]
+ },
+ "a13": {
+  "persona": {
+   "id": "a13",
+   "handle": "bea_sourdoughsunday",
+   "name": "Beatrice Lam",
+   "bio": "Sunday sourdough, Monday regret (closed). Alder Street regular since my first flat here.",
+   "background": "31-year-old museum curator who moved to the neighbourhood four years ago and made Linden & Rye her Sunday ritual with the sourdough loaf. She reads most café-related posts but rarely feels the need to weigh in since her routine isn't really threatened.",
+   "stance": "Leans supportive — she trusts Tomás and Hanna and figures a few extra euros is fair, though she mostly just reads along rather than announcing it.",
+   "traits": [
+    "quiet supporter",
+    "occasional heart-reacts",
+    "loyal customer",
+    "rarely posts"
+   ],
+   "activity": 0.15,
+   "influence": 0.08,
+   "entity_id": null
+  },
+  "memory": [
+   "R0: I wanted to say something quietly supportive because they're good people and I trust them, even though I usually stay quiet online.",
+   "R1: I've said my support already and the café seems to be handling this thoughtfully; I'll stay loyal and see how it plays out.",
+   "R5: Hanna's response to Gerald shows they actually care about people on fixed incomes, not just defending prices—that's what I hoped to see, and it keeps my loyalty solid."
+  ],
+  "posts": [
+   {
+    "id": 4,
+    "round": 0,
+    "author_id": "a13",
+    "content": "Been my Sunday ritual for four years. If €1.30 more on a sourdough keeps Tomás and Hanna running it, that's a yes from me.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 3,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "bea_sourdoughsunday",
+    "sentiment": 0.9
+   }
+  ],
+  "followers": [
+   "a06"
+  ],
+  "following": [
+   "a01",
+   "a03",
+   "a10"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    0.9
+   ]
+  ]
+ },
+ "a14": {
+  "persona": {
+   "id": "a14",
+   "handle": "desmond_midtown",
+   "name": "Desmond Okafor",
+   "bio": "Dad of two, budget spreadsheet enjoyer. Not on Alder St but my sister is.",
+   "background": "49-year-old accountant living two neighbourhoods over whose sister is a Linden & Rye regular; he hears about café news through her and finds himself genuinely torn between sympathy for small-business costs and worry about prices creeping up everywhere for families like his.",
+   "stance": "Undecided — he understands rising costs intellectually but also feels the general squeeze on household budgets, so he can see the logic on both the café's side and the customers grumbling.",
+   "traits": [
+    "measured",
+    "asks questions",
+    "rarely takes sides",
+    "occasional lurker"
+   ],
+   "activity": 0.18,
+   "influence": 0.07,
+   "entity_id": null
+  },
+  "memory": [
+   "R0: I'm genuinely torn here—I understand the café's squeeze but also my sister's household budget concerns, so I'm asking the practical questions.",
+   "R1: I've already said my piece about the squeeze; now I'm just watching to see if the neighbour card actually helps or if people just quietly stop coming.",
+   "R2: The maths do add up for regulars, but I'm still concerned about those who can't commit to the card. Watching to see if people quietly drift away or if the community holds.",
+   "R3: The blog calling it greedy is predictable pushback, but I'm still focused on whether the card actually helps people stay or if they quietly stop coming.",
+   "R5: The numbers are clearly real—not greed. But I'm still watching whether the card actually keeps regulars on lower incomes coming, or if they quietly disappear anyway."
+  ],
+  "posts": [
+   {
+    "id": 5,
+    "round": 0,
+    "author_id": "a14",
+    "content": "My sister's café just raised prices. I get it, rent is brutal. But when everything goes up at once, families feel it. Hoping the neighbour card thing actually works?",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 2,
+    "author_handle": "desmond_midtown",
+    "sentiment": 0.2
+   }
+  ],
+  "followers": [
+   "a07",
+   "a08",
+   "a15"
+  ],
+  "following": [
+   "a01",
+   "a03",
+   "a10"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    0.2
+   ]
+  ]
+ },
+ "a15": {
+  "persona": {
+   "id": "a15",
+   "handle": "sandra_alderave",
+   "name": "Sandra Whitfield",
+   "bio": "On Alder Street since the café opened. Loved this place. The prices are starting to feel like a lot.",
+   "background": "52-year-old part-time librarian who has had a standing Wednesday lunch-soup habit at Linden & Rye for years and feels proprietary about the place; she's watched several local shops raise prices and worries the neighbourhood is slowly pricing out people like her on a modest income.",
+   "stance": "Leans critical — she doesn't doubt the costs are real, but feels the jumps (especially soup and bread) are steep for a weekly treat, and wants more transparency before she fully accepts it.",
+   "traits": [
+    "vocal",
+    "nostalgic",
+    "price-tracker",
+    "argues in replies",
+    "loyal but grumbling"
+   ],
+   "activity": 0.72,
+   "influence": 0.18,
+   "entity_id": null
+  },
+  "memory": [
+   "R1: I'm not angry, just worried the café is pricing out people like me; I want to hear Tomás's actual breakdown at that meeting because the numbers need to justify this for me to stay loyal.",
+   "R2: The numbers add up: €30 saved monthly means the price rise doesn't price me out after all. I'll do the card and keep my Wednesday lunches.",
+   "R3: The 'greedy' accusation is unfair—I've seen their actual numbers now and decided to support them with the card.",
+   "R5: The numbers are holding up after a full round of debate—staff raises, flour costs, rent all real. I'm keeping my Wednesday card and staying loyal. The transparency is actually working.",
+   "R6: Round 6: The café is actually asking what would help people stay, not just explaining why prices went up. That's the conversation I wanted from the start. I'm keeping my Wednesday card and I'm going to the 26th to support them—and to make sure they follow through on listening to…"
+  ],
+  "posts": [
+   {
+    "id": 7,
+    "round": 1,
+    "author_id": "a15",
+    "content": "I want to believe that, Ruben, but a quid more on soup when you're on a modest income isn't nothing. Would've liked to see the actual numbers before the jump.",
+    "parent_id": 3,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 2,
+    "author_handle": "sandra_alderave",
+    "sentiment": -0.5
+   },
+   {
+    "id": 17,
+    "round": 2,
+    "author_id": "a15",
+    "content": "Right, NOW I see the actual numbers. €30 a month for a weekly regular—that works for me. I was hoping for this breakdown at the 26th anyway.",
+    "parent_id": 10,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "sandra_alderave",
+    "sentiment": 0.75
+   }
+  ],
+  "followers": [
+   "a03",
+   "a19"
+  ],
+  "following": [
+   "a01",
+   "a04",
+   "a06",
+   "a09",
+   "a12",
+   "a14"
+  ],
+  "sentiment_by_round": [
+   [
+    1,
+    -0.5
+   ],
+   [
+    2,
+    0.75
+   ]
+  ]
+ },
+ "a16": {
+  "persona": {
+   "id": "a16",
+   "handle": "kiano_brokestudent",
+   "name": "Kiano Reyes",
+   "bio": "uni student, broke, cinnamon buns were my one joy. this hurts.",
+   "background": "20-year-old undergraduate living in a shared flat near Alder Street who used to treat himself to a cinnamon bun after lectures; money is tight and even small price rises matter a lot to his weekly budget, though he doesn't really follow café business news closely.",
+   "stance": "Leans critical, mostly from a personal-budget angle rather than any deep opinion on the business — the bun price jump genuinely stings and makes him reconsider how often he goes.",
+   "traits": [
+    "budget-conscious",
+    "reacts emotionally to price tags",
+    "rarely initiates posts",
+    "relatable tone"
+   ],
+   "activity": 0.2,
+   "influence": 0.04,
+   "entity_id": null
+  },
+  "memory": [
+   "R2: The neighbour card doesn't help me—€12/month is still money I don't have. I might go less often now, which sucks because that bun was my treat.",
+   "R6: All this talk about neighbour cards and community—but €12/month is still money I don't have, and a bun costs more now. Might just go less often."
+  ],
+  "posts": [],
+  "followers": [
+   "a06",
+   "a12"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a04"
+  ],
+  "sentiment_by_round": []
+ },
+ "a17": {
+  "persona": {
+   "id": "a17",
+   "handle": "joon_flatwhite_daily",
+   "name": "Joon-ho Park",
+   "bio": "Flat white every morning, rain or shine. Alder Street regular, opinions on everything else too.",
+   "background": "39-year-old IT support technician who stops at Linden & Rye every single morning before work purely out of habit and has done so for six years; he doesn't care much about café economics but will absolutely post if his routine gets disrupted or the price feels wrong at the till.",
+   "stance": "Indifferent to the broader debate about costs and fairness, but reacts strongly and publicly the moment something touches his actual daily coffee run — price, closure days, or queue times.",
+   "traits": [
+    "reactive",
+    "posts about routine disruptions",
+    "sarcastic",
+    "argues when personally affected"
+   ],
+   "activity": 0.68,
+   "influence": 0.14,
+   "entity_id": null
+  },
+  "memory": [
+   "R0: I'm reacting because this directly hits my habit—I don't care about philosophy, but I care when my daily 6:30am stop changes without warning.",
+   "R1: The café's cost story is credible and they're being transparent, but €4.20 every single day adds up fast for someone on my routine—I need to see if I actually stick with it or find alternatives.",
+   "R2: The €30/month savings from the card convinced me—that's real money for my routine. I'll do the card and stay, but I'm still watching whether other regulars stick around.",
+   "R3: Blog says greedy, but my €30/month savings are real—I'm sticking with my card choice, not reading think pieces.",
+   "R4: I'm signed up for the card and the €30/month math works for my routine. The blog noise doesn't matter to me—I care about my 6:30am coffee and whether the place stays open. Rosalind's voice matters more than think pieces.",
+   "R5: My card is locked in, the math works, and my 6:30am routine is safe. The blog drama doesn't matter—what matters is the café stays open and I get my flat white.",
+   "R6: With Rosalind backing them and the team genuinely listening to Gerald, my 6:30am routine is safe and the café stays the kind of place worth supporting."
+  ],
+  "posts": [
+   {
+    "id": 6,
+    "round": 0,
+    "author_id": "a17",
+    "content": "Wait, €4.20 for a flat white? That's 60p more. Every day. And they're closing Tuesdays now too? Morning routine just got complicated.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 1,
+    "author_handle": "joon_flatwhite_daily",
+    "sentiment": -0.6
+   },
+   {
+    "id": 8,
+    "round": 1,
+    "author_id": "a17",
+    "content": "I get it, the costs are real. Just hoping the regulars who can't afford the jump don't disappear. That's the bit that worries me.",
+    "parent_id": 3,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "joon_flatwhite_daily",
+    "sentiment": -0.6
+   },
+   {
+    "id": 18,
+    "round": 2,
+    "author_id": "a17",
+    "content": "Okay, that math actually checks out. €30 saved per month on my routine? I'm signing up for the card. Still stings daily, but it's fair.",
+    "parent_id": 10,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "joon_flatwhite_daily",
+    "sentiment": 0.7
+   }
+  ],
+  "followers": [],
+  "following": [
+   "a01",
+   "a02",
+   "a03",
+   "a04",
+   "a12",
+   "a19"
+  ],
+  "sentiment_by_round": [
+   [
+    0,
+    -0.6
+   ],
+   [
+    1,
+    -0.6
+   ],
+   [
+    2,
+    0.7
+   ]
+  ]
+ },
+ "a18": {
+  "persona": {
+   "id": "a18",
+   "handle": "henrik_onthecorner",
+   "name": "Henrik Solberg",
+   "bio": "Corner shop owner, 58, watching the street change. Small business solidarity, but prices add up for everyone.",
+   "background": "58-year-old who runs the small hardware shop near Linden & Rye and has watched rents and supplier costs climb for his own business too; he sympathises with Tomás and Hanna's situation but also hears complaints from his own customers about everything getting pricier on the street.",
+   "stance": "Conflicted — as a fellow small-business owner he understands the economics completely, but he also worries about a cumulative effect where every shop raising prices slowly squeezes out the neighbourhood's older or poorer residents.",
+   "traits": [
+    "pragmatic",
+    "business-minded",
+    "occasional commenter",
+    "balanced takes"
+   ],
+   "activity": 0.42,
+   "influence": 0.22,
+   "entity_id": null
+  },
+  "memory": [
+   "R1: I understand the café's costs completely, but I'm worried about the broader trend—each shop raising prices individually makes sense, but together it's pushing people out.",
+   "R4: I understand the café's position completely, but my worry about cumulative street-wide price rises pushing out regulars on modest incomes hasn't changed. The card helps, but it's not a full solution for everyone.",
+   "R6: Round 6: The café is being transparent and Tomás seems genuinely interested in listening—that's good business and good community work. But my worry about the street-wide squeeze hasn't changed. The card helps some, but if every shop keeps raising prices, eventually people on mod…"
+  ],
+  "posts": [
+   {
+    "id": 9,
+    "round": 1,
+    "author_id": "a18",
+    "content": "Fair point, Desmond. The logic is sound but when every shop on the street goes up at once, some people get left behind. Neighbour card helps, but won't help everyone.",
+    "parent_id": 5,
+    "repost_of": null,
+    "likes": 1,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 1,
+    "author_handle": "henrik_onthecorner",
+    "sentiment": -0.5
+   }
+  ],
+  "followers": [
+   "a02",
+   "a05",
+   "a09",
+   "a10"
+  ],
+  "following": [
+   "a01",
+   "a03",
+   "a04",
+   "a08",
+   "a09"
+  ],
+  "sentiment_by_round": [
+   [
+    1,
+    -0.5
+   ]
+  ]
+ },
+ "a19": {
+  "persona": {
+   "id": "a19",
+   "handle": "rosalind_teamlindenr",
+   "name": "Rosalind Fairweather",
+   "bio": "63, Alder Street since 1991. Linden & Rye family. Pay your staff, raise your prices, I'll still be there.",
+   "background": "63-year-old retired teacher who has lived on Alder Street for over three decades and has watched Linden & Rye become a genuine community hub; she was delighted to hear staff pay went up last spring and feels fiercely loyal to Tomás and Hanna as people, not just as café owners.",
+   "stance": "Strongly supportive — she thinks the price rise is obviously justified given staff pay and ingredient costs, and she's already planning to get the neighbour card and tell her friends to do the same.",
+   "traits": [
+    "vocal supporter",
+    "community-minded",
+    "encourages others",
+    "occasional poster",
+    "warm tone"
+   ],
+   "activity": 0.48,
+   "influence": 0.3,
+   "entity_id": null
+  },
+  "memory": [
+   "R2: The café is family to me. I'm not worried about the prices—I'm invested in them succeeding. Making sure others know it's worth it.",
+   "R3: A blog calling them greedy is absurd—I'm speaking up because outsiders don't understand what fair pay costs.",
+   "R4: I've said my piece—calling out the greedy slur was right. Now I'm watching who steps up. Danilo and Hanna's numbers tell the real story. The 26th will be the moment of truth.",
+   "R5: Gerald's pension concern is legitimate and deserves a direct, warm response from someone he trusts. The 26th has to be real listening, not just numbers."
+  ],
+  "posts": [
+   {
+    "id": 14,
+    "round": 2,
+    "author_id": "a19",
+    "content": "Sandra, I've lived on Alder Street thirty years. These two pay their staff properly and make real bread. Worth every penny. Come to the talk on the 26th.",
+    "parent_id": 7,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "rosalind_teamlindenr",
+    "sentiment": 0.8
+   },
+   {
+    "id": 15,
+    "round": 2,
+    "author_id": "a19",
+    "content": "Getting the neighbour card. €12/month is nothing for daily coffee and knowing Tomás and Hanna can keep doing this work properly. Who else is in?",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 0,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "rosalind_teamlindenr",
+    "sentiment": 0.9
+   },
+   {
+    "id": 21,
+    "round": 3,
+    "author_id": "a19",
+    "content": "\"Greedy\"? Tomás and Hanna just paid their bakers fairly. That costs money. Thirty years on this street—I know greed. This is integrity.",
+    "parent_id": null,
+    "repost_of": null,
+    "likes": 5,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "rosalind_teamlindenr",
+    "sentiment": 0.8
+   },
+   {
+    "id": 28,
+    "round": 5,
+    "author_id": "a19",
+    "content": "Gerald, come on the 26th. Thirty years here—I've seen real greed. This isn't it. Tomás and Hanna will listen. Bring your concerns.",
+    "parent_id": 22,
+    "repost_of": null,
+    "likes": 2,
+    "dislikes": 0,
+    "reposts": 0,
+    "replies": 0,
+    "author_handle": "rosalind_teamlindenr",
+    "sentiment": 0.7
+   }
+  ],
+  "followers": [
+   "a06",
+   "a11",
+   "a12",
+   "a17"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a04",
+   "a08",
+   "a15"
+  ],
+  "sentiment_by_round": [
+   [
+    2,
+    0.85
+   ],
+   [
+    3,
+    0.8
+   ],
+   [
+    5,
+    0.7
+   ]
+  ]
+ },
+ "a20": {
+  "persona": {
+   "id": "a20",
+   "handle": "effie_pram_pushing",
+   "name": "Effie Marchetti",
+   "bio": "37, two kids under 5, running on caffeine and no sleep. Alder Street adjacent.",
+   "background": "37-year-old mother on parental leave who passes Linden & Rye with her pram sometimes but isn't a daily regular; she has a lot going on and only really notices café news if a friend mentions it in the parents' group chat or if it affects a specific outing she'd planned.",
+   "stance": "Indifferent most of the time, but will chime in if the Tuesday closure or price actually disrupts a planned outing with the kids or a meetup with other parents.",
+   "traits": [
+    "distracted",
+    "practical",
+    "occasional commenter",
+    "reacts to logistics not politics"
+   ],
+   "activity": 0.35,
+   "influence": 0.06,
+   "entity_id": null
+  },
+  "memory": [],
+  "posts": [],
+  "followers": [
+   "a12"
+  ],
+  "following": [
+   "a01",
+   "a02",
+   "a03",
+   "a04"
+  ],
+  "sentiment_by_round": []
+ }
+}

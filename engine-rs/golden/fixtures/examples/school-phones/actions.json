@@ -1,0 +1,605 @@
+[
+ {
+  "round": 0,
+  "agent_id": "a02",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "We consulted staff, students and parents for a year before this decision. The data on disruption and wellbeing convinced us. We're ready to listen to real problems at the info evening—this is about schools being calm learning spaces, not control.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a04",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Medical exemption requests close 1 August. If your child monitors glucose, needs an inhaler alert, or has another health reason—email me early with your GP or nurse's letter. The process works smoothly when we have time to set it up.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a09",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Twelve years teaching and I can't count how many times a phone buzz stops an entire lesson. I'm hopeful this works, but it will only stick if all staff enforce it consistently. Our workload during transition matters too.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a11",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "I've got no problem with less phone time in lessons. But if my daughter's after-school plans change and I can't reach her directly after 3pm, we've got a problem. How does the emergency contact thing actually work?",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a13",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "My grandson has type 1 diabetes and his phone is medical equipment. Duarte processed our exemption in days and he'll be safe. If you've got a medical concern, contact the pastoral lead early—it absolutely works.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a14",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Banning phones all day is easy policy-making. Teaching teenagers to manage their own device use—that's harder and actually useful for adult life. Sixth-formers still aren't trusted. Seems like avoidance to me.",
+  "reasoning": ""
+ },
+ {
+  "round": 1,
+  "agent_id": "a05",
+  "type": "reply",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "Exactly my worry too. My son's on the bus 40 mins each way—if plans change or he's stuck, I need to reach him. Has anyone actually asked the school HOW this works in practice?",
+  "reasoning": "Claire is highly active, data-curious, and shares Pete's practical concern. She would engage directly on this logistical gap rather than just liking it."
+ },
+ {
+  "round": 1,
+  "agent_id": "a05",
+  "type": "reply",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "I want to support this, but the emergency contact question keeps nagging at me. What's the actual process if my kid needs me in the afternoon? Not just 'contact us'—what are the protocols?",
+  "reasoning": "Claire asks pointed questions and wants solid answers before fully committing. She'd push the headteacher for specifics rather than accepting reassurance alone."
+ },
+ {
+  "round": 1,
+  "agent_id": "a07",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Sofia supports the policy because it balances disruption reduction with medical exemptions. The headteacher's statement aligns with her experience."
+ },
+ {
+  "round": 1,
+  "agent_id": "a07",
+  "type": "reply",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "My daughter has type 1 diabetes and uses a phone monitor. Duarte's process was straightforward—email early with medical docs and it's sorted. The emergency contact thing deserves a clear answer though, ask at the info evening.",
+  "reasoning": "Sofia is a vocal advocate who reassures anxious parents. She'd share her positive exemption experience to build confidence, but acknowledge Pete's legitimate question."
+ },
+ {
+  "round": 1,
+  "agent_id": "a08",
+  "type": "like",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Jamal agrees with Ms Okafor's point about classroom disruption and enforcement consistency. His professional experience with teens validates her concern."
+ },
+ {
+  "round": 1,
+  "agent_id": "a08",
+  "type": "reply",
+  "target_post_id": 6,
+  "target_agent_id": null,
+  "content": "I see your point about Sixth Form, but in my work with teenagers, the real benefit is reducing social pressure and online harassment during the day. That's a skill worth building early.",
+  "reasoning": "Jamal is measured and thoughtful, references professional experience. He'd engage with Leon's critique respectfully while explaining his supportive stance."
+ },
+ {
+  "round": 1,
+  "agent_id": "a10",
+  "type": "reply",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "A year of consultation but you're telling me to come to an info evening to raise 'real problems'? That's not listening, that's rubber-stamping. My shifts change daily. This policy doesn't work for families like mine.",
+  "reasoning": "Tyler is skeptical, blunt, and distrustful. He sees the head's claim of consultation as insincere and his practical situation as ignored. He'd push back directly despite being low-activity, because this provokes him."
+ },
+ {
+  "round": 1,
+  "agent_id": "a13",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Margaret strongly supports the policy and likes the headteacher's framing of it as about calm learning spaces. This affirms her positive experience with exemptions."
+ },
+ {
+  "round": 1,
+  "agent_id": "a13",
+  "type": "reply",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "The school has an emergency contact system—I'd just ask Duarte directly about the after-school process. They've been brilliant with my grandson's exemption, so I trust them on this too.",
+  "reasoning": "Margaret is a grateful advocate who has had a good experience. She wants to reassure Pete and normalize contacting Duarte. She's protective and wants others to know the system works."
+ },
+ {
+  "round": 1,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Aarav agrees with Ms Okafor's experience of disruption in lessons. He's a quiet observer but this resonates with his classroom reality."
+ },
+ {
+  "round": 1,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 6,
+  "target_agent_id": null,
+  "content": "We appreciate Leon's point about self-regulation. The council pressed for sixth-form flexibility and emergency protocols precisely because of concerns like this. We'll be monitoring implementation and welcome detailed feedback at the info evening.",
+  "reasoning": "The Parents' Council is diplomatic and consensus-seeking; they'd acknowledge Leon's concern while standing by the policy they helped shape, but reaffirm their commitment to listening and adjusting details."
+ },
+ {
+  "round": 1,
+  "agent_id": "a03",
+  "type": "like",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Pete's specific question about emergency contact is exactly the kind of practical detail the council cares about and wants to see answered clearly."
+ },
+ {
+  "round": 1,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 5,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Fiona sees the practical side and Margaret's post about the smooth medical exemption process reassures her that the school has thought things through; it's the kind of thing local business owners would overhear parents praising."
+ },
+ {
+  "round": 1,
+  "agent_id": "a14",
+  "type": "reply",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "A year of consultation is great, but where's the evidence that confiscation teaches anything? You're solving a symptom (disruption) not building the skill (self-regulation) they'll need at uni and beyond.",
+  "reasoning": "Leon is argumentative and critical; he'd push back on the headteacher's framing, citing his sociological perspective and recent university experience to challenge the policy's educational logic."
+ },
+ {
+  "round": 1,
+  "agent_id": "a14",
+  "type": "like",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Pete's practical concern about emergency contact aligns with Leon's skepticism about blanket policies; he'd support a question that exposes implementation gaps."
+ },
+ {
+  "round": 2,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 11,
+  "target_agent_id": null,
+  "content": "We hear you—shift work makes this harder. The info evening is genuinely for questions like yours, not a rubber stamp. Come with specifics on what timing would work and we'll take it to leadership.",
+  "reasoning": "The Parents' Council responds to Tyler's frustration about shift workers being overlooked, showing they take practical constraints seriously and aren't just defending the policy."
+ },
+ {
+  "round": 2,
+  "agent_id": "a05",
+  "type": "reply",
+  "target_post_id": 11,
+  "target_agent_id": null,
+  "content": "Exactly—shift work is inflexible. My son's bus commute isn't a choice either. We shouldn't have to guess at emergency protocols. School needs to publish the actual process before the info evening.",
+  "reasoning": "Claire aligns with Tyler's frustration about practical constraints being treated as afterthoughts, and escalates the demand for clarity from reassurance to concrete process documentation."
+ },
+ {
+  "round": 2,
+  "agent_id": "a13",
+  "type": "reply",
+  "target_post_id": 11,
+  "target_agent_id": null,
+  "content": "I get your worry—Duarte's team has been so responsive with my grandson's needs that I'm confident they'll sort the emergency thing too. Worth asking them directly rather than waiting.",
+  "reasoning": "Margaret responds to Tyler's frustration by offering reassurance based on her positive experience with pastoral, but also validates his concern as legitimate."
+ },
+ {
+  "round": 2,
+  "agent_id": "a14",
+  "type": "reply",
+  "target_post_id": 13,
+  "target_agent_id": null,
+  "content": "I appreciate the honesty on monitoring, but 'will monitor implementation' doesn't address my core point: are you building self-regulation or just deferring the problem to university?",
+  "reasoning": "Leon engages with the Parents' Council's diplomatic response, pushing them on the pedagogical question that he thinks matters most."
+ },
+ {
+  "round": 2,
+  "agent_id": "a16",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Low-engagement lurker; sixth-form exemption covers her needs, so she scrolls past without reacting to the ongoing debate about self-regulation and emergency protocols."
+ },
+ {
+  "round": 2,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "David trusts the school's judgment and the headteacher's consultation claim; a single like signals mild approval without engagement."
+ },
+ {
+  "round": 2,
+  "agent_id": "a02",
+  "type": "reply",
+  "target_post_id": 8,
+  "target_agent_id": null,
+  "content": "Claire, fair question. Emergency protocols: if your child needs to reach you, they speak to reception or pastoral. Staff have a phone line for genuine medical/safety needs. We'll detail this at the info evening—I want it clear for every parent.",
+  "reasoning": "Directly addresses the recurring emergency contact concern with a concrete statement, showing responsiveness without being defensive."
+ },
+ {
+  "round": 2,
+  "agent_id": "a09",
+  "type": "reply",
+  "target_post_id": 14,
+  "target_agent_id": null,
+  "content": "Leon, I get the self-regulation point. But in practice? Phones interrupt every lesson. If this policy gives us back even 20 mins of focused teaching time, that *is* building a skill—concentration.",
+  "reasoning": "Ngozi engages directly with substantive criticism, defending the policy from her lived classroom experience while acknowledging Leon's broader point."
+ },
+ {
+  "round": 2,
+  "agent_id": "a09",
+  "type": "reply",
+  "target_post_id": 8,
+  "target_agent_id": null,
+  "content": "Claire, the emergency protocols question is fair. I'd push Amara on specifics at the info evening—we need staff clear on this too, not just parents.",
+  "reasoning": "Shows solidarity with parent concerns and signals that teacher workload includes clarity on how to handle emergencies."
+ },
+ {
+  "round": 3,
+  "agent_id": "a01",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Today's bus incident reinforced why our emergency protocols matter. We'll publish detailed procedures before the info evening. Parents deserve clarity, not just assurance.",
+  "reasoning": "The school account must respond to the breaking news with visible action; publishing protocols early shows responsiveness and maintains institutional credibility."
+ },
+ {
+  "round": 3,
+  "agent_id": "a02",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Today's bus breakdown on the motorway—students safely accounted for, staff responded well. But this shows why clear emergency protocols matter. We're publishing detailed procedures by end of week.",
+  "reasoning": "Amara must show decisive, evidence-based leadership; acknowledging the incident validates parent concerns while demonstrating competence and responsiveness."
+ },
+ {
+  "round": 3,
+  "agent_id": "a03",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "The bus breakdown today highlighted exactly what we've been asking about. We're pushing leadership to publish emergency protocols this week—parents need answers before September.",
+  "reasoning": "The council's diplomatic but persistent approach is validated by this incident; they now have concrete evidence to demand faster action."
+ },
+ {
+  "round": 3,
+  "agent_id": "a09",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "The bus breakdown today shows the gap between our protocols and reality. Staff handled it well, but we need Amara to publish the actual emergency contact process NOW, not at the info evening.",
+  "reasoning": "Ngozi has been supportive but realistic about implementation; this concrete incident validates parent concerns and pushes her to demand clarity rather than reassurance."
+ },
+ {
+  "round": 3,
+  "agent_id": "a14",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Today's bus incident proves the emergency protocols debate wasn't theoretical. Good to see staff handled it, but this reinforces why we need published procedures, not promises.",
+  "reasoning": "Leon's analytical style means he sees this as evidence for institutional accountability rather than anti-phone ideology; he can acknowledge the school handled it while still demanding transparency."
+ },
+ {
+  "round": 3,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "David sees the emergency protocols discussion is now urgent and relevant after the bus breakdown; he agrees that clarity is needed."
+ },
+ {
+  "round": 3,
+  "agent_id": "a05",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "A school bus breaks down and students can't call home for an hour because their phones are locked away. This is the scenario I've been asking about. The school promised 'protocols'—where were they today?",
+  "reasoning": "This is Claire's exact feared scenario happening in real time; she's high-activity and has been pushing for written protocols. This demands an immediate, pointed post, not just a reply."
+ },
+ {
+  "round": 3,
+  "agent_id": "a08",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Jamal sees Ms Okafor's pragmatic defence of the policy (teaching concentration), but the bus incident shows emergency protocols are fragile and need real attention."
+ },
+ {
+  "round": 3,
+  "agent_id": "a08",
+  "type": "reply",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "Headteacher, today's bus breakdown showed the emergency protocols aren't working yet. Kids couldn't reach parents. Before the info evening, the school needs to show these protocols actually function under pressure, not just in theory.",
+  "reasoning": "Jamal remains cautiously supportive but this incident forces him to hold the school accountable. He's experienced enough to know good intentions aren't enough; systems must be tested and proven."
+ },
+ {
+  "round": 3,
+  "agent_id": "a12",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Just heard about the bus breakdown. Students stuck for over an hour with no way to call home. This is exactly what parents have been saying would happen. Hope everyone's okay.",
+  "reasoning": "Breaking news validates the emergency concern Fiona's customers have been worried about; as a local who hears parent gossip, she'd comment on this practical incident directly."
+ },
+ {
+  "round": 4,
+  "agent_id": "a02",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Parents are right. The bus incident exposed a gap between our protocols and reality. We're publishing detailed emergency procedures by Friday—not promises, written step-by-step processes. Parents deserve clarity.",
+  "reasoning": "Amara's memory shows she accepts the bus incident as a 'reality check'. She needs to move fast and visibly to preserve trust—a public commitment to written, specific procedures by a real deadline will reset confidence."
+ },
+ {
+  "round": 4,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 28,
+  "target_agent_id": null,
+  "content": "Jamal, exactly right. We're escalating this to leadership today—parents need to see written protocols before the info evening, not promises. The bus incident proved the gap.",
+  "reasoning": "The council has been pushing for published protocols; the bus breakdown validates their concerns and justifies stronger pressure on leadership now."
+ },
+ {
+  "round": 4,
+  "agent_id": "a04",
+  "type": "reply",
+  "target_post_id": 23,
+  "target_agent_id": null,
+  "content": "Supporting you on this, Amara. Parents need the emergency protocols written clearly—not just for reassurance, but so our staff can implement them consistently. I'm ready to help draft the after-school contact pathway.",
+  "reasoning": "Duarte is practical and detail-focused; he sees the bus incident as an operational problem he can solve. A public offer to help draft protocols shows the pastoral team is engaged and removes the school's excuse for delay."
+ },
+ {
+  "round": 4,
+  "agent_id": "a05",
+  "type": "reply",
+  "target_post_id": 25,
+  "target_agent_id": null,
+  "content": "Ms Okafor, thank you—you're saying what I've been asking all along. The protocols need to be written, tested, and published NOW. Parents can't make decisions on promises.",
+  "reasoning": "Claire is data-curious and argumentative; she sees an ally in Okafor and will push harder now that staff are publicly acknowledging the gap between protocols and reality."
+ },
+ {
+  "round": 4,
+  "agent_id": "a05",
+  "type": "reply",
+  "target_post_id": 23,
+  "target_agent_id": null,
+  "content": "Amara, 'by end of week' isn't soon enough. Parents need to see the actual written procedures before the info evening—not discuss them, see them. The bus proved my concerns were real.",
+  "reasoning": "Claire's stance has hardened from 'torn' to 'validation'—the bus incident proved her right and she's now demanding concrete action before engaging with the school constructively."
+ },
+ {
+  "round": 4,
+  "agent_id": "a11",
+  "type": "reply",
+  "target_post_id": 23,
+  "target_agent_id": null,
+  "content": "Appreciate the commitment, Amara, but parents need those protocols in writing before September, not just promised at the info evening. Today showed the gap between theory and practice.",
+  "reasoning": "Peter has been genuinely torn but practical; the bus incident proves his logistical worries were legitimate. He needs reassurance through action, not just words."
+ },
+ {
+  "round": 4,
+  "agent_id": "a13",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "I trust Duarte and the team—they handled my grandson's exemption brilliantly. But Claire and others need to see the actual written protocols, not just get told they exist. Fair to push for that.",
+  "reasoning": "Margaret remains supportive but recognizes that her positive experience with the exemption process doesn't address the broader emergency contact gap. She can validate the school's competence while acknowledging others' legitimate demands."
+ },
+ {
+  "round": 4,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 23,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Headteacher Lewis is publicly committing to publish detailed procedures by end of week—this is the concrete action Ngozi has been demanding."
+ },
+ {
+  "round": 4,
+  "agent_id": "a09",
+  "type": "reply",
+  "target_post_id": 27,
+  "target_agent_id": null,
+  "content": "Claire, I understand the frustration. Today showed the gap between theory and practice. But Lewis has committed to publishing procedures by Friday—let's hold them to it and get clear answers at the info evening.",
+  "reasoning": "Ngozi wants to acknowledge Claire's legitimate concern while reinforcing that leadership is now moving toward the transparency she's been advocating for; she's cautiously optimistic but still holding them accountable."
+ },
+ {
+  "round": 5,
+  "agent_id": "a01",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The school's official account has made its position clear through the headteacher; further posts would be repetitive. The focus now is on delivery of the Friday deadline, which doesn't require additional institutional messaging."
+ },
+ {
+  "round": 5,
+  "agent_id": "a02",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Emergency procedures draft is with Duarte now—circulation to staff and parents council by Thursday evening, publication Friday morning. This has to be done right, not fast.",
+  "reasoning": "Amara needs to show active movement on her Friday commitment in real time; announcing the draft process signals urgency and specificity, not just a vague promise."
+ },
+ {
+  "round": 5,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 30,
+  "target_agent_id": null,
+  "content": "Amara, the council will review Thursday evening and help circulate to parents before Friday publication. We'll make sure this reaches everyone before the info evening.",
+  "reasoning": "The council amplifies the headteacher's commitment and signals they'll hold her accountable; they're positioning themselves as a bridge between leadership and parent trust."
+ },
+ {
+  "round": 5,
+  "agent_id": "a08",
+  "type": "like",
+  "target_post_id": 30,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Jamal's cautious support was shaken by the bus incident, but the headteacher's move to publish written procedures and acknowledge the gap shows the school is taking the emergency concern seriously, which restores some of his confidence."
+ },
+ {
+  "round": 5,
+  "agent_id": "a13",
+  "type": "like",
+  "target_post_id": 30,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Headteacher's commitment to publish written procedures by Friday directly addresses Margaret's belief that the school listens when you reach out; this validates her trust in the process."
+ },
+ {
+  "round": 5,
+  "agent_id": "a14",
+  "type": "like",
+  "target_post_id": 30,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Leon has been critical but the headteacher's decisive move to publish written procedures (not vague promises) shows responsiveness to pressure; this is the kind of accountability he's been demanding."
+ },
+ {
+  "round": 5,
+  "agent_id": "a14",
+  "type": "reply",
+  "target_post_id": 30,
+  "target_agent_id": null,
+  "content": "Good. 'Written step-by-step' is what matters. But also: once these are published, the school needs to actually train staff and test them under pressure before September, not just hand out a document.",
+  "reasoning": "Leon stays critical but acknowledges the progress; he's pushing for follow-through on implementation, not just protocol publication."
+ },
+ {
+  "round": 6,
+  "agent_id": "a02",
+  "type": "reply",
+  "target_post_id": 40,
+  "target_agent_id": null,
+  "content": "Leon, you're absolutely right. Publishing the procedures is essential but not sufficient. We're planning staff training in late August—I'll send detail on that separately to all staff.",
+  "reasoning": "Amara recognizes that Leon's criticism about implementation is valid. She needs to show she's thought beyond the document to actual staff readiness, which strengthens her credibility on the policy."
+ },
+ {
+  "round": 6,
+  "agent_id": "a03",
+  "type": "like",
+  "target_post_id": 38,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The council's work to review Thursday and help circulate Friday is now in play. The council is showing it has delivered concrete action from leadership—this validates the council's advocacy pressure."
+ },
+ {
+  "round": 6,
+  "agent_id": "a03",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Parents: the detailed emergency procedures will reach you Friday morning. The council will share widely before the info evening. Read them carefully—your feedback still matters.",
+  "reasoning": "The council should signal to parents that the promised transparency is coming and mobilize them to engage thoughtfully with the actual procedures, not just accept them."
+ },
+ {
+  "round": 6,
+  "agent_id": "a05",
+  "type": "like",
+  "target_post_id": 38,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Claire has been demanding written procedures published before the info evening. Lewis is finally committing to it—this is validation that her persistence mattered."
+ },
+ {
+  "round": 6,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 38,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Lewis has delivered on the commitment to publish procedures by Friday—exactly what Ngozi demanded. A show of support for following through."
+ },
+ {
+  "round": 6,
+  "agent_id": "a09",
+  "type": "reply",
+  "target_post_id": 40,
+  "target_agent_id": null,
+  "content": "Leon's right—publishing is only step one. Staff need proper training on these protocols, not just the document. I'll push for a staff briefing before Sept 1st.",
+  "reasoning": "Ngozi agrees with Leon's point about implementation and testing; she wants to ensure her colleagues can actually execute the procedures under pressure, not just read them."
+ },
+ {
+  "round": 6,
+  "agent_id": "a14",
+  "type": "reply",
+  "target_post_id": 38,
+  "target_agent_id": null,
+  "content": "Good timeline. But Amara, once staff have the procedures, will you commit to a staff drill—actually test these protocols under simulated pressure before day one? Otherwise it's just paper.",
+  "reasoning": "Leon is pressing the school to move from publishing to testing. He's not backing off the underlying criticism about policy robustness, but he's shifting focus to practical validation—holding the school accountable for execution."
+ },
+ {
+  "round": 6,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 40,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Leon's practical point about staff training and testing resonates with Aarav's concern that enforcement will only work if staff are properly prepared and confident."
+ },
+ {
+  "round": 6,
+  "agent_id": "a01",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Emergency procedures published this morning. Full protocol for student contact during incidents now available on our website and shared with parents council. Thank you for the feedback that made this urgent.",
+  "reasoning": "This is round 6, Friday morning. The school committed publicly to publishing emergency procedures Friday. As the official account with medium activity and institutional responsibility, posting the completion of this commitment demonstrates accountability and addresses the core concern that emerged from the bus breakdown."
+ },
+ {
+  "round": 6,
+  "agent_id": "a12",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Fiona is detached from the school drama and follows the account for practical information. She's not a parent with direct stake. By round 6, the immediate drama has passed; she only engages when customers complain. No reason to post or reply now—she'll hear parent reaction at the shop soon enough."
+ },
+ {
+  "round": 6,
+  "agent_id": "a16",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Jessica is a low-engagement sixth former whose common room exemption means the policy barely affects her. She mostly lurks. Round 6 shows the school resolving the emergency protocol issue, but this doesn't change her situation or prompt her to engage—she has no stake in the outcome."
+ }
+]

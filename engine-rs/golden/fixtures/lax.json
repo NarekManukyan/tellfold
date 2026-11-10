@@ -1,0 +1,320 @@
+[
+ {
+  "input": "{\"i\": true}",
+  "output": {
+   "i": 1,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": 3.0}",
+  "output": {
+   "i": 3,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": 3.5}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": \"3\"}",
+  "output": {
+   "i": 3,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \" 3 \"}",
+  "output": {
+   "i": 3,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \"3.0\"}",
+  "output": {
+   "i": 3,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": 1e3}",
+  "output": {
+   "i": 1000,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \"1_000\"}",
+  "output": {
+   "i": 1000,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \"+3\"}",
+  "output": {
+   "i": 3,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \"-7\"}",
+  "output": {
+   "i": -7,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"i\": \"x\"}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": null}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": [1]}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": \"1__0\"}",
+  "output": null
+ },
+ {
+  "input": "{\"f\": true}",
+  "output": {
+   "i": 0,
+   "f": 1.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": 2}",
+  "output": {
+   "i": 0,
+   "f": 2.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": \"0.5\"}",
+  "output": {
+   "i": 0,
+   "f": 0.5,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": \" 0.5\"}",
+  "output": {
+   "i": 0,
+   "f": 0.5,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": \"1_0.5\"}",
+  "output": {
+   "i": 0,
+   "f": 10.5,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": \"x\"}",
+  "output": null
+ },
+ {
+  "input": "{\"f\": null}",
+  "output": null
+ },
+ {
+  "input": "{\"f\": \"-1e-3\"}",
+  "output": {
+   "i": 0,
+   "f": -0.001,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": 1}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": true,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": 0}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": 2}",
+  "output": null
+ },
+ {
+  "input": "{\"b\": \"YES\"}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": true,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": \"off\"}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": 1.0}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": true,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": \"1\"}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": true,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"b\": \"maybe\"}",
+  "output": null
+ },
+ {
+  "input": "{\"b\": null}",
+  "output": null
+ },
+ {
+  "input": "{\"s\": 3}",
+  "output": null
+ },
+ {
+  "input": "{\"s\": null}",
+  "output": null
+ },
+ {
+  "input": "{\"s\": \"ok\"}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "ok",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"o\": null}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"o\": \"2\"}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": 2
+  }
+ },
+ {
+  "input": "{\"o\": 2.0}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": 2
+  }
+ },
+ {
+  "input": "{\"extra\": 1}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{}",
+  "output": {
+   "i": 0,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ }
+]

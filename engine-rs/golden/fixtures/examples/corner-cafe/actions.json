@@ -1,0 +1,722 @@
+[
+ {
+  "round": 0,
+  "agent_id": "a02",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "26 Feb, 7pm: come ask us anything about the prices. We've watched flour and rent climb for two years. We hear you. Let's talk over free buns.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a04",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "📢 From 2 March, our prices shift. Same sourdough soul, just honest costs. Neighbour card = €12/month, daily free filter coffee. Details in bio. See you 26th?",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a12",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Linden & Rye raising prices because flour, butter and Alder St rent actually cost more. Not greed. Neighbour card is smart. Support the people you want to stay, folks.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a13",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Been my Sunday ritual for four years. If €1.30 more on a sourdough keeps Tomás and Hanna running it, that's a yes from me.",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a14",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "My sister's café just raised prices. I get it, rent is brutal. But when everything goes up at once, families feel it. Hoping the neighbour card thing actually works?",
+  "reasoning": ""
+ },
+ {
+  "round": 0,
+  "agent_id": "a17",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Wait, €4.20 for a flat white? That's 60p more. Every day. And they're closing Tuesdays now too? Morning routine just got complicated.",
+  "reasoning": ""
+ },
+ {
+  "round": 1,
+  "agent_id": "a10",
+  "type": "like",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Ruben's post validates what Felicity knows from running her own business; she supports this framing without needing to post."
+ },
+ {
+  "round": 1,
+  "agent_id": "a10",
+  "type": "like",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Beatrice's loyalty and acceptance of the price increase as fair resonates with Felicity's quiet solidarity for the café."
+ },
+ {
+  "round": 1,
+  "agent_id": "a13",
+  "type": "like",
+  "target_post_id": 2,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The café's official announcement confirms their transparency; Beatrice supports this quietly with a like."
+ },
+ {
+  "round": 1,
+  "agent_id": "a14",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": ""
+ },
+ {
+  "round": 1,
+  "agent_id": "a15",
+  "type": "reply",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "I want to believe that, Ruben, but a quid more on soup when you're on a modest income isn't nothing. Would've liked to see the actual numbers before the jump.",
+  "reasoning": "Sandra is vocal and price-conscious; she pushes back against Ruben's reassurance because the increases feel steep to her as a regular on a limited budget."
+ },
+ {
+  "round": 1,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "She appreciates Tomás inviting them to ask questions; even though she's skeptical, she respects transparency and wants to engage at the town hall."
+ },
+ {
+  "round": 1,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás is acknowledging the complaint and inviting dialogue; Joon respects the direct engagement even if skeptical about the cost."
+ },
+ {
+  "round": 1,
+  "agent_id": "a17",
+  "type": "reply",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "I get it, the costs are real. Just hoping the regulars who can't afford the jump don't disappear. That's the bit that worries me.",
+  "reasoning": "Ruben's post is the most direct defense of the prices; Joon responds directly to show he's listening but also that affordability matters to him as a daily customer."
+ },
+ {
+  "round": 1,
+  "agent_id": "a18",
+  "type": "reply",
+  "target_post_id": 5,
+  "target_agent_id": null,
+  "content": "Fair point, Desmond. The logic is sound but when every shop on the street goes up at once, some people get left behind. Neighbour card helps, but won't help everyone.",
+  "reasoning": "Henrik sees himself in Desmond's measured concern and wants to echo the pragmatic worry about cumulative effects on older residents and low-income neighbours."
+ },
+ {
+  "round": 1,
+  "agent_id": "a03",
+  "type": "like",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Bea's Sunday ritual support validates the strategy and shows regulars do understand; worth amplifying"
+ },
+ {
+  "round": 1,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 5,
+  "target_agent_id": null,
+  "content": "The card does work—we've run the numbers. €12/month saves regulars €30+. It's not a bandaid, it's real maths.",
+  "reasoning": "Desmond's concern about families is legitimate but he's open; Hanna responds with calm data to show the neighbour card has substance"
+ },
+ {
+  "round": 1,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 2,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Aligns with his supportive stance on the price rise and neighbour card strategy"
+ },
+ {
+  "round": 1,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Appreciates the direct engagement offer and transparency from Tomás"
+ },
+ {
+  "round": 1,
+  "agent_id": "a12",
+  "type": "reply",
+  "target_post_id": 6,
+  "target_agent_id": null,
+  "content": "€4.20 is fair for quality sourdough in this area. Alder St rent alone justifies it. Neighbour card softens it for regulars like you.",
+  "reasoning": "Joon's complaint invites his data-driven defence; he wants to defend the café against what he sees as entitled pushback"
+ },
+ {
+  "round": 2,
+  "agent_id": "a02",
+  "type": "reply",
+  "target_post_id": 9,
+  "target_agent_id": null,
+  "content": "Henrik's right—we see it too. That's why the card and the open evening matter. Not everyone will be okay, but we're trying.",
+  "reasoning": "Henrik's measured concern mirrors Tomás's own anxiety; acknowledging it directly feels honest and shows regulars the café is aware, not dismissive"
+ },
+ {
+  "round": 2,
+  "agent_id": "a03",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "[invalid like: already reacted] Bea's continued support reinforces the loyal customer base; Hanna finds validation in this and wants to amplify it"
+ },
+ {
+  "round": 2,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 7,
+  "target_agent_id": null,
+  "content": "Sandra, I hear you. That's exactly why we're doing the open evening—to show the actual numbers. Come on the 26th, ask anything. We're not hiding.",
+  "reasoning": "Sandra's skepticism about transparency is the kind Hanna can address directly with data; she's patient and wants to convert doubt into understanding"
+ },
+ {
+  "round": 2,
+  "agent_id": "a04",
+  "type": "like",
+  "target_post_id": 1,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás's open-evening post shows leadership and vulnerability; Instagram account wants to reinforce community-forward messaging"
+ },
+ {
+  "round": 2,
+  "agent_id": "a04",
+  "type": "like",
+  "target_post_id": 4,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Bea's post is warm community support; liking it signals the café values loyalty and helps boost positive sentiment in the feed"
+ },
+ {
+  "round": 2,
+  "agent_id": "a14",
+  "type": "like",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's specific math (€12/month saves €30+) is reassuring; Desmond respects numbers and this softens his worry slightly"
+ },
+ {
+  "round": 2,
+  "agent_id": "a16",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Kiano is a low-activity lurker on a tight budget; the price rise stings but he's still processing. No immediate action, just scrolling and feeling it"
+ },
+ {
+  "round": 2,
+  "agent_id": "a19",
+  "type": "reply",
+  "target_post_id": 7,
+  "target_agent_id": null,
+  "content": "Sandra, I've lived on Alder Street thirty years. These two pay their staff properly and make real bread. Worth every penny. Come to the talk on the 26th.",
+  "reasoning": "Rosalind is a trusted long-term neighbour; her voice carries weight with fence-sitters like Sandra. She wants to use her credibility to encourage others"
+ },
+ {
+  "round": 2,
+  "agent_id": "a19",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Getting the neighbour card. €12/month is nothing for daily coffee and knowing Tomás and Hanna can keep doing this work properly. Who else is in?",
+  "reasoning": "Rosalind is vocal and community-minded; a public commitment signals to peers that staying is the right choice and may nudge others"
+ },
+ {
+  "round": 2,
+  "agent_id": "a01",
+  "type": "like",
+  "target_post_id": 9,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Henrik's balanced take (logic is sound, but card won't help everyone) acknowledges the café's position while showing empathy—worth amplifying this nuance"
+ },
+ {
+  "round": 2,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's post confirming the card math aligns with his strong support for fair pricing and staff wages"
+ },
+ {
+  "round": 2,
+  "agent_id": "a09",
+  "type": "repost",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "This is the transparency people need. €12/month, €30+ saved. Pay your bakers fairly AND keep your regulars. Signed up already.",
+  "reasoning": "He's a vocal supporter; reposting with his endorsement encourages others to sign up and shows social proof for the card"
+ },
+ {
+  "round": 2,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's concrete math (€12/month, €30+ saved) is exactly the transparency Sandra demanded; this is the evidence she wanted before staying loyal"
+ },
+ {
+  "round": 2,
+  "agent_id": "a15",
+  "type": "reply",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "Right, NOW I see the actual numbers. €30 a month for a weekly regular—that works for me. I was hoping for this breakdown at the 26th anyway.",
+  "reasoning": "Sandra has been skeptical and demanding transparency; the posted math directly answers her request and softens her stance enough to commit to the card"
+ },
+ {
+  "round": 2,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's post with actual math (€12/month saves €30+) gives him concrete proof the card isn't just lip service—this addresses his worry about regulars being priced out"
+ },
+ {
+  "round": 2,
+  "agent_id": "a17",
+  "type": "reply",
+  "target_post_id": 10,
+  "target_agent_id": null,
+  "content": "Okay, that math actually checks out. €30 saved per month on my routine? I'm signing up for the card. Still stings daily, but it's fair.",
+  "reasoning": "He's been softening on the costs; the numbers justify the price to him and he's ready to commit to the card, signaling he'll stay loyal"
+ },
+ {
+  "round": 3,
+  "agent_id": "a01",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "[invalid reply: post None not in own feed] The café needs to respond directly to the 'greedy' accusation with concrete facts about staff pay and the card's real value; defensive but factual, as befits their character when under pressure"
+ },
+ {
+  "round": 3,
+  "agent_id": "a03",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "To be clear: staff pay went up 15%. Flour is up 40%. Rent climbed £300/month. Neighbour card saves €30/month. If that's greedy, what's fair?",
+  "reasoning": "Hanna is calm and data-driven; she replies to the 'greedy' accusation with actual figures, staying pragmatic and protective of her staff's legitimacy"
+ },
+ {
+  "round": 3,
+  "agent_id": "a12",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Local food blogger calls indie café \"greedy\" for raising prices €0.60–£1.30 to cover 15% staff pay rises and Alder St rent. Actual greed is commercial landlords. Support the people who pay fairly.",
+  "reasoning": "Ruben defends indie cafés against what he sees as entitled criticism; a 'greedy' accusation from a blog is exactly the pile-on he loves to counter with economic reality"
+ },
+ {
+  "round": 3,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 16,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Sandra already sees the math and decided to join the card; Danilo's post about transparency resonates with her shifted view, and she'll reinforce it by liking"
+ },
+ {
+  "round": 3,
+  "agent_id": "a17",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Joon has already committed to the card and sees the math as fair; a food blog opinion doesn't move him because his routine decision is made and he's not ideologically driven"
+ },
+ {
+  "round": 3,
+  "agent_id": "a19",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "\"Greedy\"? Tomás and Hanna just paid their bakers fairly. That costs money. Thirty years on this street—I know greed. This is integrity.",
+  "reasoning": "Rosalind is fiercely loyal and vocal; the 'greedy' accusation from outside would provoke her to defend the café publicly, drawing on her long history with them"
+ },
+ {
+  "round": 3,
+  "agent_id": "a02",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "[invalid reply: post 1 not in own feed] Tomás is anxious and takes criticism personally; the 'greedy' accusation directly hits his core fear. He'd respond directly and earnestly, not defensively, and point to the open evening as proof of good faith."
+ },
+ {
+  "round": 3,
+  "agent_id": "a06",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "Finally someone says it. A quid on soup, a quid on coffee—how long before daily regulars on pensions just can't afford to visit? Subscription card or not, that's not community.",
+  "reasoning": "Gerald is vocal, suspicious, and this validation from a food blog emboldens him. He's been holding back but the 'greedy' framing gives him permission to voice his core concern—that loyal pensioners are being priced out."
+ },
+ {
+  "round": 3,
+  "agent_id": "a09",
+  "type": "reply",
+  "target_post_id": 3,
+  "target_agent_id": null,
+  "content": "Greedy? They raised staff pay last spring and now want to keep baking fairly. That's the opposite. If small bakers can't charge real costs, they disappear.",
+  "reasoning": "Danilo is a vocal supporter who argues in comments and cites the staff pay rise often. The 'greedy' accusation directly contradicts his core belief that fair wages justify higher prices. He'd push back immediately and cite their prior wage action."
+ },
+ {
+  "round": 3,
+  "agent_id": "a14",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Desmond is a low-activity lurker who has already expressed his measured view. He's watching to see if people drift away or if the community holds. The blog post doesn't change his data-focused perspective; he'll wait to see actual customer behaviour."
+ },
+ {
+  "round": 4,
+  "agent_id": "a03",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's 30-year street credibility defending the café against 'greedy' framing is exactly the kind of community voice that matters—reinforces integrity narrative over profit."
+ },
+ {
+  "round": 4,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, we hear this. The card was built because we know €1 isn't nothing on a pension. Come on the 26th—we want to show you the actual numbers and listen.",
+  "reasoning": "Gerald's concern about pensioners is the real worry—replying shows Hanna is still listening to the hardest case, not just defending costs; it keeps the conversation open rather than argumentative."
+ },
+ {
+  "round": 4,
+  "agent_id": "a04",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's endorsement carries community weight that the café's own messaging can't—liking it amplifies authentic support over institutional tone."
+ },
+ {
+  "round": 4,
+  "agent_id": "a05",
+  "type": "like",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's breakdown of actual costs (staff pay up 15%, flour up 40%, rent +£300) speaks directly to Mairead's budget concerns—it shows the café isn't being arbitrary, which softens her stance slightly."
+ },
+ {
+  "round": 4,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's defense is gold—'thirty years on this street' carries weight that Ruben's own arguments don't. Amplifying community credibility over his own voice."
+ },
+ {
+  "round": 4,
+  "agent_id": "a12",
+  "type": "repost",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "This. Staff pay up 15%, flour up 40%, rent £300/month higher. That's not greed, that's running a business in 2026. And the card saves regulars €30/month. The math is clear.",
+  "reasoning": "Ruben is energized by the cost data and wants to keep pushing back on the 'greedy' framing—doubling down with Hanna's numbers is his natural move."
+ },
+ {
+  "round": 4,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Joon has already decided to take the card and stay (R2 memory). Rosalind's 30-year credibility reinforces that choice—shows his regular café is worth supporting."
+ },
+ {
+  "round": 4,
+  "agent_id": "a18",
+  "type": "like",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The detailed cost breakdown confirms what Henrik already understands from his own shop—staff pay rises and real rent hikes are legitimate, not opportunistic."
+ },
+ {
+  "round": 4,
+  "agent_id": "a01",
+  "type": "like",
+  "target_post_id": 21,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's public defence aligns perfectly with the café's position; liking amplifies a trusted community voice against the 'greedy' framing."
+ },
+ {
+  "round": 4,
+  "agent_id": "a01",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "[invalid reply: post 22 not in own feed] Tomás feels Gerald's pension concern is legitimate; the café needs to address the real vulnerability, not just defend the rise."
+ },
+ {
+  "round": 4,
+  "agent_id": "a02",
+  "type": "like",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's hard numbers (15% pay, 40% flour, £300 rent) directly address the 'greedy' accusation; backing it publicly matters now."
+ },
+ {
+  "round": 4,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Hanna's transparent breakdown of costs proves the integrity angle—this is the ammunition the narrative needs against the blog's 'greedy' framing."
+ },
+ {
+  "round": 4,
+  "agent_id": "a09",
+  "type": "repost",
+  "target_post_id": 20,
+  "target_agent_id": null,
+  "content": "This. Ruben nails it—the real greed is landlords, not bakers trying to pay fairly.",
+  "reasoning": "Danilo is vocal and sees the system issue; reposting Ruben's landlord critique broadens the narrative beyond just defending L&R."
+ },
+ {
+  "round": 4,
+  "agent_id": "a19",
+  "type": "like",
+  "target_post_id": 23,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Danilo's defence of fair pay and small bakers reinforces Rosalind's own position; she'd support this voice loudly."
+ },
+ {
+  "round": 5,
+  "agent_id": "a01",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, we're listening. The 26th isn't PR—it's a real conversation. Tell us what would help you stay. That's what matters.",
+  "reasoning": "The café account should respond warmly and directly to Gerald's pension worry, which the memory notes is the real challenge the card has to address. A humble, listening tone invites him to the event."
+ },
+ {
+  "round": 5,
+  "agent_id": "a03",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "[invalid reply: post 22 not in own feed] Hanna sees Gerald's pension concern as the real challenge. She's data-driven but also listening. A direct, humble reply shows she's not dismissing his worry and invites him to the event."
+ },
+ {
+  "round": 5,
+  "agent_id": "a10",
+  "type": "like",
+  "target_post_id": 19,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Felicity is quietly supportive and business-minded. Hanna's clear numbers (15% staff pay up, 40% flour up, £300 rent increase) confirm what Felicity already knows from her own rising costs. The data is solid."
+ },
+ {
+  "round": 5,
+  "agent_id": "a14",
+  "type": "like",
+  "target_post_id": 25,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Desmond has been watching the numbers closely. Ruben's repost of Hanna's data (staff up 15%, flour up 40%, rent up £300) confirms the math adds up. He's convinced it's not greed."
+ },
+ {
+  "round": 5,
+  "agent_id": "a17",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Joon is satisfied with his card choice and €30/month math. The blog noise doesn't affect him. He's already committed and his routine is sorted. No need to post or engage further this round."
+ },
+ {
+  "round": 5,
+  "agent_id": "a19",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, come on the 26th. Thirty years here—I've seen real greed. This isn't it. Tomás and Hanna will listen. Bring your concerns.",
+  "reasoning": "Rosalind is a vocal supporter and community connector. Gerald's worry deserves a personal invite from someone he likely knows on the street. She's encouraging dialogue, not dismissing."
+ },
+ {
+  "round": 5,
+  "agent_id": "a02",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, I hear you. That's why we're doing this—come on the 26th. We'll show you the real numbers and listen to what matters to you. That's not a sales pitch, that's genuine.",
+  "reasoning": "Tomás sees Gerald's pension concern echoing his own worry about leaving people behind. He needs to respond directly and warmly to turn worry into trust before the open evening."
+ },
+ {
+  "round": 5,
+  "agent_id": "a13",
+  "type": "like",
+  "target_post_id": 24,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Bea is a quiet supporter who trusts Tomás and Hanna; Hanna's direct response to Gerald shows genuine care for pension concerns, which reinforces Bea's trust and warrants a silent show of support."
+ },
+ {
+  "round": 5,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 25,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Sandra already accepted the card and the math in R2–R3; Ruben's repost of the clear numbers (15% staff raise, 40% flour, £300 rent, €30 saved) confirms her earlier decision and reinforces she made the right choice."
+ },
+ {
+  "round": 5,
+  "agent_id": "a15",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Sandra has already posted her acceptance and reasoned it through; she's not the type to pile on agreement posts, but she's solid on the café now."
+ },
+ {
+  "round": 6,
+  "agent_id": "a02",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás has already replied to Gerald in round 5; posting again would feel defensive rather than listening. Better to show up on the 26th with genuine answers, not words."
+ },
+ {
+  "round": 6,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, thank you for saying this directly. Come on the 26th—we want to understand what would actually keep you coming. The card helps some, but we're listening for what helps you.",
+  "reasoning": "Gerald's pension-worry is the real challenge; Hanna needs to show she's hearing the gap the card doesn't fully close, not just defending the math"
+ },
+ {
+  "round": 6,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 29,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás responding directly to Gerald's concerns shows the café isn't hiding—that's the integrity Danilo signed up to support"
+ },
+ {
+  "round": 6,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 27,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Lindenandrye's response to Gerald shows genuine listening, not PR—this is exactly the transparency Ruben has been arguing for"
+ },
+ {
+  "round": 6,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 28,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's voice carries weight and validates Ruben's position; thirty-year regulars defending integrity matters more than blog noise"
+ },
+ {
+  "round": 6,
+  "agent_id": "a16",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Kiano is low-activity and the €12/month card still doesn't help his tight student budget; the conversation about pensions and fairness doesn't address his actual problem of affording treats"
+ },
+ {
+  "round": 6,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 28,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's voice matters—she's been there thirty years and still trusts them, that's real proof the café isn't changing into something greedy"
+ },
+ {
+  "round": 6,
+  "agent_id": "a01",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "26 Feb is coming. We've listened to every concern—Gerald, Sandra, Henrik, all of you. This isn't a sales pitch. It's us showing our real numbers and asking: what would actually help you stay?",
+  "reasoning": "Final push before the event; acknowledges specific voices and reframes the conversation as genuine listening rather than defense"
+ },
+ {
+  "round": 6,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 27,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The café is directly addressing Gerald's concern and asking for dialogue; Sandra values this transparency and genuine listening"
+ },
+ {
+  "round": 6,
+  "agent_id": "a18",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Henrik has stated his position clearly and consistently; he's seen enough evidence that the café's costs are real and the card helps, but his core worry about cumulative street-wide effects hasn't changed and won't shift further this round"
+ }
+]

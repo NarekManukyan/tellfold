@@ -1,0 +1,144 @@
+{
+ "posts": [
+  [
+   1,
+   0,
+   "a01",
+   "Hello \"world\"\n line\t2",
+   null,
+   null,
+   1,
+   0,
+   1,
+   1
+  ],
+  [
+   2,
+   1,
+   "a02",
+   "re",
+   1,
+   null,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   3,
+   1,
+   "a04",
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   null,
+   1,
+   0,
+   0,
+   0,
+   0
+  ]
+ ],
+ "reactions": [
+  [
+   "a03",
+   1,
+   "like"
+  ]
+ ],
+ "follows": [
+  [
+   "a01",
+   "a02"
+  ],
+  [
+   "a05",
+   "a01"
+  ]
+ ],
+ "actions": [
+  [
+   1,
+   0,
+   "{\"agent_id\":\"a01\",\"type\":\"post\",\"content\":\"  Hello \\\"world\\\"\\n line\\t2  \",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"opening\"}"
+  ],
+  [
+   2,
+   1,
+   "{\"agent_id\":\"a02\",\"type\":\"reply\",\"content\":\"re\",\"target_post_id\":1,\"target_agent_id\":null,\"reasoning\":\"\"}"
+  ],
+  [
+   3,
+   1,
+   "{\"agent_id\":\"a03\",\"type\":\"like\",\"content\":\"\",\"target_post_id\":1,\"target_agent_id\":null,\"reasoning\":\"\"}"
+  ],
+  [
+   4,
+   1,
+   "{\"agent_id\":\"a03\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid like: already reacted] again\"}"
+  ],
+  [
+   5,
+   1,
+   "{\"agent_id\":\"a04\",\"type\":\"repost\",\"content\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"target_post_id\":1,\"target_agent_id\":null,\"reasoning\":\"\"}"
+  ],
+  [
+   6,
+   1,
+   "{\"agent_id\":\"a05\",\"type\":\"follow\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":\"a01\",\"reasoning\":\"\"}"
+  ],
+  [
+   7,
+   1,
+   "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid follow: unknown follow target]\"}"
+  ]
+ ],
+ "round_stats": [
+  [
+   1,
+   "{\"round\":1,\"actions\":{\"post\":2,\"like\":1},\"new_posts\":2,\"active_agents\":3,\"sentiment\":0.25,\"llm_calls\":2,\"llm_seconds\":1.5}"
+  ]
+ ],
+ "events": [
+  [
+   1,
+   2,
+   "Breaking"
+  ]
+ ],
+ "memories": [
+  [
+   "a01",
+   "[\"saw a post\", \"änderte Meinung\", \"quote \\\" and \\\\\"]"
+  ]
+ ],
+ "memory_history": [
+  [
+   "a01",
+   1,
+   "[\"saw a post\", \"änderte Meinung\", \"quote \\\" and \\\\\"]"
+  ]
+ ],
+ "post_sentiment": [
+  [
+   1,
+   0.4
+  ],
+  [
+   2,
+   -1.0
+  ]
+ ],
+ "sqlite_sequence": [
+  [
+   "actions",
+   7
+  ],
+  [
+   "events",
+   1
+  ],
+  [
+   "posts",
+   3
+  ]
+ ]
+}

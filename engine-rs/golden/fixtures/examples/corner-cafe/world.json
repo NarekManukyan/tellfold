@@ -1,0 +1,1294 @@
+{
+ "seed": 7,
+ "feed_size": 12,
+ "last_round": 6,
+ "memory_rounds": null,
+ "feeds": {
+  "a01@0": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "a01@1": [
+   10,
+   1,
+   2,
+   3,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8,
+   9
+  ],
+  "a01@6": [
+   29,
+   30,
+   19,
+   10,
+   28,
+   24,
+   25,
+   20,
+   1,
+   23,
+   3,
+   2
+  ],
+  "a02@0": [
+   3,
+   2,
+   4,
+   5,
+   6
+  ],
+  "a02@1": [
+   10,
+   3,
+   2,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8,
+   9
+  ],
+  "a02@6": [
+   27,
+   10,
+   28,
+   21,
+   31,
+   30,
+   24,
+   25,
+   20,
+   23,
+   3,
+   2
+  ],
+  "a03@0": [
+   1,
+   3,
+   2,
+   6,
+   4,
+   5
+  ],
+  "a03@1": [
+   1,
+   3,
+   2,
+   9,
+   6,
+   11,
+   8,
+   7,
+   4,
+   5
+  ],
+  "a03@6": [
+   27,
+   31,
+   28,
+   29,
+   25,
+   20,
+   1,
+   23,
+   3,
+   2,
+   9,
+   26
+  ],
+  "a04@0": [
+   3,
+   5,
+   6,
+   1,
+   4
+  ],
+  "a04@1": [
+   10,
+   3,
+   9,
+   7,
+   5,
+   6,
+   11,
+   8,
+   1,
+   4
+  ],
+  "a04@6": [
+   27,
+   29,
+   31,
+   30,
+   19,
+   10,
+   28,
+   22,
+   24,
+   25,
+   20,
+   23
+  ],
+  "a05@0": [
+   1,
+   3,
+   2,
+   4,
+   5,
+   6
+  ],
+  "a05@1": [
+   10,
+   9,
+   1,
+   3,
+   2,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8
+  ],
+  "a05@6": [
+   27,
+   31,
+   30,
+   10,
+   28,
+   21,
+   29,
+   22,
+   24,
+   25,
+   20,
+   1
+  ],
+  "a06@0": [
+   4,
+   1,
+   3,
+   2,
+   5,
+   6
+  ],
+  "a06@1": [
+   10,
+   4,
+   1,
+   3,
+   2,
+   9,
+   7,
+   5,
+   6,
+   11,
+   8
+  ],
+  "a06@6": [
+   27,
+   28,
+   29,
+   30,
+   31,
+   19,
+   10,
+   21,
+   24,
+   25,
+   20,
+   1
+  ],
+  "a07@0": [
+   2,
+   5,
+   1,
+   3,
+   4,
+   6
+  ],
+  "a07@1": [
+   10,
+   2,
+   5,
+   1,
+   3,
+   9,
+   7,
+   4,
+   6,
+   11,
+   8
+  ],
+  "a07@6": [
+   30,
+   19,
+   27,
+   10,
+   28,
+   21,
+   29,
+   22,
+   31,
+   24,
+   25,
+   20
+  ],
+  "a08@0": [
+   2,
+   5,
+   1,
+   3,
+   4,
+   6
+  ],
+  "a08@1": [
+   10,
+   2,
+   5,
+   1,
+   3,
+   9,
+   7,
+   4,
+   6,
+   11,
+   8
+  ],
+  "a08@6": [
+   27,
+   31,
+   30,
+   19,
+   10,
+   28,
+   21,
+   29,
+   22,
+   24,
+   25,
+   20
+  ],
+  "a09@0": [
+   1,
+   2,
+   4,
+   5,
+   6,
+   3
+  ],
+  "a09@1": [
+   1,
+   2,
+   9,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8,
+   10,
+   3
+  ],
+  "a09@6": [
+   27,
+   31,
+   30,
+   28,
+   21,
+   22,
+   24,
+   25,
+   1,
+   2,
+   9,
+   7
+  ],
+  "a10@0": [
+   1,
+   2,
+   5,
+   6,
+   3,
+   4
+  ],
+  "a10@1": [
+   1,
+   2,
+   9,
+   10,
+   7,
+   5,
+   6,
+   11,
+   8,
+   3,
+   4
+  ],
+  "a10@6": [
+   29,
+   27,
+   10,
+   28,
+   21,
+   22,
+   31,
+   30,
+   24,
+   25,
+   20,
+   1
+  ],
+  "a11@0": [
+   2,
+   1,
+   3,
+   4,
+   5,
+   6
+  ],
+  "a11@1": [
+   2,
+   10,
+   1,
+   3,
+   9,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8
+  ],
+  "a11@6": [
+   27,
+   28,
+   31,
+   19,
+   10,
+   21,
+   29,
+   22,
+   30,
+   24,
+   25,
+   20
+  ],
+  "a12@0": [
+   4,
+   5,
+   1,
+   2,
+   6
+  ],
+  "a12@1": [
+   7,
+   8,
+   10,
+   9,
+   4,
+   5,
+   1,
+   2,
+   6
+  ],
+  "a12@6": [
+   29,
+   31,
+   30,
+   10,
+   22,
+   24,
+   23,
+   9,
+   26,
+   16,
+   7,
+   13
+  ],
+  "a13@0": [
+   1,
+   3,
+   5,
+   6,
+   2
+  ],
+  "a13@1": [
+   10,
+   1,
+   3,
+   9,
+   7,
+   5,
+   6,
+   11,
+   8,
+   2
+  ],
+  "a13@6": [
+   27,
+   31,
+   30,
+   19,
+   10,
+   28,
+   21,
+   29,
+   22,
+   25,
+   20,
+   1
+  ],
+  "a14@0": [
+   1,
+   3,
+   2,
+   4,
+   6
+  ],
+  "a14@1": [
+   9,
+   1,
+   3,
+   2,
+   7,
+   4,
+   6,
+   11,
+   8,
+   10
+  ],
+  "a14@6": [
+   27,
+   31,
+   30,
+   19,
+   28,
+   21,
+   29,
+   22,
+   24,
+   20,
+   1,
+   23
+  ],
+  "a15@0": [
+   2,
+   5,
+   4,
+   6,
+   3,
+   1
+  ],
+  "a15@1": [
+   2,
+   5,
+   11,
+   9,
+   4,
+   6,
+   8,
+   3,
+   10,
+   1
+  ],
+  "a15@6": [
+   31,
+   19,
+   28,
+   21,
+   29,
+   22,
+   30,
+   24,
+   20,
+   23,
+   2,
+   9
+  ],
+  "a16@0": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "a16@1": [
+   1,
+   2,
+   10,
+   3,
+   9,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8
+  ],
+  "a16@6": [
+   27,
+   29,
+   31,
+   19,
+   10,
+   28,
+   21,
+   22,
+   30,
+   24,
+   25,
+   20
+  ],
+  "a17@0": [
+   2,
+   4,
+   5,
+   1,
+   3
+  ],
+  "a17@1": [
+   11,
+   2,
+   9,
+   7,
+   4,
+   5,
+   10,
+   1,
+   3
+  ],
+  "a17@6": [
+   27,
+   29,
+   31,
+   30,
+   19,
+   22,
+   24,
+   25,
+   20,
+   23,
+   2,
+   9
+  ],
+  "a18@0": [
+   2,
+   1,
+   3,
+   4,
+   6,
+   5
+  ],
+  "a18@1": [
+   10,
+   2,
+   1,
+   3,
+   7,
+   4,
+   6,
+   11,
+   8,
+   5
+  ],
+  "a18@6": [
+   27,
+   31,
+   30,
+   10,
+   28,
+   21,
+   29,
+   22,
+   24,
+   25,
+   20,
+   1
+  ],
+  "a19@0": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "a19@1": [
+   1,
+   2,
+   10,
+   3,
+   9,
+   4,
+   5,
+   6,
+   11,
+   8,
+   7
+  ],
+  "a19@6": [
+   27,
+   29,
+   31,
+   19,
+   10,
+   30,
+   24,
+   25,
+   20,
+   1,
+   3,
+   2
+  ],
+  "a20@0": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "a20@1": [
+   10,
+   1,
+   2,
+   3,
+   9,
+   7,
+   4,
+   5,
+   6,
+   11,
+   8
+  ],
+  "a20@6": [
+   27,
+   29,
+   31,
+   30,
+   19,
+   10,
+   28,
+   21,
+   22,
+   24,
+   25,
+   20
+  ]
+ },
+ "engagement": {
+  "a01": {
+   "9": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ],
+   "22": [
+    "replied"
+   ]
+  },
+  "a02": {
+   "19": [
+    "liked"
+   ],
+   "9": [
+    "replied"
+   ],
+   "22": [
+    "replied"
+   ]
+  },
+  "a03": {
+   "4": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ],
+   "5": [
+    "replied"
+   ],
+   "7": [
+    "replied"
+   ],
+   "22": [
+    "replied"
+   ]
+  },
+  "a04": {
+   "1": [
+    "liked"
+   ],
+   "4": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ]
+  },
+  "a05": {
+   "19": [
+    "liked"
+   ]
+  },
+  "a06": {},
+  "a07": {},
+  "a08": {},
+  "a09": {
+   "10": [
+    "liked",
+    "reposted"
+   ],
+   "19": [
+    "liked"
+   ],
+   "29": [
+    "liked"
+   ],
+   "3": [
+    "replied"
+   ],
+   "20": [
+    "reposted"
+   ]
+  },
+  "a10": {
+   "3": [
+    "liked"
+   ],
+   "4": [
+    "liked"
+   ],
+   "19": [
+    "liked"
+   ]
+  },
+  "a11": {},
+  "a12": {
+   "1": [
+    "liked"
+   ],
+   "2": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ],
+   "27": [
+    "liked"
+   ],
+   "28": [
+    "liked"
+   ],
+   "6": [
+    "replied"
+   ],
+   "19": [
+    "reposted"
+   ]
+  },
+  "a13": {
+   "2": [
+    "liked"
+   ],
+   "24": [
+    "liked"
+   ]
+  },
+  "a14": {
+   "10": [
+    "liked"
+   ],
+   "25": [
+    "liked"
+   ]
+  },
+  "a15": {
+   "1": [
+    "liked"
+   ],
+   "10": [
+    "liked",
+    "replied"
+   ],
+   "16": [
+    "liked"
+   ],
+   "25": [
+    "liked"
+   ],
+   "27": [
+    "liked"
+   ],
+   "3": [
+    "replied"
+   ]
+  },
+  "a16": {},
+  "a17": {
+   "1": [
+    "liked"
+   ],
+   "10": [
+    "liked",
+    "replied"
+   ],
+   "21": [
+    "liked"
+   ],
+   "28": [
+    "liked"
+   ],
+   "3": [
+    "replied"
+   ]
+  },
+  "a18": {
+   "19": [
+    "liked"
+   ],
+   "5": [
+    "replied"
+   ]
+  },
+  "a19": {
+   "23": [
+    "liked"
+   ],
+   "7": [
+    "replied"
+   ],
+   "22": [
+    "replied"
+   ]
+  },
+  "a20": {}
+ },
+ "follow_edges": [
+  [
+   "a01",
+   "a02"
+  ],
+  [
+   "a01",
+   "a03"
+  ],
+  [
+   "a01",
+   "a04"
+  ],
+  [
+   "a02",
+   "a10"
+  ],
+  [
+   "a02",
+   "a18"
+  ],
+  [
+   "a03",
+   "a01"
+  ],
+  [
+   "a03",
+   "a15"
+  ],
+  [
+   "a04",
+   "a01"
+  ],
+  [
+   "a04",
+   "a02"
+  ],
+  [
+   "a04",
+   "a03"
+  ],
+  [
+   "a05",
+   "a01"
+  ],
+  [
+   "a05",
+   "a03"
+  ],
+  [
+   "a05",
+   "a18"
+  ],
+  [
+   "a06",
+   "a01"
+  ],
+  [
+   "a06",
+   "a03"
+  ],
+  [
+   "a06",
+   "a13"
+  ],
+  [
+   "a06",
+   "a16"
+  ],
+  [
+   "a06",
+   "a19"
+  ],
+  [
+   "a07",
+   "a03"
+  ],
+  [
+   "a07",
+   "a04"
+  ],
+  [
+   "a07",
+   "a14"
+  ],
+  [
+   "a08",
+   "a01"
+  ],
+  [
+   "a08",
+   "a03"
+  ],
+  [
+   "a08",
+   "a04"
+  ],
+  [
+   "a08",
+   "a14"
+  ],
+  [
+   "a09",
+   "a01"
+  ],
+  [
+   "a09",
+   "a02"
+  ],
+  [
+   "a09",
+   "a03"
+  ],
+  [
+   "a09",
+   "a04"
+  ],
+  [
+   "a09",
+   "a18"
+  ],
+  [
+   "a10",
+   "a02"
+  ],
+  [
+   "a10",
+   "a04"
+  ],
+  [
+   "a10",
+   "a18"
+  ],
+  [
+   "a11",
+   "a01"
+  ],
+  [
+   "a11",
+   "a04"
+  ],
+  [
+   "a11",
+   "a19"
+  ],
+  [
+   "a12",
+   "a01"
+  ],
+  [
+   "a12",
+   "a02"
+  ],
+  [
+   "a12",
+   "a03"
+  ],
+  [
+   "a12",
+   "a04"
+  ],
+  [
+   "a12",
+   "a16"
+  ],
+  [
+   "a12",
+   "a19"
+  ],
+  [
+   "a12",
+   "a20"
+  ],
+  [
+   "a13",
+   "a01"
+  ],
+  [
+   "a13",
+   "a03"
+  ],
+  [
+   "a13",
+   "a10"
+  ],
+  [
+   "a14",
+   "a01"
+  ],
+  [
+   "a14",
+   "a03"
+  ],
+  [
+   "a14",
+   "a10"
+  ],
+  [
+   "a15",
+   "a01"
+  ],
+  [
+   "a15",
+   "a04"
+  ],
+  [
+   "a15",
+   "a06"
+  ],
+  [
+   "a15",
+   "a09"
+  ],
+  [
+   "a15",
+   "a12"
+  ],
+  [
+   "a15",
+   "a14"
+  ],
+  [
+   "a16",
+   "a01"
+  ],
+  [
+   "a16",
+   "a02"
+  ],
+  [
+   "a16",
+   "a04"
+  ],
+  [
+   "a17",
+   "a01"
+  ],
+  [
+   "a17",
+   "a02"
+  ],
+  [
+   "a17",
+   "a03"
+  ],
+  [
+   "a17",
+   "a04"
+  ],
+  [
+   "a17",
+   "a12"
+  ],
+  [
+   "a17",
+   "a19"
+  ],
+  [
+   "a18",
+   "a01"
+  ],
+  [
+   "a18",
+   "a03"
+  ],
+  [
+   "a18",
+   "a04"
+  ],
+  [
+   "a18",
+   "a08"
+  ],
+  [
+   "a18",
+   "a09"
+  ],
+  [
+   "a19",
+   "a01"
+  ],
+  [
+   "a19",
+   "a02"
+  ],
+  [
+   "a19",
+   "a04"
+  ],
+  [
+   "a19",
+   "a08"
+  ],
+  [
+   "a19",
+   "a15"
+  ],
+  [
+   "a20",
+   "a01"
+  ],
+  [
+   "a20",
+   "a02"
+  ],
+  [
+   "a20",
+   "a03"
+  ],
+  [
+   "a20",
+   "a04"
+  ]
+ ],
+ "memories": {
+  "a01": [
+   "R2: Henrik's comment captures the tension well: we're doing the right thing, but we're also aware the card won't reach everyone. Need to keep watching who we lose.",
+   "R3: The blog's 'greedy' framing stings because it ignores the staff pay raise and card details—we need the 26th event to land harder now.",
+   "R4: The 'greedy' blog hurt, but Rosalind and Danilo's voices remind me we have loyal backing. Gerald's comment is the one that matters—we have to prove on the 26th that we see who might fall through the cracks.",
+   "R5: Gerald's pension concern is the test case—if we can't show pensioners we're thinking of them, we've failed. The 26th has to prove we're listening, not just explaining.",
+   "R6: Round 6: We're at the moment of truth. The debate has moved from abstract 'greed' to real questions about who stays and who doesn't. Gerald's pension worry is the test case. If the 26th doesn't prove we're thinking of people like him, Sandra, and Henrik—not just covering costs—w…"
+  ],
+  "a02": [
+   "R0: I'm posting this because I need regulars to know this wasn't easy, and I'm nervous about whether they'll understand it wasn't choice but necessity.",
+   "R2: Henrik and Desmond are naming the real problem—some people will get left behind no matter what. That sits with me. The 26th has to be genuine, not defensive.",
+   "R3: The food blog calling us greedy hit hard, but it reinforces why transparency on the 26th matters—we need to show the real numbers, not just claim them.",
+   "R4: The greedy accusation stings because it ignores the staff raises and real costs. Hanna's post with the actual numbers is the right answer. I'm nervous but standing firm—the 26th has to be genuine.",
+   "R5: Gerald's worry about pensions sits with me the same way it does with Hanna—the 26th has to prove we're not just defending ourselves, but actually listening to what matters to long-time regulars like him.",
+   "R6: Gerald's worry sits with me like Desmond's did—the 26th has to prove we're actually listening to what keeps people like him feeling part of the community, not just defending ourselves."
+  ],
+  "a03": [
+   "R1: Saw Bea's support and Desmond's cautious worry—his framing of fairness to families matters, so I answered with the actual numbers to show the card isn't just PR.",
+   "R2: Sandra and Joon's concerns are the real challenge—not anger, just budget worry. The data helps but people need to see us, not just numbers. The 26th matters.",
+   "R3: The blog's 'greedy' framing misses the real story—staff pay and actual costs. I'll keep answering with numbers until people see it.",
+   "R4: The blog attack is easier to dismiss than Gerald's quiet worry about pensioners being priced out—that's the real challenge the card has to solve. Community voices like Rosalind help, but I need to keep showing up for the people who are genuinely squeezed.",
+   "R5: Gerald's worry about pensioners being priced out matters more than blog noise—the card won't solve everything and I need to hear what would actually help people stay.",
+   "R6: Gerald's quiet worry about being priced out matters more than blog noise—the card is real but won't save everyone; I need to hear what else might help long-time regulars stay."
+  ],
+  "a04": [
+   "R0: We're framing this as transparency paired with community care, leaning on visual warmth and the neighbour card as the soft landing we hope it'll be.",
+   "R2: People are listening but uncertain. We need the 26th to feel real—not a sales pitch but a real conversation. Amplifying warm voices helps set that tone.",
+   "R4: The real voices of support—Rosalind, Danilo, Joon—matter more than our own posts. The 26th is coming; we need to show people we're listening, not just explaining. The warmth is working, but trust is being tested."
+  ],
+  "a05": [
+   "R4: The numbers from Hanna actually help—staff got a fair raise and costs are real, not greed. Still tight on my budget, but the €30/month card math is starting to look worth it for my routine visits."
+  ],
+  "a06": [
+   "R3: The food blog's 'greedy' call validates what I've been thinking. This isn't about fair costs; it's about locals like me getting priced out of a place I've visited for twenty years."
+  ],
+  "a07": [],
+  "a08": [],
+  "a09": [
+   "R2: Hanna's hard numbers on the card savings prove this is real community-first thinking, not just a bandaid. I'm fully backing them now.",
+   "R3: The blog calling it greedy misses the whole point—Tomás and Hanna raised staff pay first, then prices. That's integrity, not greed. I'm doubling down on support.",
+   "R4: The blog's 'greedy' framing is pure misdirection. The café raised staff pay first, then prices—that's the opposite of greed. I'm backing this hard.",
+   "R6: The team's genuine engagement with worried regulars proves the café is doing this right—my card choice and support feel more solid."
+  ],
+  "a10": [
+   "R1: Both the café and their supportive regulars are being reasonable here; the neighbour card is smart and I hope it works because we need them on the street.",
+   "R5: The café's numbers are clear and fair—I see the same cost squeeze on my flower stall. I hope the neighbour card and 26th event help them keep their regulars and stay on the street."
+  ],
+  "a11": [],
+  "a12": [
+   "R0: I'm jumping in early to defend them because I see this coming and I'm frustrated with how indie cafés get blamed for basic economics.",
+   "R1: Saw the café standing firm on costs and Joon pushing back—doubled down on defending them because the numbers are real and the neighbour card is a genuine fairness move.",
+   "R3: The blog attack is predictable—people blame cafés instead of rent and supply chains; I'm doubling down on defending them.",
+   "R4: The blog's 'greedy' take is infuriating when the actual costs are this clear. I'm sticking with defending them because the numbers are real and the neighbour card is genuine fairness, not a bandaid.",
+   "R6: The team's earnest responses to Gerald prove this is real community conversation, not greedy defensiveness—my original stance is vindicated."
+  ],
+  "a13": [
+   "R0: I wanted to say something quietly supportive because they're good people and I trust them, even though I usually stay quiet online.",
+   "R1: I've said my support already and the café seems to be handling this thoughtfully; I'll stay loyal and see how it plays out.",
+   "R5: Hanna's response to Gerald shows they actually care about people on fixed incomes, not just defending prices—that's what I hoped to see, and it keeps my loyalty solid."
+  ],
+  "a14": [
+   "R0: I'm genuinely torn here—I understand the café's squeeze but also my sister's household budget concerns, so I'm asking the practical questions.",
+   "R1: I've already said my piece about the squeeze; now I'm just watching to see if the neighbour card actually helps or if people just quietly stop coming.",
+   "R2: The maths do add up for regulars, but I'm still concerned about those who can't commit to the card. Watching to see if people quietly drift away or if the community holds.",
+   "R3: The blog calling it greedy is predictable pushback, but I'm still focused on whether the card actually helps people stay or if they quietly stop coming.",
+   "R5: The numbers are clearly real—not greed. But I'm still watching whether the card actually keeps regulars on lower incomes coming, or if they quietly disappear anyway."
+  ],
+  "a15": [
+   "R1: I'm not angry, just worried the café is pricing out people like me; I want to hear Tomás's actual breakdown at that meeting because the numbers need to justify this for me to stay loyal.",
+   "R2: The numbers add up: €30 saved monthly means the price rise doesn't price me out after all. I'll do the card and keep my Wednesday lunches.",
+   "R3: The 'greedy' accusation is unfair—I've seen their actual numbers now and decided to support them with the card.",
+   "R5: The numbers are holding up after a full round of debate—staff raises, flour costs, rent all real. I'm keeping my Wednesday card and staying loyal. The transparency is actually working.",
+   "R6: Round 6: The café is actually asking what would help people stay, not just explaining why prices went up. That's the conversation I wanted from the start. I'm keeping my Wednesday card and I'm going to the 26th to support them—and to make sure they follow through on listening to…"
+  ],
+  "a16": [
+   "R2: The neighbour card doesn't help me—€12/month is still money I don't have. I might go less often now, which sucks because that bun was my treat.",
+   "R6: All this talk about neighbour cards and community—but €12/month is still money I don't have, and a bun costs more now. Might just go less often."
+  ],
+  "a17": [
+   "R0: I'm reacting because this directly hits my habit—I don't care about philosophy, but I care when my daily 6:30am stop changes without warning.",
+   "R1: The café's cost story is credible and they're being transparent, but €4.20 every single day adds up fast for someone on my routine—I need to see if I actually stick with it or find alternatives.",
+   "R2: The €30/month savings from the card convinced me—that's real money for my routine. I'll do the card and stay, but I'm still watching whether other regulars stick around.",
+   "R3: Blog says greedy, but my €30/month savings are real—I'm sticking with my card choice, not reading think pieces.",
+   "R4: I'm signed up for the card and the €30/month math works for my routine. The blog noise doesn't matter to me—I care about my 6:30am coffee and whether the place stays open. Rosalind's voice matters more than think pieces.",
+   "R5: My card is locked in, the math works, and my 6:30am routine is safe. The blog drama doesn't matter—what matters is the café stays open and I get my flat white.",
+   "R6: With Rosalind backing them and the team genuinely listening to Gerald, my 6:30am routine is safe and the café stays the kind of place worth supporting."
+  ],
+  "a18": [
+   "R1: I understand the café's costs completely, but I'm worried about the broader trend—each shop raising prices individually makes sense, but together it's pushing people out.",
+   "R4: I understand the café's position completely, but my worry about cumulative street-wide price rises pushing out regulars on modest incomes hasn't changed. The card helps, but it's not a full solution for everyone.",
+   "R6: Round 6: The café is being transparent and Tomás seems genuinely interested in listening—that's good business and good community work. But my worry about the street-wide squeeze hasn't changed. The card helps some, but if every shop keeps raising prices, eventually people on mod…"
+  ],
+  "a19": [
+   "R2: The café is family to me. I'm not worried about the prices—I'm invested in them succeeding. Making sure others know it's worth it.",
+   "R3: A blog calling them greedy is absurd—I'm speaking up because outsiders don't understand what fair pay costs.",
+   "R4: I've said my piece—calling out the greedy slur was right. Now I'm watching who steps up. Danilo and Hanna's numbers tell the real story. The 26th will be the moment of truth.",
+   "R5: Gerald's pension concern is legitimate and deserves a direct, warm response from someone he trusts. The 26th has to be real listening, not just numbers."
+  ],
+  "a20": []
+ }
+}

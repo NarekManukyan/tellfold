@@ -1,0 +1,30 @@
+# Tests the Rust port of the engine (engine-rs/). The golden fixtures are checked in, so no Python is needed here.
+name: Engine (Rust)
+
+on:
+  pull_request:
+    paths: ["engine-rs/**", ".github/workflows/engine-rs.yml"]
+  push:
+    branches: [main]
+    paths: ["engine-rs/**", ".github/workflows/engine-rs.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine-rs
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace

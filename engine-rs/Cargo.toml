@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = ["crates/tellfold-models", "crates/tellfold-store"]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2021"
+rust-version = "1.80"
+license = "LicenseRef-Proprietary"
+publish = false
+
+[workspace.dependencies]
+blake2 = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+indexmap = { version = "2", features = ["serde"] }
+libc = "0.2"
+regex = "1"
+rusqlite = { version = "0.32", features = ["bundled", "backup"] }
+ryu = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+tempfile = "3"
+thiserror = "1"
+rand = "0.8"
+tellfold-models = { path = "crates/tellfold-models" }
+tellfold-store = { path = "crates/tellfold-store" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
