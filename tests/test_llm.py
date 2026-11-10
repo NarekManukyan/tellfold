@@ -316,6 +316,14 @@ def test_extract_json(text, expected):
     assert extract_json(text) == expected
 
 
+def test_extract_json_keeps_the_outer_object_when_a_string_has_raw_newlines():
+    # The \n and \t below are real control characters inside the JSON string, as a model sometimes writes them.
+    text = '{"revised_text": "Dear neighbours,\n\nWe opened\tnine years ago.", "changes": [{"what": "x", "cites": [1]}]}'
+    value = extract_json(text)
+    assert value["revised_text"] == "Dear neighbours,\n\nWe opened\tnine years ago."
+    assert value["changes"] == [{"what": "x", "cites": [1]}]
+
+
 def test_extract_json_prefers_arrays_when_asked():
     assert extract_json('{"a": 1} [1, 2]', prefer="[") == [1, 2]
 

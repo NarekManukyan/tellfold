@@ -448,8 +448,9 @@ def pipeline_listener(view: RunView, config: SimConfig):
                 view.begin(labels[stage])
             view.set_detail(str(data.get("detail", "")))
             if "estimated_calls" in data:
-                view.note(f"{data.get('chunks')} chunks; about {data['estimated_calls']} model calls this run "
-                          "if none need a retry")
+                # A branch or a reused cast reads no documents, so its estimate has no chunk count.
+                chunks = f"{data['chunks']} chunks; " if data.get("chunks") is not None else ""
+                view.note(f"{chunks}about {data['estimated_calls']} model calls this run if none need a retry")
             if "entities" in data:
                 view.note(f"graph: {data['entities']} entities, {data.get('relations', 0)} relations")
             return

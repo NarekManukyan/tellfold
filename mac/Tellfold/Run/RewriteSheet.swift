@@ -22,6 +22,13 @@ struct RewriteSheet: View {
         RunLinkifier(personas: store.personas, postIDs: Set(store.posts.map(\.id)))
     }
 
+    /// What "Test this version" costs, as on the Try another version sheet: the rounds and the report, no new people.
+    private var testCalls: Int? {
+        guard let config = store.config else { return nil }
+        return NewRunRequest.estimatedCallSplit(agents: config.numAgents, rounds: config.rounds,
+                                                batch: config.batchSize, chunks: 1).agent + 1
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.space4) {
             VStack(alignment: .leading, spacing: 4) {
@@ -43,6 +50,11 @@ struct RewriteSheet: View {
             }
             if let errorMessage {
                 Text(errorMessage).font(Theme.small).foregroundStyle(Theme.negative)
+            }
+            if suggestion != nil, let calls = testCalls {
+                Text("Test this version uses about \(calls) model calls: the same people, the same rounds and a report.")
+                    .font(Theme.caption)
+                    .foregroundStyle(Theme.muted)
             }
             HStack {
                 if suggestion != nil {

@@ -187,9 +187,14 @@ _FENCE = re.compile(r"```(?:json|JSON)?\s*(.*?)```", re.DOTALL)
 
 
 def extract_json(text: str, *, prefer: str = "{") -> Any:
-    """Return the first JSON value embedded in `text` (fenced or bare), preferring `prefer` ('{' or '[')."""
+    """Return the first JSON value embedded in `text` (fenced or bare), preferring `prefer` ('{' or '[').
+
+    Raw newlines and tabs inside strings are accepted: models often write long text fields (a rewritten
+    announcement, say) with literal line breaks. A strict decoder rejects the whole object then, and the
+    search falls through to the first nested object instead.
+    """
     candidates = [m.group(1) for m in _FENCE.finditer(text)] + [text]
-    decoder = _json.JSONDecoder()
+    decoder = _json.JSONDecoder(strict=False)
     for opener in (prefer, "[" if prefer == "{" else "{"):
         for chunk in candidates:
             for match in re.finditer(re.escape(opener), chunk):
