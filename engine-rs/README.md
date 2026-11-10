@@ -26,10 +26,14 @@ checkouts.
   suggestion. `ReportWriter` is the pipeline's report stage.
 - `tellfold-study`: the cited comparison of a study's runs, the "Check it" agreement across repeats, branching a
   run from a round, and packing a finished run as a built-in example.
+- `tellfold-cli`: the `tellfold` binary with every command but `ui` and `serve` (they need the server), the live
+  run view, and typer's help and error screens. `TELLFOLD_FAKE_LLM=1` runs it on the canned model.
 
 No test starts a real AI tool. For a manual check against one that is installed and logged in:
 
 ```bash
+cargo run -p tellfold-cli -- doctor
+cargo run -p tellfold-cli -- run ../examples/mossbook_pricing.md -q "Will buyers accept the subscription?" --agents 4 --rounds 1
 cargo run -p tellfold-runtimes --example ping -- claude-code
 cargo run -p tellfold-runtimes --example ping -- cursor-agent
 AGENTS=4 ROUNDS=1 cargo run -p tellfold-report --example run -- ../examples/mossbook_pricing.md "Will buyers accept the subscription?"
@@ -50,4 +54,6 @@ root when the Python behaviour they pin changes, in the same pull request (this 
 
 ```bash
 uv run python engine-rs/golden/make.py
+uv run python engine-rs/golden/make_cli_help.py
+uv run python engine-rs/golden/make_cli_runs.py
 ```

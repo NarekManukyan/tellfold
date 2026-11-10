@@ -1,0 +1,930 @@
+{
+ "tables": [
+  {
+   "name": "agents",
+   "title": "Agents in 20260101-120000-will-it-win",
+   "columns": [
+    {
+     "header": "ID",
+     "overflow": "fold"
+    },
+    {
+     "header": "Handle",
+     "overflow": "fold"
+    },
+    {
+     "header": "Name",
+     "overflow": "fold"
+    },
+    {
+     "header": "Followers",
+     "overflow": "fold"
+    },
+    {
+     "header": "Posts",
+     "overflow": "fold"
+    },
+    {
+     "header": "Activity",
+     "overflow": "fold"
+    },
+    {
+     "header": "Influence",
+     "overflow": "fold"
+    },
+    {
+     "header": "Starting stance",
+     "overflow": "fold"
+    }
+   ],
+   "rows": [
+    [
+     "a01",
+     "@landlord_lucy",
+     "Lucy Marsh",
+     "12",
+     "4",
+     "0.80",
+     "0.65",
+     "Skeptical of subscription software; prefers spreadsheets and phone calls."
+    ],
+    [
+     "a02",
+     "@propertymanagementprofessional_with_a_very_long_handle",
+     "Dmitri Ivanovich Karamazov-Smith",
+     "3",
+     "0",
+     "0.15",
+     "0.05",
+     ""
+    ],
+    [
+     "a03",
+     "@田中",
+     "田中太郎 (Tanaka Tarō)",
+     "7",
+     "11",
+     "1.00",
+     "0.99",
+     "賃貸管理のサブスクには前向き、ただし価格次第。🏠🔑 Wants a free trial first."
+    ],
+    [
+     "a04",
+     "@emoji_fan",
+     "Zoë 👩‍👩‍👧‍👦 Ñúñez",
+     "0",
+     "2",
+     "0.33",
+     "0.10",
+     "Supercalifragilisticexpialidociousness-level enthusiasm for automation"
+    ]
+   ],
+   "renders": {
+    "20": "Agents in           \n20260101-120000-will\n-it-win             \n┏━┳━┳━┳━━┳━┳━━┳━┳━━┓\n┃ ┃ ┃ ┃  ┃ ┃  ┃ ┃  ┃\n┡━╇━╇━╇━━╇━╇━━╇━╇━━┩\n│ │ │ │  │ │  │ │  │\n│ │ │ │  │ │  │ │  │\n│ │ │ │  │ │  │ │  │\n│ │ │ │  │ │  │ │  │\n└─┴─┴─┴──┴─┴──┴─┴──┘\n",
+    "40": "Agents in 20260101-120000-will-it-win   \n┏━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━┳━━━━┓\n┃    ┃    ┃    ┃    ┃    ┃    ┃ I ┃    ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃ n ┃ St ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃ f ┃ ar ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃ l ┃ ti ┃\n┃    ┃    ┃    ┃ Fo ┃    ┃    ┃ u ┃ ng ┃\n┃    ┃    ┃    ┃ ll ┃    ┃ Ac ┃ e ┃    ┃\n┃    ┃ Ha ┃    ┃ ow ┃ Po ┃ ti ┃ n ┃ st ┃\n┃    ┃ nd ┃ Na ┃ er ┃ st ┃ vi ┃ c ┃ an ┃\n┃ ID ┃ le ┃ me ┃ s  ┃ s  ┃ ty ┃ e ┃ ce ┃\n┡━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━╇━━━━┩\n│ a0 │ @l │ Lu │ 12 │ 4  │ 0. │ 0 │ Sk │\n│ 1  │ an │ cy │    │    │ 80 │ . │ ep │\n│    │ dl │    │    │    │    │ 6 │ ti │\n│    │ or │ Ma │    │    │    │ 5 │ ca │\n│    │ d_ │ rs │    │    │    │   │ l  │\n│    │ lu │ h  │    │    │    │   │ of │\n│    │ cy │    │    │    │    │   │ su │\n│    │    │    │    │    │    │   │ bs │\n│    │    │    │    │    │    │   │ cr │\n│    │    │    │    │    │    │   │ ip │\n│    │    │    │    │    │    │   │ ti │\n│    │    │    │    │    │    │   │ on │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ so │\n│    │    │    │    │    │    │   │ ft │\n│    │    │    │    │    │    │   │ wa │\n│    │    │    │    │    │    │   │ re │\n│    │    │    │    │    │    │   │ ;  │\n│    │    │    │    │    │    │   │ pr │\n│    │    │    │    │    │    │   │ ef │\n│    │    │    │    │    │    │   │ er │\n│    │    │    │    │    │    │   │ s  │\n│    │    │    │    │    │    │   │ sp │\n│    │    │    │    │    │    │   │ re │\n│    │    │    │    │    │    │   │ ad │\n│    │    │    │    │    │    │   │ sh │\n│    │    │    │    │    │    │   │ ee │\n│    │    │    │    │    │    │   │ ts │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ an │\n│    │    │    │    │    │    │   │ d  │\n│    │    │    │    │    │    │   │ ph │\n│    │    │    │    │    │    │   │ on │\n│    │    │    │    │    │    │   │ e  │\n│    │    │    │    │    │    │   │ ca │\n│    │    │    │    │    │    │   │ ll │\n│    │    │    │    │    │    │   │ s. │\n│ a0 │ @p │ Dm │ 3  │ 0  │ 0. │ 0 │    │\n│ 2  │ ro │ it │    │    │ 15 │ . │    │\n│    │ pe │ ri │    │    │    │ 0 │    │\n│    │ rt │    │    │    │    │ 5 │    │\n│    │ ym │ Iv │    │    │    │   │    │\n│    │ an │ an │    │    │    │   │    │\n│    │ ag │ ov │    │    │    │   │    │\n│    │ em │ ic │    │    │    │   │    │\n│    │ en │ h  │    │    │    │   │    │\n│    │ tp │ Ka │    │    │    │   │    │\n│    │ ro │ ra │    │    │    │   │    │\n│    │ fe │ ma │    │    │    │   │    │\n│    │ ss │ zo │    │    │    │   │    │\n│    │ io │ v- │    │    │    │   │    │\n│    │ na │ Sm │    │    │    │   │    │\n│    │ l_ │ it │    │    │    │   │    │\n│    │ wi │ h  │    │    │    │   │    │\n│    │ th │    │    │    │    │   │    │\n│    │ _a │    │    │    │    │   │    │\n│    │ _v │    │    │    │    │   │    │\n│    │ er │    │    │    │    │   │    │\n│    │ y_ │    │    │    │    │   │    │\n│    │ lo │    │    │    │    │   │    │\n│    │ ng │    │    │    │    │   │    │\n│    │ _h │    │    │    │    │   │    │\n│    │ an │    │    │    │    │   │    │\n│    │ dl │    │    │    │    │   │    │\n│    │ e  │    │    │    │    │   │    │\n│ a0 │ @  │ 田 │ 7  │ 11 │ 1. │ 0 │ 賃 │\n│ 3  │ 田 │ 中 │    │    │ 00 │ . │ 貸 │\n│    │ 中 │ 太 │    │    │    │ 9 │ 管 │\n│    │    │ 郎 │    │    │    │ 9 │ 理 │\n│    │    │    │    │    │    │   │ の │\n│    │    │ (T │    │    │    │   │ サ │\n│    │    │ an │    │    │    │   │ ブ │\n│    │    │ ak │    │    │    │   │ ス │\n│    │    │ a  │    │    │    │   │ ク │\n│    │    │ Ta │    │    │    │   │ に │\n│    │    │ rō │    │    │    │   │ は │\n│    │    │ )  │    │    │    │   │ 前 │\n│    │    │    │    │    │    │   │ 向 │\n│    │    │    │    │    │    │   │ き │\n│    │    │    │    │    │    │   │ 、 │\n│    │    │    │    │    │    │   │ た │\n│    │    │    │    │    │    │   │ だ │\n│    │    │    │    │    │    │   │ し │\n│    │    │    │    │    │    │   │ 価 │\n│    │    │    │    │    │    │   │ 格 │\n│    │    │    │    │    │    │   │ 次 │\n│    │    │    │    │    │    │   │ 第 │\n│    │    │    │    │    │    │   │ 。 │\n│    │    │    │    │    │    │   │ 🏠 │\n│    │    │    │    │    │    │   │ 🔑 │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ Wa │\n│    │    │    │    │    │    │   │ nt │\n│    │    │    │    │    │    │   │ s  │\n│    │    │    │    │    │    │   │ a  │\n│    │    │    │    │    │    │   │ fr │\n│    │    │    │    │    │    │   │ ee │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ tr │\n│    │    │    │    │    │    │   │ ia │\n│    │    │    │    │    │    │   │ l  │\n│    │    │    │    │    │    │   │ fi │\n│    │    │    │    │    │    │   │ rs │\n│    │    │    │    │    │    │   │ t. │\n│ a0 │ @e │ Zo │ 0  │ 2  │ 0. │ 0 │ Su │\n│ 4  │ mo │ ë  │    │    │ 33 │ . │ pe │\n│    │ ji │ 👩‍👩‍👧‍👦 │    │    │    │ 1 │ rc │\n│    │ _f │ Ñú │    │    │    │ 0 │ al │\n│    │ an │ ñe │    │    │    │   │ if │\n│    │    │ z  │    │    │    │   │ ra │\n│    │    │    │    │    │    │   │ gi │\n│    │    │    │    │    │    │   │ li │\n│    │    │    │    │    │    │   │ st │\n│    │    │    │    │    │    │   │ ic │\n│    │    │    │    │    │    │   │ ex │\n│    │    │    │    │    │    │   │ pi │\n│    │    │    │    │    │    │   │ al │\n│    │    │    │    │    │    │   │ id │\n│    │    │    │    │    │    │   │ oc │\n│    │    │    │    │    │    │   │ io │\n│    │    │    │    │    │    │   │ us │\n│    │    │    │    │    │    │   │ ne │\n│    │    │    │    │    │    │   │ ss │\n│    │    │    │    │    │    │   │ -l │\n│    │    │    │    │    │    │   │ ev │\n│    │    │    │    │    │    │   │ el │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ en │\n│    │    │    │    │    │    │   │ th │\n│    │    │    │    │    │    │   │ us │\n│    │    │    │    │    │    │   │ ia │\n│    │    │    │    │    │    │   │ sm │\n│    │    │    │    │    │    │   │    │\n│    │    │    │    │    │    │   │ fo │\n│    │    │    │    │    │    │   │ r  │\n│    │    │    │    │    │    │   │ au │\n│    │    │    │    │    │    │   │ to │\n│    │    │    │    │    │    │   │ ma │\n│    │    │    │    │    │    │   │ ti │\n│    │    │    │    │    │    │   │ on │\n└────┴────┴────┴────┴────┴────┴───┴────┘\n",
+    "60": "Agents in 20260101-120000-will-it-win                       \n┏━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┳━━━━━━━┳━━━━━━┳━━━━━━━┳━━━━━━┓\n┃     ┃       ┃       ┃      ┃       ┃      ┃       ┃ Star ┃\n┃     ┃       ┃       ┃      ┃       ┃      ┃       ┃ ting ┃\n┃     ┃       ┃       ┃ Foll ┃       ┃      ┃       ┃      ┃\n┃     ┃ Handl ┃       ┃ ower ┃       ┃ Acti ┃ Influ ┃ stan ┃\n┃ ID  ┃ e     ┃ Name  ┃ s    ┃ Posts ┃ vity ┃ ence  ┃ ce   ┃\n┡━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━╇━━━━━━━╇━━━━━━╇━━━━━━━╇━━━━━━┩\n│ a01 │ @land │ Lucy  │ 12   │ 4     │ 0.80 │ 0.65  │ Skep │\n│     │ lord_ │ Marsh │      │       │      │       │ tica │\n│     │ lucy  │       │      │       │      │       │ l of │\n│     │       │       │      │       │      │       │ subs │\n│     │       │       │      │       │      │       │ crip │\n│     │       │       │      │       │      │       │ tion │\n│     │       │       │      │       │      │       │      │\n│     │       │       │      │       │      │       │ soft │\n│     │       │       │      │       │      │       │ ware │\n│     │       │       │      │       │      │       │ ;    │\n│     │       │       │      │       │      │       │ pref │\n│     │       │       │      │       │      │       │ ers  │\n│     │       │       │      │       │      │       │ spre │\n│     │       │       │      │       │      │       │ adsh │\n│     │       │       │      │       │      │       │ eets │\n│     │       │       │      │       │      │       │  and │\n│     │       │       │      │       │      │       │ phon │\n│     │       │       │      │       │      │       │ e    │\n│     │       │       │      │       │      │       │ call │\n│     │       │       │      │       │      │       │ s.   │\n│ a02 │ @prop │ Dmitr │ 3    │ 0     │ 0.15 │ 0.05  │      │\n│     │ ertym │ i     │      │       │      │       │      │\n│     │ anage │ Ivano │      │       │      │       │      │\n│     │ mentp │ vich  │      │       │      │       │      │\n│     │ rofes │ Karam │      │       │      │       │      │\n│     │ siona │ azov- │      │       │      │       │      │\n│     │ l_wit │ Smith │      │       │      │       │      │\n│     │ h_a_v │       │      │       │      │       │      │\n│     │ ery_l │       │      │       │      │       │      │\n│     │ ong_h │       │      │       │      │       │      │\n│     │ andle │       │      │       │      │       │      │\n│ a03 │ @田中 │ 田中  │ 7    │ 11    │ 1.00 │ 0.99  │ 賃貸 │\n│     │       │ 太郎  │      │       │      │       │ 管理 │\n│     │       │ (Tana │      │       │      │       │ のサ │\n│     │       │ ka    │      │       │      │       │ ブス │\n│     │       │ Tarō) │      │       │      │       │ クに │\n│     │       │       │      │       │      │       │ は前 │\n│     │       │       │      │       │      │       │ 向き │\n│     │       │       │      │       │      │       │ 、た │\n│     │       │       │      │       │      │       │ だし │\n│     │       │       │      │       │      │       │ 価格 │\n│     │       │       │      │       │      │       │ 次第 │\n│     │       │       │      │       │      │       │ 。🏠 │\n│     │       │       │      │       │      │       │ 🔑   │\n│     │       │       │      │       │      │       │ Want │\n│     │       │       │      │       │      │       │ s a  │\n│     │       │       │      │       │      │       │ free │\n│     │       │       │      │       │      │       │ tria │\n│     │       │       │      │       │      │       │ l    │\n│     │       │       │      │       │      │       │ firs │\n│     │       │       │      │       │      │       │ t.   │\n│ a04 │ @emoj │ Zoë   │ 0    │ 2     │ 0.33 │ 0.10  │ Supe │\n│     │ i_fan │ 👩‍👩‍👧‍👦    │      │       │      │       │ rcal │\n│     │       │ Ñúñez │      │       │      │       │ ifra │\n│     │       │       │      │       │      │       │ gili │\n│     │       │       │      │       │      │       │ stic │\n│     │       │       │      │       │      │       │ expi │\n│     │       │       │      │       │      │       │ alid │\n│     │       │       │      │       │      │       │ ocio │\n│     │       │       │      │       │      │       │ usne │\n│     │       │       │      │       │      │       │ ss-l │\n│     │       │       │      │       │      │       │ evel │\n│     │       │       │      │       │      │       │      │\n│     │       │       │      │       │      │       │ enth │\n│     │       │       │      │       │      │       │ usia │\n│     │       │       │      │       │      │       │ sm   │\n│     │       │       │      │       │      │       │ for  │\n│     │       │       │      │       │      │       │ auto │\n│     │       │       │      │       │      │       │ mati │\n│     │       │       │      │       │      │       │ on   │\n└─────┴───────┴───────┴──────┴───────┴──────┴───────┴──────┘\n",
+    "80": "Agents in 20260101-120000-will-it-win                                           \n┏━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓\n┃     ┃          ┃          ┃          ┃       ┃          ┃          ┃ Startin ┃\n┃     ┃          ┃          ┃ Follower ┃       ┃          ┃ Influenc ┃ g       ┃\n┃ ID  ┃ Handle   ┃ Name     ┃ s        ┃ Posts ┃ Activity ┃ e        ┃ stance  ┃\n┡━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩\n│ a01 │ @landlor │ Lucy     │ 12       │ 4     │ 0.80     │ 0.65     │ Skeptic │\n│     │ d_lucy   │ Marsh    │          │       │          │          │ al of   │\n│     │          │          │          │       │          │          │ subscri │\n│     │          │          │          │       │          │          │ ption   │\n│     │          │          │          │       │          │          │ softwar │\n│     │          │          │          │       │          │          │ e;      │\n│     │          │          │          │       │          │          │ prefers │\n│     │          │          │          │       │          │          │ spreads │\n│     │          │          │          │       │          │          │ heets   │\n│     │          │          │          │       │          │          │ and     │\n│     │          │          │          │       │          │          │ phone   │\n│     │          │          │          │       │          │          │ calls.  │\n│ a02 │ @propert │ Dmitri   │ 3        │ 0     │ 0.15     │ 0.05     │         │\n│     │ ymanagem │ Ivanovic │          │       │          │          │         │\n│     │ entprofe │ h        │          │       │          │          │         │\n│     │ ssional_ │ Karamazo │          │       │          │          │         │\n│     │ with_a_v │ v-Smith  │          │       │          │          │         │\n│     │ ery_long │          │          │       │          │          │         │\n│     │ _handle  │          │          │       │          │          │         │\n│ a03 │ @田中    │ 田中太郎 │ 7        │ 11    │ 1.00     │ 0.99     │ 賃貸管  │\n│     │          │ (Tanaka  │          │       │          │          │ 理のサ  │\n│     │          │ Tarō)    │          │       │          │          │ ブスク  │\n│     │          │          │          │       │          │          │ には前  │\n│     │          │          │          │       │          │          │ 向き、  │\n│     │          │          │          │       │          │          │ ただし  │\n│     │          │          │          │       │          │          │ 価格次  │\n│     │          │          │          │       │          │          │ 第。🏠  │\n│     │          │          │          │       │          │          │ 🔑      │\n│     │          │          │          │       │          │          │ Wants a │\n│     │          │          │          │       │          │          │ free    │\n│     │          │          │          │       │          │          │ trial   │\n│     │          │          │          │       │          │          │ first.  │\n│ a04 │ @emoji_f │ Zoë 👩‍👩‍👧‍👦   │ 0        │ 2     │ 0.33     │ 0.10     │ Superca │\n│     │ an       │ Ñúñez    │          │       │          │          │ lifragi │\n│     │          │          │          │       │          │          │ listice │\n│     │          │          │          │       │          │          │ xpialid │\n│     │          │          │          │       │          │          │ ociousn │\n│     │          │          │          │       │          │          │ ess-lev │\n│     │          │          │          │       │          │          │ el      │\n│     │          │          │          │       │          │          │ enthusi │\n│     │          │          │          │       │          │          │ asm for │\n│     │          │          │          │       │          │          │ automat │\n│     │          │          │          │       │          │          │ ion     │\n└─────┴──────────┴──────────┴──────────┴───────┴──────────┴──────────┴─────────┘\n",
+    "100": "Agents in 20260101-120000-will-it-win                                                               \n┏━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓\n┃     ┃                ┃                ┃           ┃       ┃          ┃           ┃ Starting      ┃\n┃ ID  ┃ Handle         ┃ Name           ┃ Followers ┃ Posts ┃ Activity ┃ Influence ┃ stance        ┃\n┡━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩\n│ a01 │ @landlord_lucy │ Lucy Marsh     │ 12        │ 4     │ 0.80     │ 0.65      │ Skeptical of  │\n│     │                │                │           │       │          │           │ subscription  │\n│     │                │                │           │       │          │           │ software;     │\n│     │                │                │           │       │          │           │ prefers       │\n│     │                │                │           │       │          │           │ spreadsheets  │\n│     │                │                │           │       │          │           │ and phone     │\n│     │                │                │           │       │          │           │ calls.        │\n│ a02 │ @propertymanag │ Dmitri         │ 3         │ 0     │ 0.15     │ 0.05      │               │\n│     │ ementprofessio │ Ivanovich      │           │       │          │           │               │\n│     │ nal_with_a_ver │ Karamazov-Smit │           │       │          │           │               │\n│     │ y_long_handle  │ h              │           │       │          │           │               │\n│ a03 │ @田中          │ 田中太郎       │ 7         │ 11    │ 1.00     │ 0.99      │ 賃貸管理のサ  │\n│     │                │ (Tanaka Tarō)  │           │       │          │           │ ブスクには前  │\n│     │                │                │           │       │          │           │ 向き、ただし  │\n│     │                │                │           │       │          │           │ 価格次第。🏠  │\n│     │                │                │           │       │          │           │ 🔑 Wants a    │\n│     │                │                │           │       │          │           │ free trial    │\n│     │                │                │           │       │          │           │ first.        │\n│ a04 │ @emoji_fan     │ Zoë 👩‍👩‍👧‍👦 Ñúñez   │ 0         │ 2     │ 0.33     │ 0.10      │ Supercalifrag │\n│     │                │                │           │       │          │           │ ilisticexpial │\n│     │                │                │           │       │          │           │ idociousness- │\n│     │                │                │           │       │          │           │ level         │\n│     │                │                │           │       │          │           │ enthusiasm    │\n│     │                │                │           │       │          │           │ for           │\n│     │                │                │           │       │          │           │ automation    │\n└─────┴────────────────┴────────────────┴───────────┴───────┴──────────┴───────────┴───────────────┘\n",
+    "150": "Agents in 20260101-120000-will-it-win                                                                                                                 \n┏━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ ID  ┃ Handle                         ┃ Name                           ┃ Followers ┃ Posts ┃ Activity ┃ Influence ┃ Starting stance                 ┃\n┡━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ a01 │ @landlord_lucy                 │ Lucy Marsh                     │ 12        │ 4     │ 0.80     │ 0.65      │ Skeptical of subscription       │\n│     │                                │                                │           │       │          │           │ software; prefers spreadsheets  │\n│     │                                │                                │           │       │          │           │ and phone calls.                │\n│ a02 │ @propertymanagementprofessiona │ Dmitri Ivanovich               │ 3         │ 0     │ 0.15     │ 0.05      │                                 │\n│     │ l_with_a_very_long_handle      │ Karamazov-Smith                │           │       │          │           │                                 │\n│ a03 │ @田中                          │ 田中太郎 (Tanaka Tarō)         │ 7         │ 11    │ 1.00     │ 0.99      │ 賃貸管理のサブスクには前向き、  │\n│     │                                │                                │           │       │          │           │ ただし価格次第。🏠🔑 Wants a    │\n│     │                                │                                │           │       │          │           │ free trial first.               │\n│ a04 │ @emoji_fan                     │ Zoë 👩‍👩‍👧‍👦 Ñúñez                   │ 0         │ 2     │ 0.33     │ 0.10      │ Supercalifragilisticexpialidoci │\n│     │                                │                                │           │       │          │           │ ousness-level enthusiasm for    │\n│     │                                │                                │           │       │          │           │ automation                      │\n└─────┴────────────────────────────────┴────────────────────────────────┴───────────┴───────┴──────────┴───────────┴─────────────────────────────────┘\n"
+   }
+  },
+  {
+   "name": "doctor",
+   "title": "tellfold doctor",
+   "columns": [
+    {
+     "header": "Check",
+     "overflow": "fold"
+    },
+    {
+     "header": "Status",
+     "overflow": "fold"
+    },
+    {
+     "header": "Detail",
+     "overflow": "fold"
+    }
+   ],
+   "rows": [
+    [
+     "Claude Code CLI on PATH",
+     "ok",
+     "/Users/someone/.local/share/claude/versions/2.1.3/bin/claude"
+    ],
+    [
+     "Claude Agent SDK",
+     "FAIL",
+     "pip install claude-agent-sdk (or: uv sync) then run tellfold doctor again"
+    ],
+    [
+     "Logged in (haiku call)",
+     "FAIL",
+     "skipped: fix the checks above first"
+    ],
+    [
+     "Python",
+     "ok",
+     "3.12.8"
+    ]
+   ],
+   "renders": {
+    "20": "tellfold doctor     \n┏━━━━━┳━━━━━━┳━━━━━┓\n┃ Che ┃ Stat ┃ Det ┃\n┃ ck  ┃ us   ┃ ail ┃\n┡━━━━━╇━━━━━━╇━━━━━┩\n│ Cla │ ok   │ /Us │\n│ ude │      │ ers │\n│     │      │ /so │\n│ Cod │      │ meo │\n│ e   │      │ ne/ │\n│ CLI │      │ .lo │\n│ on  │      │ cal │\n│ PAT │      │ /sh │\n│ H   │      │ are │\n│     │      │ /cl │\n│     │      │ aud │\n│     │      │ e/v │\n│     │      │ ers │\n│     │      │ ion │\n│     │      │ s/2 │\n│     │      │ .1. │\n│     │      │ 3/b │\n│     │      │ in/ │\n│     │      │ cla │\n│     │      │ ude │\n│ Cla │ FAIL │ pip │\n│ ude │      │ ins │\n│     │      │ tal │\n│ Age │      │ l   │\n│ nt  │      │ cla │\n│ SDK │      │ ude │\n│     │      │ -ag │\n│     │      │ ent │\n│     │      │ -sd │\n│     │      │ k   │\n│     │      │ (or │\n│     │      │ :   │\n│     │      │ uv  │\n│     │      │ syn │\n│     │      │ c)  │\n│     │      │ the │\n│     │      │ n   │\n│     │      │ run │\n│     │      │ tel │\n│     │      │ lfo │\n│     │      │ ld  │\n│     │      │ doc │\n│     │      │ tor │\n│     │      │     │\n│     │      │ aga │\n│     │      │ in  │\n│ Log │ FAIL │ ski │\n│ ged │      │ ppe │\n│  in │      │ d:  │\n│ (ha │      │ fix │\n│ iku │      │ the │\n│     │      │ che │\n│ cal │      │ cks │\n│ l)  │      │     │\n│     │      │ abo │\n│     │      │ ve  │\n│     │      │ fir │\n│     │      │ st  │\n│ Pyt │ ok   │ 3.1 │\n│ hon │      │ 2.8 │\n└─────┴──────┴─────┘\n",
+    "40": "tellfold doctor                         \n┏━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━┓\n┃ Check        ┃ Status ┃ Detail       ┃\n┡━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━┩\n│ Claude Code  │ ok     │ /Users/someo │\n│ CLI on PATH  │        │ ne/.local/sh │\n│              │        │ are/claude/v │\n│              │        │ ersions/2.1. │\n│              │        │ 3/bin/claude │\n│ Claude Agent │ FAIL   │ pip install  │\n│ SDK          │        │ claude-agent │\n│              │        │ -sdk (or: uv │\n│              │        │ sync) then   │\n│              │        │ run tellfold │\n│              │        │ doctor again │\n│ Logged in    │ FAIL   │ skipped: fix │\n│ (haiku call) │        │ the checks   │\n│              │        │ above first  │\n│ Python       │ ok     │ 3.12.8       │\n└──────────────┴────────┴──────────────┘\n",
+    "60": "tellfold doctor                                             \n┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check                  ┃ Status ┃ Detail                 ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI on     │ ok     │ /Users/someone/.local/ │\n│ PATH                   │        │ share/claude/versions/ │\n│                        │        │ 2.1.3/bin/claude       │\n│ Claude Agent SDK       │ FAIL   │ pip install            │\n│                        │        │ claude-agent-sdk (or:  │\n│                        │        │ uv sync) then run      │\n│                        │        │ tellfold doctor again  │\n│ Logged in (haiku call) │ FAIL   │ skipped: fix the       │\n│                        │        │ checks above first     │\n│ Python                 │ ok     │ 3.12.8                 │\n└────────────────────────┴────────┴────────────────────────┘\n",
+    "80": "tellfold doctor                                                                 \n┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check                   ┃ Status ┃ Detail                                    ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI on PATH │ ok     │ /Users/someone/.local/share/claude/versio │\n│                         │        │ ns/2.1.3/bin/claude                       │\n│ Claude Agent SDK        │ FAIL   │ pip install claude-agent-sdk (or: uv      │\n│                         │        │ sync) then run tellfold doctor again      │\n│ Logged in (haiku call)  │ FAIL   │ skipped: fix the checks above first       │\n│ Python                  │ ok     │ 3.12.8                                    │\n└─────────────────────────┴────────┴───────────────────────────────────────────┘\n",
+    "100": "tellfold doctor                                                                                     \n┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check                   ┃ Status ┃ Detail                                                        ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI on PATH │ ok     │ /Users/someone/.local/share/claude/versions/2.1.3/bin/claude  │\n│ Claude Agent SDK        │ FAIL   │ pip install claude-agent-sdk (or: uv sync) then run tellfold  │\n│                         │        │ doctor again                                                  │\n│ Logged in (haiku call)  │ FAIL   │ skipped: fix the checks above first                           │\n│ Python                  │ ok     │ 3.12.8                                                        │\n└─────────────────────────┴────────┴───────────────────────────────────────────────────────────────┘\n",
+    "150": "tellfold doctor                                                                                                 \n┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check                   ┃ Status ┃ Detail                                                                    ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI on PATH │ ok     │ /Users/someone/.local/share/claude/versions/2.1.3/bin/claude              │\n│ Claude Agent SDK        │ FAIL   │ pip install claude-agent-sdk (or: uv sync) then run tellfold doctor again │\n│ Logged in (haiku call)  │ FAIL   │ skipped: fix the checks above first                                       │\n│ Python                  │ ok     │ 3.12.8                                                                    │\n└─────────────────────────┴────────┴───────────────────────────────────────────────────────────────────────────┘\n"
+   }
+  },
+  {
+   "name": "runtimes",
+   "title": "Agent runtimes",
+   "columns": [
+    {
+     "header": "ID",
+     "overflow": "fold"
+    },
+    {
+     "header": "Installed",
+     "overflow": "fold"
+    },
+    {
+     "header": "Version",
+     "overflow": "fold"
+    },
+    {
+     "header": "Auth",
+     "overflow": "fold"
+    },
+    {
+     "header": "Tested",
+     "overflow": "fold"
+    },
+    {
+     "header": "Agent / planner model",
+     "overflow": "fold"
+    }
+   ],
+   "rows": [
+    [
+     "claude-code",
+     "yes",
+     "2.1.3 (Claude Code)",
+     "ok",
+     "yes",
+     "haiku / sonnet"
+    ],
+    [
+     "codex",
+     "no",
+     "-",
+     "unknown",
+     "yes",
+     "gpt-5-mini / gpt-5"
+    ],
+    [
+     "ollama",
+     "yes",
+     "0.12.6",
+     "ok",
+     "no",
+     "llama3.2:3b-instruct-q4_K_M / qwen2.5:14b-instruct"
+    ],
+    [
+     "openai-compatible",
+     "no",
+     "-",
+     "missing",
+     "no",
+     "-"
+    ]
+   ],
+   "renders": {
+    "20": "Agent runtimes      \n┏━━┳━━┳━━┳━━┳━━┳━━━┓\n┃  ┃  ┃  ┃  ┃  ┃ A ┃\n┃  ┃  ┃  ┃  ┃  ┃ g ┃\n┃  ┃  ┃  ┃  ┃  ┃ e ┃\n┃  ┃  ┃  ┃  ┃  ┃ n ┃\n┃  ┃  ┃  ┃  ┃  ┃ t ┃\n┃  ┃  ┃  ┃  ┃  ┃   ┃\n┃  ┃  ┃  ┃  ┃  ┃ / ┃\n┃  ┃  ┃  ┃  ┃  ┃ p ┃\n┃  ┃  ┃  ┃  ┃  ┃ l ┃\n┃  ┃  ┃  ┃  ┃  ┃ a ┃\n┃  ┃  ┃  ┃  ┃  ┃ n ┃\n┃  ┃  ┃  ┃  ┃  ┃ n ┃\n┃  ┃  ┃  ┃  ┃  ┃ e ┃\n┃  ┃  ┃  ┃  ┃  ┃ r ┃\n┃  ┃  ┃  ┃  ┃  ┃   ┃\n┃  ┃  ┃  ┃  ┃  ┃ m ┃\n┃  ┃  ┃  ┃  ┃  ┃ o ┃\n┃  ┃  ┃  ┃  ┃  ┃ d ┃\n┃  ┃  ┃  ┃  ┃  ┃ e ┃\n┃  ┃  ┃  ┃  ┃  ┃ l ┃\n┡━━╇━━╇━━╇━━╇━━╇━━━┩\n│  │  │  │  │  │ h │\n│  │  │  │  │  │ a │\n│  │  │  │  │  │ i │\n│  │  │  │  │  │ k │\n│  │  │  │  │  │ u │\n│  │  │  │  │  │   │\n│  │  │  │  │  │ / │\n│  │  │  │  │  │ s │\n│  │  │  │  │  │ o │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ e │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ g │\n│  │  │  │  │  │ p │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ 5 │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ m │\n│  │  │  │  │  │ i │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ i │\n│  │  │  │  │  │   │\n│  │  │  │  │  │ / │\n│  │  │  │  │  │ g │\n│  │  │  │  │  │ p │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ 5 │\n│  │  │  │  │  │ l │\n│  │  │  │  │  │ l │\n│  │  │  │  │  │ a │\n│  │  │  │  │  │ m │\n│  │  │  │  │  │ a │\n│  │  │  │  │  │ 3 │\n│  │  │  │  │  │ . │\n│  │  │  │  │  │ 2 │\n│  │  │  │  │  │ : │\n│  │  │  │  │  │ 3 │\n│  │  │  │  │  │ b │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ i │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ s │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ r │\n│  │  │  │  │  │ u │\n│  │  │  │  │  │ c │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ q │\n│  │  │  │  │  │ 4 │\n│  │  │  │  │  │ _ │\n│  │  │  │  │  │ K │\n│  │  │  │  │  │ _ │\n│  │  │  │  │  │ M │\n│  │  │  │  │  │   │\n│  │  │  │  │  │ / │\n│  │  │  │  │  │ q │\n│  │  │  │  │  │ w │\n│  │  │  │  │  │ e │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ 2 │\n│  │  │  │  │  │ . │\n│  │  │  │  │  │ 5 │\n│  │  │  │  │  │ : │\n│  │  │  │  │  │ 1 │\n│  │  │  │  │  │ 4 │\n│  │  │  │  │  │ b │\n│  │  │  │  │  │ - │\n│  │  │  │  │  │ i │\n│  │  │  │  │  │ n │\n│  │  │  │  │  │ s │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ r │\n│  │  │  │  │  │ u │\n│  │  │  │  │  │ c │\n│  │  │  │  │  │ t │\n│  │  │  │  │  │ - │\n└──┴──┴──┴──┴──┴───┘\n",
+    "40": "Agent runtimes                          \n┏━━━━━━┳━━━━━┳━━━━━━┳━━━━━┳━━━━━━┳━━━━━┓\n┃      ┃     ┃      ┃     ┃      ┃ Age ┃\n┃      ┃     ┃      ┃     ┃      ┃ nt  ┃\n┃      ┃     ┃      ┃     ┃      ┃ /   ┃\n┃      ┃     ┃      ┃     ┃      ┃ pla ┃\n┃      ┃     ┃      ┃     ┃      ┃ nne ┃\n┃      ┃ Ins ┃      ┃     ┃      ┃ r   ┃\n┃      ┃ tal ┃ Vers ┃ Aut ┃ Test ┃ mod ┃\n┃ ID   ┃ led ┃ ion  ┃ h   ┃ ed   ┃ el  ┃\n┡━━━━━━╇━━━━━╇━━━━━━╇━━━━━╇━━━━━━╇━━━━━┩\n│ clau │ yes │ 2.1. │ ok  │ yes  │ hai │\n│ de-c │     │ 3    │     │      │ ku  │\n│ ode  │     │ (Cla │     │      │ /   │\n│      │     │ ude  │     │      │ son │\n│      │     │ Code │     │      │ net │\n│      │     │ )    │     │      │     │\n│ code │ no  │ -    │ unk │ yes  │ gpt │\n│ x    │     │      │ now │      │ -5- │\n│      │     │      │ n   │      │ min │\n│      │     │      │     │      │ i / │\n│      │     │      │     │      │ gpt │\n│      │     │      │     │      │ -5  │\n│ olla │ yes │ 0.12 │ ok  │ no   │ lla │\n│ ma   │     │ .6   │     │      │ ma3 │\n│      │     │      │     │      │ .2: │\n│      │     │      │     │      │ 3b- │\n│      │     │      │     │      │ ins │\n│      │     │      │     │      │ tru │\n│      │     │      │     │      │ ct- │\n│      │     │      │     │      │ q4_ │\n│      │     │      │     │      │ K_M │\n│      │     │      │     │      │  /  │\n│      │     │      │     │      │ qwe │\n│      │     │      │     │      │ n2. │\n│      │     │      │     │      │ 5:1 │\n│      │     │      │     │      │ 4b- │\n│      │     │      │     │      │ ins │\n│      │     │      │     │      │ tru │\n│      │     │      │     │      │ ct  │\n│ open │ no  │ -    │ mis │ no   │ -   │\n│ ai-c │     │      │ sin │      │     │\n│ ompa │     │      │ g   │      │     │\n│ tibl │     │      │     │      │     │\n│ e    │     │      │     │      │     │\n└──────┴─────┴──────┴─────┴──────┴─────┘\n",
+    "60": "Agent runtimes                                              \n┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓\n┃         ┃         ┃         ┃         ┃        ┃ Agent / ┃\n┃         ┃ Install ┃         ┃         ┃        ┃ planner ┃\n┃ ID      ┃ ed      ┃ Version ┃ Auth    ┃ Tested ┃ model   ┃\n┡━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩\n│ claude- │ yes     │ 2.1.3   │ ok      │ yes    │ haiku / │\n│ code    │         │ (Claude │         │        │ sonnet  │\n│         │         │ Code)   │         │        │         │\n│ codex   │ no      │ -       │ unknown │ yes    │ gpt-5-m │\n│         │         │         │         │        │ ini /   │\n│         │         │         │         │        │ gpt-5   │\n│ ollama  │ yes     │ 0.12.6  │ ok      │ no     │ llama3. │\n│         │         │         │         │        │ 2:3b-in │\n│         │         │         │         │        │ struct- │\n│         │         │         │         │        │ q4_K_M  │\n│         │         │         │         │        │ /       │\n│         │         │         │         │        │ qwen2.5 │\n│         │         │         │         │        │ :14b-in │\n│         │         │         │         │        │ struct  │\n│ openai- │ no      │ -       │ missing │ no     │ -       │\n│ compati │         │         │         │        │         │\n│ ble     │         │         │         │        │         │\n└─────────┴─────────┴─────────┴─────────┴────────┴─────────┘\n",
+    "80": "Agent runtimes                                                                  \n┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━┓\n┃               ┃           ┃               ┃         ┃        ┃ Agent /       ┃\n┃ ID            ┃ Installed ┃ Version       ┃ Auth    ┃ Tested ┃ planner model ┃\n┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━┩\n│ claude-code   │ yes       │ 2.1.3 (Claude │ ok      │ yes    │ haiku /       │\n│               │           │ Code)         │         │        │ sonnet        │\n│ codex         │ no        │ -             │ unknown │ yes    │ gpt-5-mini /  │\n│               │           │               │         │        │ gpt-5         │\n│ ollama        │ yes       │ 0.12.6        │ ok      │ no     │ llama3.2:3b-i │\n│               │           │               │         │        │ nstruct-q4_K_ │\n│               │           │               │         │        │ M /           │\n│               │           │               │         │        │ qwen2.5:14b-i │\n│               │           │               │         │        │ nstruct       │\n│ openai-compat │ no        │ -             │ missing │ no     │ -             │\n│ ible          │           │               │         │        │               │\n└───────────────┴───────────┴───────────────┴─────────┴────────┴───────────────┘\n",
+    "100": "Agent runtimes                                                                                      \n┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ ID                ┃ Installed ┃ Version             ┃ Auth    ┃ Tested ┃ Agent / planner model   ┃\n┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ claude-code       │ yes       │ 2.1.3 (Claude Code) │ ok      │ yes    │ haiku / sonnet          │\n│ codex             │ no        │ -                   │ unknown │ yes    │ gpt-5-mini / gpt-5      │\n│ ollama            │ yes       │ 0.12.6              │ ok      │ no     │ llama3.2:3b-instruct-q4 │\n│                   │           │                     │         │        │ _K_M /                  │\n│                   │           │                     │         │        │ qwen2.5:14b-instruct    │\n│ openai-compatible │ no        │ -                   │ missing │ no     │ -                       │\n└───────────────────┴───────────┴─────────────────────┴─────────┴────────┴─────────────────────────┘\n",
+    "150": "Agent runtimes                                                                                                                 \n┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ ID                ┃ Installed ┃ Version             ┃ Auth    ┃ Tested ┃ Agent / planner model                              ┃\n┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ claude-code       │ yes       │ 2.1.3 (Claude Code) │ ok      │ yes    │ haiku / sonnet                                     │\n│ codex             │ no        │ -                   │ unknown │ yes    │ gpt-5-mini / gpt-5                                 │\n│ ollama            │ yes       │ 0.12.6              │ ok      │ no     │ llama3.2:3b-instruct-q4_K_M / qwen2.5:14b-instruct │\n│ openai-compatible │ no        │ -                   │ missing │ no     │ -                                                  │\n└───────────────────┴───────────┴─────────────────────┴─────────┴────────┴────────────────────────────────────────────────────┘\n"
+   }
+  },
+  {
+   "name": "rounds",
+   "title": "Rounds (3/6)",
+   "columns": [
+    {
+     "header": "Round",
+     "justify": "right"
+    },
+    {
+     "header": "Active",
+     "justify": "right"
+    },
+    {
+     "header": "Posts",
+     "justify": "right"
+    },
+    {
+     "header": "Action mix",
+     "justify": "left"
+    },
+    {
+     "header": "Sentiment",
+     "justify": "right"
+    },
+    {
+     "header": "Calls",
+     "justify": "right"
+    },
+    {
+     "header": "LLM s",
+     "justify": "right"
+    }
+   ],
+   "rows": [
+    [
+     "0",
+     "20",
+     "20",
+     "post 20",
+     "-",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "14",
+     "9",
+     "like 22, post 6, repost 3, reply 3, follow 2, idle 1",
+     "+0.12",
+     "3",
+     "41"
+    ],
+    [
+     "2",
+     "11",
+     "5",
+     "like 15, reply 4, post 1",
+     "-0.31",
+     "2",
+     "28"
+    ],
+    [
+     "3",
+     "17",
+     "12",
+     "post 7, reply 5, like 4, quote 2, mute 1, report 1, unfollow 1",
+     "+0.05",
+     "3",
+     "1234"
+    ]
+   ],
+   "renders": {
+    "20": "Rounds (3/6)        \n┏━━┳━━┳━━┳━┳━━┳━┳━━┓\n┃  ┃  ┃  ┃ ┃  ┃ ┃  ┃\n┡━━╇━━╇━━╇━╇━━╇━╇━━┩\n│  │  │  │ │  │ │  │\n│  │  │  │ │  │ │  │\n│  │  │  │ │  │ │  │\n│  │  │  │ │  │ │  │\n└──┴──┴──┴─┴──┴─┴──┘\n",
+    "40": "Rounds (3/6)                            \n┏━━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┓\n┃     ┃     ┃    ┃ Ac… ┃    ┃     ┃ L… ┃\n┃ Ro… ┃ Ac… ┃ P… ┃ mix ┃ S… ┃ Ca… ┃  s ┃\n┡━━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━┩\n│   0 │  20 │ 20 │ po… │  - │   0 │  0 │\n│     │     │    │ 20  │    │     │    │\n│   1 │  14 │  9 │ li… │ +… │   3 │ 41 │\n│     │     │    │ 22, │    │     │    │\n│     │     │    │ po… │    │     │    │\n│     │     │    │ 6,  │    │     │    │\n│     │     │    │ re… │    │     │    │\n│     │     │    │ 3,  │    │     │    │\n│     │     │    │ re… │    │     │    │\n│     │     │    │ 3,  │    │     │    │\n│     │     │    │ fo… │    │     │    │\n│     │     │    │ 2,  │    │     │    │\n│     │     │    │ id… │    │     │    │\n│     │     │    │ 1   │    │     │    │\n│   2 │  11 │  5 │ li… │ -… │   2 │ 28 │\n│     │     │    │ 15, │    │     │    │\n│     │     │    │ re… │    │     │    │\n│     │     │    │ 4,  │    │     │    │\n│     │     │    │ po… │    │     │    │\n│     │     │    │ 1   │    │     │    │\n│   3 │  17 │ 12 │ po… │ +… │   3 │ 1… │\n│     │     │    │ 7,  │    │     │    │\n│     │     │    │ re… │    │     │    │\n│     │     │    │ 5,  │    │     │    │\n│     │     │    │ li… │    │     │    │\n│     │     │    │ 4,  │    │     │    │\n│     │     │    │ qu… │    │     │    │\n│     │     │    │ 2,  │    │     │    │\n│     │     │    │ mu… │    │     │    │\n│     │     │    │ 1,  │    │     │    │\n│     │     │    │ re… │    │     │    │\n│     │     │    │ 1,  │    │     │    │\n│     │     │    │ un… │    │     │    │\n│     │     │    │ 1   │    │     │    │\n└─────┴─────┴────┴─────┴────┴─────┴────┘\n",
+    "60": "Rounds (3/6)                                                \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃       ┃        ┃       ┃ Action ┃        ┃       ┃       ┃\n┃ Round ┃ Active ┃ Posts ┃ mix    ┃ Senti… ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │     20 │    20 │ post   │      - │     0 │     0 │\n│       │        │       │ 20     │        │       │       │\n│     1 │     14 │     9 │ like   │  +0.12 │     3 │    41 │\n│       │        │       │ 22,    │        │       │       │\n│       │        │       │ post   │        │       │       │\n│       │        │       │ 6,     │        │       │       │\n│       │        │       │ repost │        │       │       │\n│       │        │       │ 3,     │        │       │       │\n│       │        │       │ reply  │        │       │       │\n│       │        │       │ 3,     │        │       │       │\n│       │        │       │ follow │        │       │       │\n│       │        │       │ 2,     │        │       │       │\n│       │        │       │ idle 1 │        │       │       │\n│     2 │     11 │     5 │ like   │  -0.31 │     2 │    28 │\n│       │        │       │ 15,    │        │       │       │\n│       │        │       │ reply  │        │       │       │\n│       │        │       │ 4,     │        │       │       │\n│       │        │       │ post 1 │        │       │       │\n│     3 │     17 │    12 │ post   │  +0.05 │     3 │  1234 │\n│       │        │       │ 7,     │        │       │       │\n│       │        │       │ reply  │        │       │       │\n│       │        │       │ 5,     │        │       │       │\n│       │        │       │ like   │        │       │       │\n│       │        │       │ 4,     │        │       │       │\n│       │        │       │ quote  │        │       │       │\n│       │        │       │ 2,     │        │       │       │\n│       │        │       │ mute   │        │       │       │\n│       │        │       │ 1,     │        │       │       │\n│       │        │       │ report │        │       │       │\n│       │        │       │ 1,     │        │       │       │\n│       │        │       │ unfol… │        │       │       │\n│       │        │       │ 1      │        │       │       │\n└───────┴────────┴───────┴────────┴────────┴───────┴───────┘\n",
+    "80": "Rounds (3/6)                                                                    \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix              ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │     20 │    20 │ post 20                 │         - │     0 │     0 │\n│     1 │     14 │     9 │ like 22, post 6, repost │     +0.12 │     3 │    41 │\n│       │        │       │ 3, reply 3, follow 2,   │           │       │       │\n│       │        │       │ idle 1                  │           │       │       │\n│     2 │     11 │     5 │ like 15, reply 4, post  │     -0.31 │     2 │    28 │\n│       │        │       │ 1                       │           │       │       │\n│     3 │     17 │    12 │ post 7, reply 5, like   │     +0.05 │     3 │  1234 │\n│       │        │       │ 4, quote 2, mute 1,     │           │       │       │\n│       │        │       │ report 1, unfollow 1    │           │       │       │\n└───────┴────────┴───────┴─────────────────────────┴───────────┴───────┴───────┘\n",
+    "100": "Rounds (3/6)                                                                                        \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix                                  ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │     20 │    20 │ post 20                                     │         - │     0 │     0 │\n│     1 │     14 │     9 │ like 22, post 6, repost 3, reply 3, follow  │     +0.12 │     3 │    41 │\n│       │        │       │ 2, idle 1                                   │           │       │       │\n│     2 │     11 │     5 │ like 15, reply 4, post 1                    │     -0.31 │     2 │    28 │\n│     3 │     17 │    12 │ post 7, reply 5, like 4, quote 2, mute 1,   │     +0.05 │     3 │  1234 │\n│       │        │       │ report 1, unfollow 1                        │           │       │       │\n└───────┴────────┴───────┴─────────────────────────────────────────────┴───────────┴───────┴───────┘\n",
+    "150": "Rounds (3/6)                                                                                                           \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix                                                     ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │     20 │    20 │ post 20                                                        │         - │     0 │     0 │\n│     1 │     14 │     9 │ like 22, post 6, repost 3, reply 3, follow 2, idle 1           │     +0.12 │     3 │    41 │\n│     2 │     11 │     5 │ like 15, reply 4, post 1                                       │     -0.31 │     2 │    28 │\n│     3 │     17 │    12 │ post 7, reply 5, like 4, quote 2, mute 1, report 1, unfollow 1 │     +0.05 │     3 │  1234 │\n└───────┴────────┴───────┴────────────────────────────────────────────────────────────────┴───────────┴───────┴───────┘\n"
+   }
+  },
+  {
+   "name": "many_columns",
+   "title": "A table with many columns that must collapse and a long title that will need to wrap",
+   "columns": [
+    {
+     "header": "Column 0",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 1",
+     "overflow": "ellipsis"
+    },
+    {
+     "header": "Column 2",
+     "overflow": "crop"
+    },
+    {
+     "header": "Column 3",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 4",
+     "overflow": "ellipsis"
+    },
+    {
+     "header": "Column 5",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 6",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 7",
+     "overflow": "ellipsis"
+    },
+    {
+     "header": "Column 8",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 9",
+     "overflow": "crop"
+    },
+    {
+     "header": "Column 10",
+     "overflow": "fold"
+    },
+    {
+     "header": "Column 11",
+     "overflow": "fold"
+    }
+   ],
+   "rows": [
+    [
+     "value-0-",
+     "value-1-xxx",
+     "value-2-xxxxxx",
+     "value-3-xxxxxxxxx",
+     "value-4-xxxxxxxxxxxx",
+     "value-5-xxxxxxxxxxxxxxx",
+     "value-6-xxxxxxxxxxxxxxxxxx",
+     "value-7-xxxxxxxxxxxxxxxxxxxxx",
+     "value-8-xxxxxxxxxxxxxxxxxxxxxxxx",
+     "value-9-xxxxxxxxxxxxxxxxxxxxxxxxxxx",
+     "value-10-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+     "value-11-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ],
+    [
+     "",
+     "short",
+     "a much longer piece of text that wraps",
+     "π",
+     "ünïcödé",
+     "日本語のテキスト",
+     "x",
+     "",
+     "123456789012345678901234567890",
+     "tail",
+     "café",
+     "end"
+    ]
+   ],
+   "renders": {
+    "20": "A table with many   \ncolumns that must   \ncollapse and a long \ntitle that will need\nto wrap             \n┏━┳━┳━┳┳━┳┳━┳┳━┳┳━┳┓\n┃ ┃ ┃ ┃┃ ┃┃ ┃┃ ┃┃ ┃┃\n┡━╇━╇━╇╇━╇╇━╇╇━╇╇━╇┩\n│ │ │ ││ ││ ││ ││ ││\n│ │ │ ││ ││ ││ ││ ││\n└─┴─┴─┴┴─┴┴─┴┴─┴┴─┴┘\n",
+    "40": "A table with many columns that must     \ncollapse and a long title that will need\nto wrap                                 \n┏━━┳━━┳━━┳━━┳━━┳━━┳━━┳━━━┳━━┳━━━┳━━┳━━━┓\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ C ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ o ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ l ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ u ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ m ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃ n ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃   ┃  ┃   ┃  ┃   ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃ … ┃  ┃ C ┃  ┃ 1 ┃\n┃  ┃  ┃  ┃  ┃  ┃  ┃  ┃ 7 ┃  ┃ 9 ┃  ┃ 1 ┃\n┡━━╇━━╇━━╇━━╇━━╇━━╇━━╇━━━╇━━╇━━━╇━━╇━━━┩\n│  │  │  │  │  │  │  │ … │  │ v │  │ v │\n│  │  │  │  │  │  │  │   │  │   │  │ a │\n│  │  │  │  │  │  │  │   │  │   │  │ l │\n│  │  │  │  │  │  │  │   │  │   │  │ u │\n│  │  │  │  │  │  │  │   │  │   │  │ e │\n│  │  │  │  │  │  │  │   │  │   │  │ - │\n│  │  │  │  │  │  │  │   │  │   │  │ 1 │\n│  │  │  │  │  │  │  │   │  │   │  │ 1 │\n│  │  │  │  │  │  │  │   │  │   │  │ - │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │   │  │ x │\n│  │  │  │  │  │  │  │   │  │ t │  │ e │\n│  │  │  │  │  │  │  │   │  │   │  │ n │\n│  │  │  │  │  │  │  │   │  │   │  │ d │\n└──┴──┴──┴──┴──┴──┴──┴───┴──┴───┴──┴───┘\n",
+    "60": "A table with many columns that must collapse and a long     \ntitle that will need to wrap                                \n┏━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━┓\n┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃ C ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃ o ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃ l ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃ u ┃\n┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃    ┃ Co ┃ m ┃\n┃ Co ┃    ┃    ┃ Co ┃    ┃ Co ┃ Co ┃    ┃ Co ┃    ┃ lu ┃ n ┃\n┃ lu ┃    ┃    ┃ lu ┃    ┃ lu ┃ lu ┃    ┃ lu ┃    ┃ mn ┃   ┃\n┃ mn ┃ C… ┃ Co ┃ mn ┃ C… ┃ mn ┃ mn ┃ C… ┃ mn ┃ Co ┃    ┃ 1 ┃\n┃  0 ┃ 1  ┃ 2  ┃  3 ┃ 4  ┃  5 ┃  6 ┃ 7  ┃  8 ┃ 9  ┃ 10 ┃ 1 ┃\n┡━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━┩\n│ va │ v… │ va │ va │ v… │ va │ va │ v… │ va │ va │ va │ v │\n│ lu │    │    │ lu │    │ lu │ lu │    │ lu │    │ lu │ a │\n│ e- │    │    │ e- │    │ e- │ e- │    │ e- │    │ e- │ l │\n│ 0- │    │    │ 3- │    │ 5- │ 6- │    │ 8- │    │ 10 │ u │\n│    │    │    │ xx │    │ xx │ xx │    │ xx │    │ -x │ e │\n│    │    │    │ xx │    │ xx │ xx │    │ xx │    │ xx │ - │\n│    │    │    │ xx │    │ xx │ xx │    │ xx │    │ xx │ 1 │\n│    │    │    │ xx │    │ xx │ xx │    │ xx │    │ xx │ 1 │\n│    │    │    │ x  │    │ xx │ xx │    │ xx │    │ xx │ - │\n│    │    │    │    │    │ xx │ xx │    │ xx │    │ xx │ x │\n│    │    │    │    │    │ xx │ xx │    │ xx │    │ xx │ x │\n│    │    │    │    │    │ x  │ xx │    │ xx │    │ xx │ x │\n│    │    │    │    │    │    │ xx │    │ xx │    │ xx │ x │\n│    │    │    │    │    │    │    │    │ xx │    │ xx │ x │\n│    │    │    │    │    │    │    │    │ xx │    │ xx │ x │\n│    │    │    │    │    │    │    │    │ xx │    │ xx │ x │\n│    │    │    │    │    │    │    │    │    │    │ xx │ x │\n│    │    │    │    │    │    │    │    │    │    │ xx │ x │\n│    │    │    │    │    │    │    │    │    │    │ xx │ x │\n│    │    │    │    │    │    │    │    │    │    │ x  │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │    │    │    │    │    │    │    │    │    │    │ x │\n│    │ s… │ a  │ π  │ ü… │ 日 │ x  │    │ 12 │ ta │ ca │ e │\n│    │    │ mu │    │    │ 本 │    │    │ 34 │    │ fé │ n │\n│    │    │ lo │    │    │ 語 │    │    │ 56 │    │    │ d │\n│    │    │ pi │    │    │ の │    │    │ 78 │    │    │   │\n│    │    │ of │    │    │ テ │    │    │ 90 │    │    │   │\n│    │    │ te │    │    │ キ │    │    │ 12 │    │    │   │\n│    │    │ th │    │    │ ス │    │    │ 34 │    │    │   │\n│    │    │ wr │    │    │ ト │    │    │ 56 │    │    │   │\n│    │    │    │    │    │    │    │    │ 78 │    │    │   │\n│    │    │    │    │    │    │    │    │ 90 │    │    │   │\n│    │    │    │    │    │    │    │    │ 12 │    │    │   │\n│    │    │    │    │    │    │    │    │ 34 │    │    │   │\n│    │    │    │    │    │    │    │    │ 56 │    │    │   │\n│    │    │    │    │    │    │    │    │ 78 │    │    │   │\n│    │    │    │    │    │    │    │    │ 90 │    │    │   │\n└────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴───┘\n",
+    "80": "A table with many columns that must collapse and a long title that will need to \nwrap                                                                            \n┏━━━━━━┳━━━━━━┳━━━━━━┳━━━━━┳━━━━━━┳━━━━━┳━━━━━━┳━━━━━┳━━━━━━┳━━━━━┳━━━━━━┳━━━━━┓\n┃      ┃      ┃      ┃ Col ┃      ┃ Col ┃      ┃     ┃      ┃     ┃ Colu ┃ Col ┃\n┃ Colu ┃ Col… ┃ Colu ┃ umn ┃ Col… ┃ umn ┃ Colu ┃ Co… ┃ Colu ┃ Col ┃ mn   ┃ umn ┃\n┃ mn 0 ┃ 1    ┃ 2    ┃  3  ┃ 4    ┃  5  ┃ mn 6 ┃ 7   ┃ mn 8 ┃ 9   ┃ 10   ┃  11 ┃\n┡━━━━━━╇━━━━━━╇━━━━━━╇━━━━━╇━━━━━━╇━━━━━╇━━━━━━╇━━━━━╇━━━━━━╇━━━━━╇━━━━━━╇━━━━━┩\n│ valu │ val… │ valu │ val │ val… │ val │ valu │ va… │ valu │ val │ valu │ val │\n│ e-0- │      │      │ ue- │      │ ue- │ e-6- │     │ e-8- │     │ e-10 │ ue- │\n│      │      │      │ 3-x │      │ 5-x │ xxxx │     │ xxxx │     │ -xxx │ 11- │\n│      │      │      │ xxx │      │ xxx │ xxxx │     │ xxxx │     │ xxxx │ xxx │\n│      │      │      │ xxx │      │ xxx │ xxxx │     │ xxxx │     │ xxxx │ xxx │\n│      │      │      │ xx  │      │ xxx │ xxxx │     │ xxxx │     │ xxxx │ xxx │\n│      │      │      │     │      │ xxx │ xx   │     │ xxxx │     │ xxxx │ xxx │\n│      │      │      │     │      │ xx  │      │     │ xxxx │     │ xxxx │ xxx │\n│      │      │      │     │      │     │      │     │      │     │ xxxx │ xxx │\n│      │      │      │     │      │     │      │     │      │     │ xxx  │ xxx │\n│      │      │      │     │      │     │      │     │      │     │      │ xxx │\n│      │      │      │     │      │     │      │     │      │     │      │ xxx │\n│      │      │      │     │      │     │      │     │      │     │      │ xxx │\n│      │      │      │     │      │     │      │     │      │     │      │ xxx │\n│      │ sho… │ a    │ π   │ ünï… │ 日  │ x    │     │ 1234 │ tai │ café │ end │\n│      │      │ much │     │      │ 本  │      │     │ 5678 │     │      │     │\n│      │      │ long │     │      │ 語  │      │     │ 9012 │     │      │     │\n│      │      │ piec │     │      │ の  │      │     │ 3456 │     │      │     │\n│      │      │ of   │     │      │ テ  │      │     │ 7890 │     │      │     │\n│      │      │ text │     │      │ キ  │      │     │ 1234 │     │      │     │\n│      │      │ that │     │      │ ス  │      │     │ 5678 │     │      │     │\n│      │      │ wrap │     │      │ ト  │      │     │ 90   │     │      │     │\n└──────┴──────┴──────┴─────┴──────┴─────┴──────┴─────┴──────┴─────┴──────┴─────┘\n",
+    "100": "A table with many columns that must collapse and a long title that will need to wrap                \n┏━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━┓\n┃ Colum ┃ Colu… ┃ Colum ┃ Colum ┃ Colu… ┃ Colum ┃ Column ┃ Colu… ┃ Column ┃ Colum ┃ Column ┃ Colum ┃\n┃ n 0   ┃ 1     ┃ 2     ┃ n 3   ┃ 4     ┃ n 5   ┃ 6      ┃ 7     ┃ 8      ┃ 9     ┃ 10     ┃ n 11  ┃\n┡━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━┩\n│ value │ valu… │ value │ value │ valu… │ value │ value- │ valu… │ value- │ value │ value- │ value │\n│ -0-   │       │       │ -3-xx │       │ -5-xx │ 6-xxxx │       │ 8-xxxx │       │ 10-xxx │ -11-x │\n│       │       │       │ xxxxx │       │ xxxxx │ xxxxxx │       │ xxxxxx │       │ xxxxxx │ xxxxx │\n│       │       │       │ xx    │       │ xxxxx │ xxxxxx │       │ xxxxxx │       │ xxxxxx │ xxxxx │\n│       │       │       │       │       │ xxx   │ xx     │       │ xxxxxx │       │ xxxxxx │ xxxxx │\n│       │       │       │       │       │       │        │       │ xx     │       │ xxxxxx │ xxxxx │\n│       │       │       │       │       │       │        │       │        │       │ xxx    │ xxxxx │\n│       │       │       │       │       │       │        │       │        │       │        │ xxxxx │\n│       │       │       │       │       │       │        │       │        │       │        │ xx    │\n│       │ short │ a     │ π     │ ünïc… │ 日本  │ x      │       │ 123456 │ tail  │ café   │ end   │\n│       │       │ much  │       │       │ 語の  │        │       │ 789012 │       │        │       │\n│       │       │ longe │       │       │ テキ  │        │       │ 345678 │       │        │       │\n│       │       │ piece │       │       │ スト  │        │       │ 901234 │       │        │       │\n│       │       │ of    │       │       │       │        │       │ 567890 │       │        │       │\n│       │       │ text  │       │       │       │        │       │        │       │        │       │\n│       │       │ that  │       │       │       │        │       │        │       │        │       │\n│       │       │ wraps │       │       │       │        │       │        │       │        │       │\n└───────┴───────┴───────┴───────┴───────┴───────┴────────┴───────┴────────┴───────┴────────┴───────┘\n",
+    "150": "A table with many columns that must collapse and a long title that will need to wrap                                                                  \n┏━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓\n┃ Column 0 ┃ Column 1   ┃ Column 2  ┃ Column 3   ┃ Column 4  ┃ Column 5   ┃ Column 6  ┃ Column 7   ┃ Column 8  ┃ Column 9   ┃ Column 10 ┃ Column 11  ┃\n┡━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩\n│ value-0- │ value-1-x… │ value-2-x │ value-3-xx │ value-4-… │ value-5-xx │ value-6-x │ value-7-x… │ value-8-x │ value-9-xx │ value-10- │ value-11-x │\n│          │            │           │ xxxxxxx    │           │ xxxxxxxxxx │ xxxxxxxxx │            │ xxxxxxxxx │            │ xxxxxxxxx │ xxxxxxxxxx │\n│          │            │           │            │           │ xxx        │ xxxxxxxx  │            │ xxxxxxxxx │            │ xxxxxxxxx │ xxxxxxxxxx │\n│          │            │           │            │           │            │           │            │ xxxxx     │            │ xxxxxxxxx │ xxxxxxxxxx │\n│          │            │           │            │           │            │           │            │           │            │ xxx       │ xx         │\n│          │ short      │ a much    │ π          │ ünïcödé   │ 日本語のテ │ x         │            │ 123456789 │ tail       │ café      │ end        │\n│          │            │ longer    │            │           │ キスト     │           │            │ 012345678 │            │           │            │\n│          │            │ piece of  │            │           │            │           │            │ 901234567 │            │           │            │\n│          │            │ text that │            │           │            │           │            │ 890       │            │           │            │\n│          │            │ wraps     │            │           │            │           │            │           │            │           │            │\n└──────────┴────────────┴───────────┴────────────┴───────────┴────────────┴───────────┴────────────┴───────────┴────────────┴───────────┴────────────┘\n"
+   }
+  },
+  {
+   "name": "no_box_center",
+   "title": "Centered title",
+   "title_justify": "center",
+   "box": null,
+   "columns": [
+    {
+     "header": "Left",
+     "justify": "left"
+    },
+    {
+     "header": "Center",
+     "justify": "center"
+    },
+    {
+     "header": "Right",
+     "justify": "right",
+     "no_wrap": true
+    }
+   ],
+   "rows": [
+    [
+     "one",
+     "two",
+     "three"
+    ],
+    [
+     "a longer left cell that wraps around",
+     "mid",
+     "no wrap here at all"
+    ]
+   ],
+   "renders": {
+    "20": "   Centered title   \n              Right \n              three \n no wrap here at a… \n",
+    "40": "             Centered title             \n Left       Center                Right \n one         two                  three \n a longer    mid    no wrap here at all \n left cell                              \n that                                   \n wraps                                  \n around                                 \n",
+    "60": "                       Centered title                       \n Left                           Center                Right \n one                             two                  three \n a longer left cell that wraps   mid    no wrap here at all \n around                                                     \n",
+    "80": "                          Centered title                           \n Left                                  Center                Right \n one                                    two                  three \n a longer left cell that wraps around   mid    no wrap here at all \n",
+    "100": "                          Centered title                           \n Left                                  Center                Right \n one                                    two                  three \n a longer left cell that wraps around   mid    no wrap here at all \n",
+    "150": "                          Centered title                           \n Left                                  Center                Right \n one                                    two                  three \n a longer left cell that wraps around   mid    no wrap here at all \n"
+   }
+  },
+  {
+   "name": "ratio_expand",
+   "title": "Ratios",
+   "expand": true,
+   "show_edge": false,
+   "columns": [
+    {
+     "header": "Fixed",
+     "width": 8
+    },
+    {
+     "header": "Flex 1",
+     "ratio": 1
+    },
+    {
+     "header": "Flex 3",
+     "ratio": 3,
+     "overflow": "fold"
+    }
+   ],
+   "rows": [
+    [
+     "fixed width cell",
+     "one",
+     "three times as wide as the second flexible column"
+    ]
+   ],
+   "renders": {
+    "20": "Ratios              \n          ┃ … ┃ Fle \n Fixed    ┃ 1 ┃ x 3 \n━━━━━━━━━━╇━━━╇━━━━━\n fixed    │ … │ thr \n width    │   │ ee  \n cell     │   │ tim \n          │   │ es  \n          │   │ as  \n          │   │ wid \n          │   │ e   \n          │   │ as  \n          │   │ the \n          │   │ sec \n          │   │ ond \n          │   │     \n          │   │ fle \n          │   │ xib \n          │   │ le  \n          │   │ col \n          │   │ umn \n",
+    "40": "Ratios                                  \n          ┃ Flex  ┃                     \n Fixed    ┃ 1     ┃ Flex 3              \n━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━\n fixed    │ one   │ three times as wide \n width    │       │ as the second       \n cell     │       │ flexible column     \n",
+    "60": "Ratios                                                      \n Fixed    ┃ Flex 1     ┃ Flex 3                             \n━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n fixed    │ one        │ three times as wide as the second  \n width    │            │ flexible column                    \n cell     │            │                                    \n",
+    "80": "Ratios                                                                          \n Fixed    ┃ Flex 1          ┃ Flex 3                                            \n━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n fixed    │ one             │ three times as wide as the second flexible column \n width    │                 │                                                   \n cell     │                 │                                                   \n",
+    "100": "Ratios                                                                                              \n Fixed    ┃ Flex 1               ┃ Flex 3                                                           \n━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n fixed    │ one                  │ three times as wide as the second flexible column                \n width    │                      │                                                                  \n cell     │                      │                                                                  \n",
+    "150": "Ratios                                                                                                                                                \n Fixed    ┃ Flex 1                            ┃ Flex 3                                                                                                \n━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n fixed    │ one                               │ three times as wide as the second flexible column                                                     \n width    │                                   │                                                                                                       \n cell     │                                   │                                                                                                       \n"
+   }
+  },
+  {
+   "name": "headless_grid",
+   "title": null,
+   "show_header": false,
+   "pad_edge": false,
+   "collapse_padding": true,
+   "padding": [
+    0,
+    2,
+    0,
+    2
+   ],
+   "columns": [
+    {
+     "header": "",
+     "min_width": 6
+    },
+    {
+     "header": "",
+     "max_width": 12
+    }
+   ],
+   "rows": [
+    [
+     "k",
+     "a value that is longer than twelve cells"
+    ],
+    [
+     "key two",
+     "v"
+    ]
+   ],
+   "renders": {
+    "20": "┌─────────┬────────┐\n│k        │a value │\n│         │that is │\n│         │longer  │\n│         │than    │\n│         │twelve  │\n│         │cells   │\n│key two  │v       │\n└─────────┴────────┘\n",
+    "40": "┌─────────┬────────────┐\n│k        │a value that│\n│         │is longer   │\n│         │than twelve │\n│         │cells       │\n│key two  │v           │\n└─────────┴────────────┘\n",
+    "60": "┌─────────┬────────────┐\n│k        │a value that│\n│         │is longer   │\n│         │than twelve │\n│         │cells       │\n│key two  │v           │\n└─────────┴────────────┘\n",
+    "80": "┌─────────┬────────────┐\n│k        │a value that│\n│         │is longer   │\n│         │than twelve │\n│         │cells       │\n│key two  │v           │\n└─────────┴────────────┘\n",
+    "100": "┌─────────┬────────────┐\n│k        │a value that│\n│         │is longer   │\n│         │than twelve │\n│         │cells       │\n│key two  │v           │\n└─────────┴────────────┘\n",
+    "150": "┌─────────┬────────────┐\n│k        │a value that│\n│         │is longer   │\n│         │than twelve │\n│         │cells       │\n│key two  │v           │\n└─────────┴────────────┘\n"
+   }
+  }
+ ],
+ "panels": [
+  {
+   "title": "Will the Acme widget subscription win over small landlords?",
+   "body": "Mostly yes among landlords with five or more units; the rest stay on spreadsheets.\n\nconfidence: medium",
+   "renders": {
+    "20": "╭─ Will the Acme w─╮\n│ Mostly yes among │\n│ landlords with   │\n│ five or more     │\n│ units; the rest  │\n│ stay on          │\n│ spreadsheets.    │\n│                  │\n│ confidence:      │\n│ medium           │\n╰──────────────────╯\n",
+    "40": "╭─ Will the Acme widget subscription w─╮\n│ Mostly yes among landlords with five │\n│ or more units; the rest stay on      │\n│ spreadsheets.                        │\n│                                      │\n│ confidence: medium                   │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ Will the Acme widget subscription win over small landlo─╮\n│ Mostly yes among landlords with five or more units; the  │\n│ rest stay on spreadsheets.                               │\n│                                                          │\n│ confidence: medium                                       │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ Will the Acme widget subscription win over small landlords? ────────────────╮\n│ Mostly yes among landlords with five or more units; the rest stay on         │\n│ spreadsheets.                                                                │\n│                                                                              │\n│ confidence: medium                                                           │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ Will the Acme widget subscription win over small landlords? ────────────────────────────────────╮\n│ Mostly yes among landlords with five or more units; the rest stay on spreadsheets.               │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ Will the Acme widget subscription win over small landlords? ──────────────────────────────────────────────────────────────────────────────────────╮\n│ Mostly yes among landlords with five or more units; the rest stay on spreadsheets.                                                                 │\n│                                                                                                                                                    │\n│ confidence: medium                                                                                                                                 │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  },
+  {
+   "title": "Holds across 3 runs",
+   "body": "Two of three runs agree on the direction.\n\nheld: landlords want a trial; price matters\nsplit: whether agents trust the brand",
+   "renders": {
+    "20": "╭─ Holds across 3 ─╮\n│ Two of three     │\n│ runs agree on    │\n│ the direction.   │\n│                  │\n│ held: landlords  │\n│ want a trial;    │\n│ price matters    │\n│ split: whether   │\n│ agents trust the │\n│ brand            │\n╰──────────────────╯\n",
+    "40": "╭─ Holds across 3 runs ────────────────╮\n│ Two of three runs agree on the       │\n│ direction.                           │\n│                                      │\n│ held: landlords want a trial; price  │\n│ matters                              │\n│ split: whether agents trust the      │\n│ brand                                │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ Holds across 3 runs ────────────────────────────────────╮\n│ Two of three runs agree on the direction.                │\n│                                                          │\n│ held: landlords want a trial; price matters              │\n│ split: whether agents trust the brand                    │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ Holds across 3 runs ────────────────────────────────────────────────────────╮\n│ Two of three runs agree on the direction.                                    │\n│                                                                              │\n│ held: landlords want a trial; price matters                                  │\n│ split: whether agents trust the brand                                        │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ Holds across 3 runs ────────────────────────────────────────────────────────────────────────────╮\n│ Two of three runs agree on the direction.                                                        │\n│                                                                                                  │\n│ held: landlords want a trial; price matters                                                      │\n│ split: whether agents trust the brand                                                            │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ Holds across 3 runs ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Two of three runs agree on the direction.                                                                                                          │\n│                                                                                                                                                    │\n│ held: landlords want a trial; price matters                                                                                                        │\n│ split: whether agents trust the brand                                                                                                              │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  },
+  {
+   "title": "Suggested pitch.md",
+   "body": "# Acme for landlords\n\n\tIndented with a tab.\nAVeryLongWordThatCannotPossiblyFitOnASingleLineOfTheNarrowPanelAndMustFold\n日本語の文章も折り返す必要がある長い一行です。絵文字も🏠🔑入ります。\n\n\nTrailing blank lines above.",
+   "renders": {
+    "20": "╭─ Suggested pitch─╮\n│ # Acme for       │\n│ landlords        │\n│                  │\n│         Indented │\n│ with a tab.      │\n│ AVeryLongWordTha │\n│ tCannotPossiblyF │\n│ itOnASingleLineO │\n│ fTheNarrowPanelA │\n│ ndMustFold       │\n│ 日本語の文章も折 │\n│ り返す必要がある │\n│ 長い一行です。絵 │\n│ 文字も🏠🔑入りま │\n│ す。             │\n│                  │\n│                  │\n│ Trailing blank   │\n│ lines above.     │\n╰──────────────────╯\n",
+    "40": "╭─ Suggested pitch.md ─────────────────╮\n│ # Acme for landlords                 │\n│                                      │\n│         Indented with a tab.         │\n│ AVeryLongWordThatCannotPossiblyFitOn │\n│ ASingleLineOfTheNarrowPanelAndMustFo │\n│ ld                                   │\n│ 日本語の文章も折り返す必要がある長い │\n│ 一行です。絵文字も🏠🔑入ります。     │\n│                                      │\n│                                      │\n│ Trailing blank lines above.          │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ Suggested pitch.md ─────────────────────────────────────╮\n│ # Acme for landlords                                     │\n│                                                          │\n│         Indented with a tab.                             │\n│ AVeryLongWordThatCannotPossiblyFitOnASingleLineOfTheNarr │\n│ owPanelAndMustFold                                       │\n│ 日本語の文章も折り返す必要がある長い一行です。絵文字も🏠 │\n│ 🔑入ります。                                             │\n│                                                          │\n│                                                          │\n│ Trailing blank lines above.                              │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ Suggested pitch.md ─────────────────────────────────────────────────────────╮\n│ # Acme for landlords                                                         │\n│                                                                              │\n│         Indented with a tab.                                                 │\n│ AVeryLongWordThatCannotPossiblyFitOnASingleLineOfTheNarrowPanelAndMustFold   │\n│ 日本語の文章も折り返す必要がある長い一行です。絵文字も🏠🔑入ります。         │\n│                                                                              │\n│                                                                              │\n│ Trailing blank lines above.                                                  │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ Suggested pitch.md ─────────────────────────────────────────────────────────────────────────────╮\n│ # Acme for landlords                                                                             │\n│                                                                                                  │\n│         Indented with a tab.                                                                     │\n│ AVeryLongWordThatCannotPossiblyFitOnASingleLineOfTheNarrowPanelAndMustFold                       │\n│ 日本語の文章も折り返す必要がある長い一行です。絵文字も🏠🔑入ります。                             │\n│                                                                                                  │\n│                                                                                                  │\n│ Trailing blank lines above.                                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ Suggested pitch.md ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ # Acme for landlords                                                                                                                               │\n│                                                                                                                                                    │\n│         Indented with a tab.                                                                                                                       │\n│ AVeryLongWordThatCannotPossiblyFitOnASingleLineOfTheNarrowPanelAndMustFold                                                                         │\n│ 日本語の文章も折り返す必要がある長い一行です。絵文字も🏠🔑入ります。                                                                               │\n│                                                                                                                                                    │\n│                                                                                                                                                    │\n│ Trailing blank lines above.                                                                                                                        │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  },
+  {
+   "title": "Interviewing a01",
+   "body": "@landlord_lucy Lucy Marsh\nOwns 6 units in Leeds; hates software.",
+   "renders": {
+    "20": "╭─ Interviewing a0─╮\n│ @landlord_lucy   │\n│ Lucy Marsh       │\n│ Owns 6 units in  │\n│ Leeds; hates     │\n│ software.        │\n╰──────────────────╯\n",
+    "40": "╭─ Interviewing a01 ───────────────────╮\n│ @landlord_lucy Lucy Marsh            │\n│ Owns 6 units in Leeds; hates         │\n│ software.                            │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ Interviewing a01 ───────────────────────────────────────╮\n│ @landlord_lucy Lucy Marsh                                │\n│ Owns 6 units in Leeds; hates software.                   │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ Interviewing a01 ───────────────────────────────────────────────────────────╮\n│ @landlord_lucy Lucy Marsh                                                    │\n│ Owns 6 units in Leeds; hates software.                                       │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ Interviewing a01 ───────────────────────────────────────────────────────────────────────────────╮\n│ @landlord_lucy Lucy Marsh                                                                        │\n│ Owns 6 units in Leeds; hates software.                                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ Interviewing a01 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ @landlord_lucy Lucy Marsh                                                                                                                          │\n│ Owns 6 units in Leeds; hates software.                                                                                                             │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  },
+  {
+   "title": "A title much longer than the narrowest panel can hold so it is cut short at the edge",
+   "body": "x",
+   "renders": {
+    "20": "╭─ A title much lo─╮\n│ x                │\n╰──────────────────╯\n",
+    "40": "╭─ A title much longer than the narrow─╮\n│ x                                    │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ A title much longer than the narrowest panel can hold s─╮\n│ x                                                        │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ A title much longer than the narrowest panel can hold so it is cut short at─╮\n│ x                                                                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ A title much longer than the narrowest panel can hold so it is cut short at the edge ───────────╮\n│ x                                                                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ A title much longer than the narrowest panel can hold so it is cut short at the edge ─────────────────────────────────────────────────────────────╮\n│ x                                                                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  },
+  {
+   "title": "Empty",
+   "body": "",
+   "renders": {
+    "20": "╭─ Empty ──────────╮\n│                  │\n╰──────────────────╯\n",
+    "40": "╭─ Empty ──────────────────────────────╮\n│                                      │\n╰──────────────────────────────────────╯\n",
+    "60": "╭─ Empty ──────────────────────────────────────────────────╮\n│                                                          │\n╰──────────────────────────────────────────────────────────╯\n",
+    "80": "╭─ Empty ──────────────────────────────────────────────────────────────────────╮\n│                                                                              │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+    "100": "╭─ Empty ──────────────────────────────────────────────────────────────────────────────────────────╮\n│                                                                                                  │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+    "150": "╭─ Empty ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│                                                                                                                                                    │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+   }
+  }
+ ],
+ "prints": [
+  {
+   "text": "Report: runs/20260101-120000-will-the-acme-widget/report.html  (also report.md, report.json)",
+   "wrapped": {
+    "10": "Report: \nruns/20260\n101-120000\n-will-the-\nacme-widge\nt/report.h\ntml  (also\nreport.md,\nreport.jso\nn)\n",
+    "20": "Report: \nruns/20260101-120000\n-will-the-acme-widge\nt/report.html  (also\nreport.md, \nreport.json)\n",
+    "40": "Report: \nruns/20260101-120000-will-the-acme-widge\nt/report.html  (also report.md, \nreport.json)\n",
+    "60": "Report: \nruns/20260101-120000-will-the-acme-widget/report.html  (also\nreport.md, report.json)\n",
+    "80": "Report: runs/20260101-120000-will-the-acme-widget/report.html  (also report.md, \nreport.json)\n",
+    "100": "Report: runs/20260101-120000-will-the-acme-widget/report.html  (also report.md, report.json)\n",
+    "150": "Report: runs/20260101-120000-will-the-acme-widget/report.html  (also report.md, report.json)\n"
+   },
+   "soft_wrap": "Report: runs/20260101-120000-will-the-acme-widget/report.html  (also report.md, report.json)\n"
+  },
+  {
+   "text": "Tellfold run runs/20260101-120000-will-the-acme-widget-subscription-win-over-small-landlords  (fake LLM)",
+   "wrapped": {
+    "10": "Tellfold \nrun \nruns/20260\n101-120000\n-will-the-\nacme-widge\nt-subscrip\ntion-win-o\nver-small-\nlandlords \n (fake \nLLM)\n",
+    "20": "Tellfold run \nruns/20260101-120000\n-will-the-acme-widge\nt-subscription-win-o\nver-small-landlords \n (fake LLM)\n",
+    "40": "Tellfold run \nruns/20260101-120000-will-the-acme-widge\nt-subscription-win-over-small-landlords \n (fake LLM)\n",
+    "60": "Tellfold run \nruns/20260101-120000-will-the-acme-widget-subscription-win-o\nver-small-landlords  (fake LLM)\n",
+    "80": "Tellfold run \nruns/20260101-120000-will-the-acme-widget-subscription-win-over-small-landlords \n(fake LLM)\n",
+    "100": "Tellfold run runs/20260101-120000-will-the-acme-widget-subscription-win-over-small-landlords  (fake \nLLM)\n",
+    "150": "Tellfold run runs/20260101-120000-will-the-acme-widget-subscription-win-over-small-landlords  (fake LLM)\n"
+   },
+   "soft_wrap": "Tellfold run runs/20260101-120000-will-the-acme-widget-subscription-win-over-small-landlords  (fake LLM)\n"
+  },
+  {
+   "text": "error: runs/missing/config.json not found. Is runs/missing a Tellfold run directory?",
+   "wrapped": {
+    "10": "error: \nruns/missi\nng/config.\njson not \nfound. Is \nruns/missi\nng a \nTellfold \nrun \ndirectory?\n",
+    "20": "error: \nruns/missing/config.\njson not found. Is \nruns/missing a \nTellfold run \ndirectory?\n",
+    "40": "error: runs/missing/config.json not \nfound. Is runs/missing a Tellfold run \ndirectory?\n",
+    "60": "error: runs/missing/config.json not found. Is runs/missing a\nTellfold run directory?\n",
+    "80": "error: runs/missing/config.json not found. Is runs/missing a Tellfold run \ndirectory?\n",
+    "100": "error: runs/missing/config.json not found. Is runs/missing a Tellfold run directory?\n",
+    "150": "error: runs/missing/config.json not found. Is runs/missing a Tellfold run directory?\n"
+   },
+   "soft_wrap": "error: runs/missing/config.json not found. Is runs/missing a Tellfold run directory?\n"
+  },
+  {
+   "text": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against the same people with:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q 'Will it win?' --cast-from runs/x",
+   "wrapped": {
+    "10": "Saved: \nruns/x/rew\nrite.md \n(and \nrewrite.js\non). Test \nit against\nthe same \npeople \nwith:\n  tellfold\nrun \nruns/x/rew\nrite.md \nruns/x/see\nds/notes.t\nxt -q \n'Will it \nwin?' \n--cast-fro\nm runs/x\n",
+    "20": "Saved: \nruns/x/rewrite.md \n(and rewrite.json). \nTest it against the \nsame people with:\n  tellfold run \nruns/x/rewrite.md \nruns/x/seeds/notes.t\nxt -q 'Will it win?'\n--cast-from runs/x\n",
+    "40": "Saved: runs/x/rewrite.md (and \nrewrite.json). Test it against the same \npeople with:\n  tellfold run runs/x/rewrite.md \nruns/x/seeds/notes.txt -q 'Will it win?'\n--cast-from runs/x\n",
+    "60": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against\nthe same people with:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q \n'Will it win?' --cast-from runs/x\n",
+    "80": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against the same people \nwith:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q 'Will it win?' \n--cast-from runs/x\n",
+    "100": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against the same people with:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q 'Will it win?' --cast-from runs/x\n",
+    "150": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against the same people with:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q 'Will it win?' --cast-from runs/x\n"
+   },
+   "soft_wrap": "Saved: runs/x/rewrite.md (and rewrite.json). Test it against the same people with:\n  tellfold run runs/x/rewrite.md runs/x/seeds/notes.txt -q 'Will it win?' --cast-from runs/x\n"
+  },
+  {
+   "text": "tab\tseparated\tcolumns\tand a very_long_token_without_spaces_that_has_to_fold_somewhere_in_the_middle",
+   "wrapped": {
+    "10": "tab     \nseparated \ncolumns \nand a \nvery_long_\ntoken_with\nout_spaces\n_that_has_\nto_fold_so\nmewhere_in\n_the_middl\ne\n",
+    "20": "tab     separated   \ncolumns and a \nvery_long_token_with\nout_spaces_that_has_\nto_fold_somewhere_in\n_the_middle\n",
+    "40": "tab     separated       columns and a \nvery_long_token_without_spaces_that_has_\nto_fold_somewhere_in_the_middle\n",
+    "60": "tab     separated       columns and a \nvery_long_token_without_spaces_that_has_to_fold_somewhere_in\n_the_middle\n",
+    "80": "tab     separated       columns and a \nvery_long_token_without_spaces_that_has_to_fold_somewhere_in_the_middle\n",
+    "100": "tab     separated       columns and a \nvery_long_token_without_spaces_that_has_to_fold_somewhere_in_the_middle\n",
+    "150": "tab     separated       columns and a very_long_token_without_spaces_that_has_to_fold_somewhere_in_the_middle\n"
+   },
+   "soft_wrap": "tab     separated       columns and a very_long_token_without_spaces_that_has_to_fold_somewhere_in_the_middle\n"
+  },
+  {
+   "text": "日本語と English が混ざった文章で、幅の計算が正しいかを確かめます。",
+   "wrapped": {
+    "10": "日本語と \nEnglish \nが混ざった\n文章で、幅\nの計算が正\nしいかを確\nかめます。\n",
+    "20": "日本語と English \nが混ざった文章で、幅\nの計算が正しいかを確\nかめます。\n",
+    "40": "日本語と English \nが混ざった文章で、幅の計算が正しいかを確\nかめます。\n",
+    "60": "日本語と English \nが混ざった文章で、幅の計算が正しいかを確かめます。\n",
+    "80": "日本語と English が混ざった文章で、幅の計算が正しいかを確かめます。\n",
+    "100": "日本語と English が混ざった文章で、幅の計算が正しいかを確かめます。\n",
+    "150": "日本語と English が混ざった文章で、幅の計算が正しいかを確かめます。\n"
+   },
+   "soft_wrap": "日本語と English が混ざった文章で、幅の計算が正しいかを確かめます。\n"
+  },
+  {
+   "text": "   leading spaces and trailing spaces   ",
+   "wrapped": {
+    "10": "   leading\nspaces and\ntrailing \nspaces   \n",
+    "20": "   leading spaces \nand trailing spaces \n",
+    "40": "   leading spaces and trailing spaces   \n",
+    "60": "   leading spaces and trailing spaces   \n",
+    "80": "   leading spaces and trailing spaces   \n",
+    "100": "   leading spaces and trailing spaces   \n",
+    "150": "   leading spaces and trailing spaces   \n"
+   },
+   "soft_wrap": "   leading spaces and trailing spaces   \n"
+  },
+  {
+   "text": "",
+   "wrapped": {
+    "10": "\n",
+    "20": "\n",
+    "40": "\n",
+    "60": "\n",
+    "80": "\n",
+    "100": "\n",
+    "150": "\n"
+   },
+   "soft_wrap": "\n"
+  },
+  {
+   "text": "line one\n\nline three after a blank\n",
+   "wrapped": {
+    "10": "line one\n\nline three\nafter a \nblank\n\n",
+    "20": "line one\n\nline three after a \nblank\n\n",
+    "40": "line one\n\nline three after a blank\n\n",
+    "60": "line one\n\nline three after a blank\n\n",
+    "80": "line one\n\nline three after a blank\n\n",
+    "100": "line one\n\nline three after a blank\n\n",
+    "150": "line one\n\nline three after a blank\n\n"
+   },
+   "soft_wrap": "line one\n\nline three after a blank\n\n"
+  }
+ ],
+ "cell_len": [
+  {
+   "text": "",
+   "cells": 0
+  },
+  {
+   "text": "abc",
+   "cells": 3
+  },
+  {
+   "text": "日本",
+   "cells": 4
+  },
+  {
+   "text": "é",
+   "cells": 1
+  },
+  {
+   "text": "é",
+   "cells": 1
+  },
+  {
+   "text": "👩‍👩‍👧‍👦",
+   "cells": 2
+  },
+  {
+   "text": "❤️",
+   "cells": 2
+  },
+  {
+   "text": "❤",
+   "cells": 1
+  },
+  {
+   "text": "#️⃣",
+   "cells": 2
+  },
+  {
+   "text": "\u001b[0m",
+   "cells": 3
+  },
+  {
+   "text": "\t",
+   "cells": 0
+  },
+  {
+   "text": "​",
+   "cells": 0
+  },
+  {
+   "text": "한국어",
+   "cells": 6
+  },
+  {
+   "text": "Ｆｕｌｌ",
+   "cells": 8
+  },
+  {
+   "text": "̀abc",
+   "cells": 3
+  },
+  {
+   "text": "️",
+   "cells": 0
+  },
+  {
+   "text": "‍",
+   "cells": 0
+  },
+  {
+   "text": "🏠🔑",
+   "cells": 4
+  },
+  {
+   "text": "Ä̈",
+   "cells": 1
+  },
+  {
+   "text": "🇯🇵",
+   "cells": 2
+  }
+ ],
+ "color": {
+  "table": {
+   "spec": {
+    "title": "tellfold [bold]doctor[/]",
+    "columns": [
+     "Check",
+     "Status",
+     "Detail"
+    ],
+    "rows": [
+     [
+      [
+       [
+        "Claude Code CLI",
+        ""
+       ]
+      ],
+      [
+       [
+        "ok",
+        "green"
+       ]
+      ],
+      [
+       [
+        "/usr/local/bin/claude and a long tail to fold",
+        ""
+       ]
+      ]
+     ],
+     [
+      [
+       [
+        "Logged in",
+        ""
+       ]
+      ],
+      [
+       [
+        "FAIL",
+        "bold red"
+       ]
+      ],
+      [
+       [
+        "skipped: ",
+        "dim"
+       ],
+       [
+        "fix the checks above first",
+        ""
+       ]
+      ]
+     ],
+     [
+      [
+       [
+        "Python",
+        ""
+       ]
+      ],
+      [
+       [
+        "yes",
+        "green on black"
+       ]
+      ],
+      [
+       [
+        "3.12.8",
+        "not bold underline"
+       ]
+      ]
+     ]
+    ]
+   },
+   "renders": {
+    "30": "\u001b[3mtellfold \u001b[0m\u001b[1;3mdoctor\u001b[0m\u001b[3m               \u001b[0m\n┏━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓\n┃\u001b[1m \u001b[0m\u001b[1mCheck  \u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1mStatus\u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1mDetail \u001b[0m\u001b[1m \u001b[0m┃\n┡━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩\n│ Claude  │ \u001b[32mok\u001b[0m     │ /usr/lo │\n│ Code    │        │ cal/bin │\n│ CLI     │        │ /claude │\n│         │        │  and a  │\n│         │        │ long    │\n│         │        │ tail to │\n│         │        │ fold    │\n│ Logged  │ \u001b[1;31mFAIL\u001b[0m   │ \u001b[2mskipped\u001b[0m │\n│ in      │        │ \u001b[2m: \u001b[0mfix   │\n│         │        │ the     │\n│         │        │ checks  │\n│         │        │ above   │\n│         │        │ first   │\n│ Python  │ \u001b[32;40myes\u001b[0m    │ \u001b[4m3.12.8\u001b[0m  │\n└─────────┴────────┴─────────┘\n",
+    "80": "\u001b[3mtellfold \u001b[0m\u001b[1;3mdoctor\u001b[0m\u001b[3m                                                             \u001b[0m\n┏━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃\u001b[1m \u001b[0m\u001b[1mCheck          \u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1mStatus\u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1mDetail                                       \u001b[0m\u001b[1m \u001b[0m┃\n┡━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI │ \u001b[32mok\u001b[0m     │ /usr/local/bin/claude and a long tail to fold │\n│ Logged in       │ \u001b[1;31mFAIL\u001b[0m   │ \u001b[2mskipped: \u001b[0mfix the checks above first           │\n│ Python          │ \u001b[32;40myes\u001b[0m    │ \u001b[4m3.12.8\u001b[0m                                        │\n└─────────────────┴────────┴───────────────────────────────────────────────┘\n"
+   }
+  },
+  "panels": [
+   {
+    "title": "Will it [italic]win[/]?",
+    "border": "cyan",
+    "body": [
+     [
+      "Mostly yes among landlords with five or more units.",
+      ""
+     ],
+     [
+      "\n\n",
+      ""
+     ],
+     [
+      "confidence: ",
+      "dim"
+     ],
+     [
+      "medium",
+      "bold"
+     ]
+    ],
+    "renders": {
+     "24": "\u001b[36m╭─\u001b[0m\u001b[36m Will it \u001b[0m\u001b[3;36mwin\u001b[0m\u001b[36m? \u001b[0m\u001b[36m──────\u001b[0m\u001b[36m─╮\u001b[0m\n\u001b[36m│\u001b[0m Mostly yes among     \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m landlords with five  \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m or more units.       \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m                      \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m \u001b[2mconfidence: \u001b[0m\u001b[1mmedium\u001b[0m   \u001b[36m│\u001b[0m\n\u001b[36m╰──────────────────────╯\u001b[0m\n",
+     "80": "\u001b[36m╭─\u001b[0m\u001b[36m Will it \u001b[0m\u001b[3;36mwin\u001b[0m\u001b[36m? \u001b[0m\u001b[36m──────────────────────────────────────────────────────────────\u001b[0m\u001b[36m─╮\u001b[0m\n\u001b[36m│\u001b[0m Mostly yes among landlords with five or more units.                          \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m                                                                              \u001b[36m│\u001b[0m\n\u001b[36m│\u001b[0m \u001b[2mconfidence: \u001b[0m\u001b[1mmedium\u001b[0m                                                           \u001b[36m│\u001b[0m\n\u001b[36m╰──────────────────────────────────────────────────────────────────────────────╯\u001b[0m\n"
+    }
+   },
+   {
+    "title": "Interviewing a01",
+    "border": "bright_magenta",
+    "markup": "[bold]@lucy[/] Lucy Marsh\nOwns 6 units.",
+    "renders": {
+     "24": "\u001b[95m╭─\u001b[0m\u001b[95m Interviewing a01 \u001b[0m\u001b[95m──\u001b[0m\u001b[95m─╮\u001b[0m\n\u001b[95m│\u001b[0m \u001b[1m@lucy\u001b[0m Lucy Marsh     \u001b[95m│\u001b[0m\n\u001b[95m│\u001b[0m Owns 6 units.        \u001b[95m│\u001b[0m\n\u001b[95m╰──────────────────────╯\u001b[0m\n",
+     "80": "\u001b[95m╭─\u001b[0m\u001b[95m Interviewing a01 \u001b[0m\u001b[95m──────────────────────────────────────────────────────────\u001b[0m\u001b[95m─╮\u001b[0m\n\u001b[95m│\u001b[0m \u001b[1m@lucy\u001b[0m Lucy Marsh                                                             \u001b[95m│\u001b[0m\n\u001b[95m│\u001b[0m Owns 6 units.                                                                \u001b[95m│\u001b[0m\n\u001b[95m╰──────────────────────────────────────────────────────────────────────────────╯\u001b[0m\n"
+    }
+   }
+  ],
+  "prints": [
+   {
+    "markup": "[bold red]error:[/] runs/missing/config.json not found. Is runs/missing a run directory?",
+    "wrapped": {
+     "20": "\u001b[1;31merror:\u001b[0m \nruns/missing/config.\njson not found. Is \nruns/missing a run \ndirectory?\n",
+     "80": "\u001b[1;31merror:\u001b[0m runs/missing/config.json not found. Is runs/missing a run directory?\n"
+    },
+    "soft_wrap": "\u001b[1;31merror:\u001b[0m runs/missing/config.json not found. Is runs/missing a run directory?\n"
+   },
+   {
+    "markup": "[bold]Tellfold[/] run [cyan]runs/20260101-x[/]  [yellow](fake LLM)[/]",
+    "wrapped": {
+     "20": "\u001b[1mTellfold\u001b[0m run \n\u001b[36mruns/20260101-x\u001b[0m  \n\u001b[33m(fake LLM)\u001b[0m\n",
+     "80": "\u001b[1mTellfold\u001b[0m run \u001b[36mruns/20260101-x\u001b[0m  \u001b[33m(fake LLM)\u001b[0m\n"
+    },
+    "soft_wrap": "\u001b[1mTellfold\u001b[0m run \u001b[36mruns/20260101-x\u001b[0m  \u001b[33m(fake LLM)\u001b[0m\n"
+   },
+   {
+    "markup": "[dim]kept:[/] the [bold]headline[blue] and [/blue]tagline[/bold] done",
+    "wrapped": {
+     "20": "\u001b[2mkept:\u001b[0m the \u001b[1mheadline\u001b[0m\u001b[1;34m \u001b[0m\n\u001b[1;34mand \u001b[0m\u001b[1mtagline\u001b[0m done\n",
+     "80": "\u001b[2mkept:\u001b[0m the \u001b[1mheadline\u001b[0m\u001b[1;34m and \u001b[0m\u001b[1mtagline\u001b[0m done\n"
+    },
+    "soft_wrap": "\u001b[2mkept:\u001b[0m the \u001b[1mheadline\u001b[0m\u001b[1;34m and \u001b[0m\u001b[1mtagline\u001b[0m done\n"
+   },
+   {
+    "markup": "escaped \\[bold] and two \\\\[dim]x[/], unknown [nosuchstyle]x[/] and [on bright_white]bg[/]",
+    "wrapped": {
+     "20": "escaped [bold] and \ntwo \\\u001b[2mx\u001b[0m, unknown x \nand \u001b[107mbg\u001b[0m\n",
+     "80": "escaped [bold] and two \\\u001b[2mx\u001b[0m, unknown x and \u001b[107mbg\u001b[0m\n"
+    },
+    "soft_wrap": "escaped [bold] and two \\\u001b[2mx\u001b[0m, unknown x and \u001b[107mbg\u001b[0m\n"
+   }
+  ]
+ }
+}

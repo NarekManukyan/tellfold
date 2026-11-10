@@ -1,0 +1,801 @@
+{
+ "question": "Will existing buyers accept the subscription?",
+ "runs": 5,
+ "studies": 3,
+ "steps": [
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--event",
+    "2:A rival app says it will stay a one-time purchase"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Tellfold run runs/{run:0}  (fake LLM)\n  ✓ Reading seed documents  <t>s\n  ✓ Extracting knowledge graph  <t>s\n  ✓ Creating 4 personas  <t>s\n  ✓ Seeding follows and opening posts  <t>s\n  ✓ Simulating 2 rounds  <t>s\n  ✓ Writing the report  <t>s\n    3 chunks; about 9 model calls this run if none need a retry\n    graph: 3 entities, 3 relations\nRounds (2/2)                                                              \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix        ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │      1 │     1 │ post 1            │         - │     2 │     0 │\n│     1 │      1 │     1 │ nothing 1, post 1 │         - │     2 │     0 │\n│     2 │      4 │     3 │ nothing 5, post 3 │     +0.50 │     3 │     0 │\n└───────┴────────┴───────┴───────────────────┴───────────┴───────┴───────┘\n╭─ Placeholder title 1 ────────────────────────────────────────────────────────────────────────────╮\n│ Canned prediction #3 from the offline test model (report.repair).                                │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nReport: runs/{run:0}/report.html  (also report.md, report.json)\nNext:   tellfold chat runs/{run:0} --agent a01\n        tellfold ask runs/{run:0} \"...\"\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "report",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "\n╭─ Placeholder title 1 ────────────────────────────────────────────────────────────────────────────╮\n│ Canned prediction #3 from the offline test model (report.repair).                                │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nReport: runs/{run:0}/report.html  (also report.md, report.json)\nNext:   tellfold chat runs/{run:0} --agent a01\n        tellfold ask runs/{run:0} \"...\"\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "agents",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Agents in {run:0}                                  \n┏━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓\n┃     ┃               ┃                ┃           ┃       ┃          ┃           ┃ Starting       ┃\n┃ ID  ┃ Handle        ┃ Name           ┃ Followers ┃ Posts ┃ Activity ┃ Influence ┃ stance         ┃\n┡━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩\n│ a01 │ @fake_user_2  │ Placeholder    │ 3         │ 0     │ 0.30     │ 0.50      │ Canned stance  │\n│     │               │ name 3         │           │       │          │           │ #6 from the    │\n│     │               │                │           │       │          │           │ offline test   │\n│     │               │                │           │       │          │           │ model          │\n│     │               │                │           │       │          │           │ (personas.batc │\n│     │               │                │           │       │          │           │ h).            │\n│ a02 │ @fake_user_12 │ Placeholder    │ 3         │ 1     │ 0.30     │ 0.50      │ Canned stance  │\n│     │               │ name 13        │           │       │          │           │ #16 from the   │\n│     │               │                │           │       │          │           │ offline test   │\n│     │               │                │           │       │          │           │ model          │\n│     │               │                │           │       │          │           │ (personas.batc │\n│     │               │                │           │       │          │           │ h).            │\n│ a03 │ @fake_user_22 │ Placeholder    │ 3         │ 2     │ 0.50     │ 0.50      │ Canned stance  │\n│     │               │ name 23        │           │       │          │           │ #26 from the   │\n│     │               │                │           │       │          │           │ offline test   │\n│     │               │                │           │       │          │           │ model          │\n│     │               │                │           │       │          │           │ (personas.batc │\n│     │               │                │           │       │          │           │ h).            │\n│ a04 │ @fake_user_32 │ Placeholder    │ 3         │ 2     │ 0.60     │ 0.50      │ Canned stance  │\n│     │               │ name 33        │           │       │          │           │ #36 from the   │\n│     │               │                │           │       │          │           │ offline test   │\n│     │               │                │           │       │          │           │ model          │\n│     │               │                │           │       │          │           │ (personas.batc │\n│     │               │                │           │       │          │           │ h).            │\n└─────┴───────────────┴────────────────┴───────────┴───────┴──────────┴───────────┴────────────────┘\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "ask",
+    "runs/{run:0}",
+    "Who changed their mind?"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "(offline test reply for chat.ask) I would keep an eye on how people react.\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "chat",
+    "runs/{run:0}",
+    "--agent",
+    "a01"
+   ],
+   "stdin": "Why?\n\nexit\n",
+   "env": {},
+   "exit": 0,
+   "stdout": "╭─ Interviewing a01 ───────────────────────────────────────────────────────────────────────────────╮\n│ @fake_user_2 Placeholder name 3                                                                  │\n│ Canned bio #4 from the offline test model (personas.batch).                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nyou> @fake_user_2> (offline test reply for chat.interview) I would keep an eye on how people react.\n\nyou> you> ",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "chat",
+    "runs/{run:0}",
+    "-a",
+    "@nobody"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: unknown agent '@nobody'. Known: a01, a02, a03, a04\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "agents",
+    "empty"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: empty/config.json not found. Is empty a Tellfold run directory?\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--event",
+    "5:too late"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for --event: round 5 is outside 1..2                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--event",
+    "nonsense"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for --event: expected ROUND:TEXT, got 'nonsense'                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--variant",
+    "B"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: --variant needs --cast-from: a study compares runs of one crowd\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--agent-runtime",
+    "nope"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: unknown runtime 'nope' for --agent-runtime. Known: claude-code, cursor-agent, codex, \ngemini-cli, opencode, qwen-code, copilot, grok, droid, ollama, anthropic-api, openai-api\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "empty",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--out",
+    "runs"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: no .pdf, .md, .markdown or .txt files found in the given seeds\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--agents",
+    "4",
+    "--rounds",
+    "2",
+    "--batch",
+    "2",
+    "--out",
+    "runs",
+    "--cast-from",
+    "runs/{run:0}",
+    "--variant",
+    "Shorter"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Tellfold run runs/{run:1}  (fake LLM)\n  ✓ Reading seed documents  <t>s\n  ✓ Extracting knowledge graph  <t>s\n  ✓ Creating 4 personas  <t>s\n  ✓ Seeding follows and opening posts  <t>s\n  ✓ Simulating 2 rounds  <t>s\n  ✓ Writing the report  <t>s\n    3 chunks; about 7 model calls this run if none need a retry\n    graph: 3 entities, 3 relations\nRounds (2/2)                                                              \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix        ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │      1 │     1 │ post 1            │         - │     2 │     0 │\n│     1 │      1 │     1 │ nothing 1, post 1 │         - │     2 │     0 │\n│     2 │      3 │     2 │ nothing 4, post 2 │     +0.50 │     3 │     0 │\n└───────┴────────┴───────┴───────────────────┴───────────┴───────┴───────┘\n╭─ Placeholder title 1 ────────────────────────────────────────────────────────────────────────────╮\n│ Canned prediction #3 from the offline test model (report.repair).                                │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nReport: runs/{run:1}/report.html  (also report.md, report.json)\nNext:   tellfold chat runs/{run:1} --agent a01\n        tellfold ask runs/{run:1} \"...\"\nStudy:  {study:0}. Compare the versions with: tellfold compare runs/{run:1}\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "compare",
+    "runs/{run:1}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "╭─ Canned headline  from the offline test model (compare.write). ──────────────────────────────────╮\n│ Canned why [unverified] from the offline test model (compare.write).                             │\n│                                                                                                  │\n│ better: a tie                                                                                    │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nComparison: <cwd>/runs/studies/{study:0}/compare.json\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "compare",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "╭─ Canned headline  from the offline test model (compare.write). ──────────────────────────────────╮\n│ Canned why [unverified] from the offline test model (compare.write).                             │\n│                                                                                                  │\n│ better: a tie                                                                                    │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nComparison: <cwd>/runs/studies/{study:0}/compare.json\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "Will existing buyers accept the subscription?",
+    "--out",
+    "elsewhere",
+    "--cast-from",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: --cast-from must be a run in the --out folder (elsewhere)\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "check",
+    "runs/{run:0}",
+    "--runs",
+    "2"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Check it: 1 more run of {run:0}, one after another  (fake LLM)\nRun 2: Placeholder title 1\n╭─ Unstable across 2 runs ─────────────────────────────────────────────────────────────────────────╮\n│ Canned summary #6 from the offline test model (study.agree).                                     │\n│                                                                                                  │\n│ held: Canned held #1 from the offline test model (study.agree).; Canned held #2 from the offline │\n│ test model (study.agree).                                                                        │\n│ split: Canned split #3 from the offline test model (study.agree).; Canned split #4 from the      │\n│ offline test model (study.agree).                                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nCheck: <cwd>/runs/studies/{study:1}/agreement.json\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "branch",
+    "runs/{run:0}",
+    "--at",
+    "1",
+    "--event",
+    "2:The owner apologises"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Tellfold branch <cwd>/runs/{run:3} of {run:0} after round 1  (fake LLM)\n  ✓ Reading seed documents  <t>s\n  ✓ Extracting knowledge graph  <t>s\n  ✓ Creating 4 personas  <t>s\n  ✓ Seeding follows and opening posts  <t>s\n  ✓ Simulating 2 rounds  <t>s\n  ✓ Writing the report  <t>s\n    about 3 model calls this run if none need a retry\nRounds (1/2)                                                              \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix        ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     2 │      4 │     3 │ nothing 5, post 3 │     +0.50 │     3 │     0 │\n└───────┴────────┴───────┴───────────────────┴───────────┴───────┴───────┘\n╭─ Placeholder title 1 ────────────────────────────────────────────────────────────────────────────╮\n│ Canned prediction #3 from the offline test model (report.repair).                                │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nReport: <cwd>/runs/{run:3}/report.html  (also report.md, report.json)\nNext:   tellfold chat <cwd>/runs/{run:3} --agent a01\n        tellfold ask <cwd>/runs/{run:3} \"...\"\nStudy:  {study:2}. Compare it with the original: tellfold compare <cwd>/runs/{run:3}\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "branch",
+    "runs/{run:0}",
+    "--at",
+    "2"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 1,
+   "stdout": "error: round 2 is the last round; a branch needs at least one round left to run\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "rewrite",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "╭─ Suggested seed.md ──────────────────────────────────────────────────────────────────────────────╮\n│ Canned revised_text #1 from the offline test model (report.rewrite).                             │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nCanned what #2 from the offline test model (report.rewrite). Canned why #3 from the offline test model (report.rewrite).\nCanned what #6 from the offline test model (report.rewrite). Canned why  from the offline test model (report.rewrite).\nCanned what #10 from the offline test model (report.rewrite). Canned why  from the offline test model (report.rewrite).\nkept: Canned kept_on_purpose  from the offline test model (report.rewrite).\nkept: Canned kept_on_purpose  from the offline test model (report.rewrite).\nSaved: runs/{run:0}/rewrite.md (and rewrite.json). Test it against the same people with:\n  tellfold run runs/{run:0}/rewrite.md -q 'Will existing buyers accept the subscription?' --cast-from runs/{run:0}\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "run",
+    "seeds-dir",
+    "-q",
+    "Folder seeds?",
+    "--agents",
+    "2",
+    "--rounds",
+    "1",
+    "--out",
+    "runs"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "Tellfold run runs/{run:4}  (fake LLM)\n  ✓ Reading seed documents  <t>s\n  ✓ Extracting knowledge graph  <t>s\n  ✓ Creating 2 personas  <t>s\n  ✓ Seeding follows and opening posts  <t>s\n  ✓ Simulating 1 rounds  <t>s\n  ✓ Writing the report  <t>s\n    2 chunks; about 7 model calls this run if none need a retry\n    graph: 3 entities, 3 relations\nRounds (1/1)                                                              \n┏━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓\n┃ Round ┃ Active ┃ Posts ┃ Action mix        ┃ Sentiment ┃ Calls ┃ LLM s ┃\n┡━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩\n│     0 │      1 │     1 │ post 1            │         - │     2 │     0 │\n│     1 │      1 │     1 │ nothing 1, post 1 │         - │     2 │     0 │\n└───────┴────────┴───────┴───────────────────┴───────────┴───────┴───────┘\n╭─ Placeholder title 1 ────────────────────────────────────────────────────────────────────────────╮\n│ Canned prediction [unverified] from the offline test model (report.repair).                      │\n│                                                                                                  │\n│ confidence: medium                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\nReport: runs/{run:4}/report.html  (also report.md, report.json)\nNext:   tellfold chat runs/{run:4} --agent a01\n        tellfold ask runs/{run:4} \"...\"\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "doctor"
+   ],
+   "stdin": null,
+   "env": {
+    "PATH": "/nonexistent"
+   },
+   "exit": 1,
+   "stdout": "tellfold doctor                                                                                     \n┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ Check                   ┃ Status ┃ Detail                                                        ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\n│ Claude Code CLI on PATH │ FAIL   │ not found: install Claude Code and make sure `claude` is on   │\n│                         │        │ PATH                                                          │\n│ claude-agent-sdk import │ ok     │ version 0.2.179                                               │\n│ Logged in (haiku call)  │ ok     │ replied '(offline test reply for doctor.ping) I w' in <t>s    │\n│ Python                  │ ok     │ 3.13.13                                                       │\n└─────────────────────────┴────────┴───────────────────────────────────────────────────────────────┘\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "--version"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "tellfold 0.1.0\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "agents"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'run_dir'.                                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "agents",
+    "runs/{run:0}",
+    "extra"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (extra)                                                         │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "agents",
+    "runs/{run:0}",
+    "x\ty",
+    "z"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (x\\x09y z)                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "nope"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such command 'nope'.                                                                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "runn"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such command 'runn'. Did you mean 'run'?                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "--",
+    "-x"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: -x                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "--"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing command.                                                                                 │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "--bogus",
+    "run"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus                                                                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "--versio"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --versio (Possible options: --version)                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "--help=1"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '--help' does not take a value.                                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'seeds'.                                                                        │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing option '--question' / '-q'.                                                              │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '-q' requires an argument.                                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "nope.md",
+    "-q",
+    "x"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for 'seeds': Path 'nope.md' does not exist.                                        │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "--agents",
+    "1"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 1 is not in the range 2<=x<=200.                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "--agents",
+    "abc"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 'abc' is not a valid int range.                                    │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "--seed",
+    "1.5"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--seed': '1.5' is not a valid int.                                            │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "--agnts",
+    "3"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --agnts (Possible options: --agent-model, --agents, --variant)                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "--think=1"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '--think' does not take a value.                                                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "-q",
+    "x",
+    "-z"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: -z                                                                               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "compare",
+    "seed.md"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold compare [OPTIONS] {run_dir}\nTry 'tellfold compare --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for 'run_dir': Directory 'seed.md' is a file.                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "compare",
+    "missing"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold compare [OPTIONS] {run_dir}\nTry 'tellfold compare --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for 'run_dir': Directory 'missing' does not exist.                                 │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "branch",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold branch [OPTIONS] {run_dir}\nTry 'tellfold branch --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing option '--at'.                                                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "branch",
+    "runs/{run:0}",
+    "--at",
+    "-1"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold branch [OPTIONS] {run_dir}\nTry 'tellfold branch --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--at': -1 is not in the range x>=0.                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "ask",
+    "runs/{run:0}"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold ask [OPTIONS] {run_dir} {question}\nTry 'tellfold ask --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'question'.                                                                     │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "check",
+    "runs/{run:0}",
+    "--runs",
+    "9"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold check [OPTIONS] {run_dir}\nTry 'tellfold check --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--runs': 9 is not in the range 2<=x<=5.                                       │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "ui",
+    "--port",
+    "0"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold ui [OPTIONS]\nTry 'tellfold ui --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--port': 0 is not in the range 1<=x<=65535.                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "serve"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold serve [OPTIONS]\nTry 'tellfold serve --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing option '--token' (env var: '['TELLFOLD_SERVE_TOKEN', 'SHOAL_SERVE_TOKEN']').             │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "runtimes",
+    "--json=1"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '--json' does not take a value.                                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "--help",
+    "--bogus"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus (Possible options: --out, --rounds)                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "--bogus",
+    "--help"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 2,
+   "stdout": "",
+   "stderr": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus (Possible options: --out, --rounds)                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  },
+  {
+   "args": [
+    "run",
+    "seed.md",
+    "--help"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "                                                                                                    \n Usage: tellfold run [OPTIONS] {seeds}...                                                           \n                                                                                                    \n Run a full simulation: ingest, graph, personas, rounds, report.                                    \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    seeds      <path>  Seed files (.pdf .md .txt) or folders. [required]                        │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --question         -q      <str>                    What you want predicted. [required]       │\n│    --agents                   <int range> [2<=x<=200]  Number of simulated people. [default: 20] │\n│    --rounds                   <int range> [1<=x<=50]   Simulation rounds. [default: 6]           │\n│    --batch                    <int range> [1<=x<=20]   Agents decided per model call.            │\n│                                                        [default: 6]                              │\n│    --agent-model              <str>                    Model for per-round agent decisions.      │\n│                                                        [default: haiku]                          │\n│    --planner-model            <str>                    Model for graph, personas and report.     │\n│                                                        [default: sonnet]                         │\n│    --concurrency              <int range> [1<=x<=16]   Parallel Claude CLI calls. [default: 4]   │\n│    --event                    <str>                    Breaking news injected at a round, as     │\n│                                                        ROUND:TEXT. Repeatable.                   │\n│    --out                      <path>                   Folder that holds run directories.        │\n│                                                        [default: runs]                           │\n│    --language                 <str>                    Language agents post and the report is    │\n│                                                        written in.                               │\n│                                                        [default: English]                        │\n│    --seed                     <int>                    RNG seed for activity sampling and feed   │\n│                                                        tie-breaks.                               │\n│                                                        [default: 7]                              │\n│    --think                                             Extended thinking for graph, personas and │\n│                                                        report: more thorough, several times      │\n│                                                        slower.                                   │\n│    --open                                              Open report.html when done.               │\n│    --agent-runtime            <str>                    Runtime for agent decisions and           │\n│                                                        interviews (see `tellfold runtimes`).     │\n│                                                        Default: settings, else claude-code.      │\n│    --planner-runtime          <str>                    Runtime for graph, personas and report    │\n│                                                        (see `tellfold runtimes`). Default:       │\n│                                                        settings, else claude-code.               │\n│    --cast-from                <directory>              Reuse the topic map and people of this    │\n│                                                        run (in the --out folder) and compare the │\n│                                                        two: no graph or persona calls. Both runs │\n│                                                        join a study; see `tellfold compare`.     │\n│    --variant                  <str>                    Label of this run in its study, e.g.      │\n│                                                        \"Draft B\". Default: the next letter.      │\n│    --help                                              Show this message and exit.               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "stderr": ""
+  },
+  {
+   "args": [
+    "agents",
+    "--help"
+   ],
+   "stdin": null,
+   "env": {},
+   "exit": 0,
+   "stdout": "                                                                                                    \n Usage: tellfold agents [OPTIONS] {run_dir}                                                         \n                                                                                                    \n Show the simulated personas with their reach and activity.                                         \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                       │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "stderr": ""
+  }
+ ],
+ "files": {
+  "runs/{run:0}/config.json": "{\n  \"question\": \"Will existing buyers accept the subscription?\",\n  \"seed_files\": [\n    \"runs/{run:0}/seeds/seed.md\"\n  ],\n  \"num_agents\": 4,\n  \"rounds\": 2,\n  \"batch_size\": 2,\n  \"feed_size\": 12,\n  \"memory_size\": 8,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [\n    {\n      \"round\": 2,\n      \"content\": \"A rival app says it will stay a one-time purchase\"\n    }\n  ],\n  \"seed\": 7,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": null,\n  \"study_id\": null,\n  \"variant\": null,\n  \"branched_from\": null,\n  \"branch_round\": null\n}\n",
+  "runs/{run:0}/status.json": "{\n  \"state\": \"done\",\n  \"stage\": \"finished\",\n  \"round\": 2,\n  \"total_rounds\": 2,\n  \"detail\": \"report ready\",\n  \"error\": null,\n  \"pid\": 0,\n  \"started_at\": \"<time>\",\n  \"updated_at\": \"<time>\",\n  \"failed_batches\": []\n}\n",
+  "runs/{run:0}/graph.json": "{\n  \"entities\": [\n    {\n      \"id\": \"placeholder-name-1\",\n      \"name\": \"Placeholder name 1\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #3 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-8\",\n      \"name\": \"Placeholder name 8\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #10 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-15\",\n      \"name\": \"Placeholder name 15\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #17 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"placeholder-name-8\",\n      \"target\": \"placeholder-name-15\",\n      \"label\": \"canned label #24 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #25 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-15\",\n      \"target\": \"placeholder-name-1\",\n      \"label\": \"canned label #28 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #29 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-1\",\n      \"target\": \"placeholder-name-8\",\n      \"label\": \"canned label #32 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #33 from the offline test model (graph.extract).\"\n    }\n  ]\n}\n",
+  "runs/{run:0}/personas.json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a03\",\n  \"handle\": \"fake_user_22\",\n  \"name\": \"Placeholder name 23\",\n  \"bio\": \"Canned bio #24 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #25 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #26 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #27 from the offline test model (personas.batch).\",\n    \"Canned traits #28 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a04\",\n  \"handle\": \"fake_user_32\",\n  \"name\": \"Placeholder name 33\",\n  \"bio\": \"Canned bio #34 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #35 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #36 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #37 from the offline test model (personas.batch).\",\n    \"Canned traits #38 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.6,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+  "runs/{run:0}/report.json": "{\n  \"title\": \"Placeholder title 1\",\n  \"summary\": \"Canned summary #2 from the offline test model (report.repair).\",\n  \"prediction\": \"Canned prediction #3 from the offline test model (report.repair).\",\n  \"confidence\": \"medium\",\n  \"sections\": [\n    {\n      \"title\": \"Placeholder title 5\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 7\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 9\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 11\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    }\n  ],\n  \"key_voices\": [\n    \"a02\",\n    \"a03\"\n  ],\n  \"reasons\": [\n    \"Canned reasons [unverified] from the offline test model (report.repair).\",\n    \"Canned reasons [unverified] from the offline test model (report.repair).\"\n  ],\n  \"camps\": [],\n  \"risks\": [\n    \"Canned risks [unverified] from the offline test model (report.repair).\",\n    \"Canned risks [unverified] from the offline test model (report.repair).\"\n  ],\n  \"caveats\": [\n    \"Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\n    \"Sentiment could not be scored for round(s) 0, 1.\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"26 citations could not be matched to posts and were marked [unverified].\"\n  ],\n  \"recommendations\": [],\n  \"citation_audit\": {\n    \"checked\": 28,\n    \"unknown_posts\": [\n      15,\n      16,\n      6,\n      8,\n      10,\n      12,\n      37,\n      38,\n      39,\n      40,\n      43,\n      48,\n      46,\n      47,\n      52,\n      57,\n      55,\n      56,\n      61,\n      66,\n      64,\n      65,\n      70,\n      75,\n      73,\n      74\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": true,\n    \"marked\": 26\n  }\n}\n",
+  "runs/{run:0}/report.md": "# Placeholder title 1\n\nCanned summary #2 from the offline test model (report.repair).\n\n## Prediction\n\nCanned prediction #3 from the offline test model (report.repair).\n\n**Confidence:** medium\n\n## Placeholder title 5\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 7\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 9\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 11\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Key voices\n\na02, a03\n\n## Risks\n\n- Canned risks [unverified] from the offline test model (report.repair).\n- Canned risks [unverified] from the offline test model (report.repair).\n\n## Caveats\n\n- Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\n- Sentiment could not be scored for round(s) 0, 1.\n- Canned caveats [unverified] from the offline test model (report.repair).\n- Canned caveats [unverified] from the offline test model (report.repair).\n- 26 citations could not be matched to posts and were marked [unverified].\n",
+  "runs/{run:0}/rewrite.json": "{\n  \"revised_text\": \"Canned revised_text #1 from the offline test model (report.rewrite).\",\n  \"changes\": [\n    {\n      \"what\": \"Canned what #2 from the offline test model (report.rewrite).\",\n      \"why\": \"Canned why #3 from the offline test model (report.rewrite).\",\n      \"cites\": []\n    },\n    {\n      \"what\": \"Canned what #6 from the offline test model (report.rewrite).\",\n      \"why\": \"Canned why [unverified] from the offline test model (report.rewrite).\",\n      \"cites\": []\n    },\n    {\n      \"what\": \"Canned what #10 from the offline test model (report.rewrite).\",\n      \"why\": \"Canned why [unverified] from the offline test model (report.rewrite).\",\n      \"cites\": []\n    }\n  ],\n  \"kept_on_purpose\": [\n    \"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\",\n    \"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\"\n  ],\n  \"source_name\": \"seed.md\",\n  \"created_at\": \"<time>\",\n  \"citation_audit\": {\n    \"checked\": 11,\n    \"unknown_posts\": [\n      7,\n      11,\n      14,\n      15,\n      0\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": false,\n    \"marked\": 10\n  }\n}\n",
+  "runs/{run:0}/rewrite.md": "Canned revised_text #1 from the offline test model (report.rewrite).\n",
+  "runs/{run:0}/seeds/": "seed.md",
+  "runs/{run:1}/config.json": "{\n  \"question\": \"Will existing buyers accept the subscription?\",\n  \"seed_files\": [\n    \"runs/{run:1}/seeds/seed.md\"\n  ],\n  \"num_agents\": 4,\n  \"rounds\": 2,\n  \"batch_size\": 2,\n  \"feed_size\": 12,\n  \"memory_size\": 8,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [],\n  \"seed\": 7,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": \"{run:0}\",\n  \"study_id\": \"{study:0}\",\n  \"variant\": \"Shorter\",\n  \"branched_from\": null,\n  \"branch_round\": null\n}\n",
+  "runs/{run:1}/status.json": "{\n  \"state\": \"done\",\n  \"stage\": \"finished\",\n  \"round\": 2,\n  \"total_rounds\": 2,\n  \"detail\": \"report ready\",\n  \"error\": null,\n  \"pid\": 0,\n  \"started_at\": \"<time>\",\n  \"updated_at\": \"<time>\",\n  \"failed_batches\": []\n}\n",
+  "runs/{run:1}/graph.json": "{\n  \"entities\": [\n    {\n      \"id\": \"placeholder-name-1\",\n      \"name\": \"Placeholder name 1\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #3 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-8\",\n      \"name\": \"Placeholder name 8\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #10 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-15\",\n      \"name\": \"Placeholder name 15\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #17 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"placeholder-name-8\",\n      \"target\": \"placeholder-name-15\",\n      \"label\": \"canned label #24 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #25 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-15\",\n      \"target\": \"placeholder-name-1\",\n      \"label\": \"canned label #28 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #29 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-1\",\n      \"target\": \"placeholder-name-8\",\n      \"label\": \"canned label #32 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #33 from the offline test model (graph.extract).\"\n    }\n  ]\n}\n",
+  "runs/{run:1}/personas.json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a03\",\n  \"handle\": \"fake_user_22\",\n  \"name\": \"Placeholder name 23\",\n  \"bio\": \"Canned bio #24 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #25 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #26 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #27 from the offline test model (personas.batch).\",\n    \"Canned traits #28 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a04\",\n  \"handle\": \"fake_user_32\",\n  \"name\": \"Placeholder name 33\",\n  \"bio\": \"Canned bio #34 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #35 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #36 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #37 from the offline test model (personas.batch).\",\n    \"Canned traits #38 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.6,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+  "runs/{run:1}/report.json": "{\n  \"title\": \"Placeholder title 1\",\n  \"summary\": \"Canned summary #2 from the offline test model (report.repair).\",\n  \"prediction\": \"Canned prediction #3 from the offline test model (report.repair).\",\n  \"confidence\": \"medium\",\n  \"sections\": [\n    {\n      \"title\": \"Placeholder title 5\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 7\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 9\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 11\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    }\n  ],\n  \"key_voices\": [\n    \"a03\"\n  ],\n  \"reasons\": [\n    \"Canned reasons [unverified] from the offline test model (report.repair).\",\n    \"Canned reasons [unverified] from the offline test model (report.repair).\"\n  ],\n  \"camps\": [],\n  \"risks\": [\n    \"Canned risks [unverified] from the offline test model (report.repair).\",\n    \"Canned risks [unverified] from the offline test model (report.repair).\"\n  ],\n  \"caveats\": [\n    \"Scale: 4 simulated agents over 2 rounds produced 4 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\n    \"Sentiment could not be scored for round(s) 0, 1.\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"26 citations could not be matched to posts and were marked [unverified].\"\n  ],\n  \"recommendations\": [],\n  \"citation_audit\": {\n    \"checked\": 28,\n    \"unknown_posts\": [\n      15,\n      16,\n      6,\n      8,\n      10,\n      12,\n      37,\n      38,\n      39,\n      40,\n      43,\n      48,\n      46,\n      47,\n      52,\n      57,\n      55,\n      56,\n      61,\n      66,\n      64,\n      65,\n      70,\n      75,\n      73,\n      74\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": true,\n    \"marked\": 26\n  }\n}\n",
+  "runs/{run:1}/report.md": "# Placeholder title 1\n\nCanned summary #2 from the offline test model (report.repair).\n\n## Prediction\n\nCanned prediction #3 from the offline test model (report.repair).\n\n**Confidence:** medium\n\n## Placeholder title 5\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 7\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 9\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 11\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Key voices\n\na03\n\n## Risks\n\n- Canned risks [unverified] from the offline test model (report.repair).\n- Canned risks [unverified] from the offline test model (report.repair).\n\n## Caveats\n\n- Scale: 4 simulated agents over 2 rounds produced 4 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\n- Sentiment could not be scored for round(s) 0, 1.\n- Canned caveats [unverified] from the offline test model (report.repair).\n- Canned caveats [unverified] from the offline test model (report.repair).\n- 26 citations could not be matched to posts and were marked [unverified].\n",
+  "runs/{run:1}/seeds/": "seed.md",
+  "runs/{run:2}/config.json": "{\n  \"question\": \"Will existing buyers accept the subscription?\",\n  \"seed_files\": [\n    \"<cwd>/runs/{run:2}/seeds/seed.md\"\n  ],\n  \"num_agents\": 4,\n  \"rounds\": 2,\n  \"batch_size\": 2,\n  \"feed_size\": 12,\n  \"memory_size\": 8,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [\n    {\n      \"round\": 2,\n      \"content\": \"A rival app says it will stay a one-time purchase\"\n    }\n  ],\n  \"seed\": 8,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": \"{run:0}\",\n  \"study_id\": \"{study:1}\",\n  \"variant\": \"Run 2\",\n  \"branched_from\": null,\n  \"branch_round\": null\n}\n",
+  "runs/{run:2}/status.json": "{\n  \"state\": \"done\",\n  \"stage\": \"finished\",\n  \"round\": 2,\n  \"total_rounds\": 2,\n  \"detail\": \"report ready\",\n  \"error\": null,\n  \"pid\": 0,\n  \"started_at\": \"<time>\",\n  \"updated_at\": \"<time>\",\n  \"failed_batches\": []\n}\n",
+  "runs/{run:2}/graph.json": "{\n  \"entities\": [\n    {\n      \"id\": \"placeholder-name-1\",\n      \"name\": \"Placeholder name 1\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #3 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-8\",\n      \"name\": \"Placeholder name 8\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #10 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-15\",\n      \"name\": \"Placeholder name 15\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #17 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"placeholder-name-8\",\n      \"target\": \"placeholder-name-15\",\n      \"label\": \"canned label #24 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #25 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-15\",\n      \"target\": \"placeholder-name-1\",\n      \"label\": \"canned label #28 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #29 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-1\",\n      \"target\": \"placeholder-name-8\",\n      \"label\": \"canned label #32 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #33 from the offline test model (graph.extract).\"\n    }\n  ]\n}\n",
+  "runs/{run:2}/personas.json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a03\",\n  \"handle\": \"fake_user_22\",\n  \"name\": \"Placeholder name 23\",\n  \"bio\": \"Canned bio #24 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #25 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #26 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #27 from the offline test model (personas.batch).\",\n    \"Canned traits #28 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a04\",\n  \"handle\": \"fake_user_32\",\n  \"name\": \"Placeholder name 33\",\n  \"bio\": \"Canned bio #34 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #35 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #36 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #37 from the offline test model (personas.batch).\",\n    \"Canned traits #38 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.6,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+  "runs/{run:2}/report.json": "{\n  \"title\": \"Placeholder title 1\",\n  \"summary\": \"Canned summary #2 from the offline test model (report.repair).\",\n  \"prediction\": \"Canned prediction #3 from the offline test model (report.repair).\",\n  \"confidence\": \"medium\",\n  \"sections\": [\n    {\n      \"title\": \"Placeholder title 5\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 7\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 9\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 11\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    }\n  ],\n  \"key_voices\": [\n    \"a01\"\n  ],\n  \"reasons\": [\n    \"Canned reasons [unverified] from the offline test model (report.repair).\",\n    \"Canned reasons [unverified] from the offline test model (report.repair).\"\n  ],\n  \"camps\": [],\n  \"risks\": [\n    \"Canned risks [unverified] from the offline test model (report.repair).\",\n    \"Canned risks [unverified] from the offline test model (report.repair).\"\n  ],\n  \"caveats\": [\n    \"Scale: 4 simulated agents over 2 rounds produced 3 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\n    \"Sentiment could not be scored for round(s) 0, 1, 2.\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"26 citations could not be matched to posts and were marked [unverified].\"\n  ],\n  \"recommendations\": [],\n  \"citation_audit\": {\n    \"checked\": 28,\n    \"unknown_posts\": [\n      15,\n      16,\n      6,\n      8,\n      10,\n      12,\n      37,\n      38,\n      39,\n      40,\n      43,\n      48,\n      46,\n      47,\n      52,\n      57,\n      55,\n      56,\n      61,\n      66,\n      64,\n      65,\n      70,\n      75,\n      73,\n      74\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": true,\n    \"marked\": 26\n  }\n}\n",
+  "runs/{run:2}/report.md": "# Placeholder title 1\n\nCanned summary #2 from the offline test model (report.repair).\n\n## Prediction\n\nCanned prediction #3 from the offline test model (report.repair).\n\n**Confidence:** medium\n\n## Placeholder title 5\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 7\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 9\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 11\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Key voices\n\na01\n\n## Risks\n\n- Canned risks [unverified] from the offline test model (report.repair).\n- Canned risks [unverified] from the offline test model (report.repair).\n\n## Caveats\n\n- Scale: 4 simulated agents over 2 rounds produced 3 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\n- Sentiment could not be scored for round(s) 0, 1, 2.\n- Canned caveats [unverified] from the offline test model (report.repair).\n- Canned caveats [unverified] from the offline test model (report.repair).\n- 26 citations could not be matched to posts and were marked [unverified].\n",
+  "runs/{run:2}/seeds/": "seed.md",
+  "runs/{run:3}/config.json": "{\n  \"question\": \"Will existing buyers accept the subscription?\",\n  \"seed_files\": [\n    \"<cwd>/runs/{run:3}/seeds/seed.md\"\n  ],\n  \"num_agents\": 4,\n  \"rounds\": 2,\n  \"batch_size\": 2,\n  \"feed_size\": 12,\n  \"memory_size\": 8,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [\n    {\n      \"round\": 2,\n      \"content\": \"A rival app says it will stay a one-time purchase\"\n    },\n    {\n      \"round\": 2,\n      \"content\": \"The owner apologises\"\n    }\n  ],\n  \"seed\": 7,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": \"{run:0}\",\n  \"study_id\": \"{study:2}\",\n  \"variant\": \"Branch at round 1\",\n  \"branched_from\": \"{run:0}\",\n  \"branch_round\": 1\n}\n",
+  "runs/{run:3}/status.json": "{\n  \"state\": \"done\",\n  \"stage\": \"finished\",\n  \"round\": 2,\n  \"total_rounds\": 2,\n  \"detail\": \"report ready\",\n  \"error\": null,\n  \"pid\": 0,\n  \"started_at\": \"<time>\",\n  \"updated_at\": \"<time>\",\n  \"failed_batches\": []\n}\n",
+  "runs/{run:3}/graph.json": "{\n  \"entities\": [\n    {\n      \"id\": \"placeholder-name-1\",\n      \"name\": \"Placeholder name 1\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #3 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-8\",\n      \"name\": \"Placeholder name 8\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #10 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-15\",\n      \"name\": \"Placeholder name 15\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #17 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"placeholder-name-8\",\n      \"target\": \"placeholder-name-15\",\n      \"label\": \"canned label #24 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #25 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-15\",\n      \"target\": \"placeholder-name-1\",\n      \"label\": \"canned label #28 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #29 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-1\",\n      \"target\": \"placeholder-name-8\",\n      \"label\": \"canned label #32 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #33 from the offline test model (graph.extract).\"\n    }\n  ]\n}\n",
+  "runs/{run:3}/personas.json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a03\",\n  \"handle\": \"fake_user_22\",\n  \"name\": \"Placeholder name 23\",\n  \"bio\": \"Canned bio #24 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #25 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #26 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #27 from the offline test model (personas.batch).\",\n    \"Canned traits #28 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a04\",\n  \"handle\": \"fake_user_32\",\n  \"name\": \"Placeholder name 33\",\n  \"bio\": \"Canned bio #34 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #35 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #36 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #37 from the offline test model (personas.batch).\",\n    \"Canned traits #38 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.6,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+  "runs/{run:3}/report.json": "{\n  \"title\": \"Placeholder title 1\",\n  \"summary\": \"Canned summary #2 from the offline test model (report.repair).\",\n  \"prediction\": \"Canned prediction #3 from the offline test model (report.repair).\",\n  \"confidence\": \"medium\",\n  \"sections\": [\n    {\n      \"title\": \"Placeholder title 5\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 7\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 9\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 11\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    }\n  ],\n  \"key_voices\": [\n    \"a02\",\n    \"a03\"\n  ],\n  \"reasons\": [\n    \"Canned reasons [unverified] from the offline test model (report.repair).\",\n    \"Canned reasons [unverified] from the offline test model (report.repair).\"\n  ],\n  \"camps\": [],\n  \"risks\": [\n    \"Canned risks [unverified] from the offline test model (report.repair).\",\n    \"Canned risks [unverified] from the offline test model (report.repair).\"\n  ],\n  \"caveats\": [\n    \"Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\n    \"Sentiment could not be scored for round(s) 0, 1.\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"26 citations could not be matched to posts and were marked [unverified].\"\n  ],\n  \"recommendations\": [],\n  \"citation_audit\": {\n    \"checked\": 28,\n    \"unknown_posts\": [\n      15,\n      16,\n      6,\n      8,\n      10,\n      12,\n      37,\n      38,\n      39,\n      40,\n      43,\n      48,\n      46,\n      47,\n      52,\n      57,\n      55,\n      56,\n      61,\n      66,\n      64,\n      65,\n      70,\n      75,\n      73,\n      74\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": true,\n    \"marked\": 26\n  }\n}\n",
+  "runs/{run:3}/report.md": "# Placeholder title 1\n\nCanned summary #2 from the offline test model (report.repair).\n\n## Prediction\n\nCanned prediction #3 from the offline test model (report.repair).\n\n**Confidence:** medium\n\n## Placeholder title 5\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 7\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 9\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 11\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Key voices\n\na02, a03\n\n## Risks\n\n- Canned risks [unverified] from the offline test model (report.repair).\n- Canned risks [unverified] from the offline test model (report.repair).\n\n## Caveats\n\n- Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\n- Sentiment could not be scored for round(s) 0, 1.\n- Canned caveats [unverified] from the offline test model (report.repair).\n- Canned caveats [unverified] from the offline test model (report.repair).\n- 26 citations could not be matched to posts and were marked [unverified].\n",
+  "runs/{run:3}/seeds/": "seed.md",
+  "runs/{run:4}/config.json": "{\n  \"question\": \"Folder seeds?\",\n  \"seed_files\": [\n    \"runs/{run:4}/seeds/a.txt\",\n    \"runs/{run:4}/seeds/b.md\"\n  ],\n  \"num_agents\": 2,\n  \"rounds\": 1,\n  \"batch_size\": 6,\n  \"feed_size\": 12,\n  \"memory_size\": 8,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [],\n  \"seed\": 7,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": null,\n  \"study_id\": null,\n  \"variant\": null,\n  \"branched_from\": null,\n  \"branch_round\": null\n}\n",
+  "runs/{run:4}/status.json": "{\n  \"state\": \"done\",\n  \"stage\": \"finished\",\n  \"round\": 1,\n  \"total_rounds\": 1,\n  \"detail\": \"report ready\",\n  \"error\": null,\n  \"pid\": 0,\n  \"started_at\": \"<time>\",\n  \"updated_at\": \"<time>\",\n  \"failed_batches\": []\n}\n",
+  "runs/{run:4}/graph.json": "{\n  \"entities\": [\n    {\n      \"id\": \"placeholder-name-1\",\n      \"name\": \"Placeholder name 1\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #3 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-8\",\n      \"name\": \"Placeholder name 8\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #10 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    },\n    {\n      \"id\": \"placeholder-name-15\",\n      \"name\": \"Placeholder name 15\",\n      \"kind\": \"concept\",\n      \"summary\": \"Canned summary #17 from the offline test model (graph.extract).\",\n      \"source_chunk_ids\": [\n        0\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"placeholder-name-8\",\n      \"target\": \"placeholder-name-15\",\n      \"label\": \"canned label #24 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #25 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-15\",\n      \"target\": \"placeholder-name-1\",\n      \"label\": \"canned label #28 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #29 from the offline test model (graph.extract).\"\n    },\n    {\n      \"source\": \"placeholder-name-1\",\n      \"target\": \"placeholder-name-8\",\n      \"label\": \"canned label #32 from the offline test model (graph.extract).\",\n      \"evidence\": \"Canned evidence #33 from the offline test model (graph.extract).\"\n    }\n  ]\n}\n",
+  "runs/{run:4}/personas.json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+  "runs/{run:4}/report.json": "{\n  \"title\": \"Placeholder title 1\",\n  \"summary\": \"Canned summary #2 from the offline test model (report.repair).\",\n  \"prediction\": \"Canned prediction [unverified] from the offline test model (report.repair).\",\n  \"confidence\": \"medium\",\n  \"sections\": [\n    {\n      \"title\": \"Placeholder title 5\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 7\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    },\n    {\n      \"title\": \"Placeholder title 9\",\n      \"body_markdown\": \"Canned body_markdown [unverified] from the offline test model (report.repair).\"\n    }\n  ],\n  \"key_voices\": [\n    \"a01\",\n    \"a02\"\n  ],\n  \"reasons\": [\n    \"Canned reasons [unverified] from the offline test model (report.repair).\",\n    \"Canned reasons [unverified] from the offline test model (report.repair).\"\n  ],\n  \"camps\": [],\n  \"risks\": [\n    \"Canned risks [unverified] from the offline test model (report.repair).\",\n    \"Canned risks [unverified] from the offline test model (report.repair).\"\n  ],\n  \"caveats\": [\n    \"Scale: 2 simulated agents over 1 rounds produced 2 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\n    \"Sentiment could not be scored for round(s) 0, 1.\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"Canned caveats [unverified] from the offline test model (report.repair).\",\n    \"22 citations could not be matched to posts and were marked [unverified].\"\n  ],\n  \"recommendations\": [],\n  \"citation_audit\": {\n    \"checked\": 23,\n    \"unknown_posts\": [\n      3,\n      13,\n      14,\n      6,\n      8,\n      10,\n      30,\n      31,\n      32,\n      33,\n      36,\n      41,\n      39,\n      40,\n      45,\n      50,\n      48,\n      49,\n      54,\n      59,\n      57,\n      58\n    ],\n    \"unknown_handles\": [],\n    \"unknown_refs\": [],\n    \"misquotes\": [],\n    \"repaired\": true,\n    \"marked\": 22\n  }\n}\n",
+  "runs/{run:4}/report.md": "# Placeholder title 1\n\nCanned summary #2 from the offline test model (report.repair).\n\n## Prediction\n\nCanned prediction [unverified] from the offline test model (report.repair).\n\n**Confidence:** medium\n\n## Placeholder title 5\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 7\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Placeholder title 9\n\nCanned body_markdown [unverified] from the offline test model (report.repair).\n\n## Key voices\n\na01, a02\n\n## Risks\n\n- Canned risks [unverified] from the offline test model (report.repair).\n- Canned risks [unverified] from the offline test model (report.repair).\n\n## Caveats\n\n- Scale: 2 simulated agents over 1 rounds produced 2 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\n- Sentiment could not be scored for round(s) 0, 1.\n- Canned caveats [unverified] from the offline test model (report.repair).\n- Canned caveats [unverified] from the offline test model (report.repair).\n- 22 citations could not be matched to posts and were marked [unverified].\n",
+  "runs/{run:4}/seeds/": "a.txt\nb.md",
+  "runs/studies/{study:0}/study.json": "{\n  \"id\": \"{study:0}\",\n  \"kind\": \"compare\",\n  \"created_at\": \"<time>\",\n  \"runs\": [\n    {\n      \"id\": \"{run:0}\",\n      \"variant\": \"Draft A\"\n    },\n    {\n      \"id\": \"{run:1}\",\n      \"variant\": \"Shorter\"\n    }\n  ],\n  \"planned\": 0\n}\n",
+  "runs/studies/{study:0}/compare.json": "{\n  \"study_id\": \"{study:0}\",\n  \"created_at\": \"<time>\",\n  \"runs\": [\n    {\n      \"letter\": \"A\",\n      \"run_id\": \"{run:0}\",\n      \"variant\": \"Draft A\",\n      \"state\": \"\",\n      \"headline\": \"Placeholder title 1\",\n      \"rounds\": [\n        {\n          \"round\": 0,\n          \"sentiment\": null,\n          \"posts\": 1\n        },\n        {\n          \"round\": 1,\n          \"sentiment\": null,\n          \"posts\": 1\n        },\n        {\n          \"round\": 2,\n          \"sentiment\": 0.5,\n          \"posts\": 3\n        }\n      ],\n      \"final_sentiment\": 0.5,\n      \"camps\": [],\n      \"shifts\": [\n        {\n          \"agent_id\": \"a03\",\n          \"handle\": \"fake_user_22\",\n          \"first_post\": 2,\n          \"last_post\": 4,\n          \"change\": null\n        },\n        {\n          \"agent_id\": \"a04\",\n          \"handle\": \"fake_user_32\",\n          \"first_post\": 1,\n          \"last_post\": 5,\n          \"change\": null\n        }\n      ],\n      \"objections\": [\n        \"Canned risks [unverified] from the offline test model (report.repair).\",\n        \"Canned risks [unverified] from the offline test model (report.repair).\"\n      ],\n      \"posts\": 5\n    },\n    {\n      \"letter\": \"B\",\n      \"run_id\": \"{run:1}\",\n      \"variant\": \"Shorter\",\n      \"state\": \"\",\n      \"headline\": \"Placeholder title 1\",\n      \"rounds\": [\n        {\n          \"round\": 0,\n          \"sentiment\": null,\n          \"posts\": 1\n        },\n        {\n          \"round\": 1,\n          \"sentiment\": null,\n          \"posts\": 1\n        },\n        {\n          \"round\": 2,\n          \"sentiment\": 0.5,\n          \"posts\": 2\n        }\n      ],\n      \"final_sentiment\": 0.5,\n      \"camps\": [],\n      \"shifts\": [\n        {\n          \"agent_id\": \"a03\",\n          \"handle\": \"fake_user_22\",\n          \"first_post\": 2,\n          \"last_post\": 4,\n          \"change\": null\n        },\n        {\n          \"agent_id\": \"a04\",\n          \"handle\": \"fake_user_32\",\n          \"first_post\": 1,\n          \"last_post\": 3,\n          \"change\": null\n        }\n      ],\n      \"objections\": [\n        \"Canned risks [unverified] from the offline test model (report.repair).\",\n        \"Canned risks [unverified] from the offline test model (report.repair).\"\n      ],\n      \"posts\": 4\n    }\n  ],\n  \"report\": {\n    \"headline\": \"Canned headline [unverified] from the offline test model (compare.write).\",\n    \"better_variant\": null,\n    \"why\": \"Canned why [unverified] from the offline test model (compare.write).\",\n    \"per_variant\": [],\n    \"objections_only_in\": [],\n    \"caveats\": [\n      \"Each version was played once by the same crowd; part of any difference is chance. Use Check it on each version to see what holds.\",\n      \"Canned caveats [unverified] from the offline test model (compare.write).\",\n      \"Canned caveats [unverified] from the offline test model (compare.write).\",\n      \"4 citations could not be matched to posts and were marked [unverified].\"\n    ],\n    \"citation_audit\": {\n      \"checked\": 4,\n      \"unknown_posts\": [\n        1,\n        3,\n        25,\n        26\n      ],\n      \"unknown_handles\": [],\n      \"unknown_refs\": [],\n      \"misquotes\": [],\n      \"repaired\": false,\n      \"marked\": 4\n    }\n  }\n}\n",
+  "runs/studies/{study:1}/study.json": "{\n  \"id\": \"{study:1}\",\n  \"kind\": \"repeat\",\n  \"created_at\": \"<time>\",\n  \"runs\": [\n    {\n      \"id\": \"{run:0}\",\n      \"variant\": \"Run 1\"\n    },\n    {\n      \"id\": \"{run:2}\",\n      \"variant\": \"Run 2\"\n    }\n  ],\n  \"planned\": 2\n}\n",
+  "runs/studies/{study:1}/agreement.json": "{\n  \"study_id\": \"{study:1}\",\n  \"created_at\": \"<time>\",\n  \"runs\": 2,\n  \"final_low\": 0.5,\n  \"final_high\": 0.5,\n  \"spread\": 0.0,\n  \"bands\": [\n    {\n      \"round\": 0,\n      \"low\": null,\n      \"high\": null,\n      \"runs\": 0\n    },\n    {\n      \"round\": 1,\n      \"low\": null,\n      \"high\": null,\n      \"runs\": 0\n    },\n    {\n      \"round\": 2,\n      \"low\": 0.5,\n      \"high\": 0.5,\n      \"runs\": 1\n    }\n  ],\n  \"camps\": [],\n  \"held\": [\n    \"Canned held #1 from the offline test model (study.agree).\",\n    \"Canned held #2 from the offline test model (study.agree).\"\n  ],\n  \"split\": [\n    \"Canned split #3 from the offline test model (study.agree).\",\n    \"Canned split #4 from the offline test model (study.agree).\"\n  ],\n  \"verdict\": \"unstable\",\n  \"summary\": \"Canned summary #6 from the offline test model (study.agree).\"\n}\n",
+  "runs/studies/{study:2}/study.json": "{\n  \"id\": \"{study:2}\",\n  \"kind\": \"compare\",\n  \"created_at\": \"<time>\",\n  \"runs\": [\n    {\n      \"id\": \"{run:0}\",\n      \"variant\": \"Original\"\n    },\n    {\n      \"id\": \"{run:3}\",\n      \"variant\": \"Branch at round 1\"\n    }\n  ],\n  \"planned\": 0\n}\n",
+  "elsewhere/": "<missing>"
+ }
+}

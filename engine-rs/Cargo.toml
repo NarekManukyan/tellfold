@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study"]
+members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study", "crates/tellfold-cli"]
 
 [workspace.package]
 version = "0.3.0"

@@ -53,7 +53,7 @@ CLI are the only crates that know about tokio's runtime setup.
 |---|---|---|
 | pydantic | `serde`, `serde_json` (`preserve_order`), `indexmap` | output must match `model_dump_json` byte for byte; schemas are pydantic's, checked in; see "JSON" below |
 | FastAPI, uvicorn, python-multipart | `axum`, `tower-http`, `tokio`, axum `multipart` | SSE through `axum::response::sse` |
-| typer, rich | `clap` (derive), `indicatif` + `console` for the live view, `comfy-table` for tables | `NO_COLOR` honoured as now |
+| typer, rich | own click-compatible parser and a port of the rich subset the CLI prints (`tellfold-cli`) | see "The command line" below; help, errors, tables and panels match byte for byte |
 | jinja2 | `minijinja` | `templates/report.html` is ported as it is; filters re-implemented where minijinja differs |
 | pymupdf | `pdf-extract` on `lopdf`, with `pdfium-render` as fallback if text quality falls short | see "Risks" |
 | charset-normalizer | `chardetng` + `encoding_rs` | |
@@ -189,6 +189,33 @@ Known differences, none visible in a normal run:
   three comparisons, a branch prepared and continued to its report, the branch errors, two Check it agreements and a
   packed example; the Rust test makes the same runs and compares every call, file, event and row.
 
+## The command line
+
+- **Crate.** `tellfold-cli` builds the `tellfold` binary from `cli.py` and `__main__.py`. Run under the name
+  `shoal` (a symlink or a copy), it prints the old-name notice on stderr and carries on as `tellfold`.
+- **Parsing.** typer 0.28 ships its own copy of click, and its rules and messages are the ones ported: options
+  anywhere, `--opt=value`, `-qvalue`, `--`, parameters processed in the order given, eager `--help`/`--version`,
+  close-match suggestions, `Got unexpected extra argument(s)`, control characters escaped in echoed values. One
+  table (`spec.rs`) holds every command's parameters, help text, checks and defaults; the parser and `--help` both
+  read it.
+- **Rendering.** `term` ports the part of rich 15.0 the commands use (text wrapping and cell widths, markup, styles,
+  tables, panels, live display) and typer's help and error layout. Plain output is the same byte for byte; on a
+  terminal the same styles are written with rich's ANSI codes. Like rich, a live view or status line only animates
+  on a terminal: elsewhere the run view prints its last frame once and a status line prints nothing.
+- **Differences.** Rich highlights numbers, paths and quoted strings in coloured output on its own; the port does
+  not (plain output is unaffected). Emoji codes such as `:smile:` in model text are not replaced, and a stray
+  closing markup tag is skipped instead of raising. `doctor` shows a "Tellfold engine" row in place of the
+  `claude-agent-sdk` import and Python rows, since the binary needs neither. Where Python lets an exception through
+  with a traceback (an unknown runtime in `compare`, say), the port prints `error: ...` and exits 1. `ui` and
+  `serve` start the HTTP server, which arrives with milestone 8; until then they say so and exit 1.
+- **Parity.** `golden/make_cli_help.py` records typer's `--help` for the group and all 13 commands at five widths,
+  usage errors, and rich's tables, panels and prints (plain and coloured). `golden/make_cli_runs.py` records a
+  56-step session of the Python command on the canned model (runs with events, report, agents, ask, chat, a study
+  made with `--cast-from` and compared, Check it, a branch, rewrite, a folder of seeds, doctor, and 35 usage and
+  run errors); the Rust test replays it with the binary and compares exit codes, stdout, stderr and every file
+  written. `tests/cli.rs` ports the helper tests of `test_cli.py` and the command-line parts of
+  `test_rename_compat.py`.
+
 ## world.db
 
 The schema is unchanged (tables `personas`, `follows`, `posts`, `reactions`, `actions`, `memories`,
@@ -226,7 +253,8 @@ lines, RNG sequences, the engine's seeded helpers on the example casts, and a wh
 (every model call, every event, the run folder and every `world.db` row), and the report side: the evidence digest,
 every `build_report` scenario of `test_report.py` (calls, `report.json`, `report.md`, `report.html`), the citation
 audit, interview and ask prompts, rewrites, and the rendered reports of both examples and of the golden run, and study folders (comparisons, Check it,
-branches, packed examples); later recorded API sessions. The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
+branches, packed examples); later recorded API sessions. `golden/make_cli_help.py` and `golden/make_cli_runs.py`
+record the command line (help screens, errors, rendering, and a session of commands). The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
 which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute

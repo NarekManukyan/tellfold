@@ -1491,6 +1491,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "tellfold-cli"
+version = "0.3.0"
+dependencies = [
+ "futures",
+ "indexmap",
+ "regex",
+ "serde",
+ "serde_json",
+ "tellfold-engine",
+ "tellfold-llm",
+ "tellfold-models",
+ "tellfold-report",
+ "tellfold-runtimes",
+ "tellfold-store",
+ "tellfold-study",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "tellfold-engine"
 version = "0.3.0"
 dependencies = [
