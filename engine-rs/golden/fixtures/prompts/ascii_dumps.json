@@ -1,0 +1,22 @@
+[
+ {
+  "value": "plain",
+  "dumps": "\"plain\"",
+  "dumps_list": "[\"plain\", 1.5, null]"
+ },
+ {
+  "value": "é€😀",
+  "dumps": "\"\\u00e9\\u20ac\\ud83d\\ude00\"",
+  "dumps_list": "[\"\\u00e9\\u20ac\\ud83d\\ude00\", 1.5, null]"
+ },
+ {
+  "value": "a b",
+  "dumps": "\"a\\u2028b\"",
+  "dumps_list": "[\"a\\u2028b\", 1.5, null]"
+ },
+ {
+  "value": "q\"\\",
+  "dumps": "\"q\\\"\\\\\"",
+  "dumps_list": "[\"q\\\"\\\\\", 1.5, null]"
+ }
+]

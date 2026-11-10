@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "PersonaDraft": {
+      "properties": {
+        "slot": {
+          "title": "Slot",
+          "type": "string"
+        },
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "bio": {
+          "title": "Bio",
+          "type": "string"
+        },
+        "background": {
+          "title": "Background",
+          "type": "string"
+        },
+        "stance": {
+          "title": "Stance",
+          "type": "string"
+        },
+        "traits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Traits",
+          "type": "array"
+        },
+        "activity": {
+          "default": 0.5,
+          "title": "Activity",
+          "type": "number"
+        },
+        "influence": {
+          "default": 0.3,
+          "title": "Influence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "slot",
+        "handle",
+        "name",
+        "bio",
+        "background",
+        "stance"
+      ],
+      "title": "PersonaDraft",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "personas": {
+      "items": {
+        "$ref": "#/$defs/PersonaDraft"
+      },
+      "title": "Personas",
+      "type": "array"
+    }
+  },
+  "title": "PersonaBatch",
+  "type": "object"
+}

@@ -242,6 +242,141 @@ def lax() -> None:
     dump("lax.json", out)
 
 
+SCHEMAS = Path(__file__).resolve().parents[1] / "schemas"
+
+
+def schema_classes() -> dict[str, type]:
+    """Every pydantic model the engine sends to `llm.json()`, by class name."""
+    from tellfold import engine, graph, personas
+    from tellfold.models import AgreementCall, CampMatches, CompareReport, Report, RewriteSuggestion
+
+    classes = [Report, CompareReport, RewriteSuggestion, CampMatches, AgreementCall, graph.Extraction,
+               personas.PersonaBatch, personas.VoicePick, engine.RoundDecisions, engine.OpeningPosts,
+               engine.SentimentScores]
+    return {c.__name__: c for c in classes}
+
+
+def schemas() -> None:
+    """The JSON Schemas sent to models, as pydantic generates them. The Rust engine embeds these files: their text
+    is part of the prompt, so they are the source of truth, not something Rust derives."""
+    from tellfold.runtimes.base import json_system
+
+    if SCHEMAS.exists():
+        shutil.rmtree(SCHEMAS)
+    SCHEMAS.mkdir()
+    systems = {}
+    for name, cls in schema_classes().items():
+        schema = cls.model_json_schema()
+        (SCHEMAS / f"{name}.json").write_text(json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        systems[name] = json_system("You are a careful analyst.  \n", schema)
+    dump("prompts/json_system.json", systems)
+
+
+def prompts() -> None:
+    from tellfold.runtimes.base import classify_failure, repair_prompt, root_opener
+
+    previous = ["", "   ", "x" * 2000, "é" * 1600 + "tail", '{"color": "teal"}']
+    repairs = [{"prompt": "Pick one\n", "problem": problem, "previous": prev,
+                "out": repair_prompt("Pick one\n", problem, prev)}
+               for problem in ("1 validation error", "p" * 900) for prev in previous]
+    messages = ["Error: Rate limit reached", "HTTP 429", "unknown model 'x'", "Not logged in. Run login",
+                "  segfault\n\n core dumped ", "", "403 Forbidden", "quota exceeded for model", "\u00e9" * 500]
+    classified = []
+    for m in messages:
+        for hint in (None, "Run `tool login`."):
+            err = classify_failure(m, auth_hint=hint)
+            classified.append({"message": m, "hint": hint, "kind": type(err).__name__, "text": str(err),
+                               "rate_limited": getattr(err, "rate_limited", False)})
+    dump("prompts/repair.json", repairs)
+    dump("prompts/classify.json", classified)
+    dump("prompts/root_opener.json", {"array": root_opener({"type": "array"}), "object": root_opener({})})
+    texts = ["plain", "é€😀", "a\u2028b", 'q"\\']
+    dump("prompts/ascii_dumps.json", [{"value": t, "dumps": json.dumps(t), "dumps_list": json.dumps([t, 1.5, None])}
+                                     for t in texts])
+
+
+EXTRACT_CASES = [
+    '{"a": 1}', 'Here you go: {"a": {"b": [1, 2]}} done', '```json\n{"a": 2}\n```', 'noise {not json} then {"a": 3}',
+    '[1, 2] and {"a": 4}', '{"a": 1} [1, 2]', 'just words', '```\n[3]\n```', '```JSON {"z": true}```',
+    '{"revised_text": "Dear neighbours,\n\nWe opened\tnine years ago.", "changes": [{"what": "x", "cites": [1]}]}',
+    '{"a": "\\u00e9\\ud83d\\ude00", "b": 1e3, "c": -0.0, "d": 12345678901234567890}',
+    '{"a": [1, 2,]} {"b": 2}', '{"dup": 1, "dup": 2, "x": null}', '{"a": "unterminated', '{"a" 1} {"ok": [true, false]}',
+    'text ```json\n{"bad": }\n``` then {"good": 1}', '{"a": "\\x"} {"b": 1}', '   [ ]   ', '{"n": 01}', '{"n": .5}',
+    '{"a": {"b": {"c": {"d": [[[]]]}}}}', '{"key": "val\u0001ue"}', '{"\u00e9": "\u4e2d"}', '[{"a": 1}, {"b": 2}]',
+]
+
+
+def extract() -> None:
+    from tellfold.llm import extract_json
+
+    out = []
+    for text in EXTRACT_CASES:
+        for prefer in ("{", "["):
+            try:
+                value = extract_json(text, prefer=prefer)
+                out.append({"text": text, "prefer": prefer, "value": value})
+            except ValueError as e:
+                out.append({"text": text, "prefer": prefer, "error": str(e)})
+    dump("extract_json.json", out)
+
+
+def ingest() -> None:
+    from tellfold.ingest import _normalize, chunk_text, load_documents
+
+    corpus = {p.name: p.read_text(encoding="utf-8") for p in sorted((ROOT / "examples").glob("*.md"))}
+    corpus["cjk.txt"] = "第一句话很长。" * 120 + "\n\n" + "これは文です！" * 80
+    corpus["spaces.txt"] = "  a\t\tb \f c\v\r\n\r\n\n\n\nnext\x00 para\x1c  \n" + ("word " * 700) + "\n\n" + "x" * 2500
+    corpus["sentences.txt"] = " ".join(f"Sentence number {i} is here." for i in range(80)) + " " + "x" * 900
+    corpus["unicode_ws.txt"] = "one\u2003two\u00a0three\n\u2028\nfour\n \u3000 \nfive " + "lorem ipsum " * 300
+    normalized = {name: _normalize(text) for name, text in corpus.items()}
+    docs = [(name, text) for name, text in normalized.items() if text]
+    chunked = {f"{size}/{overlap}": [c.model_dump() for c in chunk_text(docs, size=size, overlap=overlap)]
+               for size, overlap in ((1800, 200), (400, 60), (300, 40), (120, 0), (90, 44))}
+    dump("ingest/corpus.json", corpus)
+    dump("ingest/normalized.json", normalized)
+    dump("ingest/chunks.json", chunked)
+    errors = {}
+    for size, overlap in ((100, 80), (0, 0), (10, 5), (-5, 0), (10, -1)):
+        try:
+            chunk_text([("a", "b")], size=size, overlap=overlap)
+            errors[f"{size}/{overlap}"] = None
+        except ValueError as e:
+            errors[f"{size}/{overlap}"] = str(e)
+    dump("ingest/chunk_errors.json", errors)
+
+    # encodings: the bytes on disk and what load_documents reads from them
+    text = "Café owners on Pier Street are à bout de patience. Œuvre «quoted» – 20 €. " * 12
+    encoded = {"utf8.txt": text.encode("utf-8"), "utf8sig.txt": text.encode("utf-8-sig"),
+               "latin1.txt": text.replace("Œ", "O").replace("–", "-").replace("€", "E").encode("latin-1"),
+               "cp1252.txt": text.encode("cp1252"), "utf16.txt": text.encode("utf-16")}
+    files = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        for name, raw in encoded.items():
+            (Path(tmp) / name).write_bytes(raw)
+            [(_, read)] = load_documents([Path(tmp) / name])
+            files[name] = {"hex": raw.hex(), "text": read}
+    dump("ingest/encodings.json", files)
+    pdf()
+
+
+def pdf() -> None:
+    import pymupdf
+
+    from tellfold.ingest import load_documents
+
+    out = OUT / "ingest" / "brief.pdf"
+    with pymupdf.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 72), "Harbor Town shuttle pilot starts in May.")
+        page.insert_text((72, 100), "The Riders Union calls it a quiet service cut.")
+        page.insert_text((72, 140), "Café owners on Pier Street worry about fewer stops.")
+        page = doc.new_page()
+        page.insert_text((72, 72), "Page two: the council votes on Monday.")
+        doc.save(out)
+    [(name, text)] = load_documents([out])
+    dump("ingest/pdf.json", {"name": name, "text": text})
+
+
 def main() -> None:
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -254,9 +389,13 @@ def main() -> None:
     estimates()
     numbers()
     lax()
+    schemas()
+    prompts()
+    extract()
+    ingest()
     dump("letters.json", {"letters": [letter(i) for i in range(30)],
                           "variants": [default_variant(i) for i in range(30)]})
-    print(f"wrote {sum(1 for _ in OUT.rglob('*.json'))} fixtures to {OUT}")
+    print(f"wrote {sum(1 for _ in OUT.rglob('*.json'))} fixtures to {OUT} and {len(schema_classes())} schemas")
 
 
 if __name__ == "__main__":

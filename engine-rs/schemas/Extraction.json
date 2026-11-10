@@ -1,0 +1,87 @@
+{
+  "$defs": {
+    "ExtractedEntity": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "concept",
+          "title": "Kind",
+          "type": "string"
+        },
+        "summary": {
+          "default": "",
+          "title": "Summary",
+          "type": "string"
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "chunk_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Chunk Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ExtractedEntity",
+      "type": "object"
+    },
+    "ExtractedRelation": {
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "evidence": {
+          "default": "",
+          "title": "Evidence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "label"
+      ],
+      "title": "ExtractedRelation",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/ExtractedEntity"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "relations": {
+      "items": {
+        "$ref": "#/$defs/ExtractedRelation"
+      },
+      "title": "Relations",
+      "type": "array"
+    }
+  },
+  "title": "Extraction",
+  "type": "object"
+}

@@ -1,0 +1,368 @@
+[
+ {
+  "text": "{\"a\": 1}",
+  "prefer": "{",
+  "value": {
+   "a": 1
+  }
+ },
+ {
+  "text": "{\"a\": 1}",
+  "prefer": "[",
+  "value": {
+   "a": 1
+  }
+ },
+ {
+  "text": "Here you go: {\"a\": {\"b\": [1, 2]}} done",
+  "prefer": "{",
+  "value": {
+   "a": {
+    "b": [
+     1,
+     2
+    ]
+   }
+  }
+ },
+ {
+  "text": "Here you go: {\"a\": {\"b\": [1, 2]}} done",
+  "prefer": "[",
+  "value": [
+   1,
+   2
+  ]
+ },
+ {
+  "text": "```json\n{\"a\": 2}\n```",
+  "prefer": "{",
+  "value": {
+   "a": 2
+  }
+ },
+ {
+  "text": "```json\n{\"a\": 2}\n```",
+  "prefer": "[",
+  "value": {
+   "a": 2
+  }
+ },
+ {
+  "text": "noise {not json} then {\"a\": 3}",
+  "prefer": "{",
+  "value": {
+   "a": 3
+  }
+ },
+ {
+  "text": "noise {not json} then {\"a\": 3}",
+  "prefer": "[",
+  "value": {
+   "a": 3
+  }
+ },
+ {
+  "text": "[1, 2] and {\"a\": 4}",
+  "prefer": "{",
+  "value": {
+   "a": 4
+  }
+ },
+ {
+  "text": "[1, 2] and {\"a\": 4}",
+  "prefer": "[",
+  "value": [
+   1,
+   2
+  ]
+ },
+ {
+  "text": "{\"a\": 1} [1, 2]",
+  "prefer": "{",
+  "value": {
+   "a": 1
+  }
+ },
+ {
+  "text": "{\"a\": 1} [1, 2]",
+  "prefer": "[",
+  "value": [
+   1,
+   2
+  ]
+ },
+ {
+  "text": "just words",
+  "prefer": "{",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "just words",
+  "prefer": "[",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "```\n[3]\n```",
+  "prefer": "{",
+  "value": [
+   3
+  ]
+ },
+ {
+  "text": "```\n[3]\n```",
+  "prefer": "[",
+  "value": [
+   3
+  ]
+ },
+ {
+  "text": "```JSON {\"z\": true}```",
+  "prefer": "{",
+  "value": {
+   "z": true
+  }
+ },
+ {
+  "text": "```JSON {\"z\": true}```",
+  "prefer": "[",
+  "value": {
+   "z": true
+  }
+ },
+ {
+  "text": "{\"revised_text\": \"Dear neighbours,\n\nWe opened\tnine years ago.\", \"changes\": [{\"what\": \"x\", \"cites\": [1]}]}",
+  "prefer": "{",
+  "value": {
+   "revised_text": "Dear neighbours,\n\nWe opened\tnine years ago.",
+   "changes": [
+    {
+     "what": "x",
+     "cites": [
+      1
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "text": "{\"revised_text\": \"Dear neighbours,\n\nWe opened\tnine years ago.\", \"changes\": [{\"what\": \"x\", \"cites\": [1]}]}",
+  "prefer": "[",
+  "value": [
+   {
+    "what": "x",
+    "cites": [
+     1
+    ]
+   }
+  ]
+ },
+ {
+  "text": "{\"a\": \"\\u00e9\\ud83d\\ude00\", \"b\": 1e3, \"c\": -0.0, \"d\": 12345678901234567890}",
+  "prefer": "{",
+  "value": {
+   "a": "é😀",
+   "b": 1000.0,
+   "c": -0.0,
+   "d": 12345678901234567890
+  }
+ },
+ {
+  "text": "{\"a\": \"\\u00e9\\ud83d\\ude00\", \"b\": 1e3, \"c\": -0.0, \"d\": 12345678901234567890}",
+  "prefer": "[",
+  "value": {
+   "a": "é😀",
+   "b": 1000.0,
+   "c": -0.0,
+   "d": 12345678901234567890
+  }
+ },
+ {
+  "text": "{\"a\": [1, 2,]} {\"b\": 2}",
+  "prefer": "{",
+  "value": {
+   "b": 2
+  }
+ },
+ {
+  "text": "{\"a\": [1, 2,]} {\"b\": 2}",
+  "prefer": "[",
+  "value": {
+   "b": 2
+  }
+ },
+ {
+  "text": "{\"dup\": 1, \"dup\": 2, \"x\": null}",
+  "prefer": "{",
+  "value": {
+   "dup": 2,
+   "x": null
+  }
+ },
+ {
+  "text": "{\"dup\": 1, \"dup\": 2, \"x\": null}",
+  "prefer": "[",
+  "value": {
+   "dup": 2,
+   "x": null
+  }
+ },
+ {
+  "text": "{\"a\": \"unterminated",
+  "prefer": "{",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"a\": \"unterminated",
+  "prefer": "[",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"a\" 1} {\"ok\": [true, false]}",
+  "prefer": "{",
+  "value": {
+   "ok": [
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "text": "{\"a\" 1} {\"ok\": [true, false]}",
+  "prefer": "[",
+  "value": [
+   true,
+   false
+  ]
+ },
+ {
+  "text": "text ```json\n{\"bad\": }\n``` then {\"good\": 1}",
+  "prefer": "{",
+  "value": {
+   "good": 1
+  }
+ },
+ {
+  "text": "text ```json\n{\"bad\": }\n``` then {\"good\": 1}",
+  "prefer": "[",
+  "value": {
+   "good": 1
+  }
+ },
+ {
+  "text": "{\"a\": \"\\x\"} {\"b\": 1}",
+  "prefer": "{",
+  "value": {
+   "b": 1
+  }
+ },
+ {
+  "text": "{\"a\": \"\\x\"} {\"b\": 1}",
+  "prefer": "[",
+  "value": {
+   "b": 1
+  }
+ },
+ {
+  "text": "   [ ]   ",
+  "prefer": "{",
+  "value": []
+ },
+ {
+  "text": "   [ ]   ",
+  "prefer": "[",
+  "value": []
+ },
+ {
+  "text": "{\"n\": 01}",
+  "prefer": "{",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"n\": 01}",
+  "prefer": "[",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"n\": .5}",
+  "prefer": "{",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"n\": .5}",
+  "prefer": "[",
+  "error": "no JSON value found in the reply"
+ },
+ {
+  "text": "{\"a\": {\"b\": {\"c\": {\"d\": [[[]]]}}}}",
+  "prefer": "{",
+  "value": {
+   "a": {
+    "b": {
+     "c": {
+      "d": [
+       [
+        []
+       ]
+      ]
+     }
+    }
+   }
+  }
+ },
+ {
+  "text": "{\"a\": {\"b\": {\"c\": {\"d\": [[[]]]}}}}",
+  "prefer": "[",
+  "value": [
+   [
+    []
+   ]
+  ]
+ },
+ {
+  "text": "{\"key\": \"val\u0001ue\"}",
+  "prefer": "{",
+  "value": {
+   "key": "val\u0001ue"
+  }
+ },
+ {
+  "text": "{\"key\": \"val\u0001ue\"}",
+  "prefer": "[",
+  "value": {
+   "key": "val\u0001ue"
+  }
+ },
+ {
+  "text": "{\"é\": \"中\"}",
+  "prefer": "{",
+  "value": {
+   "é": "中"
+  }
+ },
+ {
+  "text": "{\"é\": \"中\"}",
+  "prefer": "[",
+  "value": {
+   "é": "中"
+  }
+ },
+ {
+  "text": "[{\"a\": 1}, {\"b\": 2}]",
+  "prefer": "{",
+  "value": {
+   "a": 1
+  }
+ },
+ {
+  "text": "[{\"a\": 1}, {\"b\": 2}]",
+  "prefer": "[",
+  "value": [
+   {
+    "a": 1
+   },
+   {
+    "b": 2
+   }
+  ]
+ }
+]

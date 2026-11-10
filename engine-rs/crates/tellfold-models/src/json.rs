@@ -179,6 +179,42 @@ impl Formatter for PyDumps {
     }
 }
 
+/// `json.dumps(value)` with Python's default `ensure_ascii=True`: non-ASCII characters as `\\uXXXX` escapes
+/// (surrogate pairs above the BMP).
+pub fn py_dumps_ascii<T: Serialize + ?Sized>(value: &T) -> String {
+    write_with(value, PyDumpsAscii)
+}
+
+struct PyDumpsAscii;
+
+impl Formatter for PyDumpsAscii {
+    fn begin_array_value<W: ?Sized + Write>(&mut self, w: &mut W, first: bool) -> io::Result<()> {
+        PyDumps.begin_array_value(w, first)
+    }
+    fn begin_object_key<W: ?Sized + Write>(&mut self, w: &mut W, first: bool) -> io::Result<()> {
+        PyDumps.begin_object_key(w, first)
+    }
+    fn begin_object_value<W: ?Sized + Write>(&mut self, w: &mut W) -> io::Result<()> {
+        PyDumps.begin_object_value(w)
+    }
+    fn write_f64<W: ?Sized + Write>(&mut self, w: &mut W, value: f64) -> io::Result<()> {
+        PyDumps.write_f64(w, value)
+    }
+    fn write_string_fragment<W: ?Sized + Write>(&mut self, w: &mut W, fragment: &str) -> io::Result<()> {
+        let mut units = [0u16; 2];
+        for c in fragment.chars() {
+            if c.is_ascii() {
+                w.write_all(&[c as u8])?;
+            } else {
+                for unit in c.encode_utf16(&mut units) {
+                    write!(w, "\\u{unit:04x}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

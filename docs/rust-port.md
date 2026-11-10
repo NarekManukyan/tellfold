@@ -51,7 +51,7 @@ CLI are the only crates that know about tokio's runtime setup.
 
 | Python | Rust | notes |
 |---|---|---|
-| pydantic | `serde`, `serde_json` (`preserve_order`), `indexmap`, `schemars` | output must match `model_dump_json` byte for byte; see "JSON" below |
+| pydantic | `serde`, `serde_json` (`preserve_order`), `indexmap` | output must match `model_dump_json` byte for byte; schemas are pydantic's, checked in; see "JSON" below |
 | FastAPI, uvicorn, python-multipart | `axum`, `tower-http`, `tokio`, axum `multipart` | SSE through `axum::response::sse` |
 | typer, rich | `clap` (derive), `indicatif` + `console` for the live view, `comfy-table` for tables | `NO_COLOR` honoured as now |
 | jinja2 | `minijinja` | `templates/report.html` is ported as it is; filters re-implemented where minijinja differs |
@@ -95,15 +95,20 @@ servers and the Anthropic and OpenAI APIs. Each adapter is ported with the same 
   `None`, keeps dict insertion order (`IndexMap`), and copies `write_json`'s list layout (`[\n` + items at column 0
   joined by `,\n` + `\n]\n`).
 - **Python `json.dumps`** output (memory notes in `world.db`, `calls.jsonl`, the schema inside JSON-mode prompts)
-  uses `", "` and `": "` separators and Python's float repr. `tellfold-models::pyjson` reproduces it.
+  uses `", "` and `": "` separators and Python's float repr. `tellfold_models::json::py_dumps` reproduces it.
 - **Reading** follows pydantic's lax mode where models (or older files) need it: integers from integral floats and
   numeric strings, floats from integers and numeric strings, booleans from `"true"`/`"false"`/`0`/`1`; unknown
   fields ignored; `null` refused where the field is not optional.
 - **`extract_json`** keeps `JSONDecoder(strict=False)`: raw line breaks and tabs inside strings are accepted, the
   fenced blocks are tried before the whole text, and the preferred opener (`{` or `[`) wins.
 - **Schemas** sent to models must be the ones pydantic produces today, because their text is part of the prompt.
-  `schemars` generates them; a golden test compares each with `model_json_schema()` from Python. Where attributes
-  cannot make the two agree, the pydantic schema is checked in and used as is.
+  pydantic's output carries docstrings, field titles and defaults that no derive macro reproduces exactly, so the
+  schemas are checked in: `golden/make.py` writes `engine-rs/schemas/<Class>.json` from `model_json_schema()`, the
+  crates embed them, and a test checks each Rust type writes exactly the schema's properties. When a Python model
+  changes, its schema file is regenerated in the same pull request.
+- **Validation messages** differ. Python's repair prompt quotes pydantic's `ValidationError` text after
+  `Problem:`; Rust quotes serde's message (`missing field \`n\``). The rest of the repair prompt is identical. Only
+  the second attempt of an already failing call sees this text.
 
 ## RNG
 
@@ -155,7 +160,9 @@ paths of temporary folders. Nothing else.
 
 ## Risks
 
-- **PDF text.** No Rust crate extracts text exactly like MuPDF. Chunks from PDFs may differ in whitespace and
+- **PDF text.** No Rust crate extracts text exactly like MuPDF. Measured in milestone 2 on a generated PDF:
+  `pdf-extract` returns the same words in the same order, but puts a blank line between lines that MuPDF keeps on
+  consecutive lines, so a PDF's paragraphs (and so its chunks) can differ. Chunks from PDFs may differ in whitespace and
   reading order, which changes graph prompts for PDF seeds (not for pasted text or Markdown). Milestone 2 measures
   this on real PDFs; if `pdf-extract` is poor, `pdfium-render` with a bundled pdfium (about 5 MB) is the fallback.
   Existing runs are not affected: they keep their chunks' results in `graph.json`.

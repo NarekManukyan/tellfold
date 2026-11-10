@@ -15,11 +15,16 @@ checkouts.
 
 - `tellfold-models`: the shared types of `tellfold/models.py`, pydantic-compatible JSON in and out.
 - `tellfold-store`: run folders, `world.db` (`World`, `RunReader`), studies on disk and the call estimate.
+- `tellfold-llm`: the `Llm` trait, `FakeLlm` with purpose routing, `extract_json`, `AdapterLlm` (retries, repair,
+  `calls.jsonl`), and seed loading and chunking.
+
+`schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
+the prompts, so Rust embeds them as they are.
 
 ## Golden fixtures
 
 `golden/fixtures/` holds what the Python engine returns for the same inputs. Regenerate them from the repository
-root when the Python behaviour they pin changes, in the same pull request:
+root when the Python behaviour they pin changes, in the same pull request (this also rewrites `schemas/`):
 
 ```bash
 uv run python engine-rs/golden/make.py
