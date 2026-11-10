@@ -78,7 +78,78 @@ nonisolated struct InlineDocument: Hashable, Sendable {
 nonisolated struct SeedFolder: Identifiable, Equatable, Sendable {
     var url: URL
     var files: [URL]
+    var bytes: Int = 0
     var id: URL { url }
+}
+
+/// What adding files and folders to the New Simulation sheet found. `scan` does all the disk work, so the sheet
+/// runs it off the main thread.
+nonisolated struct SeedScan: Sendable {
+    var files: [URL] = []
+    var folders: [SeedFolder] = []
+    var bytes: [URL: Int] = [:]
+    var rejected: [String] = []
+    var leftOut: [String] = []
+
+    var message: String? {
+        var parts: [String] = []
+        if !rejected.isEmpty {
+            parts.append("Skipped: \(rejected.joined(separator: ", ")). Use .md, .txt or .pdf, or a folder of them.")
+        }
+        if !leftOut.isEmpty { parts.append("Left out: \(leftOut.joined(separator: ", ")).") }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
+    }
+
+    /// Adds as many documents as the run limits allow on top of `existing` (already `existingBytes` in size).
+    static func scan(_ urls: [URL], existing: Set<URL>, existingBytes: Int, knownFolders: Set<URL>) -> SeedScan {
+        var result = SeedScan()
+        var taken = existing
+        var total = existingBytes
+        func size(_ url: URL) -> Int { (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0 }
+        func fit(_ candidates: [URL]) -> [URL] {
+            var kept: [URL] = []
+            var tooBig = 0
+            var overLimit = false
+            for url in candidates where !taken.contains(url) {
+                let bytes = size(url)
+                if bytes > NewRunRequest.maxFileBytes { tooBig += 1; continue }
+                guard taken.count < NewRunRequest.maxFiles, total + bytes <= NewRunRequest.maxTotalBytes else {
+                    overLimit = true
+                    break
+                }
+                kept.append(url)
+                taken.insert(url)
+                result.bytes[url] = bytes
+                total += bytes
+            }
+            if tooBig > 0 { result.leftOut.append("\(tooBig) over 20 MB") }
+            if overLimit {
+                result.leftOut.append("anything past \(NewRunRequest.maxFiles) files or 100 MB in total")
+            }
+            return kept
+        }
+        for url in urls {
+            if AppModel.isFolder(url) {
+                guard !knownFolders.contains(url), !result.folders.contains(where: { $0.url == url }) else { continue }
+                // One past the limit is enough to know there is more than fits.
+                let found = AppModel.seedFiles(inFolder: url, limit: NewRunRequest.maxFiles + 1)
+                if found.isEmpty {
+                    result.rejected.append("\(url.lastPathComponent) (no .md, .txt or .pdf inside)")
+                    continue
+                }
+                let kept = fit(found)
+                if !kept.isEmpty {
+                    result.folders.append(SeedFolder(url: url, files: kept,
+                                                     bytes: kept.reduce(0) { $0 + (result.bytes[$1] ?? 0) }))
+                }
+            } else if AppModel.isSeedFile(url) {
+                result.files.append(contentsOf: fit([url]))
+            } else {
+                result.rejected.append(url.lastPathComponent)
+            }
+        }
+        return result
+    }
 }
 
 nonisolated struct NewSimulationPrefill: Equatable, Sendable {

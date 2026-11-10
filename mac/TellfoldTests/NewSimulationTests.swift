@@ -274,6 +274,24 @@ struct NewSimulationTests {
         #expect(names == ["guides/faq.txt", "guides/setup.md", "README.md"])
     }
 
+    @Test func scanningStopsAtTheFileLimitAndSaysWhatWasLeftOut() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "seed-scan-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        for i in 0..<(NewRunRequest.maxFiles + 30) {
+            try "doc \(i)".write(to: root.appending(path: "doc\(i).md"), atomically: true, encoding: .utf8)
+        }
+        let loose = root.appending(path: "notes.swift")
+        try "x".write(to: loose, atomically: true, encoding: .utf8)
+        let scan = SeedScan.scan([root, loose], existing: [], existingBytes: 0, knownFolders: [])
+        #expect(scan.folders.count == 1 && scan.folders[0].files.count == NewRunRequest.maxFiles)
+        #expect(scan.folders[0].bytes == scan.folders[0].files.reduce(0) { $0 + (scan.bytes[$1] ?? 0) })
+        #expect(scan.rejected == ["notes.swift"])
+        #expect(scan.message?.contains("past \(NewRunRequest.maxFiles) files") == true)
+        // The same folder twice adds nothing.
+        #expect(SeedScan.scan([root], existing: [], existingBytes: 0, knownFolders: [root]).folders.isEmpty)
+    }
+
     // MARK: cost
 
     @Test func costLineNamesTheCallsAndWhereTheyGo() {

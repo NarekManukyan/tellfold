@@ -84,10 +84,12 @@ struct NewRunRequest: Hashable, Sendable {
     }
 
     /// Rough chunk count for the estimate: ~1,600 characters per chunk, PDFs yield ~30 % text per byte.
-    static func estimatedChunks(files: [URL], inlineDocuments: [InlineDocument] = []) -> Int {
+    /// `sizes` are file sizes already known, so the estimate doesn't read the disk for them.
+    static func estimatedChunks(files: [URL], sizes: [URL: Int] = [:],
+                                inlineDocuments: [InlineDocument] = []) -> Int {
         var chars = Double(inlineDocuments.reduce(0) { $0 + $1.data.count })
         for url in files {
-            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            let size = sizes[url] ?? (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
             chars += url.pathExtension.lowercased() == "pdf" ? Double(size) * 0.3 : Double(size)
         }
         return max(1, Int((chars / 1600).rounded(.up)))

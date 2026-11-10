@@ -348,12 +348,13 @@ final class AppModel {
 
     /// Folders never worth reading as seeds: version control, dependencies and build output.
     nonisolated static let skippedFolderNames: Set<String> = [
-        ".git", ".build", ".venv", "venv", "__pycache__", "node_modules", "Pods", "DerivedData", "build", "dist", "vendor",
+        ".git", ".build", ".venv", "venv", "__pycache__", "node_modules", "Pods", "Carthage", "DerivedData",
+        "build", "dist", "out", "target", "coverage", "vendor",
     ]
 
-    /// Every non-empty seed document in `folder` and its subfolders, in path order. Hidden files, packages and the
-    /// folders in `skippedFolderNames` are left out.
-    nonisolated static func seedFiles(inFolder folder: URL) -> [URL] {
+    /// Non-empty seed documents in `folder` and its subfolders, in path order, stopping once `limit` are found so a
+    /// huge tree isn't walked to the end. Hidden files, packages and the folders in `skippedFolderNames` are left out.
+    nonisolated static func seedFiles(inFolder folder: URL, limit: Int = .max) -> [URL] {
         let keys: [URLResourceKey] = [.isDirectoryKey, .fileSizeKey]
         guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: keys,
                                                           options: [.skipsHiddenFiles, .skipsPackageDescendants])
@@ -365,6 +366,7 @@ final class AppModel {
                 if skippedFolderNames.contains(url.lastPathComponent) { walker.skipDescendants() }
             } else if isSeedFile(url), (values?.fileSize ?? 0) > 0 {
                 found.append(url)
+                if found.count >= limit { break }
             }
         }
         return found.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }

@@ -13,6 +13,9 @@ struct NewSimulationSheet: View {
     @State private var files: [URL] = []
     /// Folders added whole: each keeps the documents found in it and shows as one row.
     @State private var folders: [SeedFolder] = []
+    /// File sizes read once when files are added, so the sheet never touches the disk while it redraws.
+    @State private var fileBytes: [URL: Int] = [:]
+    @State private var scanning = false
     /// Names of an earlier run's seed documents that could not be loaded again.
     @State private var missingSeedNames: [String] = []
     @State private var agents = SizePreset.default.agents
@@ -200,7 +203,7 @@ struct NewSimulationSheet: View {
             } else {
                 ForEach(folders) { folder in
                     seedRow(icon: "folder", name: folder.url.lastPathComponent,
-                            detail: "\(folder.files.count) \(folder.files.count == 1 ? "file" : "files") · \(sizeText(folder.files))",
+                            detail: "\(folder.files.count) \(folder.files.count == 1 ? "file" : "files") · \(ByteCountFormatter.string(fromByteCount: Int64(folder.bytes), countStyle: .file))",
                             removeLabel: "Remove folder \(folder.url.lastPathComponent)") {
                         folders.removeAll { $0.id == folder.id }
                     }
@@ -213,7 +216,14 @@ struct NewSimulationSheet: View {
                     }
                 }
             }
+            if scanning {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Reading the folder…").font(Theme.small).foregroundStyle(Theme.muted)
+                }
+            }
             Button("Choose files or a folder…") { showsImporter = true }
+                .disabled(scanning)
                 .buttonStyle(.console(.secondary, compact: true))
         }
         .padding(Theme.space3)
@@ -548,7 +558,7 @@ struct NewSimulationSheet: View {
         let text = NewSimulationRules.trimmed(descriptionText)
         guard NewSimulationRules.hasMaterial(description: text, fileCount: allFiles.count),
               !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
-        let chunks = NewRunRequest.estimatedChunks(files: allFiles, inlineDocuments: text.isEmpty ? [] : [.description(text)])
+        let chunks = NewRunRequest.estimatedChunks(files: allFiles, sizes: fileBytes, inlineDocuments: text.isEmpty ? [] : [.description(text)])
         let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
         return NewSimulationRules.costLine(
             agentCalls: split.agent, plannerCalls: split.planner,
@@ -557,57 +567,29 @@ struct NewSimulationSheet: View {
     }
 
     private func sizeText(_ url: URL) -> String {
-        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
+        ByteCountFormatter.string(fromByteCount: Int64(fileBytes[url] ?? 0), countStyle: .file)
     }
 
     /// Every document the run sends: the files added one by one, then each added folder's documents.
     private var allFiles: [URL] { files + folders.flatMap(\.files) }
 
-    private func sizeText(_ urls: [URL]) -> String {
-        let total = urls.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
-        return ByteCountFormatter.string(fromByteCount: Int64(total), countStyle: .file)
-    }
-
+    /// Reads folders and file sizes off the main thread, then adds what fits within the limits.
     private func add(_ urls: [URL]) {
-        var rejected: [String] = []
-        var notes: [String] = []
-        var total = allFiles.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
-        var room: Int { NewRunRequest.maxFiles - allFiles.count }
-        // Takes as many documents as the limits allow and says how many were left out.
-        func fit(_ candidates: [URL]) -> [URL] {
-            var kept: [URL] = []
-            var skippedBig = 0
-            for url in candidates where !allFiles.contains(url) && !kept.contains(url) {
-                let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-                if size > NewRunRequest.maxFileBytes { skippedBig += 1; continue }
-                guard kept.count < room, total + size <= NewRunRequest.maxTotalBytes else { break }
-                kept.append(url)
-                total += size
-            }
-            if skippedBig > 0 { notes.append("\(skippedBig) over 20 MB") }
-            let left = candidates.count - kept.count - skippedBig
-            if left > 0 { notes.append("\(left) more than the limit of \(NewRunRequest.maxFiles) files or 100 MB") }
-            return kept
+        let existing = Set(allFiles)
+        let existingBytes = existing.reduce(0) { $0 + (fileBytes[$1] ?? 0) }
+        let knownFolders = Set(folders.map(\.url))
+        scanning = true
+        Task {
+            let scan = await Task.detached(priority: .userInitiated) {
+                SeedScan.scan(urls, existing: existing, existingBytes: existingBytes, knownFolders: knownFolders)
+            }.value
+            scanning = false
+            fileBytes.merge(scan.bytes) { _, new in new }
+            files.append(contentsOf: scan.files)
+            folders.append(contentsOf: scan.folders)
+            if !allFiles.isEmpty { aboutMode = .files }
+            errorMessage = scan.message
         }
-        for url in urls {
-            if AppModel.isFolder(url) {
-                guard !folders.contains(where: { $0.url == url }) else { continue }
-                let found = AppModel.seedFiles(inFolder: url)
-                if found.isEmpty { rejected.append("\(url.lastPathComponent) (no .md, .txt or .pdf inside)"); continue }
-                let kept = fit(found)
-                if !kept.isEmpty { folders.append(SeedFolder(url: url, files: kept)) }
-            } else if AppModel.isSeedFile(url) {
-                files.append(contentsOf: fit([url]))
-            } else {
-                rejected.append(url.lastPathComponent)
-            }
-        }
-        if !allFiles.isEmpty { aboutMode = .files }
-        var message: [String] = []
-        if !rejected.isEmpty { message.append("Skipped: \(rejected.joined(separator: ", ")). Use .md, .txt or .pdf, or a folder of them.") }
-        if !notes.isEmpty { message.append("Left out: \(notes.joined(separator: ", ")).") }
-        errorMessage = message.isEmpty ? nil : message.joined(separator: " ")
     }
 
     private func prepare() async {

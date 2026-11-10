@@ -81,7 +81,8 @@ ProcessRunner = Callable[..., Awaitable[ProcessResult]]
 
 
 async def run_process(argv: list[str], *, stdin: str | None, cwd: str, env: dict[str, str]) -> ProcessResult:
-    """Spawn without a shell in its own process group; kill the whole group if we are cancelled."""
+    """Spawn without a shell in its own process group; kill the whole group if we are cancelled, and end anything
+    the tool left running in it once it exits."""
     proc = await asyncio.create_subprocess_exec(
         *argv,
         stdin=asyncio.subprocess.PIPE if stdin is not None else asyncio.subprocess.DEVNULL,
@@ -104,8 +105,16 @@ async def run_process(argv: list[str], *, stdin: str | None, cwd: str, env: dict
     finally:
         with _live_lock:
             _live_groups.discard(proc.pid)
+    _end_group(proc.pid)
     return ProcessResult(proc.returncode if proc.returncode is not None else -1,
                          out.decode("utf-8", "replace"), err.decode("utf-8", "replace"))
+
+
+def _end_group(pgid: int) -> None:
+    """Stop whatever the tool left running in its process group after it exited. Cursor Agent leaves a node
+    worker behind after every call (about 150 MB each, for minutes), which piles up over a run."""
+    with contextlib.suppress(ProcessLookupError, PermissionError, OSError):
+        os.killpg(pgid, signal.SIGTERM)
 
 
 def _kill_group(proc: asyncio.subprocess.Process) -> None:

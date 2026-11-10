@@ -9,8 +9,10 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import signal
 import stat
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -525,6 +527,23 @@ def test_live_process_groups_are_tracked_and_killed(tmp_path: Path) -> None:
     live, result = asyncio.run(scenario())
     assert len(live) == 1 and result.returncode == -9
     assert cli_tools.live_process_groups() == set()
+
+
+def test_processes_a_tool_leaves_behind_are_ended(tmp_path: Path) -> None:
+    pid_file = tmp_path / "worker.pid"
+    script = make_script(tmp_path / "bin", "tool", f"sleep 30 >/dev/null 2>&1 &\necho $! > {pid_file}\necho done")
+    result = asyncio.run(cli_tools.run_process([str(script)], stdin=None, cwd=str(tmp_path), env=dict(os.environ)))
+    assert result.returncode == 0 and result.stdout.strip() == "done"
+    worker = int(pid_file.read_text().strip())
+    for _ in range(100):  # SIGTERM lands asynchronously
+        try:
+            os.kill(worker, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.02)
+    else:
+        os.kill(worker, signal.SIGKILL)
+        raise AssertionError("the background worker outlived the call")
 
 
 def test_parse_json_reply_errors() -> None:
