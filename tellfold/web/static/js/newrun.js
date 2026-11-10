@@ -60,7 +60,7 @@ export const PRESETS = [
 
 const ACCEPT = [".pdf", ".md", ".markdown", ".txt"];
 const MAX_BYTES = 20 * 1024 * 1024;
-const MAX_FILES = 20;
+const MAX_FILES = 100;
 const MIN_DESCRIBE = 40;
 const MIN_QUESTION = 8;
 const DESCRIPTION_NAME = "description.md";

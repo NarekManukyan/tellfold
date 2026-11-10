@@ -74,6 +74,13 @@ nonisolated struct InlineDocument: Hashable, Sendable {
 
 /// What the sheet opens with when it is not a blank start: a question from the empty-state card, or a finished run's
 /// configuration for "Run again…".
+/// A folder added to the New Simulation sheet whole, with the documents found in it.
+nonisolated struct SeedFolder: Identifiable, Equatable, Sendable {
+    var url: URL
+    var files: [URL]
+    var id: URL { url }
+}
+
 nonisolated struct NewSimulationPrefill: Equatable, Sendable {
     var question = ""
     /// Text for the "Describe it" box.

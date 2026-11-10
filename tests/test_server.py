@@ -247,6 +247,8 @@ def test_upload_validation(client: TestClient, runs_dir: Path) -> None:
     assert post({"events": json.dumps([{"round": 9, "content": "late"}])}, good) == 400
     big = b"x" * (20 * 1024 * 1024 + 1)
     assert post({}, [("files[]", ("big.txt", big, "text/plain"))]) == 413
+    too_many = [("files[]", (f"doc{i}.md", b"# doc", "text/markdown")) for i in range(101)]
+    assert post({}, too_many) == 400  # a folder of docs may send up to 100 files
     assert client.get("/api/runs").json() == []
     assert [p for p in runs_dir.iterdir()] == []  # failed uploads leave no run directory behind
 

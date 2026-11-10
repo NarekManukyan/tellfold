@@ -248,6 +248,32 @@ struct NewSimulationTests {
         }
     }
 
+    // MARK: folders
+
+    @Test func aFolderAddsItsDocumentsButNotDependenciesHiddenOrEmptyFiles() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "seed-folder-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        func write(_ path: String, _ text: String) throws {
+            let url = root.appending(path: path)
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try text.write(to: url, atomically: true, encoding: .utf8)
+        }
+        try write("README.md", "# Project")
+        try write("guides/setup.md", "Install it.")
+        try write("guides/faq.txt", "Questions.")
+        try write("guides/empty.md", "")
+        try write("guides/notes.swift", "let x = 1")
+        try write(".hidden/secret.md", "no")
+        try write("node_modules/pkg/README.md", "no")
+        try write("build/out.md", "no")
+        #expect(AppModel.isFolder(root))
+        let base = root.resolvingSymlinksInPath().path + "/"
+        let names = AppModel.seedFiles(inFolder: root).map {
+            $0.resolvingSymlinksInPath().path.replacingOccurrences(of: base, with: "")
+        }
+        #expect(names == ["guides/faq.txt", "guides/setup.md", "README.md"])
+    }
+
     // MARK: cost
 
     @Test func costLineNamesTheCallsAndWhereTheyGo() {

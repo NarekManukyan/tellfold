@@ -57,7 +57,9 @@ struct NewRunRequest: Hashable, Sendable {
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
-    static let maxFiles = 20
+    /// The engine's limits (`MAX_FILES` and `MAX_TOTAL_BYTES` in tellfold/server/app.py).
+    static let maxFiles = 100
+    static let maxTotalBytes = 100 * 1024 * 1024
 
     /// Share of the crowd expected to act in a round (`ESTIMATED_ACTIVE_SHARE` in tellfold/runner.py).
     static let estimatedActiveShare = 0.4

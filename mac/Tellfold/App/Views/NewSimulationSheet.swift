@@ -11,6 +11,8 @@ struct NewSimulationSheet: View {
     @State private var aboutMode: AboutMode = .describe
     @State private var descriptionText = ""
     @State private var files: [URL] = []
+    /// Folders added whole: each keeps the documents found in it and shows as one row.
+    @State private var folders: [SeedFolder] = []
     /// Names of an earlier run's seed documents that could not be loaded again.
     @State private var missingSeedNames: [String] = []
     @State private var agents = SizePreset.default.agents
@@ -89,7 +91,7 @@ struct NewSimulationSheet: View {
         }
         .background(Theme.ground)
         .frame(minWidth: 620, idealWidth: 680, minHeight: 600, idealHeight: 780)
-        .fileImporter(isPresented: $showsImporter, allowedContentTypes: AppModel.seedContentTypes,
+        .fileImporter(isPresented: $showsImporter, allowedContentTypes: AppModel.seedContentTypes + [.folder],
                       allowsMultipleSelection: true) { result in
             if case .success(let urls) = result { add(urls) }
         }
@@ -150,7 +152,7 @@ struct NewSimulationSheet: View {
             .fixedSize()
             .accessibilityLabel("How to give it material")
 
-            if !missingSeedNames.isEmpty && files.isEmpty && descriptionText.isEmpty {
+            if !missingSeedNames.isEmpty && allFiles.isEmpty && descriptionText.isEmpty {
                 Text("Add the documents again. The last run used \(missingSeedNames.joined(separator: ", ")).")
                     .font(Theme.small)
                     .foregroundStyle(Theme.secondary)
@@ -163,8 +165,8 @@ struct NewSimulationSheet: View {
                               placeholder: "Paste a product description, a pricing page, an announcement or your notes.",
                               minHeight: 132, fontSize: 13, label: "Description")
                     .focused($focus, equals: .description)
-                if !files.isEmpty {
-                    sideNote("\(files.count) \(files.count == 1 ? "file is" : "files are") sent too.")
+                if !allFiles.isEmpty {
+                    sideNote("\(allFiles.count) \(allFiles.count == 1 ? "file is" : "files are") sent too.")
                 } else if !NewSimulationRules.trimmed(descriptionText).isEmpty,
                           !NewSimulationRules.hasMaterial(description: descriptionText, fileCount: 0) {
                     sideNote("A little more detail helps. Or add a file instead.")
@@ -184,45 +186,34 @@ struct NewSimulationSheet: View {
 
     private var dropZone: some View {
         VStack(spacing: Theme.space2) {
-            if files.isEmpty {
+            if allFiles.isEmpty {
                 VStack(spacing: 6) {
                     Image(systemName: "doc.badge.plus")
                         .font(.system(size: 22))
                         .foregroundStyle(Theme.muted)
-                    Text("Drop files here").font(Theme.body).foregroundStyle(Theme.text)
-                    Text(".md, .txt or .pdf, up to 20 MB each")
+                    Text("Drop files or a folder here").font(Theme.body).foregroundStyle(Theme.text)
+                    Text(".md, .txt or .pdf, up to 20 MB each. A folder adds every document in it.")
                         .font(Theme.small)
                         .foregroundStyle(Theme.muted)
                 }
                 .frame(maxWidth: .infinity, minHeight: 88)
             } else {
-                ForEach(files, id: \.self) { url in
-                    HStack(spacing: Theme.space2) {
-                        Image(systemName: url.pathExtension.lowercased() == "pdf" ? "doc.richtext" : "doc.text")
-                            .foregroundStyle(Theme.muted)
-                        Text(url.lastPathComponent)
-                            .font(Theme.small)
-                            .foregroundStyle(Theme.text)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Spacer(minLength: Theme.space2)
-                        Text(sizeText(url)).font(Theme.mono(11)).foregroundStyle(Theme.muted)
-                        Button {
-                            files.removeAll { $0 == url }
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(Theme.muted)
-                                .frame(width: 22, height: 22)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Remove \(url.lastPathComponent)")
+                ForEach(folders) { folder in
+                    seedRow(icon: "folder", name: folder.url.lastPathComponent,
+                            detail: "\(folder.files.count) \(folder.files.count == 1 ? "file" : "files") · \(sizeText(folder.files))",
+                            removeLabel: "Remove folder \(folder.url.lastPathComponent)") {
+                        folders.removeAll { $0.id == folder.id }
                     }
-                    .frame(minHeight: 26)
+                }
+                ForEach(files, id: \.self) { url in
+                    seedRow(icon: url.pathExtension.lowercased() == "pdf" ? "doc.richtext" : "doc.text",
+                            name: url.lastPathComponent, detail: sizeText(url),
+                            removeLabel: "Remove \(url.lastPathComponent)") {
+                        files.removeAll { $0 == url }
+                    }
                 }
             }
-            Button("Choose files…") { showsImporter = true }
+            Button("Choose files or a folder…") { showsImporter = true }
                 .buttonStyle(.console(.secondary, compact: true))
         }
         .padding(Theme.space3)
@@ -231,7 +222,7 @@ struct NewSimulationSheet: View {
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radius)
                 .strokeBorder(isDropTargeted ? Theme.accent : Theme.seamStrong,
-                              style: StrokeStyle(lineWidth: 1, dash: files.isEmpty ? [5, 4] : []))
+                              style: StrokeStyle(lineWidth: 1, dash: allFiles.isEmpty ? [5, 4] : []))
         }
         .dropDestination(for: URL.self) { urls, _ in
             add(urls)
@@ -239,6 +230,31 @@ struct NewSimulationSheet: View {
         } isTargeted: { isDropTargeted = $0 }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Documents drop zone")
+    }
+
+    private func seedRow(icon: String, name: String, detail: String, removeLabel: String,
+                         remove: @escaping () -> Void) -> some View {
+        HStack(spacing: Theme.space2) {
+            Image(systemName: icon)
+                .foregroundStyle(Theme.muted)
+            Text(name)
+                .font(Theme.small)
+                .foregroundStyle(Theme.text)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer(minLength: Theme.space2)
+            Text(detail).font(Theme.mono(11)).foregroundStyle(Theme.muted)
+            Button(action: remove) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Theme.muted)
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(removeLabel)
+        }
+        .frame(minHeight: 26)
     }
 
     // MARK: Step 3: how big
@@ -512,7 +528,7 @@ struct NewSimulationSheet: View {
 
     private var disabledReason: String? {
         NewSimulationRules.disabledReason(
-            question: question, description: descriptionText, fileCount: files.count,
+            question: question, description: descriptionText, fileCount: allFiles.count,
             engineRunning: model.engine.state.isRunning,
             runtimeProblem: NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos),
             modelsChosen: !agentModel.isEmpty && !plannerModel.isEmpty)
@@ -530,9 +546,9 @@ struct NewSimulationSheet: View {
     /// The model-call estimate under the summary; nil until there is material to estimate from.
     private var costLine: String? {
         let text = NewSimulationRules.trimmed(descriptionText)
-        guard NewSimulationRules.hasMaterial(description: text, fileCount: files.count),
+        guard NewSimulationRules.hasMaterial(description: text, fileCount: allFiles.count),
               !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
-        let chunks = NewRunRequest.estimatedChunks(files: files, inlineDocuments: text.isEmpty ? [] : [.description(text)])
+        let chunks = NewRunRequest.estimatedChunks(files: allFiles, inlineDocuments: text.isEmpty ? [] : [.description(text)])
         let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
         return NewSimulationRules.costLine(
             agentCalls: split.agent, plannerCalls: split.planner,
@@ -545,16 +561,53 @@ struct NewSimulationSheet: View {
         return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
     }
 
+    /// Every document the run sends: the files added one by one, then each added folder's documents.
+    private var allFiles: [URL] { files + folders.flatMap(\.files) }
+
+    private func sizeText(_ urls: [URL]) -> String {
+        let total = urls.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+        return ByteCountFormatter.string(fromByteCount: Int64(total), countStyle: .file)
+    }
+
     private func add(_ urls: [URL]) {
         var rejected: [String] = []
-        for url in urls {
-            guard AppModel.isSeedFile(url) else { rejected.append(url.lastPathComponent); continue }
-            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-            guard size <= NewRunRequest.maxFileBytes else { rejected.append("\(url.lastPathComponent) (over 20 MB)"); continue }
-            if !files.contains(url), files.count < NewRunRequest.maxFiles { files.append(url) }
+        var notes: [String] = []
+        var total = allFiles.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+        var room: Int { NewRunRequest.maxFiles - allFiles.count }
+        // Takes as many documents as the limits allow and says how many were left out.
+        func fit(_ candidates: [URL]) -> [URL] {
+            var kept: [URL] = []
+            var skippedBig = 0
+            for url in candidates where !allFiles.contains(url) && !kept.contains(url) {
+                let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+                if size > NewRunRequest.maxFileBytes { skippedBig += 1; continue }
+                guard kept.count < room, total + size <= NewRunRequest.maxTotalBytes else { break }
+                kept.append(url)
+                total += size
+            }
+            if skippedBig > 0 { notes.append("\(skippedBig) over 20 MB") }
+            let left = candidates.count - kept.count - skippedBig
+            if left > 0 { notes.append("\(left) more than the limit of \(NewRunRequest.maxFiles) files or 100 MB") }
+            return kept
         }
-        if !files.isEmpty { aboutMode = .files }
-        errorMessage = rejected.isEmpty ? nil : "Skipped: \(rejected.joined(separator: ", ")). Use .md, .txt or .pdf."
+        for url in urls {
+            if AppModel.isFolder(url) {
+                guard !folders.contains(where: { $0.url == url }) else { continue }
+                let found = AppModel.seedFiles(inFolder: url)
+                if found.isEmpty { rejected.append("\(url.lastPathComponent) (no .md, .txt or .pdf inside)"); continue }
+                let kept = fit(found)
+                if !kept.isEmpty { folders.append(SeedFolder(url: url, files: kept)) }
+            } else if AppModel.isSeedFile(url) {
+                files.append(contentsOf: fit([url]))
+            } else {
+                rejected.append(url.lastPathComponent)
+            }
+        }
+        if !allFiles.isEmpty { aboutMode = .files }
+        var message: [String] = []
+        if !rejected.isEmpty { message.append("Skipped: \(rejected.joined(separator: ", ")). Use .md, .txt or .pdf, or a folder of them.") }
+        if !notes.isEmpty { message.append("Left out: \(notes.joined(separator: ", ")).") }
+        errorMessage = message.isEmpty ? nil : message.joined(separator: " ")
     }
 
     private func prepare() async {
@@ -603,8 +656,9 @@ struct NewSimulationSheet: View {
         }
         runtimesChosen = true
         files = prefill.seedFiles
+        folders = []
         missingSeedNames = prefill.missingSeedNames
-        if !files.isEmpty || !missingSeedNames.isEmpty { aboutMode = .files }
+        if !allFiles.isEmpty || !missingSeedNames.isEmpty { aboutMode = .files }
     }
 
     /// Fills the question, attaches the template's bundled document and plans its breaking news.
@@ -612,6 +666,7 @@ struct NewSimulationSheet: View {
         question = template.question
         if let url = template.seedURL() {
             files = [url]
+            folders = []
             descriptionText = ""
             missingSeedNames = []
             aboutMode = .files
@@ -630,7 +685,7 @@ struct NewSimulationSheet: View {
         defer { isSubmitting = false }
         let text = NewSimulationRules.trimmed(descriptionText)
         let request = NewRunRequest(
-            files: files, question: NewSimulationRules.trimmed(question), agents: agents, rounds: rounds, batch: batch,
+            files: allFiles, question: NewSimulationRules.trimmed(question), agents: agents, rounds: rounds, batch: batch,
             agentRuntime: agentRuntime, agentModel: agentModel, plannerRuntime: plannerRuntime,
             plannerModel: plannerModel, concurrency: concurrency,
             language: language,

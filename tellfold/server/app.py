@@ -55,8 +55,9 @@ INDEX_HTML = WEB_DIR / "index.html"
 
 SEED_SUFFIXES = {".pdf", ".md", ".markdown", ".txt"}
 MAX_FILE_BYTES = 20 * 1024 * 1024
-MAX_FILES = 20
-MAX_FORM_BYTES = MAX_FILES * MAX_FILE_BYTES + 1024 * 1024
+MAX_FILES = 100  # a whole folder of project docs
+MAX_TOTAL_BYTES = 100 * 1024 * 1024
+MAX_FORM_BYTES = MAX_TOTAL_BYTES + 1024 * 1024
 PING_SECONDS = 15.0
 DISCONNECT_CHECK_SECONDS = 1.0
 DEFAULT_HOSTS = ("127.0.0.1", "localhost", "::1", "testserver")
@@ -285,6 +286,7 @@ async def _save_uploads(uploads: list[UploadFile], dest: Path) -> list[Path]:
     dest.mkdir(parents=True, exist_ok=True)
     taken: set[str] = set()
     saved: list[Path] = []
+    total = 0
     for upload in uploads:
         name = safe_filename(upload.filename or "seed", taken)
         target = dest / name
@@ -294,9 +296,12 @@ async def _save_uploads(uploads: list[UploadFile], dest: Path) -> list[Path]:
                 size += len(chunk)
                 if size > MAX_FILE_BYTES:
                     raise HTTPException(413, f"{upload.filename} is larger than 20 MB")
+                if total + size > MAX_TOTAL_BYTES:
+                    raise HTTPException(413, "the seed files add up to more than 100 MB")
                 out.write(chunk)
         if size == 0:
             raise HTTPException(400, f"{upload.filename} is empty")
+        total += size
         saved.append(target)
     return saved
 

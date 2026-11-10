@@ -338,13 +338,41 @@ final class AppModel {
         UTType(filenameExtension: "md") ?? .plainText, .plainText, .pdf,
     ]
 
-    static func isSeedFile(_ url: URL) -> Bool {
+    nonisolated static func isSeedFile(_ url: URL) -> Bool {
         NewRunRequest.seedExtensions.contains(url.pathExtension.lowercased())
+    }
+
+    nonisolated static func isFolder(_ url: URL) -> Bool {
+        (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+    }
+
+    /// Folders never worth reading as seeds: version control, dependencies and build output.
+    nonisolated static let skippedFolderNames: Set<String> = [
+        ".git", ".build", ".venv", "venv", "__pycache__", "node_modules", "Pods", "DerivedData", "build", "dist", "vendor",
+    ]
+
+    /// Every non-empty seed document in `folder` and its subfolders, in path order. Hidden files, packages and the
+    /// folders in `skippedFolderNames` are left out.
+    nonisolated static func seedFiles(inFolder folder: URL) -> [URL] {
+        let keys: [URLResourceKey] = [.isDirectoryKey, .fileSizeKey]
+        guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: keys,
+                                                          options: [.skipsHiddenFiles, .skipsPackageDescendants])
+        else { return [] }
+        var found: [URL] = []
+        for case let url as URL in walker {
+            let values = try? url.resourceValues(forKeys: Set(keys))
+            if values?.isDirectory == true {
+                if skippedFolderNames.contains(url.lastPathComponent) { walker.skipDescendants() }
+            } else if isSeedFile(url), (values?.fileSize ?? 0) > 0 {
+                found.append(url)
+            }
+        }
+        return found.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
     }
 
     /// Files dropped on the Dock icon or chosen with File > Open: queue them and open the sheet.
     func openSeedFiles(_ urls: [URL]) {
-        let seeds = urls.filter(Self.isSeedFile)
+        let seeds = urls.filter { Self.isSeedFile($0) || Self.isFolder($0) }
         guard !seeds.isEmpty else { return }
         for url in seeds where !pendingSeedFiles.contains(url) { pendingSeedFiles.append(url) }
         NSApp.activate()
@@ -357,9 +385,9 @@ final class AppModel {
     func presentOpenPanel() {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
-        panel.canChooseDirectories = false
+        panel.canChooseDirectories = true
         panel.allowedContentTypes = Self.seedContentTypes
-        panel.message = "Choose seed documents (.md, .txt or .pdf) for a new simulation."
+        panel.message = "Choose documents (.md, .txt or .pdf), or a folder of them, for a new simulation."
         panel.prompt = "Use as Seeds"
         if panel.runModal() == .OK { openSeedFiles(panel.urls) }
     }
