@@ -191,7 +191,7 @@ figcaption { margin-top: 18px; color: var(--ink-3); font-size: 14px; line-height
 
 /* ---------- Section heads ---------- */
 
-.uses, .how, .report, .honest, .install, .close { padding: clamp(88px, 12vw, 160px) var(--gutter); }
+.uses, .how, .report, .compare, .honest, .install, .close { padding: clamp(88px, 12vw, 160px) var(--gutter); }
 .section-head { max-width: var(--wide); margin: 0 auto clamp(48px, 6vw, 80px); }
 h2 {
   max-width: 17em;
@@ -250,6 +250,7 @@ h2 {
 /* ---------- The report ---------- */
 
 .report { padding-top: 0; }
+.compare { padding-top: 0; }
 
 .features {
   display: grid;
