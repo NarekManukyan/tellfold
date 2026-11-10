@@ -972,6 +972,31 @@ kbd { border: 1px solid var(--border-strong); border-bottom-width: 2px; border-r
 .rep-camp .cdot { width: 10px; height: 10px; border-radius: 50%; align-self: center; }
 .rep-camp b { font-weight: 600; }
 .rep-camp p { grid-column: 2 / -1; color: var(--text-2); font-size: var(--fs-md); line-height: 1.55; }
+.rep-recs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rep-rec {
+  --k: var(--text-2);
+  display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--r-card);
+  background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--k);
+}
+.rep-rec[data-action="keep"] { --k: var(--pos); }
+.rep-rec[data-action="change"] { --k: var(--event); }
+.rep-rec[data-action="add"] { --k: var(--accent); }
+.rep-rec[data-action="drop"] { --k: var(--neg); }
+.rep-rec[data-action="test"] { --k: var(--violet); }
+.rep-rec-head { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; }
+.rep-rec-head h4 { flex: 1 1 18ch; font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
+/* The label is drawn in text ink for contrast on the tinted chip; the action's colour is on the icon, chip and edge. */
+.rec-kind {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px 0 6px; border-radius: 999px;
+  background: color-mix(in srgb, var(--k) 12%, transparent); color: var(--text);
+  font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
+}
+.rec-kind .icon { color: var(--k); }
+.rep-rec p { font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+.rep-rec .effect { color: var(--text-2); }
+.rep-rec-meta { display: grid; gap: 6px; }
+.rep-rec-meta .row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: var(--fs-sm); }
+.rep-rec-meta .note { color: var(--text-dim); min-width: 62px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .ask { display: grid; gap: 10px; padding-top: 28px; border-top: 1px solid var(--border); }
 .ask h3 { font-size: var(--fs-head); font-weight: 600; }

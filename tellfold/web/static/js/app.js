@@ -71,7 +71,20 @@ const ICONS = {
   alert: "M12 8v5M12 16.5h.01M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
   link: "M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1",
   chat: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z",
+  pencil: "M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16v4zM13.5 6.5l4 4",
+  flask: "M9 3h6M10 3v6l-5.5 9.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7.5 15h9",
 };
+
+// The five kinds of "What to do next" step in the report: label, icon, and what the label means. The labels and
+// meanings match ACTION_LABELS / ACTION_MEANINGS in tellfold/report.py (tests/test_report.py checks).
+const REC_ACTIONS = {
+  keep: { label: "Keep", icon: "check", tip: "The crowd valued this. Protect it." },
+  change: { label: "Change", icon: "pencil", tip: "This drew pushback that a change could fix." },
+  add: { label: "Add", icon: "plus", tip: "The crowd asked for this or missed it." },
+  drop: { label: "Drop", icon: "x", tip: "The crowd clearly rejected this. Don't do it." },
+  test: { label: "Test", icon: "flask", tip: "The crowd split on this. Check it with real people first." },
+};
+const REC_NOTE = "Suggestions drawn from how the simulated crowd reacted. Treat them as ideas to test with real people, not proof.";
 
 function icon(name, cls = "icon") {
   const svg = document.createElementNS(SVG_NS, "svg");
@@ -1644,10 +1657,10 @@ function mountRun(root, runId, query) {
     updateGraphChrome();
   }
 
-  function confBadge(conf) {
+  function confBadge(conf, tip = "How sure the report is, given how consistent the simulated crowd was") {
     const n = conf === "high" ? 3 : conf === "medium" ? 2 : 1;
     const word = conf ? conf[0].toUpperCase() + conf.slice(1) : "Unknown";
-    return el("span", { class: "conf", title: "How sure the report is, given how consistent the simulated crowd was" },
+    return el("span", { class: "conf", title: tip },
       `${word} confidence`, el("span", { class: "bars", "aria-hidden": "true" }, [1, 2, 3].map((i) => el("i", { class: i <= n ? "on" : "" }))));
   }
 
@@ -2085,6 +2098,15 @@ function mountRun(root, runId, query) {
       parts.push(el("section", {}, el("h3", { text: sec.title }), markdown(sec.body_markdown)));
     }
 
+    // The same rule as the Mac app's visibleRecommendations: a title and at least one citation.
+    const recs = Array.isArray(rep.recommendations) ? rep.recommendations.filter((r) => r && REC_ACTIONS[r.action]
+      && String(r.title || "").trim() && Array.isArray(r.evidence) && r.evidence.some((e) => String(e || "").trim())) : [];
+    if (recs.length) {
+      parts.push(el("section", { class: "rep-next" }, el("h3", { text: "What to do next" }),
+        el("p", { class: "note", text: REC_NOTE }),
+        el("ol", { class: "rep-recs" }, recs.map(recommendationCard))));
+    }
+
     if (!S.campsFallback && S.camps.length) {
       parts.push(el("section", { class: "minor" }, el("h3", { text: "Camps" }),
         el("div", { class: "rep-camps" }, S.camps.map((c) => el("div", { class: "rep-camp" },
@@ -2111,6 +2133,29 @@ function mountRun(root, runId, query) {
 
     parts.push(buildAsk());
     reportRoot.replaceChildren(...parts);
+  }
+
+  function recommendationCard(r) {
+    const kind = REC_ACTIONS[r.action];
+    const addressee = (a) => {
+      const p = S.personaById.get(a);
+      if (p) return el("button", { class: "chip ref", type: "button", "data-agent": a, "aria-label": `Open ${p.name}, @${p.handle}`, onclick: () => openAgent(a) }, av(a, 20), `@${p.handle}`);
+      const camp = S.camps.find((c) => c.name === a);
+      if (camp) return el("button", { class: "chip", type: "button", onclick: () => selectCamp(camp.key, { tab: true }) }, campDot(camp.color, "dot"), camp.name);
+      return el("span", { class: "tag", text: a });
+    };
+    const evidence = r.evidence.filter((e) => String(e || "").trim());
+    const addresses = Array.isArray(r.addresses) ? r.addresses : [];
+    return el("li", { class: "rep-rec", "data-action": r.action },
+      el("div", { class: "rep-rec-head" },
+        el("span", { class: "rec-kind", title: kind.tip }, icon(kind.icon, "icon sm"), kind.label),
+        inline(r.title, el("h4")),
+        r.confidence ? confBadge(r.confidence, "How sure the report is about this step, given how clearly the crowd reacted to it") : null),
+      r.why ? inline(r.why, el("p")) : null,
+      r.expected_effect ? el("p", { class: "effect" }, el("b", { text: "Likely effect: " }), inline(r.expected_effect)) : null,
+      el("div", { class: "rep-rec-meta" },
+        addresses.length ? el("div", { class: "row" }, el("span", { class: "note", text: "For" }), ...addresses.map(addressee)) : null,
+        evidence.length ? el("div", { class: "row" }, el("span", { class: "note", text: "Based on" }), ...evidence.map((e, i) => inline(e + (i < evidence.length - 1 ? "," : ""), el("span")))) : null));
   }
 
   function buildAsk() {

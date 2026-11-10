@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from pydantic.json_schema import SkipJsonSchema
+
+log = logging.getLogger(__name__)
 
 
 # ---------- knowledge graph ----------
@@ -150,6 +153,43 @@ class Camp(BaseModel):
     sentiment: float | None = None  # mean of members' scored posts, filled in by Python
 
 
+RecommendationAction = Literal["keep", "change", "add", "drop", "test"]
+# Words a model may use instead of the five actions; anything else fails validation like any other bad enum.
+_ACTION_SYNONYMS = {
+    "build": "add", "implement": "add", "introduce": "add",
+    "remove": "drop", "cut": "drop", "stop": "drop", "avoid": "drop", "don't do": "drop", "do not do": "drop",
+    "fix": "change", "rework": "change", "reword": "change", "adjust": "change", "modify": "change",
+    "protect": "keep", "continue": "keep",
+    "experiment": "test", "validate": "test", "try": "test", "pilot": "test", "investigate": "test",
+    "research": "test", "explore": "test", "check": "test",
+}
+
+
+class Recommendation(BaseModel):
+    """One evidence-backed next step drawn from how the simulated crowd reacted."""
+
+    action: RecommendationAction  # keep, change, add, drop or test
+    title: str  # short imperative, e.g. "Keep the free tier for students"
+    why: str = ""  # one or two sentences, with citations
+    addresses: list[str] = Field(default_factory=list)  # camp names or persona ids it responds to
+    evidence: list[str] = Field(default_factory=list)  # citations, each "#12" or "@handle"
+    expected_effect: str = ""  # how the crowd's reaction would likely change
+    confidence: Literal["low", "medium", "high"] | None = None  # None when the model gave none: no rating is shown
+
+    @field_validator("action", mode="before")
+    @classmethod
+    def _action(cls, value: object) -> object:
+        if isinstance(value, str):
+            key = " ".join(value.strip().lower().replace("’", "'").split())
+            return _ACTION_SYNONYMS.get(key, key)
+        return value
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def _confidence(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
+
+
 class Misquote(BaseModel):
     post_id: int
     quote: str
@@ -183,8 +223,23 @@ class Report(BaseModel):
     camps: list[Camp] = Field(default_factory=list)  # 2-5 opinion camps covering every agent
     risks: list[str] = Field(default_factory=list)
     caveats: list[str] = Field(default_factory=list)
+    recommendations: list[Recommendation] = Field(default_factory=list)  # 3-6 next steps; empty in older reports
     # Filled in by Python, never asked of the model (kept out of the JSON schema). None in older reports.
     citation_audit: SkipJsonSchema[CitationAudit | None] = None
+
+    @field_validator("recommendations", mode="before")
+    @classmethod
+    def _drop_bad_recommendations(cls, value: object) -> object:
+        """One step with an unknown action or a missing title is left out instead of failing the whole report."""
+        if not isinstance(value, list):
+            return value
+        kept = []
+        for item in value:
+            try:
+                kept.append(Recommendation.model_validate(item))
+            except ValidationError as e:
+                log.info("dropping a recommendation that does not validate: %s", e)
+        return kept
 
 
 class RewriteChange(BaseModel):

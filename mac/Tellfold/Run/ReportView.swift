@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// The full report in a readable column: verdict, prediction with its confidence, the narrative sections, key voices,
-/// risks and caveats, with `@handle` and `#id` citations as links; plus an "Ask about this outcome" field, Rebuild, the
+/// The full report in a readable column: verdict, prediction with its confidence, the narrative sections, what to do
+/// next, key voices, risks and caveats, with `@handle` and `#id` citations as links; plus an "Ask about this outcome" field, Rebuild, the
 /// standalone page, PDF export and the run folder.
 struct ReportView: View {
     let store: RunStore
@@ -192,6 +192,24 @@ struct ReportView: View {
             }
         }
 
+        let steps = report.visibleRecommendations
+        if !steps.isEmpty {
+            let groups = CampGrouping.groups(report: report, personas: store.personas).groups
+            section("What to do next", level: .primary) {
+                Text(Recommendation.note)
+                    .font(Theme.small)
+                    .foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: Theme.space3) {
+                    ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
+                        RecommendationCard(store: store, step: step, linkifier: linkifier,
+                                           groups: groups,
+                                           tryChange: tryChange(step))
+                    }
+                }
+            }
+        }
+
         if !report.keyVoices.isEmpty {
             section("Key voices", level: .secondary) {
                 RunFlowLayout(spacing: 14, lineSpacing: 8) {
@@ -219,6 +237,14 @@ struct ReportView: View {
                     .foregroundStyle(Theme.muted)
             }
         }
+    }
+
+    /// Opens "Try this change": a new version of this run with the same people and text and the step announced at
+    /// round 1, compared with this run in a study. Nil when the step is not a change to the plan or the run is still
+    /// going.
+    private func tryChange(_ step: Recommendation) -> (() -> Void)? {
+        guard step.action.canTry, !store.isLive, let config = store.config else { return nil }
+        return { app.tryChange(runID: store.runID, config: config, step: step) }
     }
 
     private enum HeadingLevel { case primary, secondary }
@@ -349,6 +375,141 @@ struct ReportView: View {
                     .buttonStyle(.consolePrimary)
                     .disabled(store.latestRound == 0)
             }
+        }
+    }
+}
+
+// MARK: - what to do next
+
+/// One "What to do next" step: the kind of step with its icon, the title, its confidence, why, the likely effect, who
+/// it is for and the posts and people behind it.
+private struct RecommendationCard: View {
+    let store: RunStore
+    let step: Recommendation
+    let linkifier: RunLinkifier
+    let groups: [CampGroup]
+    let tryChange: (() -> Void)?
+
+    @Environment(\.runNavigate) private var navigate
+
+    static func tint(_ action: RecommendationAction) -> Color {
+        switch action {
+        case .keep: Theme.positive
+        case .change: Theme.event
+        case .add: Theme.accent
+        case .drop: Theme.negative
+        case .test: Theme.repost
+        case .unknown: Theme.muted
+        }
+    }
+
+    var body: some View {
+        let tint = Self.tint(step.action)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.space2) {
+                // The label is drawn in text ink for contrast; the tint is on the icon, the chip and the edge bar.
+                Label {
+                    Text(step.action.title).foregroundStyle(Theme.text)
+                } icon: {
+                    Image(systemName: step.action.symbol).foregroundStyle(tint)
+                }
+                .font(Theme.ui(12, .semibold))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(tint.opacity(0.12), in: Capsule())
+                .fixedSize()
+                .help(step.action.meaning)
+                .accessibilityLabel("\(step.action.title): \(step.action.meaning)")
+                Text(linkifier.inline(step.title, size: 15))
+                    .font(Theme.ui(15, .semibold))
+                    .foregroundStyle(Theme.text)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: Theme.space2)
+                if step.confidence != .unknown {
+                    ConfidenceBadge(confidence: step.confidence)
+                }
+            }
+            if !step.why.isEmpty {
+                Text(linkifier.inline(step.why, size: 14))
+                    .font(Theme.ui(14))
+                    .foregroundStyle(Theme.text)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+            if !step.expectedEffect.isEmpty {
+                (Text("Likely effect: ").font(Theme.ui(14, .semibold)) + Text(linkifier.inline(step.expectedEffect, size: 14)))
+                    .font(Theme.ui(14))
+                    .foregroundStyle(Theme.secondary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                if !step.addresses.isEmpty {
+                    row("For") { ForEach(step.addresses, id: \.self) { addressee($0) } }
+                }
+                row("Based on") {
+                    ForEach(step.evidence.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }, id: \.self) { ref in
+                        Text(linkifier.inline(ref, size: 12)).font(Theme.mono(12))
+                    }
+                }
+            }
+            if let tryChange {
+                Button(action: tryChange) {
+                    Label("Try this change", systemImage: "arrow.triangle.branch")
+                }
+                .buttonStyle(.console(.secondary, compact: true))
+                .help("Run this crowd again with this change announced in round 1, then compare the two runs")
+            }
+        }
+        .padding(Theme.space4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .overlay(alignment: .leading) {
+            UnevenRoundedRectangle(topLeadingRadius: Theme.cardRadius, bottomLeadingRadius: Theme.cardRadius)
+                .fill(tint)
+                .frame(width: 3)
+                .accessibilityHidden(true)
+        }
+        .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).strokeBorder(Theme.seam, lineWidth: 1))
+        .accessibilityElement(children: .contain)
+    }
+
+    private func row<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Theme.space2) {
+            Text(label)
+                .font(Theme.small)
+                .foregroundStyle(Theme.muted)
+                .frame(width: 62, alignment: .leading)
+            RunFlowLayout(spacing: 10, lineSpacing: 6) { content() }
+        }
+    }
+
+    @ViewBuilder
+    private func addressee(_ id: String) -> some View {
+        if let persona = store.detail?.personas.first(where: { $0.id == id }) {
+            HStack(spacing: 5) {
+                AvatarView(persona: persona, size: 18)
+                RunHandleChip(handle: persona.handle, sentiment: nil) { store.selectedAgentID = persona.id }
+            }
+        } else if let group = groups.first(where: { $0.name == id }) {
+            Button {
+                store.selectedAgentID = nil
+                store.selectedCampID = group.id
+                navigate(.crowd)
+            } label: {
+                HStack(spacing: 5) {
+                    Circle().fill(group.color).frame(width: 8, height: 8)
+                    Text(group.name).font(Theme.ui(12, .medium)).foregroundStyle(Theme.text)
+                }
+            }
+            .buttonStyle(.plain)
+            .help("Show this camp in the crowd")
+        } else {
+            Text(id).font(Theme.ui(12)).foregroundStyle(Theme.secondary)
         }
     }
 }

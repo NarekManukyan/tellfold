@@ -412,6 +412,15 @@ struct SimConfig: Codable, Hashable, Sendable {
 }
 
 extension SimConfig {
+    /// This run's setup with `step` added as breaking news at round 1, for "Try this change" (which also reuses this
+    /// run's people and joins a study with it, so the two moods are compared).
+    func trying(_ step: Recommendation) -> SimConfig {
+        var copy = self
+        let after = copy.events.firstIndex { $0.round > 1 } ?? copy.events.count
+        copy.events.insert(GodEvent(round: 1, content: step.trialEvent(language: language)), at: after)
+        return copy
+    }
+
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         question = c.value(.question, default: "")
@@ -473,6 +482,98 @@ extension Camp {
         summary = c.value(.summary, default: "")
         members = c.value(.members, default: [])
         sentiment = c.optional(.sentiment)
+    }
+}
+
+/// The kind of step a recommendation asks for (`report.recommendations[].action`).
+enum RecommendationAction: String, Codable, Hashable, Sendable, CaseIterable {
+    case keep, change, add, drop, test, unknown
+
+    init(from decoder: any Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = RecommendationAction(rawValue: raw.lowercased()) ?? .unknown
+    }
+
+    /// The label on the step, the same words as the HTML report and the web Studio (tests/test_report.py checks).
+    var title: String {
+        switch self {
+        case .keep: "Keep"
+        case .change: "Change"
+        case .add: "Add"
+        case .drop: "Drop"
+        case .test: "Test"
+        case .unknown: "Next step"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .keep: "checkmark.circle"
+        case .change: "pencil.circle"
+        case .add: "plus.circle"
+        case .drop: "xmark.circle"
+        case .test: "testtube.2"
+        case .unknown: "arrow.right.circle"
+        }
+    }
+
+    /// What the label means, for the tooltip.
+    var meaning: String {
+        switch self {
+        case .keep: "The crowd valued this. Protect it."
+        case .change: "This drew pushback that a change could fix."
+        case .add: "The crowd asked for this or missed it."
+        case .drop: "The crowd clearly rejected this. Don't do it."
+        case .test: "The crowd split on this. Check it with real people first."
+        case .unknown: "A suggested next step."
+        }
+    }
+
+    /// A step that changes the plan, so it can be put in front of the crowd again with "Try this change".
+    var canTry: Bool { self == .change || self == .add || self == .drop }
+}
+
+/// One evidence-backed next step drawn from how the simulated crowd reacted (`report.recommendations`).
+struct Recommendation: Codable, Hashable, Sendable {
+    /// The line under "What to do next", as in the HTML report and the web Studio (`RECOMMENDATIONS_NOTE` in
+    /// tellfold/report.py; tests/test_report.py checks the three match).
+    static let note = "Suggestions drawn from how the simulated crowd reacted. Treat them as ideas to test with real people, not proof."
+
+    var action: RecommendationAction
+    var title: String
+    var why: String = ""
+    /// Camp names or persona ids the step responds to.
+    var addresses: [String] = []
+    /// Citations, each "#12" or "@handle".
+    var evidence: [String] = []
+    var expectedEffect: String = ""
+    var confidence: ReportConfidence = .unknown
+
+    /// The breaking news that puts this step in front of the crowd at round 1 of a new run. Citations are left out
+    /// (agents never see post numbers), and the English lead-in only goes on titles written in English.
+    func trialEvent(language: String) -> String {
+        let plain = title.replacingOccurrences(of: #"\(?[#@][A-Za-z0-9_]+\)?"#, with: "", options: .regularExpression)
+        let words = plain.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+            .trimmingCharacters(in: CharacterSet(charactersIn: ".!;:, "))
+        return language.lowercased() == "english" ? "Change announced: \(words)." : "\(words)."
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case action, title, why, addresses, evidence, confidence
+        case expectedEffect = "expected_effect"
+    }
+}
+
+extension Recommendation {
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        action = c.value(.action, default: .unknown)
+        title = c.value(.title, default: "")
+        why = c.value(.why, default: "")
+        addresses = c.value(.addresses, default: [])
+        evidence = c.value(.evidence, default: [])
+        expectedEffect = c.value(.expectedEffect, default: "")
+        confidence = c.value(.confidence, default: .unknown)
     }
 }
 
@@ -546,11 +647,21 @@ struct Report: Codable, Hashable, Sendable {
     var camps: [Camp] = []
     var risks: [String] = []
     var caveats: [String] = []
+    /// Three to six next steps, each with citations. Empty in runs reported before recommendations existed.
+    var recommendations: [Recommendation] = []
     /// Nil in reports written before citations were checked.
     var citationAudit: CitationAudit?
 
+    /// The steps the Report tab shows: titled and backed by at least one citation, like the engine keeps them.
+    var visibleRecommendations: [Recommendation] {
+        recommendations.filter {
+            !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && $0.evidence.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        }
+    }
+
     enum CodingKeys: String, CodingKey {
-        case title, summary, prediction, confidence, sections, risks, caveats, reasons, camps
+        case title, summary, prediction, confidence, sections, risks, caveats, reasons, camps, recommendations
         case keyVoices = "key_voices"
         case citationAudit = "citation_audit"
     }
@@ -569,6 +680,7 @@ extension Report {
         camps = c.value(.camps, default: [])
         risks = c.value(.risks, default: [])
         caveats = c.value(.caveats, default: [])
+        recommendations = c.value(.recommendations, default: [])
         citationAudit = c.optional(.citationAudit)
     }
 }

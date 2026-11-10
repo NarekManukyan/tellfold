@@ -378,6 +378,12 @@ final class AppModel {
         anotherVersionSource = AnotherVersionSource(runID: runID, config: config, text: text)
     }
 
+    /// Opens "Try this change" for a report step: a new version of the run with the same people and text and the step
+    /// announced at round 1, compared with this run in a study.
+    func tryChange(runID: String, config: SimConfig, step: Recommendation) {
+        anotherVersionSource = .trial(runID: runID, config: config, step: step)
+    }
+
     /// Downloads a run's seed documents into a temporary folder; empty when the engine has none.
     func downloadSeeds(runID: String) async -> [URL] {
         guard let api, let list = try? await api.seeds(runID: runID), !list.isEmpty else { return [] }
@@ -417,12 +423,19 @@ final class AppModel {
     /// The settings a new version of a run uses: the run's own, except that a built-in example uses the AI tools set up on
     /// this Mac (the example's may not be installed here).
     func versionConfig(runID: String, config: SimConfig) -> SimConfig {
-        guard isExample(runID) else { return config }
+        Self.versionConfig(config, isExample: isExample(runID), agentRuntime: defaultAgentRuntime,
+                           plannerRuntime: defaultPlannerRuntime) { defaultModel(runtime: $0, role: $1) }
+    }
+
+    /// `versionConfig(runID:config:)` without the app state, so it can be tested.
+    nonisolated static func versionConfig(_ config: SimConfig, isExample: Bool, agentRuntime: String, plannerRuntime: String,
+                                          model: (_ runtime: String, _ role: String) -> String) -> SimConfig {
+        guard isExample else { return config }
         var config = config
-        config.agentRuntime = defaultAgentRuntime
-        config.plannerRuntime = defaultPlannerRuntime
-        config.agentModel = defaultModel(runtime: config.agentRuntime, role: "agent")
-        config.plannerModel = defaultModel(runtime: config.plannerRuntime, role: "planner")
+        config.agentRuntime = agentRuntime
+        config.plannerRuntime = plannerRuntime
+        config.agentModel = model(agentRuntime, "agent")
+        config.plannerModel = model(plannerRuntime, "planner")
         return config
     }
 

@@ -24,6 +24,7 @@ from tellfold.models import (
     Persona,
     Post,
     Camp,
+    Recommendation,
     Report,
     RoundStats,
     SimConfig,
@@ -352,8 +353,10 @@ turning points, and agents who changed their mind.
 - Calibrate confidence. "high" only when the signal is consistent across rounds and across different kinds of \
 agents and survives injected events; "medium" for a clear lean with notable dissent or volatility; "low" when \
 sentiment flipped, activity was sparse, or the crowd split evenly.
-- Write every prose field in {language}, including the title, reasons and camp names. Keep @handles, #ids, \
-persona ids and JSON keys exactly as given."""
+- Recommendations are hypotheses from a simulated crowd, not proven fixes: each one must rest on specific posts or \
+agents in the digest and name something concrete from the scenario. Never give generic advice.
+- Write every prose field in {language}, including the title, reasons, camp names and recommendations. Keep \
+@handles, #ids, persona ids, JSON keys and the action and confidence values exactly as given."""
 
 
 REPORT_TASK = """\
@@ -380,6 +383,22 @@ organisations with the camp their posts support, or in their own camp when they 
 - caveats: 2-5 honest limits of this run as evidence, tied to its numbers where possible (population size and mix, \
 all agents share one underlying model and can converge, a compressed timeline, the seed documents frame what agents \
 know, sentiment is model-scored).
+- recommendations: 3-6 objects {{"action", "title", "why", "addresses", "evidence", "expected_effect", \
+"confidence"}}: what to do next, drawn only from how this crowd reacted. action is one of:
+  "keep" - something the crowd clearly valued; protect it.
+  "change" - something that drew pushback but can be fixed, including confusing or provoking wording.
+  "add" - something the crowd asked for or missed.
+  "drop" - something the crowd clearly rejected; don't do it. Include at least one when the crowd clearly rejected \
+something.
+  "test" - an open question the crowd split on; check it with real people before deciding.
+  title: a short imperative, at most 10 words, naming the specific feature, price, rule, wording or group (e.g. \
+"Drop the annual-only billing", "Keep the free tier for students"). why: one or two sentences with citations, \
+saying what in the reactions supports it. addresses: the camp names (exactly as in camps) or persona ids it \
+responds to. evidence: 1-4 citations, each exactly "#id" or "@handle", of the posts or agents behind it. \
+expected_effect: one sentence on how the crowd's reaction would likely change, and for which camp. confidence: \
+"low", "medium" or "high" for this recommendation alone, following the calibration rules.
+  No generic advice such as "communicate clearly" or "listen to feedback". A recommendation without evidence is \
+removed. These are hypotheses from a simulated crowd, to be tested with real people before acting on them.
 
 EVIDENCE DIGEST
 {digest}"""
@@ -422,10 +441,12 @@ def _finalize(report: Report, ev: Evidence, config: SimConfig) -> Report:
             voices.append(agent_id)
     if not voices:
         voices = [a.persona.id for a in sorted(ev.agents, key=lambda a: -a.engagement)[:3] if a.posts]
+    camps = _finalize_camps(report.camps, ev, by_handle)
     return report.model_copy(update={
         "key_voices": voices,
-        "camps": _finalize_camps(report.camps, ev, by_handle),
+        "camps": camps,
         "caveats": _fact_caveats(ev, config) + report.caveats,
+        "recommendations": _finalize_recommendations(report.recommendations, ev, camps, by_handle),
     })
 
 
@@ -455,6 +476,65 @@ def _finalize_camps(camps: list[Camp], ev: Evidence, by_handle: dict[str, str]) 
         values = [v for pid in camp.members for v in scores.get(pid, [])]
         out[i] = camp.model_copy(update={"sentiment": round(sum(values) / len(values), 3) if values else None})
     return out
+
+
+MAX_RECOMMENDATIONS = 6
+
+
+def _evidence_refs(raw: str, ev: Evidence, by_handle: dict[str, str]) -> list[str]:
+    """The citations in one evidence entry, as "#12" / "@handle". Bare numbers, handles and persona ids are accepted."""
+    def handle(h: str) -> str:
+        agent_id = by_handle.get(h.lower())
+        return f"@{ev.people[agent_id].handle}" if agent_id else f"@{h}"  # an unknown handle is left for the audit
+
+    text = raw.strip()
+    refs = [f"#{m.group(1)}" for m in _POST_REF.finditer(text)] + [handle(m.group(1)) for m in _HANDLE_REF.finditer(text)]
+    if refs:
+        return refs
+    if text.isdigit():
+        return [f"#{int(text)}"]
+    if text in ev.people:
+        return [f"@{ev.people[text].handle}"]
+    if text.lower() in by_handle:
+        return [handle(text)]
+    return []
+
+
+def _unique_refs(texts: list[str], ev: Evidence, by_handle: dict[str, str]) -> list[str]:
+    refs: list[str] = []
+    for raw in texts:
+        for ref in _evidence_refs(raw, ev, by_handle):
+            if ref.lower() not in (r.lower() for r in refs):
+                refs.append(ref)
+    return refs
+
+
+def _finalize_recommendations(
+    recs: list[Recommendation], ev: Evidence, camps: list[Camp], by_handle: dict[str, str]
+) -> list[Recommendation]:
+    """Evidence as "#id" / "@handle" citations (taken from the prose when no citation parses from the list), addresses
+    as camp names or persona ids, no repeated step and no step without evidence. Whether the citations exist is the
+    audit's job."""
+    camp_names = {c.name.lower(): c.name for c in camps}
+    seen: set[tuple[str, str]] = set()
+    out: list[Recommendation] = []
+    for rec in recs:
+        key = (rec.action, " ".join(rec.title.lower().split()))
+        if not key[1] or key in seen:
+            continue  # untitled, or the same step twice
+        seen.add(key)
+        evidence = _unique_refs(rec.evidence, ev, by_handle) or _unique_refs([rec.why, rec.expected_effect], ev, by_handle)
+        if not evidence:
+            log.info("dropping recommendation without evidence: %s", rec.title)
+            continue
+        addresses: list[str] = []
+        for raw in rec.addresses:
+            key = raw.strip().lstrip("@")
+            target = key if key in ev.people else by_handle.get(key.lower()) or camp_names.get(raw.strip().lower())
+            if target and target not in addresses:
+                addresses.append(target)
+        out.append(rec.model_copy(update={"title": rec.title.strip(), "evidence": evidence, "addresses": addresses}))
+    return out[:MAX_RECOMMENDATIONS]
 
 
 def _rounds_done(ev: Evidence) -> int:
@@ -515,6 +595,7 @@ def _report_texts(report: Report) -> list[str]:
         *(c.summary for c in report.camps),
         *report.risks,
         *report.caveats,
+        *(t for r in report.recommendations for t in (r.title, r.why, r.expected_effect, " ".join(r.evidence))),
     ]
 
 
@@ -527,6 +608,10 @@ def _map_texts(report: Report, fn: Callable[[str], str]) -> Report:
         "camps": [c.model_copy(update={"summary": fn(c.summary)}) for c in report.camps],
         "risks": [fn(t) for t in report.risks],
         "caveats": [fn(t) for t in report.caveats],
+        "recommendations": [
+            r.model_copy(update={"title": fn(r.title), "why": fn(r.why), "expected_effect": fn(r.expected_effect)})
+            for r in report.recommendations
+        ],
     })
 
 
@@ -690,6 +775,15 @@ def _mark_unverified(report: Report, audit: CitationAudit, ev: Evidence, *, repa
 
     if audit.problems:
         report = _map_texts(report, mark)
+        # Evidence is a list of citations, so a wrong one is removed rather than replaced, and a recommendation
+        # left with no evidence is dropped.
+        recs = []
+        for rec in report.recommendations:
+            kept = [e for e in rec.evidence if all(c.ok for c in _citations(e, ev.posts, handles))]
+            marked += len(rec.evidence) - len(kept)
+            if kept:
+                recs.append(rec.model_copy(update={"evidence": kept}))
+        report = report.model_copy(update={"recommendations": recs})
     caveats = report.caveats
     if marked:
         noun = "citation" if marked == 1 else "citations"
@@ -702,6 +796,33 @@ def _mark_unverified(report: Report, audit: CitationAudit, ev: Evidence, *, repa
 
 # ---------------------------------------------------------------- markdown
 
+# The same words are in the web Studio (REC_ACTIONS in app.js) and the Mac app (RecommendationAction in Models.swift);
+# tests/test_report.py checks that they match.
+ACTION_LABELS = {"keep": "Keep", "change": "Change", "add": "Add", "drop": "Drop", "test": "Test"}
+ACTION_MEANINGS = {
+    "keep": "The crowd valued this. Protect it.",
+    "change": "This drew pushback that a change could fix.",
+    "add": "The crowd asked for this or missed it.",
+    "drop": "The crowd clearly rejected this. Don't do it.",
+    "test": "The crowd split on this. Check it with real people first.",
+}
+RECOMMENDATIONS_NOTE = (
+    "Suggestions drawn from how the simulated crowd reacted. Treat them as ideas to test with real people, not proof."
+)
+
+
+def _recommendation_markdown(rec: Recommendation) -> str:
+    rating = f", {rec.confidence} confidence" if rec.confidence else ""
+    lines = [f"- **{rec.title}** ({ACTION_LABELS[rec.action]}{rating})"]
+    if rec.why:
+        lines.append(f"  {rec.why}")
+    if rec.expected_effect:
+        lines.append(f"  Likely effect: {rec.expected_effect}")
+    if rec.addresses:
+        lines.append(f"  For: {', '.join(rec.addresses)}")
+    lines.append(f"  Based on: {', '.join(rec.evidence)}")
+    return "\n".join(lines)
+
 
 def render_markdown(report: Report) -> str:
     parts = [
@@ -710,6 +831,9 @@ def render_markdown(report: Report) -> str:
         f"## Prediction\n\n{report.prediction}\n\n**Confidence:** {report.confidence}",
     ]
     parts += [f"## {s.title}\n\n{s.body_markdown}" for s in report.sections]
+    if report.recommendations:
+        parts.append("## What to do next\n\n" + RECOMMENDATIONS_NOTE + "\n\n"
+                     + "\n".join(_recommendation_markdown(r) for r in report.recommendations))
     if report.key_voices:
         parts.append("## Key voices\n\n" + ", ".join(report.key_voices))
     for title, items in (("Risks", report.risks), ("Caveats", report.caveats)):
@@ -801,6 +925,7 @@ def _markdown(text: str, refs: _Refs) -> Markup:
 def _cited_posts(report: Report, posts: dict[int, Post], limit: int = 24) -> list[Post]:
     texts = [report.summary, report.prediction, *report.risks, *report.caveats]
     texts += [s.body_markdown for s in report.sections]
+    texts += [t for r in report.recommendations for t in (r.why, r.expected_effect, " ".join(r.evidence))]
     seen: list[int] = []
     for text in texts:
         for m in _POST_REF.finditer(text):
@@ -932,6 +1057,10 @@ def render_html(report: Report, world: World, config: SimConfig) -> str:
             people=ev.people,
             posts=ev.posts,
             key_voices=[ev.people[v] for v in report.key_voices if v in ev.people],
+            action_labels=ACTION_LABELS,
+            action_meanings=ACTION_MEANINGS,
+            recommendations_note=RECOMMENDATIONS_NOTE,
+            addressee=lambda a: f"@{ev.people[a].handle}" if a in ev.people else a,
             tiles=[
                 ("Agents", len(ev.people)),
                 ("Rounds", _rounds_done(ev)),

@@ -401,3 +401,190 @@ def test_old_report_json_without_audit_still_loads():
     )
     assert report.citation_audit is None
     assert "citation_audit" not in str(Report.model_json_schema())  # never asked of the model
+
+
+# ---------------------------------------------------------------- recommendations
+
+
+def rec(**overrides) -> dict:
+    data = {
+        "action": "change",
+        "title": "Publish the revenue figures before launch",
+        "why": "@cab_driver_sam softened only after the numbers came out (#6).",
+        "addresses": ["Critics"],
+        "evidence": ["#6", "@cab_driver_sam"],
+        "expected_effect": "Drivers would likely move from hostile to wary.",
+        "confidence": "medium",
+    }
+    data.update(overrides)
+    return data
+
+
+CAMPS = [
+    {"name": "Critics", "summary": "Drivers led by @cab_driver_sam (#2).", "members": ["a02"]},
+    {"name": "Supporters", "summary": "Cyclists and the mayor (#1).", "members": ["a01", "a03", "a04"]},
+]
+
+
+def test_recommendations_are_in_the_schema_and_old_reports_still_load():
+    schema = Report.model_json_schema()
+    rec_schema = schema["$defs"]["Recommendation"]
+    assert set(rec_schema["properties"]) == {
+        "action", "title", "why", "addresses", "evidence", "expected_effect", "confidence"
+    }
+    assert rec_schema["properties"]["action"]["enum"] == ["keep", "change", "add", "drop", "test"]
+    old = Report.model_validate_json('{"title": "T", "summary": "s", "prediction": "p", "confidence": "low"}')
+    assert old.recommendations == []
+    assert "What to do next" not in render_markdown(old)
+
+
+def test_recommendation_parsing_accepts_synonyms_and_case():
+    from tellfold.models import Recommendation
+
+    assert Recommendation.model_validate(rec(action="Remove", confidence="HIGH")).action == "drop"
+    assert Recommendation.model_validate(rec(action="Don’t do")).action == "drop"
+    assert Recommendation.model_validate(rec(action="build")).action == "add"
+    assert Recommendation.model_validate(rec(action="pilot")).action == "test"
+    assert Recommendation.model_validate({"action": "keep", "title": "Keep it"}).confidence is None  # no made-up rating
+    with pytest.raises(ValueError):
+        Recommendation.model_validate(rec(action="celebrate"))
+
+
+def test_one_bad_recommendation_does_not_fail_the_report():
+    report = Report.model_validate(report_payload(recommendations=[
+        rec(title="Keep going"), rec(action="celebrate"), {"action": "drop"}, "not an object", rec(action="Remove"),
+    ]))
+    assert [(r.action, r.title) for r in report.recommendations] == [
+        ("change", "Keep going"), ("drop", "Publish the revenue figures before launch"),
+    ]
+
+
+async def test_report_prompt_asks_for_grounded_recommendations(world, graph, config):
+    llm = FakeLLM(lambda *_: report_payload())
+    await build_report(llm, world, graph, config, model="sonnet")
+    prompt = llm.calls[0][2]
+    assert "recommendations: 3-6 objects" in prompt
+    assert '"drop" - something the crowd clearly rejected' in prompt
+    assert "No generic advice" in prompt and "A recommendation without evidence is" in prompt
+    assert "tested with real people" in prompt
+
+
+async def test_build_report_normalises_recommendations(world, graph, config):
+    payload = report_payload(camps=CAMPS, recommendations=[
+        rec(evidence=["6", "post #2 by @CAB_DRIVER_SAM", "a03", "#6"], addresses=["critics", "@cyclist_ana", "Everyone"]),
+        rec(action="drop", title="  Drop the weekend surcharge ", evidence=[], why="Rejected in #2 and #3."),
+        rec(action="add", title="Add a generic FAQ", evidence=["the comments"], why="People were confused (#4)."),
+        rec(action="keep", title="", evidence=["#1"]),
+        rec(action="drop", title="drop the  weekend surcharge", evidence=["#2"]),
+        rec(action="test", title="Test without evidence", evidence=["the vibe"], why="Hard to say."),
+    ])
+    report = await build_report(FakeLLM(lambda *_: payload), world, graph, config, model="sonnet")
+    first, second, third = report.recommendations
+    assert first.evidence == ["#6", "#2", "@cab_driver_sam", "@cyclist_ana"]
+    assert first.addresses == ["Critics", "a03"]  # camp name canonicalised, handle to id, unknown dropped
+    assert (second.action, second.title, second.evidence) == ("drop", "Drop the weekend surcharge", ["#2", "#3"])
+    # evidence entries that hold no citation fall back to the citations in the prose
+    assert (third.title, third.evidence) == ("Add a generic FAQ", ["#4"])
+    # the untitled one and the repeated one are gone
+    assert report.citation_audit.problems == 0
+
+
+async def test_recommendations_are_capped_at_six(world, graph, config):
+    payload = report_payload(recommendations=[rec(title=f"Step {i}") for i in range(9)])
+    report = await build_report(FakeLLM(lambda *_: payload), world, graph, config, model="sonnet")
+    assert [r.title for r in report.recommendations] == [f"Step {i}" for i in range(6)]
+
+
+def test_audit_checks_recommendation_citations(world):
+    from tellfold.report import audit_citations
+
+    ev = collect_evidence(world)
+    report = Report.model_validate(report_payload(recommendations=[
+        rec(evidence=["#999", "@ghost_user"], why='@cab_driver_sam said "the charge is a gift" (#2).')
+    ]))
+    audit = audit_citations(report, ev.posts, ev.people.values())
+    assert audit.unknown_posts == [999] and audit.unknown_handles == ["ghost_user"]
+    assert [(q.post_id, q.quote) for q in audit.misquotes] == [(2, "the charge is a gift")]
+
+
+async def test_bad_recommendation_citations_are_repaired_then_removed(world, graph, config):
+    bad = report_payload(recommendations=[
+        rec(title="Keep cycle lanes", action="keep", evidence=["#4", "#999"]),
+        rec(title="Drop the charge", action="drop", evidence=["#998"], why="Nobody wanted it."),
+    ])
+
+    def responder(purpose, prompt, schema):
+        if purpose == "report.repair":
+            assert "#999 is not a post" in prompt and "#998 is not a post" in prompt
+        return bad  # the repair does not fix anything
+
+    report = await build_report(FakeLLM(responder), world, graph, config, model="sonnet")
+    assert [(r.title, r.evidence) for r in report.recommendations] == [("Keep cycle lanes", ["#4"])]
+    assert report.citation_audit.repaired and report.citation_audit.marked == 2
+    assert report.caveats[-1] == "2 citations could not be matched to posts and were marked [unverified]."
+
+
+async def test_repair_fixes_recommendation_citations(world, graph, config):
+    def responder(purpose, prompt, schema):
+        evidence = ["#999"] if purpose == "report.write" else ["#6"]
+        return report_payload(recommendations=[rec(evidence=evidence)])
+
+    llm = FakeLLM(responder)
+    report = await build_report(llm, world, graph, config, model="sonnet")
+    assert [c[0] for c in llm.calls] == ["report.write", "report.repair"]
+    assert report.recommendations[0].evidence == ["#6"]
+    assert report.citation_audit.marked == 0
+
+
+def test_render_markdown_recommendations():
+    report = Report.model_validate(report_payload(recommendations=[
+        rec(action="drop", title="Drop the weekend surcharge", confidence="high", addresses=["Critics"]),
+    ]))
+    md = render_markdown(report)
+    assert "## What to do next" in md and "ideas to test with real people" in md
+    assert "- **Drop the weekend surcharge** (Drop, high confidence)" in md
+    assert "  Likely effect: Drivers would likely move" in md
+    assert "  For: Critics" in md and "  Based on: #6, @cab_driver_sam" in md
+    assert md.index("## What to do next") < md.index("## Risks")
+
+
+def test_render_html_recommendations(world, config):
+    report = Report.model_validate(report_payload(camps=CAMPS, recommendations=[
+        rec(action="keep", title="Keep the cycle lanes", evidence=["#4"], addresses=["Supporters", "a03"]),
+        rec(action="test", title="Test a lower charge", evidence=["@quiet_reader"], confidence=None),
+    ]))
+    html = render_html(report, world, config)
+    assert 'aria-labelledby="next"' in html and "What to do next" in html
+    assert '<span class="act act-keep" title="The crowd valued this. Protect it."><span class="dot"></span>Keep</span>' in html
+    assert '<span class="act act-test" title="The crowd split' in html
+    section = html[html.index('aria-labelledby="next"') : html.index("</ol>", html.index('aria-labelledby="next"'))]
+    assert section.count("confidence</span>") == 1  # the step without a confidence shows no rating
+    # the action label is drawn in ink; its colour is on the dot and the border only
+    assert ".act { --act: var(--ink-2);" in html and "color: var(--ink);" in html
+    assert 'For: Supporters, <a class="ref" href="#agent-cyclist_ana">@cyclist_ana</a>' in html
+    assert 'id="p-4"' in html  # evidence posts are in the cited posts, so the link resolves
+    for pid in re.findall(r'href="#p-(\d+)"', html):
+        assert f'id="p-{pid}"' in html
+    css = html[html.index("@media print {") : html.index("</style>")]
+    assert ", .rec { break-inside: avoid; }" in css  # a recommendation card is never split across PDF pages
+    assert "What to do next" not in render_html(Report.model_validate(report_payload()), world, config)
+
+
+def test_markdown_leaves_out_a_missing_confidence():
+    md = render_markdown(Report.model_validate(report_payload(recommendations=[rec(confidence=None)])))
+    assert "- **Publish the revenue figures before launch** (Change)" in md
+
+
+def test_action_words_match_in_the_studio_and_the_mac_app():
+    """The labels, their meanings and the note are written out in Python, app.js and Models.swift; keep them equal."""
+    from tellfold.report import ACTION_LABELS, ACTION_MEANINGS, RECOMMENDATIONS_NOTE
+
+    root = Path(__file__).resolve().parents[1]
+    js = (root / "tellfold/web/static/js/app.js").read_text(encoding="utf-8")
+    swift = (root / "mac/Tellfold/App/Models/Models.swift").read_text(encoding="utf-8")
+    assert f'const REC_NOTE = "{RECOMMENDATIONS_NOTE}";' in js
+    assert f'static let note = "{RECOMMENDATIONS_NOTE}"' in swift
+    for action, label in ACTION_LABELS.items():
+        meaning = ACTION_MEANINGS[action]
+        assert re.search(re.escape(f'{action}: {{ label: "{label}", icon: "') + r'\w+' + re.escape(f'", tip: "{meaning}" }}'), js), action
+        assert f'case .{action}: "{label}"' in swift and f'case .{action}: "{meaning}"' in swift, action

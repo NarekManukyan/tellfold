@@ -6,7 +6,22 @@ struct AnotherVersionSource: Identifiable, Hashable {
     var config: SimConfig
     /// Text to start from instead of the run's own document (a suggested rewrite).
     var text: String?
+    /// "Try this change" from the report: the step, announced as breaking news at round 1 (already in `config`).
+    var change: String?
+    /// The label the new version starts with; nil means the study's next letter ("Draft B").
+    var label: String?
     var id: String { runID }
+
+    /// "Try this change" on a report step: this run's settings and documents, its people, and the step announced at
+    /// round 1, labelled with the step's title so the study comparison says what changed.
+    /// A built-in example's trial still runs on this Mac's AI tools: the sheet sends it through `AppModel.versionConfig`.
+    static func trial(runID: String, config: SimConfig, step: Recommendation) -> AnotherVersionSource {
+        let trial = config.trying(step)
+        let title = step.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return AnotherVersionSource(runID: runID, config: trial,
+                                    change: trial.events.last { $0.round == 1 }?.content,
+                                    label: title.count > 40 ? String(title.prefix(39)) + "…" : title)
+    }
 }
 
 /// "Try another version…": the run's text in an editor and a label. The new run reuses this run's people (no topic map
@@ -35,13 +50,22 @@ struct AnotherVersionSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.space4) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Try another version")
+                Text(source.change == nil ? "Try another version" : "Try this change")
                     .font(Theme.title)
                     .foregroundStyle(Theme.text)
                     .accessibilityAddTraits(.isHeader)
-                Text("The same \(source.config.numAgents) people read your new text. When both runs finish, Tellfold compares them.")
+                Text(source.change == nil
+                     ? "The same \(source.config.numAgents) people read your new text. When both runs finish, Tellfold compares them."
+                     : "The same \(source.config.numAgents) people read the same text, and hear about the change in round 1. "
+                        + "When both runs finish, Tellfold compares them.")
                     .font(Theme.small)
                     .foregroundStyle(Theme.muted)
+            }
+            if let change = source.change {
+                Label("Breaking news in round 1: \(change)", systemImage: "bolt")
+                    .font(Theme.small)
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if loading {
                 ProgressView("Loading the text…").frame(maxWidth: .infinity, minHeight: 240)
@@ -97,7 +121,7 @@ struct AnotherVersionSheet: View {
 
     private func load() async {
         defer { loading = false }
-        variant = StudyLogic.nextVariant(for: source.runID, runs: app.runs, studies: app.studies)
+        variant = source.label ?? StudyLogic.nextVariant(for: source.runID, runs: app.runs, studies: app.studies)
         let seeds = await app.downloadSeeds(runID: source.runID)
         let names = seeds.map(\.lastPathComponent)
         if let name = StudyLogic.editableSeed(names), let url = seeds.first(where: { $0.lastPathComponent == name }) {

@@ -224,4 +224,110 @@ struct ModelDecodingTests {
         let old = try TellfoldAPI.decoder.decode(CallsSummary.self, from: Data(#"{"count":2,"failed":0,"seconds":1}"#.utf8))
         #expect(old.count == 2 && old.agent == nil && old.planner == nil)
     }
+
+    // MARK: what to do next
+
+    @Test func recommendationsDecodeWithEveryField() throws {
+        let report = try TellfoldAPI.decoder.decode(Report.self, from: Data(#"""
+        {"title":"T","summary":"s","prediction":"p","confidence":"medium","recommendations":[
+          {"action":"drop","title":"Drop the weekend surcharge","why":"Rejected in #2 by @sam.","addresses":["Critics","a02"],
+           "evidence":["#2","@sam"],"expected_effect":"Drivers soften.","confidence":"high"},
+          {"action":"Keep","title":"Keep the lanes","evidence":["#4"]},
+          {"action":"celebrate","title":"Something new","evidence":["#5"],"confidence":"sure"}]}
+        """#.utf8))
+        let drop = try #require(report.recommendations.first)
+        #expect(drop.action == .drop)
+        #expect(drop.why == "Rejected in #2 by @sam.")
+        #expect(drop.addresses == ["Critics", "a02"])
+        #expect(drop.evidence == ["#2", "@sam"])
+        #expect(drop.expectedEffect == "Drivers soften.")
+        #expect(drop.confidence == .high)
+        // Missing fields fall back, case is forgiven, and an action or confidence from a newer engine is not fatal.
+        #expect(report.recommendations[1].action == .keep)
+        #expect(report.recommendations[1].why.isEmpty && report.recommendations[1].confidence == .unknown)
+        #expect(report.recommendations[2].action == .unknown && report.recommendations[2].confidence == .unknown)
+    }
+
+    @Test func reportsWithoutRecommendationsStillDecode() throws {
+        let report = try TellfoldAPI.decoder.decode(Report.self, from: Data(
+            #"{"title":"T","summary":"s","prediction":"p","confidence":"low"}"#.utf8))
+        #expect(report.recommendations.isEmpty && report.visibleRecommendations.isEmpty)
+        let bad = try TellfoldAPI.decoder.decode(Report.self, from: Data(
+            #"{"title":"T","summary":"s","prediction":"p","confidence":"low","recommendations":"none"}"#.utf8))
+        #expect(bad.recommendations.isEmpty)
+        #expect(try Fixtures.decode(RunDetail.self, "run_detail.json").report?.recommendations.isEmpty == true)
+    }
+
+    @Test func onlyTitledStepsWithEvidenceAreShown() {
+        var report = Report(title: "T", summary: "", prediction: "", confidence: .low)
+        report.recommendations = [
+            Recommendation(action: .keep, title: "Keep the lanes", evidence: ["#4"]),
+            Recommendation(action: .add, title: "  ", evidence: ["#5"]),
+            Recommendation(action: .drop, title: "Drop the charge", evidence: []),
+            Recommendation(action: .test, title: "Test a lower price", evidence: [" "]),
+        ]
+        #expect(report.visibleRecommendations.map(\.title) == ["Keep the lanes"])
+    }
+
+    @Test func everyActionHasItsOwnLabelAndIcon() {
+        let actions = RecommendationAction.allCases
+        #expect(actions.map(\.title) == ["Keep", "Change", "Add", "Drop", "Test", "Next step"])
+        #expect(Set(actions.map(\.symbol)).count == actions.count)
+        #expect(actions.allSatisfy { !$0.meaning.isEmpty })
+        // Only steps that change the plan can be tried in a new run.
+        #expect(actions.filter(\.canTry) == [.change, .add, .drop])
+    }
+
+    @Test func tryingAChangeAnnouncesItAtRoundOne() {
+        var config = SimConfig(question: "Will regulars stay?")
+        config.events = [GodEvent(round: 1, content: "Prices go up."), GodEvent(round: 3, content: "A blog calls it greedy.")]
+        let step = Recommendation(action: .add, title: "Add a pensioner price on soup (#22, @gerald). ", evidence: ["#22"])
+        let trial = config.trying(step)
+        #expect(trial.question == config.question && trial.rounds == config.rounds)
+        #expect(trial.events.map(\.round) == [1, 1, 3])
+        #expect(trial.events[1].content == "Change announced: Add a pensioner price on soup.")
+        var german = config
+        german.language = "German"
+        #expect(german.trying(Recommendation(action: .drop, title: "Zuschlag streichen", evidence: ["#2"]))
+            .events[1].content == "Zuschlag streichen.")
+    }
+
+    @Test func tryThisChangeReusesThePeopleAndJoinsAStudy() {
+        let config = SimConfig(question: "Will regulars stay?", numAgents: 12, rounds: 4)
+        let step = Recommendation(action: .drop, title: "Drop the weekend surcharge", evidence: ["#2"])
+        let source = AnotherVersionSource.trial(runID: "run-1", config: config, step: step)
+        #expect(source.runID == "run-1" && source.label == "Drop the weekend surcharge")
+        #expect(source.change == "Change announced: Drop the weekend surcharge.")
+        // What the sheet sends: the same text, the source's people, the study, and the change at round 1.
+        let request = StudyLogic.versionRequest(source: source.runID, config: source.config, studyID: "study-9",
+                                                variant: source.label ?? "", editedName: "description.md",
+                                                editedText: "The original text", otherFiles: [])
+        #expect(request.castFrom == "run-1")
+        #expect(request.studyID == "study-9")
+        #expect(request.question == config.question && request.agents == 12 && request.rounds == 4)
+        #expect(request.events == [GodEvent(round: 1, content: "Change announced: Drop the weekend surcharge.")])
+        #expect(request.variant == "Drop the weekend surcharge")
+        let long = Recommendation(action: .add, title: String(repeating: "word ", count: 20), evidence: ["#1"])
+        #expect(AnotherVersionSource.trial(runID: "r", config: config, step: long).label?.count == 40)
+    }
+
+    @Test func tryThisChangeFromAnExampleUsesThisMacsTools() {
+        var config = SimConfig(question: "Will regulars stay?")
+        config.agentRuntime = "cursor-agent"
+        config.agentModel = "example-agent-model"
+        config.plannerRuntime = "cursor-agent"
+        config.plannerModel = "example-planner-model"
+        let step = Recommendation(action: .add, title: "Add a pensioner price", evidence: ["#22"])
+        let trial = AnotherVersionSource.trial(runID: "example-corner-cafe", config: config, step: step).config
+        let model: (String, String) -> String = { "\($0)/\($1)" }
+        // What the sheet sends for a built-in example: this Mac's tools, the change still at round 1.
+        let mine = AppModel.versionConfig(trial, isExample: true, agentRuntime: "claude-code", plannerRuntime: "codex",
+                                          model: model)
+        #expect(mine.agentRuntime == "claude-code" && mine.agentModel == "claude-code/agent")
+        #expect(mine.plannerRuntime == "codex" && mine.plannerModel == "codex/planner")
+        #expect(mine.events == [GodEvent(round: 1, content: "Change announced: Add a pensioner price.")])
+        // A run of the user's own keeps its tools.
+        #expect(AppModel.versionConfig(trial, isExample: false, agentRuntime: "claude-code", plannerRuntime: "codex",
+                                       model: model) == trial)
+    }
 }

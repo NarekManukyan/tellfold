@@ -164,6 +164,22 @@ th { color: var(--ink-2); font-weight: 600; }
 .report-section { margin-top: 32px; }
 .report-section h3 { margin-bottom: 8px; }
 
+.recs { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.rec { display: grid; gap: 6px; }
+.rec-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.rec-head h3 { flex: 1 1 16ch; }
+/* The label is drawn in ink for contrast; the action's colour is on the dot and the border. */
+.act { --act: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--act); color: var(--ink); white-space: nowrap; }
+.act-keep { --act: var(--conf-high); }
+.act-change { --act: var(--conf-medium); }
+.act-add { --act: var(--accent); }
+.act-drop { --act: var(--conf-low); }
+.act-test { --act: var(--ink-2); }
+.act .dot { background: var(--act); }
+.rec p { margin: 0; }
+.rec .effect { color: var(--ink-2); }
+.rec-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); }
+
 .voices { display: flex; flex-wrap: wrap; gap: 8px; }
 .voice { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 0.9rem; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; flex: none; }
@@ -249,14 +265,14 @@ footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
   p, li { orphans: 3; widows: 3; }
   /* WebKit ignores break-inside on grid items, so the lists of cards lay out as plain blocks on paper (and each chart
      gets the full width, which keeps its labels a readable size). */
-  .charts, .feed, .thread, .thread-replies, .events, .two-col { display: block; }
-  .charts > *, .feed > *, .thread-replies > *, .events > *, .two-col > * { margin-bottom: 10px; }
+  .charts, .feed, .thread, .thread-replies, .events, .two-col, .recs { display: block; }
+  .charts > *, .feed > *, .thread-replies > *, .events > *, .two-col > *, .recs > * { margin-bottom: 10px; }
   .thread-replies { margin-top: 10px; }
   /* Two persona cards a row as inline blocks: a whole card moves to the next page instead of splitting. */
   .directory { display: block; font-size: 0; }
   .persona { display: inline-grid; vertical-align: top; width: calc(50% - 6px); margin: 0 0 12px; font-size: 10.5pt; }
   .persona:nth-child(odd) { margin-right: 12px; }
-  .post, .card, .tile, .event-item, .persona, .mix-row, .voice { break-inside: avoid; }
+  .post, .card, .tile, .event-item, .persona, .mix-row, .voice, .rec { break-inside: avoid; }
   .prediction { break-inside: auto; }
   .thread > .post:first-child { break-after: avoid; }
   .post:target, .persona:target { outline: none; }
@@ -429,6 +445,30 @@ footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
     </div>
     {% endfor %}
   </section>
+
+  {% if report.recommendations %}
+  <section aria-labelledby="next">
+    <h2 id="next">What to do next</h2>
+    <p class="muted small">{{ recommendations_note }}</p>
+    <ol class="recs">
+      {% for r in report.recommendations %}
+      <li class="card rec">
+        <div class="rec-head">
+          <span class="act act-{{ r.action }}" title="{{ action_meanings[r.action] }}"><span class="dot"></span>{{ action_labels[r.action] }}</span>
+          <h3>{{ inline(r.title) }}</h3>
+          {% if r.confidence %}<span class="badge conf-{{ r.confidence }}"><span class="dot"></span>{{ r.confidence | capitalize }} confidence</span>{% endif %}
+        </div>
+        {% if r.why %}<p>{{ inline(r.why) }}</p>{% endif %}
+        {% if r.expected_effect %}<p class="effect"><strong>Likely effect:</strong> {{ inline(r.expected_effect) }}</p>{% endif %}
+        <div class="rec-meta">
+          {% if r.addresses %}<span>For: {% for a in r.addresses %}{{ inline(addressee(a)) }}{{ ", " if not loop.last }}{% endfor %}</span>{% endif %}
+          <span>Based on: {% for e in r.evidence %}{{ inline(e) }}{{ ", " if not loop.last }}{% endfor %}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
 
   {% if key_voices %}
   <section aria-labelledby="voices">
