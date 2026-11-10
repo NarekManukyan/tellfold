@@ -3,12 +3,14 @@ import re
 import pytest
 
 from tellfold.graph import (
+    MAX_EXTRACT_CHUNKS,
     ExtractedEntity,
     ExtractedRelation,
     Extraction,
     extract_graph,
     match_key,
     merge_extractions,
+    select_chunks,
     slugify,
 )
 from tellfold.llm import FakeLLM, LLMError
@@ -118,3 +120,22 @@ async def test_extract_graph_with_no_chunks_is_empty():
     llm = FakeLLM(lambda *a: {})
     graph = await extract_graph(llm, [], question="q", model="m")
     assert graph.entities == [] and llm.calls == []
+
+
+def test_select_chunks_keeps_small_seed_sets_whole() -> None:
+    chunks = [Chunk(id=i, source="a.md", text=f"text {i}") for i in range(10)]
+    assert select_chunks(chunks, "anything") == chunks
+
+
+def test_select_chunks_keeps_each_documents_opening_and_the_most_relevant_chunks() -> None:
+    chunks = []
+    for doc in range(20):
+        for part in range(30):
+            text = "Stripe card required before the free trial" if (doc, part) == (7, 12) else f"filler {doc} {part}"
+            chunks.append(Chunk(id=len(chunks), source=f"doc{doc}.md", text=text))
+    picked = select_chunks(chunks, "How will customers react if a bank card is required for the free trial?")
+    assert len(picked) == MAX_EXTRACT_CHUNKS
+    assert [c.id for c in picked] == sorted(c.id for c in picked)  # document order
+    assert {c.source for c in picked if c.id % 30 == 0} == {f"doc{d}.md" for d in range(20)}  # every opening
+    assert any("Stripe card" in c.text for c in picked)
+

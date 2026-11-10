@@ -61,6 +61,9 @@ struct NewRunRequest: Hashable, Sendable {
     static let maxFiles = 100
     static let maxTotalBytes = 100 * 1024 * 1024
 
+    /// Chunks the topic map reads at most (`MAX_EXTRACT_CHUNKS` in tellfold/graph.py).
+    static let maxExtractChunks = 64
+
     /// Share of the crowd expected to act in a round (`ESTIMATED_ACTIVE_SHARE` in tellfold/runner.py).
     static let estimatedActiveShare = 0.4
 
@@ -68,7 +71,7 @@ struct NewRunRequest: Hashable, Sendable {
     /// planning (graph, personas, report) when nothing needs a retry.
     static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int) -> (agent: Int, planner: Int) {
         let batch = Double(max(1, batch))
-        let graph = Int((Double(chunks) / 4).rounded(.up))
+        let graph = Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
         let personas = Int((Double(agents) / 10).rounded(.up))
         let openingAuthors = (0.3 * Double(agents)).rounded(.toNearestOrEven)
         let opening = Int((openingAuthors / batch).rounded(.up)) + 1
