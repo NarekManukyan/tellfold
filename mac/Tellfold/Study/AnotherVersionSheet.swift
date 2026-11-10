@@ -4,8 +4,6 @@ import SwiftUI
 struct AnotherVersionSource: Identifiable, Hashable {
     var runID: String
     var config: SimConfig
-    /// The run is a built-in example: the new version uses the AI tools set up on this Mac.
-    var fromExample: Bool = false
     /// Text to start from instead of the run's own document (a suggested rewrite).
     var text: String?
     var id: String { runID }
@@ -118,13 +116,7 @@ struct AnotherVersionSheet: View {
     private func run() async {
         isSending = true
         defer { isSending = false }
-        var config = source.config
-        if source.fromExample {
-            config.agentRuntime = app.defaultAgentRuntime
-            config.plannerRuntime = app.defaultPlannerRuntime
-            config.agentModel = app.defaultModel(runtime: config.agentRuntime, role: "agent")
-            config.plannerModel = app.defaultModel(runtime: config.plannerRuntime, role: "planner")
-        }
+        let config = app.versionConfig(runID: source.runID, config: source.config)
         let studyID = StudyLogic.study(of: source.runID, runs: app.runs, studies: app.studies)
         let request = StudyLogic.versionRequest(source: source.runID, config: config, studyID: studyID,
                                                 variant: variant, editedName: editedName, editedText: trimmed,

@@ -375,7 +375,7 @@ final class AppModel {
 
     /// Opens "Try another version…" for a finished run.
     func tryAnotherVersion(runID: String, config: SimConfig, text: String? = nil) {
-        anotherVersionSource = AnotherVersionSource(runID: runID, config: config, fromExample: isExample(runID), text: text)
+        anotherVersionSource = AnotherVersionSource(runID: runID, config: config, text: text)
     }
 
     /// Downloads a run's seed documents into a temporary folder; empty when the engine has none.
@@ -399,6 +399,31 @@ final class AppModel {
         await refreshRuns()
         let studyID = runs.first { $0.id == id }?.studyID ?? StudyLogic.study(of: id, runs: runs, studies: studies)
         selectedRunID = studyID.map(StudySelection.tag) ?? id
+    }
+
+    /// "Test this version": runs a suggested rewrite past the same people right away (the 2A flow, labelled with the
+    /// study's next letter), then shows the study.
+    func testVersion(runID: String, config: SimConfig, suggestion: RewriteSuggestion) async throws {
+        let config = versionConfig(runID: runID, config: config)
+        let seeds = await downloadSeeds(runID: runID)
+        let name = suggestion.sourceName.isEmpty ? InlineDocument.descriptionName : suggestion.sourceName
+        let request = StudyLogic.versionRequest(
+            source: runID, config: config, studyID: StudyLogic.study(of: runID, runs: runs, studies: studies),
+            variant: "", editedName: name, editedText: suggestion.revisedText,
+            otherFiles: seeds.filter { $0.lastPathComponent != name })
+        try await createVersion(request)
+    }
+
+    /// The settings a new version of a run uses: the run's own, except that a built-in example uses the AI tools set up on
+    /// this Mac (the example's may not be installed here).
+    func versionConfig(runID: String, config: SimConfig) -> SimConfig {
+        guard isExample(runID) else { return config }
+        var config = config
+        config.agentRuntime = defaultAgentRuntime
+        config.plannerRuntime = defaultPlannerRuntime
+        config.agentModel = defaultModel(runtime: config.agentRuntime, role: "agent")
+        config.plannerModel = defaultModel(runtime: config.plannerRuntime, role: "planner")
+        return config
     }
 
     func selectStudy(_ studyID: String) { selectedRunID = StudySelection.tag(studyID) }

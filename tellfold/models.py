@@ -185,6 +185,24 @@ class Report(BaseModel):
     citation_audit: SkipJsonSchema[CitationAudit | None] = None
 
 
+class RewriteChange(BaseModel):
+    what: str  # the change, in a few words
+    why: str  # the crowd's reaction that motivated it, with citations
+    cites: list[int] = Field(default_factory=list)  # ids of the posts that motivated it
+
+
+class RewriteSuggestion(BaseModel):
+    """`rewrite.json` in a run folder: a better version of the seed text, written by one `report.rewrite` call."""
+
+    revised_text: str
+    changes: list[RewriteChange] = Field(default_factory=list)
+    kept_on_purpose: list[str] = Field(default_factory=list)  # what it chose not to change, and why
+    # Filled in by Python, never asked of the model (kept out of the JSON schema).
+    source_name: SkipJsonSchema[str] = ""  # the seed document the revised text replaces
+    created_at: SkipJsonSchema[str] = ""
+    citation_audit: SkipJsonSchema[CitationAudit | None] = None
+
+
 # ---------- studies: runs compared with each other (written to runs/studies/<id>/) ----------
 
 class StudyRun(BaseModel):

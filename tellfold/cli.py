@@ -6,6 +6,7 @@ import importlib
 import itertools
 import os
 import re
+import shlex
 import shutil
 import socket
 import subprocess
@@ -57,6 +58,7 @@ from tellfold.runner import (  # noqa: F401 - re-exported: older callers and tes
 )
 from tellfold.agree import build_agreement
 from tellfold.compare import COMPARE_FILE, Member, build_compare
+from tellfold.rewrite import REWRITE_FILE, RewriteError, build_rewrite
 from tellfold.runner import load_cast, now_iso
 from tellfold.settings import env
 from tellfold.study import (
@@ -691,6 +693,48 @@ def check(
     console.print(Panel(body, title=f"{agreement.verdict.capitalize()} across {agreement.runs} runs",
                         title_align="left", border_style="cyan"))
     console.print(f"Check: [bold]{folder / AGREEMENT_FILE}[/]", soft_wrap=True)
+
+
+@app.command()
+def rewrite(
+    run_dir: Annotated[Path, typer.Argument(exists=True, file_okay=False, help="A run with a report.")],
+    model: Annotated[str | None, typer.Option(help="Override the planner model.")] = None,
+) -> None:
+    """Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from RUN_DIR."""
+    config, world = load_run(run_dir)
+    world.close()
+    report_path = run_dir / "report.json"
+    if not report_path.exists():
+        fail(f"{report_path} not found. Build it first with: tellfold report {run_dir}")
+    built = Report.model_validate_json(report_path.read_text(encoding="utf-8"))
+    llm = make_llm(run_dir, 1, config=config)
+    try:
+        with console.status("Writing a better version..."):
+            suggestion = anyio.run(partial(build_rewrite, llm, run_dir, config, built,
+                                           model=model or config.planner_model))
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted.[/] Nothing was written.")
+        raise typer.Exit(EXIT_INTERRUPTED)
+    except RewriteError as e:
+        fail(str(e))
+    except LLMError as e:
+        fail(str(e))
+    write_json(run_dir / REWRITE_FILE, suggestion)
+    revised = run_dir / ("rewrite" + (Path(suggestion.source_name).suffix or ".md"))
+    revised.write_text(suggestion.revised_text.rstrip() + "\n", encoding="utf-8")
+    others = sorted(p for p in (run_dir / "seeds").glob("*")
+                    if p.is_file() and not p.name.startswith(".") and p.name != suggestion.source_name)
+    console.print(Panel(suggestion.revised_text, title=f"Suggested {suggestion.source_name}", title_align="left",
+                        border_style="cyan"))
+    for change in suggestion.changes:
+        cites = ", ".join(f"#{pid}" for pid in change.cites)
+        console.print(f"[bold]{change.what}[/] {change.why}" + (f" [dim]({cites})[/]" if cites else ""), soft_wrap=True)
+    for note in suggestion.kept_on_purpose:
+        console.print(f"[dim]kept:[/] {note}", soft_wrap=True)
+    files = " ".join(shlex.quote(str(p)) for p in [revised, *others])
+    console.print(f"Saved: [bold]{revised}[/] (and {REWRITE_FILE}). Test it against the same people with:\n"
+                  f"  tellfold run {files} -q {shlex.quote(config.question)} --cast-from {shlex.quote(str(run_dir))}",
+                  soft_wrap=True)
 
 
 @app.command()

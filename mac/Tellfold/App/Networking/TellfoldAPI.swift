@@ -246,6 +246,16 @@ actor TellfoldAPI {
     func studies() async throws -> [StudySummary] { try await get("studies") }
     func study(_ studyID: String) async throws -> StudyDetail { try await get("studies", studyID) }
 
+    /// Suggests a better version of the run's text (one planner call; saved as rewrite.json).
+    func rewrite(runID: String) async throws -> RewriteSuggestion {
+        var req = makeRequest(["runs", runID, "rewrite"], method: "POST")
+        req.timeoutInterval = 600
+        return try await send(req)
+    }
+
+    /// The suggestion saved earlier; a 404 error when there is none.
+    func savedRewrite(runID: String) async throws -> RewriteSuggestion { try await get("runs", runID, "rewrite") }
+
     /// "Check it": runs a finished run again `runs - 1` times with the same people and text; returns the study id.
     func checkRun(runID: String, runs: Int, agentModel: String? = nil) async throws -> String {
         struct Body: Encodable { let runs: Int; let agent_model: String? }

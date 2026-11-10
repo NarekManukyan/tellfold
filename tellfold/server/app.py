@@ -36,6 +36,7 @@ from tellfold.models import (
     Persona,
     Post,
     Report,
+    RewriteSuggestion,
     RoundStats,
     RunDigest,
     RunStatus,
@@ -592,6 +593,27 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
                 "compare": manager.compare_result(study.id), "compare_state": manager.compare_state(study.id),
                 "planned": study.planned, "repeating": manager.is_repeating(study.id),
                 "agreement": manager.agreement(study.id)}
+
+    @app.post("/api/runs/{run_id}/rewrite", response_model=RewriteSuggestion)
+    async def rewrite(run_id: str) -> RewriteSuggestion:
+        """Suggest a better version of the run's text, saved as rewrite.json (one planner call)."""
+        run_dir_of(run_id)
+        try:
+            return await manager.rewrite(run_id)
+        except BadRequest as e:
+            raise HTTPException(400, str(e)) from None
+        except Conflict as e:
+            raise HTTPException(409, str(e)) from None
+        except LLMError as e:
+            raise HTTPException(502, f"the model call failed: {e}") from None
+
+    @app.get("/api/runs/{run_id}/rewrite", response_model=RewriteSuggestion)
+    async def saved_rewrite(run_id: str) -> RewriteSuggestion:
+        run_dir_of(run_id)
+        suggestion = manager.saved_rewrite(run_id)
+        if suggestion is None:
+            raise HTTPException(404, "no suggestion for this run yet")
+        return suggestion
 
     @app.post("/api/runs/{run_id}/check", response_model=CheckOut)
     async def check_run(run_id: str, body: CheckIn) -> dict:

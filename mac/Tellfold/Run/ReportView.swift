@@ -14,6 +14,7 @@ struct ReportView: View {
     @State private var rebuilding = false
     @State private var confirmRebuild = false
     @State private var actionError: String?
+    @State private var showsRewrite = false
     @FocusState private var askFocused: Bool
 
     struct QA: Identifiable {
@@ -45,6 +46,9 @@ struct ReportView: View {
             } else {
                 emptyState
             }
+        }
+        .sheet(isPresented: $showsRewrite) {
+            RewriteSheet(store: store)
         }
         .confirmationDialog("Rebuild the report?", isPresented: $confirmRebuild) {
             Button("Rebuild Report") { Task { await rebuild() } }
@@ -86,6 +90,15 @@ struct ReportView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 8) {
+            Button {
+                showsRewrite = true
+            } label: {
+                Label("Suggest a better version", systemImage: "wand.and.stars")
+            }
+            .buttonStyle(.console(.secondary, compact: true))
+            .disabled(store.isLive || !app.engine.state.isRunning)
+            .help("Rewrite the text from what the crowd objected to, then test it against the same people")
+
             if store.controls.rebuildReport {
                 Button {
                     confirmRebuild = true

@@ -40,10 +40,12 @@ from tellfold.models import (
     RunState,
     RunStatus,
     SimConfig,
+    RewriteSuggestion,
     Study,
     StudyRun,
 )
 from tellfold.report import build_report
+from tellfold.rewrite import REWRITE_FILE, RewriteError, build_rewrite
 from tellfold.runner import (
     SEEDS_DIR,
     copy_seeds,
@@ -128,6 +130,7 @@ class RunManager:
     _comparing: dict[str, asyncio.Task] = field(default_factory=dict)  # study id -> compare task
     _compare_errors: dict[str, str] = field(default_factory=dict)  # why the last comparison failed
     _repeating: dict[str, asyncio.Task] = field(default_factory=dict)  # study id -> "Check it" series
+    _example_rewrites: dict[str, RewriteSuggestion] = field(default_factory=dict)  # examples are read-only
     _closing: bool = False  # set by shutdown(): no new run starts
     _loop: asyncio.AbstractEventLoop | None = None
     _loop_thread: int | None = None
@@ -312,6 +315,35 @@ class RunManager:
             return await ask_report(llm, world, report, question, model=config.planner_model)
         finally:
             world.close()
+
+    async def rewrite(self, run_id: str) -> RewriteSuggestion:
+        """Suggest a better version of the run's text (one `report.rewrite` call) and keep it in rewrite.json."""
+        if self.is_live(run_id):
+            raise Conflict("the run is still in progress")
+        with self.reader(run_id) as r:
+            report = r.report()
+            config = r.config()
+        if report is None or config is None:
+            raise Conflict("this run has no report yet")
+        llm, config = await self._talker(run_id, config)
+        try:
+            suggestion = await build_rewrite(llm, self.run_path(run_id), config, report, model=config.planner_model,
+                                             read_only=self.is_example(run_id))
+        except RewriteError as e:
+            raise BadRequest(str(e)) from None
+        if self.is_example(run_id):
+            self._example_rewrites[run_id] = suggestion
+        else:
+            write_json(self.run_path(run_id) / REWRITE_FILE, suggestion)
+        return suggestion
+
+    def saved_rewrite(self, run_id: str) -> RewriteSuggestion | None:
+        if self.is_example(run_id):
+            return self._example_rewrites.get(run_id)
+        try:
+            return RewriteSuggestion.model_validate_json((self.run_path(run_id) / REWRITE_FILE).read_text("utf-8"))
+        except (OSError, ValueError):
+            return None
 
     def rebuild_report(self, run_id: str) -> None:
         self._writable(run_id)

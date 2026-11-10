@@ -40,6 +40,7 @@ Every run lives in `runs/<run_id>/` (run_id = `YYYYMMDD-HHMMSS-<slug>`; created 
 | `personas.json` | personas | `list[Persona]` |
 | `calls.jsonl` | llm | one line per LLM call: ts, purpose, model, seconds, ok, error, prompt_chars, output_chars |
 | `report.json` / `report.html` / `report.md` | report | `Report` + rendered pages |
+| `rewrite.json` | rewrite | `RewriteSuggestion`: a better version of the text, from `tellfold rewrite` or the app |
 
 Runs compared with each other form a **study**, kept in `runs/studies/<study_id>/`: `study.json` (`Study`: the
 member runs and their labels, "Draft A", "Draft B"), `compare.json` (`CompareResult`) and, for the comparison's own
@@ -190,6 +191,12 @@ async def build_compare(llm, study_id, members: list[Member], *, question, model
   claims that held in every run and claims that split, with a verdict (consistent, mixed, unstable). Written to
   `studies/<id>/agreement.json`.
 
+### `tellfold/rewrite.py` — suggest a better version
+One `report.rewrite` call gets the run's text document (the pasted `description.md`, else the first text seed),
+the report and the posts it cites, and returns a `RewriteSuggestion`: `revised_text`, `changes` (what, why, cited
+post ids) and `kept_on_purpose`. Unknown ids leave `cites`; citations in the prose are audited and marked like the
+report's. "Test this version" in the app runs it with `cast_from` set (the 2A flow).
+
 ### `tellfold/chat.py`
 ```python
 async def interview(llm: LLM, world: World, agent_id: str, question: str, *, model: str,
@@ -205,6 +212,7 @@ tellfold run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--age
           [--language English] [--open]
           [--cast-from RUN_DIR] [--variant "Draft B"]   # reuse a run's people, join its study
 tellfold compare RUN_DIR           # compare the runs of RUN_DIR's study (studies/<id>/compare.json)
+tellfold rewrite RUN_DIR           # suggest a better version of the text (rewrite.json)
 tellfold check RUN_DIR [--runs 3]  # run it again with other seeds; what held (studies/<id>/agreement.json)
 tellfold report RUN_DIR            # rebuild report from an existing run
 tellfold chat RUN_DIR --agent a03  # interactive interview (REPL)
