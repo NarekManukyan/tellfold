@@ -348,6 +348,7 @@ def test_cursor_agent_argv_isolation_and_json_parsing(fake_bin: str) -> None:
     assert argv[:3] == [fake_bin, "-p", "--output-format"]
     assert argv[argv.index("--mode") + 1] == "ask" and argv[argv.index("--sandbox") + 1] == "enabled"
     assert argv[argv.index("--workspace") + 1] == call["cwd"] and call["cwd_was_empty"]
+    assert "--trust" in argv  # headless calls fail on the workspace-trust prompt without it
     assert argv[argv.index("--model") + 1] == "gpt-5"
     assert "--force" not in argv and "--approve-mcps" not in argv and "-f" not in argv
     assert "be brief" in argv[-1] and "the prompt" in argv[-1] and not argv[-1].startswith("-")

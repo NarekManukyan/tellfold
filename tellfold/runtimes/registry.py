@@ -128,8 +128,8 @@ CLI_SPECS: tuple[CLISpec, ...] = (
     CLISpec(
         "cursor-agent", "Cursor Agent", ("cursor-agent", "agent"), cli_tools.CursorAgentLLM, _cursor_auth,
         models=(TOOL_DEFAULT, "gpt-5", "sonnet-4", "sonnet-4-thinking"),
-        notes="cursor-agent -p --output-format json --mode ask --sandbox enabled; flags verified with --help. "
-              "Real call not verified yet: the CLI on the build Mac was not logged in.",
+        notes="cursor-agent -p --output-format json --mode ask --sandbox enabled --trust; a real JSON call "
+              "verified with cursor-agent 2026.01.23.",
     ),
     CLISpec(
         "codex", "Codex CLI", ("codex",), cli_tools.CodexLLM, _codex_auth,

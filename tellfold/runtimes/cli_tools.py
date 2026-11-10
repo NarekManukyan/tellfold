@@ -275,10 +275,11 @@ class CLIAdapterLLM(AdapterLLM):
 
 
 class CursorAgentLLM(CLIAdapterLLM):
-    """`cursor-agent -p --output-format json --mode ask --sandbox enabled --workspace <tmp> [--model M] PROMPT`.
+    """`cursor-agent -p --output-format json --mode ask --sandbox enabled --trust --workspace <tmp> [--model M] PROMPT`.
 
     Flags verified with `cursor-agent --help` (2026.01.23). `--mode ask` is read-only Q&A; `--force` and
-    `--approve-mcps` are never passed, so no command runs and no MCP server is approved. JSON output is one
+    `--approve-mcps` are never passed, so no command runs and no MCP server is approved. `--trust` only skips the
+    "Workspace Trust Required" prompt for the empty scratch folder; without it every headless call exits 1. JSON output is one
     `{type: "result", is_error, result, ...}` object; errors exit non-zero with text on stderr.
     """
 
@@ -287,7 +288,7 @@ class CursorAgentLLM(CLIAdapterLLM):
     passthrough_env = ("CURSOR_API_KEY", "CURSOR_CONFIG_DIR")
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "-p", "--output-format", "json", "--mode", "ask", "--sandbox", "enabled",
+        argv = [self.binary, "-p", "--output-format", "json", "--mode", "ask", "--sandbox", "enabled", "--trust",
                 "--workspace", workdir]
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
