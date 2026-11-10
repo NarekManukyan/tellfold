@@ -1,0 +1,559 @@
+<!doctype html>
+<html{% if config.language | lower == "english" %} lang="en"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{ report.title }}</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f2f1ed;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.10);
+  --c-post: #2a78d6;
+  --c-reply: #eb6834;
+  --c-repost: #1baf7a;
+  --c-like: #eda100;
+  --c-dislike: #e87ba4;
+  --c-follow: #008300;
+  --conf-low: #d03b3b;
+  --conf-medium: #c98500;
+  --conf-high: #0ca30c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #242422;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --accent-soft: rgba(57, 135, 229, 0.16);
+    --c-post: #3987e5;
+    --c-reply: #d95926;
+    --c-repost: #199e70;
+    --c-like: #c98500;
+    --c-dislike: #d55181;
+    --c-follow: #008300;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #242422;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.16);
+  --c-post: #3987e5;
+  --c-reply: #d95926;
+  --c-repost: #199e70;
+  --c-like: #c98500;
+  --c-dislike: #d55181;
+  --c-follow: #008300;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-wrap: anywhere;
+}
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+.prose { max-width: 70ch; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; margin-bottom: 12px; }
+h3 { font-size: 1.05rem; }
+h4 { font-size: 1rem; margin: 16px 0 4px; }
+p { margin: 0 0 12px; }
+section { margin-top: 48px; }
+a { color: var(--accent); }
+a.ref { text-decoration: none; font-weight: 600; }
+a.ref:hover { text-decoration: underline; }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+blockquote { margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--axis); color: var(--ink-2); }
+ul, ol { padding-left: 1.3em; margin: 0 0 12px; }
+li { margin-bottom: 4px; }
+.eyebrow { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+header .question { color: var(--ink-2); font-size: 1.05rem; margin: 8px 0 20px; }
+header .summary { font-size: 1.1rem; }
+
+.prediction { margin-top: 24px; border-left: 4px solid var(--accent); }
+.prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.audit { margin: -4px 0 10px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.conf-low .dot { background: var(--conf-low); }
+.conf-medium .dot { background: var(--conf-medium); }
+.conf-high .dot { background: var(--conf-high); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 24px; }
+.tile { padding: 14px 16px; }
+.tile .value { font-size: 1.7rem; font-weight: 650; line-height: 1.1; }
+.tile .label { color: var(--ink-2); font-size: 0.85rem; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.chart-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; margin-bottom: 8px; }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { fill: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+svg.chart line, svg.chart path { vector-effect: non-scaling-stroke; }
+svg.chart .grid { stroke: var(--grid); stroke-width: 1; }
+svg.chart .zero { stroke: var(--axis); stroke-width: 1.5; }
+svg.chart .line { fill: none; stroke: var(--c-post); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.chart .pt { fill: var(--c-post); stroke: var(--surface); stroke-width: 2; }
+svg.chart .hit { fill: transparent; }
+svg.chart .hit:hover + .pt, svg.chart .pt:hover { r: 6; }
+svg.chart .event { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+svg.chart .event-label { fill: var(--ink-2); font-weight: 600; }
+
+.mix { display: grid; gap: 8px; }
+.mix-row { display: grid; grid-template-columns: 34px 1fr 40px; align-items: center; gap: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.mix-row .r { color: var(--muted); }
+.mix-row .n { color: var(--ink-2); text-align: right; }
+.mix-track { height: 14px; }
+.mix-bar { display: flex; gap: 2px; height: 100%; min-width: 2px; }
+.mix-bar span { display: block; height: 100%; min-width: 3px; }
+.mix-bar span:first-child { border-radius: 4px 0 0 4px; }
+.mix-bar span:last-child { border-radius: 0 4px 4px 0; }
+.mix-bar span:only-child { border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 0.8rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.t-post { background: var(--c-post); }
+.t-reply { background: var(--c-reply); }
+.t-repost { background: var(--c-repost); }
+.t-like { background: var(--c-like); }
+.t-dislike { background: var(--c-dislike); }
+.t-follow { background: var(--c-follow); }
+
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: 0.85rem; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin-top: 8px; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink-2); font-weight: 600; }
+
+.report-section { margin-top: 32px; }
+.report-section h3 { margin-bottom: 8px; }
+
+.recs { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.rec { display: grid; gap: 6px; }
+.rec-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.rec-head h3 { flex: 1 1 16ch; }
+/* The label is drawn in ink for contrast; the action's colour is on the dot and the border. */
+.act { --act: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--act); color: var(--ink); white-space: nowrap; }
+.act-keep { --act: var(--conf-high); }
+.act-change { --act: var(--conf-medium); }
+.act-add { --act: var(--accent); }
+.act-drop { --act: var(--conf-low); }
+.act-test { --act: var(--ink-2); }
+.act .dot { background: var(--act); }
+.rec p { margin: 0; }
+.rec .effect { color: var(--ink-2); }
+.rec-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); }
+
+.voices { display: flex; flex-wrap: wrap; gap: 8px; }
+.voice { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 0.9rem; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; flex: none; }
+
+.events { list-style: none; padding: 0; display: grid; gap: 10px; }
+.event-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.event-item .tag { font-weight: 700; color: var(--ink-2); }
+.delta { font-size: 0.85rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.two-col ul { margin: 0; }
+
+.feed { display: grid; gap: 10px; }
+.post { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr; gap: 0 12px; }
+.post:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.post .avatar { width: 36px; height: 36px; }
+.post-head { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
+.post-head .name { font-weight: 650; }
+.post-head .meta { color: var(--muted); font-size: 0.85rem; }
+.post-context { color: var(--muted); font-size: 0.85rem; }
+.post-body { margin: 4px 0 6px; white-space: pre-wrap; }
+.post-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.thread { display: grid; gap: 10px; }
+.thread + .thread { margin-top: 28px; }
+.thread-replies { display: grid; gap: 10px; margin-left: 22px; padding-left: 16px; border-left: 2px solid var(--grid); }
+
+.directory { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.persona { display: grid; gap: 8px; align-content: start; }
+.persona:target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.persona-head { display: flex; gap: 10px; align-items: center; }
+.persona-head .name { font-weight: 650; line-height: 1.2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
+.persona-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.persona .stance { font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--grid); padding-top: 8px; margin: 0; }
+.key { color: var(--accent); border-color: var(--accent); }
+
+footer { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }
+@media (max-width: 560px) {
+  main { padding-top: 20px; }
+  section { margin-top: 36px; }
+  .card { padding: 16px; }
+  .thread-replies { margin-left: 8px; padding-left: 10px; }
+}
+/* Paper (Print, Save as PDF, and the Mac app's Export PDF): always light, the page size the printer asks for (A4 or
+   Letter) with the same margins, a new page for each long part, and no card split across pages. */
+@page { size: auto; margin: 16mm 15mm 18mm; }
+@media print {
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    color-scheme: light;
+    --page: #fff;
+    --surface: #fff;
+    --surface-2: #f2f1ed;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #6f6d68;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.16);
+    --accent: #2a78d6;
+    --accent-soft: rgba(42, 120, 214, 0.10);
+    --c-post: #2a78d6;
+    --c-reply: #eb6834;
+    --c-repost: #1baf7a;
+    --c-like: #eda100;
+    --c-dislike: #e87ba4;
+    --c-follow: #008300;
+  }
+  /* Keep chart lines, action bars, legend swatches and avatars in colour instead of letting the printer drop them. */
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; font-size: 10.5pt; line-height: 1.5; }
+  main { max-width: none; padding: 0; }
+  h1 { font-size: 21pt; }
+  h2 { font-size: 14pt; }
+  section { margin-top: 28px; }
+  section[aria-labelledby="analysis"], section[aria-labelledby="cited"],
+  section[aria-labelledby="threads"], section[aria-labelledby="people"] { break-before: page; margin-top: 0; }
+  h2, h3, h4, .chart-title, .post-head { break-after: avoid; }
+  /* WebKit does not honour break-after: avoid, so a heading carries invisible room for the lines after it and moves
+     to the next page with them instead of ending a page on its own. */
+  h2, h3 { break-inside: avoid; }
+  h2::after, h3::after { content: ""; display: block; height: 90px; margin-bottom: -90px; }
+  p, li { orphans: 3; widows: 3; }
+  /* WebKit ignores break-inside on grid items, so the lists of cards lay out as plain blocks on paper (and each chart
+     gets the full width, which keeps its labels a readable size). */
+  .charts, .feed, .thread, .thread-replies, .events, .two-col, .recs { display: block; }
+  .charts > *, .feed > *, .thread-replies > *, .events > *, .two-col > *, .recs > * { margin-bottom: 10px; }
+  .thread-replies { margin-top: 10px; }
+  /* Two persona cards a row as inline blocks: a whole card moves to the next page instead of splitting. */
+  .directory { display: block; font-size: 0; }
+  .persona { display: inline-grid; vertical-align: top; width: calc(50% - 6px); margin: 0 0 12px; font-size: 10.5pt; }
+  .persona:nth-child(odd) { margin-right: 12px; }
+  .post, .card, .tile, .event-item, .persona, .mix-row, .voice, .rec { break-inside: avoid; }
+  .prediction { break-inside: auto; }
+  .thread > .post:first-child { break-after: avoid; }
+  .post:target, .persona:target { outline: none; }
+  /* Interactive only: the collapsed round table, hover targets. Citations stay coloured so they read as references. */
+  details, svg.chart .hit { display: none; }
+  a { color: var(--accent); text-decoration: none; }
+  a.voice { color: var(--ink); }
+  footer { margin-top: 32px; }
+}
+</style>
+</head>
+<body>
+{% macro avatar(person, id) -%}
+<span class="avatar" aria-hidden="true">{{ (person.name if person else id)[:1] | upper }}</span>
+{%- endmacro %}
+
+{% macro post_card(p, anchor) -%}
+{% set person = people.get(p.author_id) %}
+<article class="post" id="{{ anchor }}">
+  {{ avatar(person, p.author_id) }}
+  <div>
+    <div class="post-head">
+      <span class="name">{{ person.name if person else p.author_id }}</span>
+      {% if person %}<a class="meta ref" href="#agent-{{ person.handle }}">@{{ person.handle }}</a>{% endif %}
+      <span class="meta">#{{ p.id }} · round {{ p.round }}</span>
+    </div>
+    {% if p.parent_id is not none %}
+      {% set parent = posts.get(p.parent_id) %}
+      <div class="post-context">replying to {% if parent and people.get(parent.author_id) %}@{{ people[parent.author_id].handle }} {% endif %}#{{ p.parent_id }}</div>
+    {% elif p.repost_of is not none %}
+      {% set orig = posts.get(p.repost_of) %}
+      <div class="post-context">reposted #{{ p.repost_of }}{% if orig and people.get(orig.author_id) %} by @{{ people[orig.author_id].handle }}{% endif %}{% if orig %}: “{{ orig.content | truncate(160) }}”{% endif %}</div>
+    {% endif %}
+    {% if p.content %}<p class="post-body">{{ p.content }}</p>{% endif %}
+    <div class="post-stats">
+      <span>{{ p.likes }} like{{ "" if p.likes == 1 else "s" }}</span>
+      <span>{{ p.dislikes }} dislike{{ "" if p.dislikes == 1 else "s" }}</span>
+      <span>{{ p.reposts }} repost{{ "" if p.reposts == 1 else "s" }}</span>
+      <span>{{ p.replies }} repl{{ "y" if p.replies == 1 else "ies" }}</span>
+    </div>
+  </div>
+</article>
+{%- endmacro %}
+
+<main>
+  <header>
+    <div class="eyebrow">Tellfold simulation report</div>
+    <h1>{{ report.title }}</h1>
+    <p class="question"><strong>Question:</strong> {{ config.question }}</p>
+    <div class="prose summary">{{ md(report.summary) }}</div>
+
+    <div class="card prediction">
+      <div class="prediction-head">
+        <h2 style="margin:0">Prediction</h2>
+        <span class="badge conf-{{ report.confidence }}"><span class="dot"></span>{{ report.confidence | capitalize }} confidence</span>
+      </div>
+      {% if citations %}<p class="audit muted small">{{ citations }}</p>{% endif %}
+      <div class="prose">{{ md(report.prediction) }}</div>
+    </div>
+
+    <div class="tiles">
+      {% for label, value in tiles %}
+      <div class="card tile"><div class="value">{{ value }}</div><div class="label">{{ label }}</div></div>
+      {% endfor %}
+    </div>
+  </header>
+
+  <section aria-labelledby="dynamics">
+    <h2 id="dynamics">How the crowd moved</h2>
+    <div class="charts">
+      <div class="card">
+        <div class="chart-title"><h3>Sentiment by round</h3><span class="muted small">−1 hostile · +1 favourable</span></div>
+        {% if chart %}
+        <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-label="Mean sentiment toward the subject for each round">
+          {% for y, label in chart.gridlines %}
+          <line class="{{ 'zero' if label == '0' else 'grid' }}" x1="{{ chart.left }}" x2="{{ chart.right }}" y1="{{ y }}" y2="{{ y }}"/>
+          <text x="{{ chart.left - 8 }}" y="{{ y + 4 }}" text-anchor="end">{{ label }}</text>
+          {% endfor %}
+          {% for x, label in chart.ticks %}
+          <text x="{{ x }}" y="{{ chart.bottom + 18 }}" text-anchor="middle">{{ label }}</text>
+          {% endfor %}
+          {% for x, label, text in chart.events %}
+          <g>
+            <title>{{ label }}: {{ text }}</title>
+            <line class="event" x1="{{ x }}" x2="{{ x }}" y1="{{ chart.top }}" y2="{{ chart.bottom }}"/>
+            <text class="event-label" x="{{ x + 4 }}" y="{{ chart.top + 10 }}">{{ label }}</text>
+          </g>
+          {% endfor %}
+          {% for d in chart.paths %}<path class="line" d="{{ d }}"/>{% endfor %}
+          {% for p in chart.points %}
+          <g>
+            <title>Round {{ p.round }}: sentiment {{ p.sentiment | signed }}</title>
+            <circle class="hit" cx="{{ p.x }}" cy="{{ p.y }}" r="12"/>
+            <circle class="pt" cx="{{ p.x }}" cy="{{ p.y }}" r="4.5"/>
+          </g>
+          {% endfor %}
+        </svg>
+        {% else %}
+        <p class="muted">No sentiment was recorded for this run.</p>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <div class="chart-title"><h3>Action mix per round</h3><span class="muted small">bar length = activity</span></div>
+        {% if mix %}
+        <div class="mix" role="img" aria-label="Count of each action type per round">
+          {% for row in mix %}
+          <div class="mix-row">
+            <span class="r">R{{ row.round }}</span>
+            <div class="mix-track">
+              <div class="mix-bar" style="width: {{ row.width_pct }}%">
+                {% for kind, n, share in row.segments %}
+                <span class="t-{{ kind }}" style="flex: {{ share }} 1 0" title="Round {{ row.round }}: {{ n }} {{ kind }}"></span>
+                {% endfor %}
+              </div>
+            </div>
+            <span class="n">{{ row.total }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="legend">
+          {% for kind in mix_types %}<span><i class="sw t-{{ kind }}"></i>{{ kind }}</span>{% endfor %}
+        </div>
+        {% else %}
+        <p class="muted">No rounds were recorded for this run.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if stats %}
+    <details>
+      <summary>Show round data as a table</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Round</th><th>Active</th><th>New posts</th><th>Sentiment</th>{% for kind in mix_types %}<th>{{ kind }}</th>{% endfor %}<th>idle</th></tr></thead>
+          <tbody>
+          {% for s in stats %}
+          <tr><td>R{{ s.round }}</td><td>{{ s.active_agents }}</td><td>{{ s.new_posts }}</td><td>{{ s.sentiment | signed }}</td>{% for kind in mix_types %}<td>{{ s.actions.get(kind, 0) }}</td>{% endfor %}<td>{{ s.actions.get('nothing', 0) }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endif %}
+  </section>
+
+  {% if events %}
+  <section aria-labelledby="events">
+    <h2 id="events">Injected events</h2>
+    <ul class="events">
+      {% for e in events %}
+      <li class="card event-item">
+        <span class="tag">E{{ loop.index }}</span>
+        <div>
+          <div><strong>Round {{ e.event.round }}.</strong> {{ e.event.content }}</div>
+          <div class="delta">Sentiment {{ e.sentiment_before | signed }} before → {{ e.sentiment_after | signed }} after · posts per round {{ e.posts_before }} → {{ e.posts_after }}</div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="analysis">
+    <h2 id="analysis">Analysis</h2>
+    {% for s in report.sections %}
+    <div class="report-section prose">
+      <h3>{{ s.title }}</h3>
+      {{ md(s.body_markdown) }}
+    </div>
+    {% endfor %}
+  </section>
+
+  {% if report.recommendations %}
+  <section aria-labelledby="next">
+    <h2 id="next">What to do next</h2>
+    <p class="muted small">{{ recommendations_note }}</p>
+    <ol class="recs">
+      {% for r in report.recommendations %}
+      <li class="card rec">
+        <div class="rec-head">
+          <span class="act act-{{ r.action }}" title="{{ action_meanings[r.action] }}"><span class="dot"></span>{{ action_labels[r.action] }}</span>
+          <h3>{{ inline(r.title) }}</h3>
+          {% if r.confidence %}<span class="badge conf-{{ r.confidence }}"><span class="dot"></span>{{ r.confidence | capitalize }} confidence</span>{% endif %}
+        </div>
+        {% if r.why %}<p>{{ inline(r.why) }}</p>{% endif %}
+        {% if r.expected_effect %}<p class="effect"><strong>Likely effect:</strong> {{ inline(r.expected_effect) }}</p>{% endif %}
+        <div class="rec-meta">
+          {% if r.addresses %}<span>For: {% for a in r.addresses %}{{ inline(addressee(a)) }}{{ ", " if not loop.last }}{% endfor %}</span>{% endif %}
+          <span>Based on: {% for e in r.evidence %}{{ inline(e) }}{{ ", " if not loop.last }}{% endfor %}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  {% if key_voices %}
+  <section aria-labelledby="voices">
+    <h2 id="voices">Key voices</h2>
+    <div class="voices">
+      {% for p in key_voices %}
+      <a class="voice" href="#agent-{{ p.handle }}">{{ avatar(p, p.id) }}<span><strong>{{ p.name }}</strong> <span class="muted">@{{ p.handle }}</span></span></a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if report.risks or report.caveats %}
+  <section aria-labelledby="limits">
+    <h2 id="limits">Risks and caveats</h2>
+    <div class="two-col">
+      {% if report.risks %}
+      <div class="card"><h3>What could prove this wrong</h3><ul>{% for r in report.risks %}<li>{{ inline(r) }}</li>{% endfor %}</ul></div>
+      {% endif %}
+      {% if report.caveats %}
+      <div class="card"><h3>Limits of this simulation</h3><ul>{% for c in report.caveats %}<li>{{ inline(c) }}</li>{% endfor %}</ul></div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cited %}
+  <section aria-labelledby="cited">
+    <h2 id="cited">Posts cited in the report</h2>
+    <div class="feed">
+      {% for p in cited %}{{ post_card(p, "p-" ~ p.id) }}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if threads %}
+  <section aria-labelledby="threads">
+    <h2 id="threads">Most active threads</h2>
+    {% for t in threads %}
+    <div class="thread">
+      {{ post_card(t.root, "t-" ~ t.root.id) }}
+      <div class="thread-replies">
+        {% for r in t.replies %}{{ post_card(r, "t-" ~ r.id) }}{% endfor %}
+        {% if t.size > t.replies | length %}<p class="muted small">{{ t.size - t.replies | length }} more repl{{ "y" if t.size - t.replies | length == 1 else "ies" }} not shown.</p>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="people">
+    <h2 id="people">Persona directory</h2>
+    <p class="muted small">Ordered by followers at the end of the run. Starting stances are private to each agent and were never shown on the platform.</p>
+    <div class="directory">
+      {% for a in directory %}
+      {% set p = a.persona %}
+      <article class="card persona" id="agent-{{ p.handle }}">
+        <div class="persona-head">
+          {{ avatar(p, p.id) }}
+          <div>
+            <div class="name">{{ p.name }}</div>
+            <div class="muted small">@{{ p.handle }} · {{ p.id }}</div>
+          </div>
+        </div>
+        <div class="chips">
+          {% if p.id in report.key_voices %}<span class="chip key">key voice</span>{% endif %}
+          {% if p.entity_id %}<span class="chip">represents {{ p.entity_id }}</span>{% endif %}
+          {% for t in p.traits %}<span class="chip">{{ t }}</span>{% endfor %}
+        </div>
+        <p class="small" style="margin:0">{{ p.bio }}</p>
+        <div class="persona-stats">
+          <span>{{ a.followers }} follower{{ "" if a.followers == 1 else "s" }}</span>
+          <span>{{ a.posts }} post{{ "" if a.posts == 1 else "s" }}</span>
+          <span>engagement {{ a.engagement }}</span>
+          <span>influence {{ "%.2f" | format(p.influence) }}</span>
+        </div>
+        <p class="stance"><strong>Starting stance:</strong> {{ p.stance }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer>
+    Generated by Tellfold from a simulation of {{ directory | length }} language-model agents. Seed files: {{ config.seed_files | join(", ") }}. Agent model: {{ config.agent_model }}; report model: {{ config.planner_model }}. This is an exploratory scenario, not a survey of real people.
+  </footer>
+</main>
+</body>
+</html>

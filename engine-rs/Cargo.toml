@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine"]
+members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report"]
 
 [workspace.package]
 version = "0.3.0"
@@ -29,6 +29,9 @@ serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tempfile = "3"
 thiserror = "1"
 rand = "0.8"
+fancy-regex = "0.14"
+minijinja = { version = "2", default-features = false, features = ["builtins", "macros", "multi_template", "serde", "std_collections", "adjacent_loop_items"] }
+minijinja-contrib = { version = "2", features = ["pycompat"] }
 sha2 = "0.10"
 unicode-normalization = "0.1"
 tellfold-models = { path = "crates/tellfold-models" }
@@ -36,6 +39,7 @@ tellfold-store = { path = "crates/tellfold-store" }
 tellfold-llm = { path = "crates/tellfold-llm" }
 tellfold-runtimes = { path = "crates/tellfold-runtimes" }
 tellfold-engine = { path = "crates/tellfold-engine" }
+tellfold-report = { path = "crates/tellfold-report" }
 
 [profile.release]
 lto = true

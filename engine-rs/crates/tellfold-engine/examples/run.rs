@@ -1,5 +1,5 @@
 //! A real run through a real runtime, for the manual checks the tests cannot make (they never start a real tool).
-//! The report stage is skipped until the report writer is ported.
+//! The report stage is skipped here; `cargo run -p tellfold-report --example run` runs the same with the real report.
 //!
 //! ```sh
 //! cargo run -p tellfold-engine --example run -- ../examples/mossbook_pricing.md "Will buyers accept the subscription?"

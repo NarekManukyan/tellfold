@@ -20,17 +20,21 @@ checkouts.
 - `tellfold-runtimes`: `settings.json`, detection of the installed AI tools, Claude Code through the `claude` CLI,
   the other CLI tools, the HTTP runtimes, and agent/planner routing (`build_llm`).
 - `tellfold-engine`: CPython's `random.Random`, graph extraction and merge, persona generation, the round loop and
-  `run_pipeline` with `status.json` tracking and stopping. The report stage is passed in until it is ported.
+  `run_pipeline` with `status.json` tracking and stopping. The report stage is passed in.
+- `tellfold-report`: the evidence digest, the report call with its citation audit and repair, `report.md` and
+  `report.html` (the Python Jinja template, rendered with minijinja), interviews, report Q&A and the rewrite
+  suggestion. `ReportWriter` is the pipeline's report stage.
 
 No test starts a real AI tool. For a manual check against one that is installed and logged in:
 
 ```bash
 cargo run -p tellfold-runtimes --example ping -- claude-code
 cargo run -p tellfold-runtimes --example ping -- cursor-agent
-AGENTS=4 ROUNDS=1 cargo run -p tellfold-engine --example run -- ../examples/mossbook_pricing.md "Will buyers accept the subscription?"
+AGENTS=4 ROUNDS=1 cargo run -p tellfold-report --example run -- ../examples/mossbook_pricing.md "Will buyers accept the subscription?"
 ```
 
-The second example runs a whole simulation (without the report) and prints every event and the run folder.
+The second example runs a whole simulation with the report and prints every event and the run folder
+(`cargo run -p tellfold-engine --example run` does the same without the report).
 
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.

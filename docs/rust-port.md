@@ -138,7 +138,7 @@ follows and opening authors.
 - **Threads.** `World` is not `Sync`, so the engine's futures are not `Send`: a run lives on one thread
   (a current-thread runtime or a `LocalSet`). The model calls of a round still run concurrently.
 - **Report stage.** `run_pipeline` takes a `ReportStage` (`build_report` plus `write_report` in Python), so the
-  engine does not depend on the report crate. Milestone 5 supplies the real one.
+  engine does not depend on the report crate. `tellfold_report::ReportWriter` is the real one.
 - **Cancellation.** Dropping the `run_pipeline` future marks the run `stopped` and emits `run_stopped`, like the
   Python cancellation branch. A listener that panics is caught and logged, like a listener that raises.
 - **Canned responder.** `cli.fake_responder` (what `TELLFOLD_FAKE_LLM=1` runs on) is ported as
@@ -152,6 +152,29 @@ Known differences, none visible in a normal run:
 - A `target_post_id` given as a string of non-ASCII digits (`"٣"`) becomes null instead of a number.
 - A branch run whose `graph.json` is missing fails with the same `[Errno 2] ...` text; a malformed one fails with
   serde's message instead of pydantic's.
+
+## The report (digest, audit, HTML, chat, rewrite)
+
+- **Template.** `tellfold-report/templates/report.html` is a copy of `tellfold/templates/report.html`, and a test
+  fails when the two differ. minijinja renders it with Jinja2's settings (`trim_blocks`, `lstrip_blocks`, HTML
+  autoescape). Where minijinja differs from Jinja2 the port supplies Jinja2's behaviour: values are escaped like
+  `markupsafe.escape` (`&#34;` and `&#39;`, `/` left alone), floats print as Python's `str()`, and `truncate`,
+  `format` (`"%.2f"`), `capitalize` and the report's own `signed` filter are re-implemented. `dict.get` and the
+  other Python methods the template calls come from minijinja-contrib's `pycompat`.
+- **Regular expressions.** The citation, quote, sentence and Markdown patterns use look-behinds, so they run on
+  `fancy-regex`. `\w`, `\s` and `\d` are spelled out from Python's own tables (`WORD`, `DECIMAL` in
+  `tellfold-engine/src/unicode_tables.rs`), so `#١` cites post 1 exactly as in Python.
+- **Numbers.** `statistics.fmean` is CPython's `fsum` (exact, Shewchuk) divided by the count; plain sums use the
+  compensated `sum` of CPython 3.12. Prompt templates are filled in one pass like `str.format`, so a `{digest}`
+  inside a question stays as it is.
+- **Errors.** `RewriteError` and the `KeyError` of an unknown interviewee are `ReportError::Rewrite` and
+  `ReportError::UnknownAgent`, with Python's message text (including `repr()` quoting of the agent name).
+
+Known differences, none visible in a normal run:
+
+- A post id too large for an `i64` is read as unknown (`-1`) where Python keeps the big integer.
+- An evidence entry made only of non-decimal digits such as `²` raises in Python (`int("²")`); the port treats it
+  as text and drops it like any other entry without a citation.
 
 ## world.db
 
@@ -187,9 +210,10 @@ Milestones 2 and 3 can overlap, as can 5 and 6 once 4 has landed.
 `engine-rs/golden/make.py` runs with `uv run python engine-rs/golden/make.py` and writes fixtures from the Python
 engine into `engine-rs/golden/fixtures/`: reader output for the example runs, schemas, prompts, runtime command
 lines, RNG sequences, the engine's seeded helpers on the example casts, and a whole run on the canned responder
-(every model call, every event, the run folder and every `world.db` row); later rendered reports and recorded API
-sessions. The Rust tests read the fixtures, so `cargo test`
-needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
+(every model call, every event, the run folder and every `world.db` row), and the report side: the evidence digest,
+every `build_report` scenario of `test_report.py` (calls, `report.json`, `report.md`, `report.html`), the citation
+audit, interview and ask prompts, rewrites, and the rendered reports of both examples and of the golden run; later
+recorded API sessions. The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
 which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute
