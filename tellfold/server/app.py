@@ -29,6 +29,7 @@ from tellfold import __version__
 from tellfold.compare import digest_run
 from tellfold.llm import LLMError
 from tellfold.models import (
+    Agreement,
     CompareResult,
     GodEvent,
     KnowledgeGraph,
@@ -193,8 +194,9 @@ class StudySummary(BaseModel):
     created_at: str
     question: str
     runs: list[StudyMemberOut]
-    has_compare: bool
+    has_compare: bool  # compare.json, or agreement.json for a repeat study
     comparing: bool
+    planned: int = 0  # runs a "Check it" study will have
 
 
 class StudyRunOut(StudyMemberOut):
@@ -217,6 +219,18 @@ class StudyDetail(BaseModel):
     runs: list[StudyRunOut]
     compare: CompareResult | None
     compare_state: CompareState
+    planned: int = 0  # runs a "Check it" study will have; more than `runs` while the series is going
+    repeating: bool = False  # the "Check it" series is still starting runs
+    agreement: Agreement | None = None  # what held across the runs of a repeat study
+
+
+class CheckIn(BaseModel):
+    runs: int = Field(3, ge=2, le=5)
+    agent_model: str | None = Field(None, max_length=120, pattern=_MODEL.pattern)
+
+
+class CheckOut(BaseModel):
+    study_id: str
 
 
 # ---------- local-only guard ----------
@@ -555,8 +569,10 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
             out.append({"id": study.id, "kind": study.kind, "created_at": study.created_at,
                         "question": config.question if config else "",
                         "runs": [{"id": m.run_id, "variant": m.variant, "letter": m.letter} for m in members],
-                        "has_compare": manager.compare_result(study.id) is not None,
-                        "comparing": manager.compare_state(study.id)["running"]})
+                        "has_compare": (manager.agreement(study.id) if study.kind == "repeat"
+                                        else manager.compare_result(study.id)) is not None,
+                        "comparing": manager.compare_state(study.id)["running"] or manager.is_repeating(study.id),
+                        "planned": study.planned})
         out.sort(key=lambda s: (s["created_at"], s["id"]), reverse=True)
         return out
 
@@ -573,7 +589,21 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
                          "state": summary["state"], "has_report": summary["has_report"],
                          "example": manager.is_example(m.run_id), "digest": digest_run(m, summary["state"])})
         return {"id": study.id, "kind": study.kind, "created_at": study.created_at, "runs": runs,
-                "compare": manager.compare_result(study.id), "compare_state": manager.compare_state(study.id)}
+                "compare": manager.compare_result(study.id), "compare_state": manager.compare_state(study.id),
+                "planned": study.planned, "repeating": manager.is_repeating(study.id),
+                "agreement": manager.agreement(study.id)}
+
+    @app.post("/api/runs/{run_id}/check", response_model=CheckOut)
+    async def check_run(run_id: str, body: CheckIn) -> dict:
+        """Check it: run this finished run again with the same people and text, one run after another."""
+        run_dir_of(run_id)
+        try:
+            study = await manager.check(run_id, body.runs, body.agent_model)
+        except BadRequest as e:
+            raise HTTPException(400, str(e)) from None
+        except Conflict as e:
+            raise HTTPException(409, str(e)) from None
+        return {"study_id": study.id}
 
     @app.post("/api/studies/{study_id}/compare", response_model=Ok)
     async def compare_study(study_id: str) -> dict:

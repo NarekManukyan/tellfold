@@ -110,6 +110,40 @@ struct AnotherVersionButton: View {
     }
 }
 
+/// "Check it (3 runs)": runs this run again with the same people and text, after a usage warning, and shows what held.
+struct CheckItButton: View {
+    let store: RunStore
+    @Environment(AppModel.self) private var app
+    @State private var confirming = false
+    @State private var error: String?
+
+    private var callsPerRun: Int {
+        guard let c = store.config else { return 0 }
+        return NewRunRequest.estimatedCallSplit(agents: c.numAgents, rounds: c.rounds, batch: c.batchSize, chunks: 1).agent + 1
+    }
+
+    var body: some View {
+        Button("Check it (\(StudyLogic.checkRuns) runs)") { confirming = true }
+            .buttonStyle(.console(.secondary))
+            .disabled(!store.canTryAnotherVersion || !app.engine.state.isRunning)
+            .help("Run this again with the same people and text, and see whether the answer holds")
+            .confirmationDialog("Check this result?", isPresented: $confirming) {
+                Button("Run \(StudyLogic.checkRuns - 1) more times") {
+                    Task {
+                        do { try await app.checkIt(runID: store.runID) } catch { self.error = error.localizedDescription }
+                    }
+                }
+            } message: {
+                Text(StudyLogic.checkWarning(runs: StudyLogic.checkRuns, callsPerRun: callsPerRun))
+            }
+            .alert("Could Not Start the Check", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(error ?? "")
+            }
+    }
+}
+
 // MARK: - small views
 
 /// A signed sentiment number in its colour: never colour alone.

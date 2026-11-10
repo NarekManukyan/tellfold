@@ -12,6 +12,7 @@ import os
 import shutil
 import sqlite3
 import stat
+import time
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from tellfold.llm import FakeLLM
 from tellfold.models import SimConfig
 from tellfold.runner import copy_seeds, create_run_dir, run_pipeline
 from tellfold.server import create_app
+from tellfold.settings import Settings, save_settings
 
 SEED_TEXT = (
     "# Harbour Town votes on a new ferry fare\n\n"
@@ -169,6 +171,32 @@ def test_interviews_need_an_ai_tool(client: TestClient, ready: Ready) -> None:
     assert res.status_code == 409 and "AI tool" in res.json()["detail"]
     res = client.post("/api/runs/example-cafe/ask", json={"question": "Why?"})
     assert res.status_code == 409 and "AI tool" in res.json()["detail"]
+
+
+def test_checking_an_example_uses_this_machines_ai_tool(runs_dir: Path, packed: Path, ready: Ready,
+                                                        tmp_path: Path) -> None:
+    settings = tmp_path / "settings.json"
+    save_settings(Settings(agent_runtime="ollama", agent_model="llama3", planner_runtime="ollama",
+                           planner_model="qwen3"), settings)
+    app = create_app(runs_dir, lambda run_dir, concurrency, think: FakeLLM(fake_responder), fake_llm=True,
+                     poll_interval=0.05, shutdown_grace=0.5, examples_dir=packed, runtime_ready=ready,
+                     settings_path=settings)
+    before = snapshot(packed)
+    with TestClient(app) as c:
+        ready.value = False
+        res = c.post("/api/runs/example-cafe/check", json={"runs": 2})
+        assert res.status_code == 409 and "AI tool" in res.json()["detail"]
+        ready.value = True
+        study_id = c.post("/api/runs/example-cafe/check", json={"runs": 2}).json()["study_id"]
+        deadline = time.monotonic() + 30
+        while not (study := c.get(f"/api/studies/{study_id}").json())["agreement"] and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert study["agreement"] is not None, study
+        config = c.get(f"/api/runs/{study['runs'][1]['id']}").json()["config"]
+    assert (config["agent_runtime"], config["agent_model"]) == ("ollama", "llama3")
+    assert (config["planner_runtime"], config["planner_model"]) == ("ollama", "qwen3")
+    assert config["cast_from"] == "example-cafe"
+    assert snapshot(packed) == before
 
 
 def test_a_normal_run_with_the_same_id_prefix_does_not_collide(client: TestClient, runs_dir: Path) -> None:

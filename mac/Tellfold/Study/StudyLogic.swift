@@ -23,8 +23,13 @@ nonisolated struct StudyRow: Identifiable, Hashable, Sendable {
     var isActive: Bool
     var hasCompare: Bool
     var comparing: Bool
+    /// A "Check it" study: the same run repeated.
+    var isRepeat: Bool = false
+    var planned: Int = 0
 
-    var title: String { members.map(\.variant).joined(separator: " vs ") }
+    var title: String {
+        isRepeat ? "Check it: \(max(planned, members.count)) runs" : members.map(\.variant).joined(separator: " vs ")
+    }
 }
 
 /// Where a study stands, worded for its header.
@@ -53,7 +58,8 @@ nonisolated enum StudyLogic {
             let question = study.question.isEmpty ? (byID[members[0].id]?.question ?? "") : study.question
             return StudyRow(id: study.id, question: question, members: members,
                             isActive: members.contains { byID[$0.id]?.state.isActive ?? false },
-                            hasCompare: study.hasCompare, comparing: study.comparing)
+                            hasCompare: study.hasCompare, comparing: study.comparing, isRepeat: study.isRepeat,
+                            planned: study.planned)
         }
         .sorted { a, b in
             let da = studies.first { $0.id == a.id }?.createdAt ?? ""
@@ -62,11 +68,13 @@ nonisolated enum StudyLogic {
         }
     }
 
-    /// The study a run belongs to: its own `studyID`, else the first study that lists it (a source run joins its study
-    /// only through the study file).
+    /// The study a new version of a run joins: its own `studyID`, else the first study that lists it (a source run
+    /// joins its study only through the study file). Never a "Check it" study: it holds only repeats of one run, so a
+    /// new version of one of its runs starts a study of its own (nil).
     static func study(of runID: String, runs: [RunSummary], studies: [StudySummary]) -> String? {
-        if let own = runs.first(where: { $0.id == runID })?.studyID { return own }
-        return studies.first { $0.runs.contains { $0.id == runID } }?.id
+        let repeats = Set(studies.filter(\.isRepeat).map(\.id))
+        if let own = runs.first(where: { $0.id == runID })?.studyID, !repeats.contains(own) { return own }
+        return studies.first { !$0.isRepeat && $0.runs.contains { $0.id == runID } }?.id
     }
 
     /// "Draft A", "Draft B", ... for the `index`-th run of a study (as the engine labels them).
@@ -85,10 +93,46 @@ nonisolated enum StudyLogic {
     }
 
     static func phase(of detail: StudyDetail) -> StudyPhase {
-        if detail.runs.contains(where: { $0.state.isActive }) { return .running }
+        if detail.repeating || detail.runs.contains(where: { $0.state.isActive }) { return .running }
         if detail.compareState.running { return .comparing }
-        if detail.compare != nil { return .compared }
+        if detail.isRepeat ? detail.agreement != nil : detail.compare != nil { return .compared }
         return detail.runs.filter(\.hasReport).count >= 2 ? .readyToCompare : .notEnoughRuns
+    }
+
+    /// How far a "Check it" series is: "2 more to come" while it runs, "stopped after 2 of 3 runs" when it ended
+    /// early without saying so (the engine restarted mid-series); nil when every planned run is there.
+    static func seriesNote(_ detail: StudyDetail) -> String? {
+        guard detail.isRepeat, detail.planned > detail.runs.count else { return nil }
+        return detail.repeating
+            ? "\(detail.planned - detail.runs.count) more to come"
+            : "stopped after \(detail.runs.count) of \(detail.planned) runs"
+    }
+
+    /// Runs in a "Check it" by default, and the most the engine allows.
+    static let checkRuns = 3
+    static let maxCheckRuns = 5
+
+    /// The usage warning before "Check it": the extra runs make roughly this many calls each.
+    static func checkWarning(runs: Int, callsPerRun: Int) -> String {
+        let extra = runs - 1
+        return "Check it runs this simulation \(extra) more time\(extra == 1 ? "" : "s") with the same people and text, one "
+            + "after another. That is about \(runs)× the model calls of one run (about \(extra * callsPerRun) more calls)."
+    }
+
+    /// The verdict in plain words.
+    static func verdictTitle(_ verdict: AgreementVerdict, runs: Int) -> String {
+        switch verdict {
+        case .consistent: "It held up in all \(runs) runs"
+        case .mixed: "The main answer held, some details did not"
+        case .unstable: "The runs disagree: don't rely on this answer"
+        case .unknown: "Checked across \(runs) runs"
+        }
+    }
+
+    /// "+0.10 to +0.35 (spread 0.25)", or nil when no run scored its last round.
+    static func finalRange(_ a: Agreement) -> String? {
+        guard let low = a.finalLow, let high = a.finalHigh else { return nil }
+        return "\(RunUI.sentimentText(low)) to \(RunUI.sentimentText(high)) (spread \(String(format: "%.2f", high - low)))"
     }
 
     /// The run a comparison citation such as `B#7` points into.
@@ -101,6 +145,22 @@ nonisolated enum StudyLogic {
         detail.runs.map { run in
             (run, run.digest.rounds.compactMap { p in p.sentiment.map { (p.round, $0) } })
         }
+    }
+
+    /// The low-high band per round for a "Check it" chart: the engine's bands when the check is written, else
+    /// computed from the runs so far. Rounds no run scored are left out.
+    static func bands(_ detail: StudyDetail) -> [(round: Int, low: Double, high: Double)] {
+        if let bands = detail.agreement?.bands, !bands.isEmpty {
+            return bands.compactMap { b in
+                guard let low = b.low, let high = b.high else { return nil }
+                return (b.round, low, high)
+            }
+        }
+        var byRound: [Int: [Double]] = [:]
+        for run in detail.runs {
+            for p in run.digest.rounds { if let s = p.sentiment { byRound[p.round, default: []].append(s) } }
+        }
+        return byRound.keys.sorted().map { r in (r, byRound[r]!.min()!, byRound[r]!.max()!) }
     }
 
     /// Text files are edited in the sheet; the first one (a pasted `description.md` first) is the version's text.

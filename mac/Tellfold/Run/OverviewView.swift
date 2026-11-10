@@ -242,6 +242,7 @@ private struct SummaryCard: View {
                     .buttonStyle(.consolePrimary)
                 AnotherVersionButton(store: store)
                 RunAgainButton(store: store)
+                CheckItButton(store: store)
                 Text("A scenario exploration of a simulated crowd, not a poll of real people.")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.muted)

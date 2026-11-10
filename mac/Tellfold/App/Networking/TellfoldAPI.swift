@@ -246,6 +246,14 @@ actor TellfoldAPI {
     func studies() async throws -> [StudySummary] { try await get("studies") }
     func study(_ studyID: String) async throws -> StudyDetail { try await get("studies", studyID) }
 
+    /// "Check it": runs a finished run again `runs - 1` times with the same people and text; returns the study id.
+    func checkRun(runID: String, runs: Int, agentModel: String? = nil) async throws -> String {
+        struct Body: Encodable { let runs: Int; let agent_model: String? }
+        struct Created: Decodable, Sendable { let study_id: String }
+        let r: Created = try await post(["runs", runID, "check"], body: Body(runs: runs, agent_model: agentModel))
+        return r.study_id
+    }
+
     /// Writes (or rewrites) the study's comparison in the background.
     func compareStudy(_ studyID: String) async throws {
         let _: OkResponse = try await post(["studies", studyID, "compare"], body: Optional<String>.none)

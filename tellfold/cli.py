@@ -34,6 +34,8 @@ from tellfold.chat import ask_report, interview
 from tellfold.llm import LLM, FakeLLM, LLMError
 from tellfold.models import (
     GodEvent,
+    Study,
+    StudyRun,
     KnowledgeGraph,
     Persona,
     Report,
@@ -53,10 +55,21 @@ from tellfold.runner import (  # noqa: F401 - re-exported: older callers and tes
     write_json,
     write_report,
 )
+from tellfold.agree import build_agreement
 from tellfold.compare import COMPARE_FILE, Member, build_compare
 from tellfold.runner import load_cast, now_iso
 from tellfold.settings import env
-from tellfold.study import StudyError, join_study, letter, plan_variant, study_dir, study_of
+from tellfold.study import (
+    AGREEMENT_FILE,
+    StudyError,
+    join_study,
+    letter,
+    new_study_id,
+    plan_variant,
+    save_study,
+    study_dir,
+    study_of,
+)
 from tellfold.world import World
 
 app = typer.Typer(
@@ -618,6 +631,66 @@ def compare(
     console.print(Panel(Text.assemble((result.report.why, ""), "\n\n", ("better: ", "dim"), (verdict, "bold")),
                         title=result.report.headline, title_align="left", border_style="cyan"))
     console.print(f"Comparison: [bold]{folder / COMPARE_FILE}[/]", soft_wrap=True)
+
+
+@app.command()
+def check(
+    run_dir: Annotated[Path, typer.Argument(exists=True, file_okay=False, help="A finished run with a report.")],
+    runs: Annotated[int, typer.Option(min=2, max=5, help="Runs in all, this one included.")] = 3,
+    agent_model: Annotated[str | None, typer.Option(help="Agent model for the new runs (default: the run's).")] = None,
+) -> None:
+    """Check it: run RUN_DIR again with the same people and text but other seeds, then say what held."""
+    config, world = load_run(run_dir)
+    world.close()
+    if not (run_dir / "report.json").is_file():
+        fail(f"{run_dir} has no report yet. Build it first with: tellfold report {run_dir}")
+    out = run_dir.resolve().parent
+    seeds = sorted(p for p in (run_dir / "seeds").glob("*") if p.is_file() and not p.name.startswith("."))
+    if not seeds:
+        fail(f"{run_dir} has no saved seed documents to run again")
+    study = Study(id=new_study_id(), kind="repeat", created_at=now_iso(), planned=runs,
+                  runs=[StudyRun(id=run_dir.resolve().name, variant="Run 1")])
+    save_study(out, study)
+    console.print(f"[bold]Check it[/]: {runs - 1} more run{'s' if runs > 2 else ''} of {run_dir.name}, one after "
+                  "another" + ("  [yellow](fake LLM)[/]" if fake_mode() else ""), soft_wrap=True)
+    for i in range(1, runs):
+        variant = f"Run {i + 1}"
+        new_dir = create_run_dir(out, config.question)
+        files = copy_seeds(new_dir, seeds)
+        new = config.model_copy(update={"seed_files": [str(f) for f in files], "seed": config.seed + i,
+                                        "cast_from": run_dir.resolve().name, "study_id": study.id,
+                                        "variant": variant, **({"agent_model": agent_model} if agent_model else {})})
+        study = join_study(out, study, new_dir.name, variant)
+        write_json(new_dir / "config.json", new)
+        try:
+            llm = make_llm(new_dir, new.concurrency, think=new.think, config=new)
+            with console.status(f"{variant} of {runs} (seed {new.seed})..."):
+                done = anyio.run(partial(run_pipeline, llm, new_dir, new, files))
+        except KeyboardInterrupt:
+            mark_stopped(new_dir)
+            console.print(f"\n[yellow]Interrupted.[/] The check stopped at {variant}.")
+            raise typer.Exit(EXIT_INTERRUPTED)
+        except (LLMError, RunError) as e:
+            fail(f"{variant} failed: {e}")
+        if done is None:
+            fail(f"{variant} stopped before a round finished")
+        console.print(f"{variant}: {done.title}", soft_wrap=True)
+    members = [Member(letter=letter(i), run_id=r.id, variant=r.variant, run_dir=out / r.id)
+               for i, r in enumerate(study.runs)]
+    try:
+        with console.status("Checking what held..."):
+            agreement = anyio.run(partial(build_agreement, make_llm(run_dir, 1, config=config), study.id, members,
+                                          question=config.question, model=config.planner_model,
+                                          language=config.language))
+    except LLMError as e:
+        fail(str(e))
+    folder = study_dir(out, study.id)
+    write_json(folder / AGREEMENT_FILE, agreement)
+    body = Text.assemble((agreement.summary, ""), "\n\n", ("held: ", "dim"), ("; ".join(agreement.held) or "-", ""),
+                         "\n", ("split: ", "dim"), ("; ".join(agreement.split) or "-", ""))
+    console.print(Panel(body, title=f"{agreement.verdict.capitalize()} across {agreement.runs} runs",
+                        title_align="left", border_style="cyan"))
+    console.print(f"Check: [bold]{folder / AGREEMENT_FILE}[/]", soft_wrap=True)
 
 
 @app.command()

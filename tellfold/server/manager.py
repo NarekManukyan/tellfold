@@ -29,14 +29,34 @@ import anyio
 from pydantic_core import to_jsonable_python
 
 from tellfold.chat import ask_report, interview
+from tellfold.agree import MAX_RUNS, build_agreement
 from tellfold.compare import COMPARE_FILE, Member, build_compare
 from tellfold.llm import LLM
-from tellfold.models import CompareResult, GodEvent, KnowledgeGraph, RunState, RunStatus, SimConfig, Study
+from tellfold.models import (
+    Agreement,
+    CompareResult,
+    GodEvent,
+    KnowledgeGraph,
+    RunState,
+    RunStatus,
+    SimConfig,
+    Study,
+    StudyRun,
+)
 from tellfold.report import build_report
-from tellfold.runner import create_run_dir, now_iso, run_pipeline, write_json, write_report, write_status
+from tellfold.runner import (
+    SEEDS_DIR,
+    copy_seeds,
+    create_run_dir,
+    now_iso,
+    run_pipeline,
+    write_json,
+    write_report,
+    write_status,
+)
 from tellfold.server.reader import RunReader
 from tellfold.settings import load_settings
-from tellfold.study import letter, load_study, study_dir
+from tellfold.study import AGREEMENT_FILE, letter, load_study, new_study_id, save_study, study_dir
 from tellfold.world import World
 
 log = logging.getLogger(__name__)
@@ -107,6 +127,8 @@ class RunManager:
     _rebuild_errors: dict[str, str] = field(default_factory=dict)  # why the last rebuild failed
     _comparing: dict[str, asyncio.Task] = field(default_factory=dict)  # study id -> compare task
     _compare_errors: dict[str, str] = field(default_factory=dict)  # why the last comparison failed
+    _repeating: dict[str, asyncio.Task] = field(default_factory=dict)  # study id -> "Check it" series
+    _closing: bool = False  # set by shutdown(): no new run starts
     _loop: asyncio.AbstractEventLoop | None = None
     _loop_thread: int | None = None
 
@@ -254,14 +276,19 @@ class RunManager:
         runtime may not be installed here), logs no calls (its folder is read-only), and needs a tool at all."""
         if not self.is_example(run_id):
             return self.llm_factory(self.runs_dir / run_id, 1, False), config
+        config = await self._local_tool(config, "to interview people or ask questions in an example run")
+        return self.llm_factory(None, 1, False), config
+
+    async def _local_tool(self, config: SimConfig, purpose: str) -> SimConfig:
+        """An example's config with the AI tool and models set up on this machine instead of the recorded ones (the
+        recorded runtime may not be installed here). Conflict when no tool is set up; `purpose` finishes that message."""
         if self.runtime_ready is not None and not await self.runtime_ready():
-            raise Conflict("set up an AI tool first to interview people or ask questions in an example run")
+            raise Conflict(f"set up an AI tool first {purpose}")
         settings = load_settings(self.settings_path)
-        config = config.model_copy(update={
+        return config.model_copy(update={
             "agent_runtime": settings.agent_runtime, "planner_runtime": settings.planner_runtime,
             "agent_model": settings.agent_model or config.agent_model,
             "planner_model": settings.planner_model or config.planner_model})
-        return self.llm_factory(None, 1, False), config
 
     async def chat(self, run_id: str, agent_id: str, message: str, history: list[tuple[str, str]]) -> str:
         config, world = self._open_world(run_id)
@@ -348,9 +375,20 @@ class RunManager:
         except (OSError, ValueError):
             return None
 
+    def agreement(self, study_id: str) -> Agreement | None:
+        try:
+            path = study_dir(self.runs_dir, study_id) / AGREEMENT_FILE
+            return Agreement.model_validate_json(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+
     def compare_state(self, study_id: str) -> dict[str, Any]:
         task = self._comparing.get(study_id)
         return {"running": task is not None and not task.done(), "error": self._compare_errors.get(study_id)}
+
+    def is_repeating(self, study_id: str) -> bool:
+        task = self._repeating.get(study_id)
+        return task is not None and not task.done()
 
     def _ready_members(self, study: Study) -> list[Member]:
         """Members that finished with a report; empty while any member is still running."""
@@ -368,6 +406,8 @@ class RunManager:
         task = self._comparing.get(study_id)
         if task is not None and not task.done():
             raise Conflict("the comparison is already being written")
+        if self.is_repeating(study_id):
+            raise Conflict("the runs are still going; the check is written after the last one")
         members = self._ready_members(study)
         if len(members) < 2:
             raise Conflict("a comparison needs at least two finished runs with a report")
@@ -379,8 +419,8 @@ class RunManager:
         """After a study run ends: compare once every member is finished, unless a comparison is under way."""
         study = self.study(study_id)
         task = self._comparing.get(study_id)
-        if study is None or (task is not None and not task.done()):
-            return
+        if study is None or study.kind == "repeat" or (task is not None and not task.done()):
+            return  # a "Check it" series writes its agreement itself, after its last run
         if len(self._ready_members(study)) >= 2:
             with contextlib.suppress(Conflict, KeyError):
                 self.compare(study_id)
@@ -396,6 +436,11 @@ class RunManager:
             folder.mkdir(parents=True, exist_ok=True)
             write_json(folder / "config.json", config)
             llm = self.llm_factory(folder, 1, False)
+            if study.kind == "repeat":
+                agreement = await build_agreement(llm, study.id, members, question=config.question,
+                                                  model=config.planner_model, language=config.language)
+                write_json(folder / AGREEMENT_FILE, agreement)
+                return
             states = {m.run_id: (self.run_state(m.run_id) or RunState.DONE).value for m in members}
             result = await build_compare(llm, study.id, members, question=config.question,
                                          model=config.planner_model, language=config.language, states=states)
@@ -405,6 +450,80 @@ class RunManager:
             self._compare_errors[study.id] = str(e) or type(e).__name__
         finally:
             self._comparing.pop(study.id, None)
+
+    async def check(self, source_id: str, runs: int, agent_model: str | None = None) -> Study:
+        """Check it: run `source_id` again `runs - 1` times with the same people, text and settings but the next
+        RNG seeds, one run after another so usage limits aren't hammered, then write what held (agreement.json).
+        `agent_model` swaps the model the agents use in the new runs. An example's repeats use this machine's AI
+        tool, like its interviews."""
+        if not 2 <= runs <= MAX_RUNS:
+            raise BadRequest(f"runs must be between 2 and {MAX_RUNS}")
+        if self.is_live(source_id):
+            raise Conflict("the run is still in progress")
+        with self.reader(source_id) as r:
+            config = r.config()
+            has_report = r.has_report()
+        source = self.run_path(source_id)
+        if config is None or not has_report or not (source / "personas.json").is_file():
+            raise Conflict("only a finished run with a report can be checked")
+        if self.is_example(source_id):
+            config = await self._local_tool(config, "to check an example run")
+        study = Study(id=new_study_id(), kind="repeat", created_at=now_iso(), planned=runs,
+                      runs=[StudyRun(id=source_id, variant="Run 1")])
+        save_study(self.runs_dir, study)
+        self._bind_loop()
+        self._repeating[study.id] = asyncio.create_task(self._repeat(study, source_id, config, agent_model),
+                                                        name=f"tellfold-check-{study.id}")
+        return study
+
+    async def _repeat(self, study: Study, source_id: str, source: SimConfig, agent_model: str | None) -> None:
+        seeds_dir = self.run_path(source_id) / SEEDS_DIR
+        try:
+            for i in range(1, study.planned):
+                files = sorted(p for p in seeds_dir.iterdir() if p.is_file() and not p.name.startswith(".")) \
+                    if seeds_dir.is_dir() else []
+                if not files:
+                    raise RuntimeError(f"{source_id} has no saved seed documents to run again")
+                if self._closing:
+                    return
+                run_dir = self.create_run_dir(source.question)
+                seeds = copy_seeds(run_dir, files)
+                variant = f"Run {i + 1}"
+                config = source.model_copy(update={
+                    "seed_files": [str(p) for p in seeds], "seed": source.seed + i, "cast_from": source_id,
+                    "study_id": study.id, "variant": variant,
+                    **({"agent_model": agent_model} if agent_model else {})})
+                study = self._join(study, run_dir.name, variant)
+                await self.start(run_dir, config, seeds)
+                live = self._live.get(run_dir.name)
+                if live is not None and live.task is not None:
+                    await asyncio.shield(live.task)
+                if self.run_state(run_dir.name) != RunState.DONE:
+                    log.info("check %s stopped: %s did not finish", study.id, run_dir.name)
+                    if not self._closing:  # on shutdown the app shows "stopped after N of M runs" itself
+                        self._stop_series(study, f"{variant} did not finish, so the check stopped after "
+                                                 f"{len(study.runs)} of {study.planned} runs")
+                    return
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # noqa: BLE001 - shown in the study view
+            log.warning("check %s failed", study.id, exc_info=True)
+            self._stop_series(study, str(e) or type(e).__name__)
+            return
+        finally:
+            self._repeating.pop(study.id, None)
+        with contextlib.suppress(Conflict, KeyError):
+            self.compare(study.id)
+
+    def _stop_series(self, study: Study, reason: str) -> None:
+        """A "Check it" series ends early: record why, and stop waiting for the runs that will not come."""
+        self._compare_errors[study.id] = reason
+        save_study(self.runs_dir, study.model_copy(update={"planned": len(study.runs)}))
+
+    def _join(self, study: Study, run_id: str, variant: str) -> Study:
+        study = study.model_copy(update={"runs": [*study.runs, StudyRun(id=run_id, variant=variant)]})
+        save_study(self.runs_dir, study)
+        return study
 
     # ---------- fan-out ----------
 
@@ -546,6 +665,7 @@ class RunManager:
 
     async def shutdown(self) -> None:
         """Ask every live run to stop, give them `shutdown_grace` seconds, then cancel what is left."""
+        self._closing = True  # a "Check it" series must not start its next run during the grace wait
         tasks = [run.task for run in self._live.values() if run.task is not None and not run.task.done()]
         for run in self._live.values():
             run.stop.set()
@@ -555,7 +675,7 @@ class RunManager:
                 task.cancel()
             if pending:
                 await asyncio.wait(pending, timeout=2)
-        for task in [*self._rebuilding.values(), *self._comparing.values()]:
+        for task in [*self._repeating.values(), *self._rebuilding.values(), *self._comparing.values()]:
             task.cancel()
         for watch in list(self._watches.values()):
             watch.task.cancel()

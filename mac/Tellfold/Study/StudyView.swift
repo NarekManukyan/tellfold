@@ -13,8 +13,13 @@ struct StudyView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.space5) {
                         header(detail)
-                        comparison(detail)
-                        curves(detail)
+                        if detail.isRepeat {
+                            agreement(detail)
+                            band(detail)
+                        } else {
+                            comparison(detail)
+                            curves(detail)
+                        }
                         camps(detail)
                     }
                     .padding(Theme.space5)
@@ -49,7 +54,7 @@ struct StudyView: View {
 
     private func header(_ detail: StudyDetail) -> some View {
         VStack(alignment: .leading, spacing: Theme.space3) {
-            Text("Study")
+            Text(detail.isRepeat ? "Check it" : "Study")
                 .font(Theme.ui(12, .semibold))
                 .foregroundStyle(Theme.muted)
             Text(detail.runs.first?.question ?? "")
@@ -70,9 +75,14 @@ struct StudyView: View {
                     .buttonStyle(.console(.secondary, compact: true))
                     .help("Open \(run.variant)")
                 }
+                if let note = StudyLogic.seriesNote(detail) {
+                    Text(note).font(Theme.small).foregroundStyle(Theme.muted)
+                }
                 Spacer(minLength: 0)
             }
-            Text("The same people read each version. One run per version is a single sample: part of any difference is chance.")
+            Text(detail.isRepeat
+                 ? "The same people read the same text in every run; only chance differs. What holds in all of them is worth trusting more."
+                 : "The same people read each version. One run per version is a single sample: part of any difference is chance.")
                 .font(Theme.small)
                 .foregroundStyle(Theme.muted)
         }
@@ -176,6 +186,131 @@ struct StudyView: View {
             result[run.range].foregroundColor = Theme.link
         }
         return result
+    }
+
+    // MARK: check it
+
+    @ViewBuilder private func agreement(_ detail: StudyDetail) -> some View {
+        VStack(alignment: .leading, spacing: Theme.space3) {
+            SectionTitle("Did it hold up?") {
+                if store.phase == .compared || store.phase == .readyToCompare {
+                    Button(store.phase == .compared ? "Check again" : "Check") { Task { await store.compare() } }
+                        .buttonStyle(.console(.secondary, compact: true))
+                        .disabled(!app.engine.state.isRunning)
+                }
+            }
+            switch store.phase {
+            case .running?:
+                waiting("Running \(max(detail.planned, detail.runs.count)) runs one after another. The check is written after the last one.")
+            case .comparing?:
+                waiting("Checking what held…")
+            case .notEnoughRuns?:
+                Text(detail.compareState.error.map { "The check stopped: \($0)" }
+                     ?? "A check needs at least two finished runs with a report.")
+                    .font(Theme.body).foregroundStyle(Theme.muted)
+            case .readyToCompare?:
+                Text(detail.compareState.error.map { "The check stopped: \($0). Check the runs that finished to see what held." }
+                     ?? (detail.planned > detail.runs.count ? "Check the runs that finished to see what held." : "Every run finished."))
+                    .font(Theme.body)
+                    .foregroundStyle(detail.compareState.error == nil ? Theme.muted : Theme.negative)
+            case .compared?, nil:
+                if let a = detail.agreement { agreementBody(a) }
+            }
+        }
+        .card()
+    }
+
+    private func agreementBody(_ a: Agreement) -> some View {
+        VStack(alignment: .leading, spacing: Theme.space4) {
+            Label(StudyLogic.verdictTitle(a.verdict, runs: a.runs), systemImage: verdictSymbol(a.verdict))
+                .font(Theme.ui(18, .semibold))
+                .foregroundStyle(verdictColor(a.verdict))
+            if !a.summary.isEmpty {
+                Text(a.summary).font(Theme.ui(14)).foregroundStyle(Theme.text)
+                    .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+            }
+            if let range = StudyLogic.finalRange(a) {
+                Text("Final sentiment across the runs: \(range)").font(Theme.small).foregroundStyle(Theme.muted)
+            }
+            HStack(alignment: .top, spacing: Theme.space4) {
+                bullets("Held in every run", a.held)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                bullets("Only in some runs", a.split)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if !a.camps.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Camps").font(Theme.ui(12, .semibold)).foregroundStyle(Theme.muted)
+                    ForEach(a.camps) { camp in
+                        HStack(spacing: 6) {
+                            Text(camp.label).font(Theme.body).foregroundStyle(Theme.secondary)
+                            Spacer(minLength: 4)
+                            Text("in \(camp.runs) of \(a.runs) runs").font(Theme.mono(12))
+                                .foregroundStyle(camp.runs == a.runs ? Theme.positive : Theme.muted)
+                        }
+                        .help(camp.names.joined(separator: "\n"))
+                    }
+                }
+            }
+        }
+    }
+
+    private func verdictSymbol(_ v: AgreementVerdict) -> String {
+        switch v {
+        case .consistent: "checkmark.seal"
+        case .mixed: "circle.lefthalf.filled"
+        case .unstable: "exclamationmark.triangle"
+        case .unknown: "questionmark.circle"
+        }
+    }
+
+    private func verdictColor(_ v: AgreementVerdict) -> Color {
+        switch v {
+        case .consistent: Theme.positive
+        case .mixed: Theme.event
+        case .unstable: Theme.negative
+        case .unknown: Theme.secondary
+        }
+    }
+
+    /// The band between the lowest and highest run per round, with every run's own line on top.
+    private func band(_ detail: StudyDetail) -> some View {
+        let series = StudyLogic.curves(detail)
+        let bands = StudyLogic.bands(detail)
+        return VStack(alignment: .leading, spacing: Theme.space3) {
+            SectionTitle("Sentiment by round, all runs")
+            if bands.isEmpty {
+                Text("No round has been scored yet.").font(Theme.body).foregroundStyle(Theme.muted)
+            } else {
+                Chart {
+                    RuleMark(y: .value("Neutral", 0))
+                        .foregroundStyle(Theme.seamStrong)
+                        .lineStyle(StrokeStyle(lineWidth: 1))
+                    ForEach(bands, id: \.round) { b in
+                        AreaMark(x: .value("Round", b.round), yStart: .value("Lowest", b.low),
+                                 yEnd: .value("Highest", b.high))
+                            .foregroundStyle(Theme.accentSoft)
+                            .interpolationMethod(.monotone)
+                            .accessibilityLabel("Round \(b.round)")
+                            .accessibilityValue("\(RunUI.sentimentText(b.low)) to \(RunUI.sentimentText(b.high))")
+                    }
+                    ForEach(series, id: \.run.id) { item in
+                        ForEach(item.points, id: \.round) { p in
+                            LineMark(x: .value("Round", p.round), y: .value("Sentiment", p.sentiment),
+                                     series: .value("Run", item.run.variant))
+                                .foregroundStyle(by: .value("Run", item.run.variant))
+                                .lineStyle(StrokeStyle(lineWidth: 1.2))
+                                .interpolationMethod(.monotone)
+                        }
+                    }
+                }
+                .chartForegroundStyleScale(domain: series.map(\.run.variant), range: series.indices.map { Self.color($0) })
+                .chartYScale(domain: -1...1)
+                .chartXAxisLabel("Round")
+                .frame(height: 220)
+            }
+        }
+        .card()
     }
 
     // MARK: sentiment curves

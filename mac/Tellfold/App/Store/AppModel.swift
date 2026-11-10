@@ -403,6 +403,14 @@ final class AppModel {
 
     func selectStudy(_ studyID: String) { selectedRunID = StudySelection.tag(studyID) }
 
+    /// "Check it": runs a finished run again with the same people and text, then shows the study.
+    func checkIt(runID: String, runs: Int = StudyLogic.checkRuns) async throws {
+        guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        let studyID = try await api.checkRun(runID: runID, runs: runs)
+        await refreshRuns()
+        selectStudy(studyID)
+    }
+
     /// Opens a run and selects one of its posts once the run has loaded (a citation such as `B#7`).
     func openPost(runID: String, postID: Int) {
         pendingPostFocus = PostFocus(runID: runID, postID: postID)

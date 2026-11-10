@@ -197,9 +197,10 @@ class Study(BaseModel):
     run (a built-in example) can join a study only through this file."""
 
     id: str
-    kind: Literal["compare"] = "compare"
+    kind: Literal["compare", "repeat"] = "compare"  # versions of a text, or the same run repeated ("Check it")
     created_at: str = ""  # ISO 8601 UTC
     runs: list[StudyRun] = Field(default_factory=list)
+    planned: int = 0  # runs a repeat study will have once every run has started (0: just the listed runs)
 
 
 class VariantSummary(BaseModel):
@@ -272,6 +273,60 @@ class CompareResult(BaseModel):
     created_at: str = ""
     runs: list[RunDigest] = Field(default_factory=list)
     report: CompareReport
+
+
+class RoundBand(BaseModel):
+    """The spread of one round's sentiment across the runs of a repeat study."""
+
+    round: int
+    low: float | None = None
+    high: float | None = None
+    runs: int = 0  # runs that scored this round
+
+
+class CampMatch(BaseModel):
+    """One camp as it appears across runs (names differ between runs, so a cheap call matches them)."""
+
+    label: str
+    names: list[str] = Field(default_factory=list)  # "A: Stayed on free" style, one per run it appeared in
+    runs: int = 0  # how many runs it appeared in
+
+
+class CampGroupOut(BaseModel):
+    label: str  # a short name for camps that are the same opinion group
+    members: list[str] = Field(default_factory=list)  # "A: <camp name>" for each run's matching camp
+
+
+class CampMatches(BaseModel):
+    """What `study.match_camps` returns."""
+
+    groups: list[CampGroupOut] = Field(default_factory=list)
+
+
+class AgreementCall(BaseModel):
+    """What `study.agree` returns."""
+
+    held: list[str] = Field(default_factory=list)  # claims every run supports
+    split: list[str] = Field(default_factory=list)  # claims only some runs support
+    verdict: Literal["consistent", "mixed", "unstable"] = "mixed"
+    summary: str = ""  # one plain sentence on whether the conclusion held up
+
+
+class Agreement(BaseModel):
+    """`studies/<id>/agreement.json`: what held across the runs of a repeat study."""
+
+    study_id: str
+    created_at: str = ""
+    runs: int = 0
+    final_low: float | None = None
+    final_high: float | None = None
+    spread: float | None = None  # final_high - final_low
+    bands: list[RoundBand] = Field(default_factory=list)
+    camps: list[CampMatch] = Field(default_factory=list)
+    held: list[str] = Field(default_factory=list)
+    split: list[str] = Field(default_factory=list)
+    verdict: Literal["consistent", "mixed", "unstable"] = "mixed"
+    summary: str = ""
 
 
 # ---------- run lifecycle (written to runs/<id>/status.json by tellfold.runner) ----------

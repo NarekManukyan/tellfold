@@ -184,6 +184,11 @@ async def build_compare(llm, study_id, members: list[Member], *, question, model
   `CompareReport`. Posts are cited `A#12` (post 12 of the study's first run); the citation audit checks those refs
   against the right run and marks the ones that don't match `[unverified]`.
 - The server writes the comparison by itself once every member has finished with a report.
+- "Check it" (`tellfold/agree.py`, `Study.kind == "repeat"`): a finished run is run again 1-4 times with the same
+  people, text and settings and the next RNG seeds, one run after another. Python measures the sentiment spread (at
+  the end and per round); `study.match_camps` matches camps across runs and `study.agree` sorts the conclusions into
+  claims that held in every run and claims that split, with a verdict (consistent, mixed, unstable). Written to
+  `studies/<id>/agreement.json`.
 
 ### `tellfold/chat.py`
 ```python
@@ -200,6 +205,7 @@ tellfold run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--age
           [--language English] [--open]
           [--cast-from RUN_DIR] [--variant "Draft B"]   # reuse a run's people, join its study
 tellfold compare RUN_DIR           # compare the runs of RUN_DIR's study (studies/<id>/compare.json)
+tellfold check RUN_DIR [--runs 3]  # run it again with other seeds; what held (studies/<id>/agreement.json)
 tellfold report RUN_DIR            # rebuild report from an existing run
 tellfold chat RUN_DIR --agent a03  # interactive interview (REPL)
 tellfold ask RUN_DIR "question"    # one-shot question to the report agent

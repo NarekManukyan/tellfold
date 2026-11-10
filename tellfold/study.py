@@ -21,6 +21,7 @@ from tellfold.models import SimConfig, Study, StudyRun
 
 STUDIES_DIR = "studies"
 STUDY_FILE = "study.json"
+AGREEMENT_FILE = "agreement.json"  # what held across the runs of a repeat study ("Check it")
 STUDY_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 LETTERS = string.ascii_uppercase
 
@@ -89,18 +90,23 @@ def plan_variant(runs_dir: Path, source_id: str, source: SimConfig, *, study_id:
                  variant: str | None = None, now: str = "") -> tuple[Study, str]:
     """The study a new run made from `source_id` joins, with the source already in it, and the new run's label.
 
-    The study is `study_id`, else the source's own study, else a new one. Nothing is written: call `join_study`
-    once the new run exists."""
-    study_id = study_id or source.study_id
+    The study is `study_id`, else the source's own study, else a new one. A "Check it" study holds only repeats of
+    one run, so a new version of one of its runs starts a new study. Nothing is written: call `join_study` once the
+    new run exists."""
+    own = load_study(runs_dir, source.study_id) if source.study_id else None
+    repeat_source = own is not None and own.kind == "repeat"
+    study_id = study_id or (None if repeat_source else source.study_id)
     study = load_study(runs_dir, study_id) if study_id else None
     if study_id and study is None:
         study_dir(runs_dir, study_id)  # validates the id
         if study_id != source.study_id:
             raise StudyError(f"there is no study {study_id}")
+    if study is not None and study.kind == "repeat":
+        raise StudyError("a Check it study holds only repeats of one run; a new version starts its own study")
     study = study or Study(id=study_id or new_study_id(), created_at=now)
     if not any(r.id == source_id for r in study.runs):
-        study.runs.append(StudyRun(id=source_id, variant=(source.variant or "").strip()
-                                   or default_variant(len(study.runs))))
+        own_label = "" if repeat_source else (source.variant or "").strip()  # not "Run 2" of a check
+        study.runs.append(StudyRun(id=source_id, variant=own_label or default_variant(len(study.runs))))
     label = (variant or "").strip()[:60] or default_variant(len(study.runs))
     return study, label
 

@@ -21,9 +21,13 @@ struct StudySummary: Codable, Hashable, Sendable, Identifiable {
     var runs: [StudyMember] = []
     var hasCompare: Bool = false
     var comparing: Bool = false
+    /// Runs a "Check it" study will have.
+    var planned: Int = 0
+
+    var isRepeat: Bool { kind == "repeat" }
 
     enum CodingKeys: String, CodingKey {
-        case id, kind, question, runs, comparing
+        case id, kind, question, runs, comparing, planned
         case createdAt = "created_at"
         case hasCompare = "has_compare"
     }
@@ -39,6 +43,7 @@ extension StudySummary {
         runs = c.value(.runs, default: [])
         hasCompare = c.value(.hasCompare, default: false)
         comparing = c.value(.comparing, default: false)
+        planned = c.value(.planned, default: 0)
     }
 }
 
@@ -186,6 +191,69 @@ extension StudyRun {
     }
 }
 
+/// One round's spread across the runs of a "Check it" study.
+struct RoundBand: Codable, Hashable, Sendable {
+    var round: Int
+    var low: Double?
+    var high: Double?
+    var runs: Int = 0
+}
+
+/// One camp as it appeared across runs.
+struct CampMatch: Codable, Hashable, Sendable, Identifiable {
+    var label: String
+    /// "A: Stayed on free", one per run it appeared in.
+    var names: [String] = []
+    var runs: Int = 0
+
+    var id: String { label + names.joined() }
+}
+
+enum AgreementVerdict: String, Codable, Hashable, Sendable {
+    case consistent, mixed, unstable, unknown
+
+    init(from decoder: any Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = AgreementVerdict(rawValue: raw) ?? .unknown
+    }
+}
+
+/// `agreement.json`: what held across the runs of a "Check it" study.
+struct Agreement: Codable, Hashable, Sendable {
+    var runs: Int = 0
+    var finalLow: Double?
+    var finalHigh: Double?
+    var spread: Double?
+    var bands: [RoundBand] = []
+    var camps: [CampMatch] = []
+    var held: [String] = []
+    var split: [String] = []
+    var verdict: AgreementVerdict = .unknown
+    var summary: String = ""
+
+    enum CodingKeys: String, CodingKey {
+        case runs, spread, bands, camps, held, split, verdict, summary
+        case finalLow = "final_low"
+        case finalHigh = "final_high"
+    }
+}
+
+extension Agreement {
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        runs = c.value(.runs, default: 0)
+        finalLow = c.optional(.finalLow)
+        finalHigh = c.optional(.finalHigh)
+        spread = c.optional(.spread)
+        bands = c.value(.bands, default: [])
+        camps = c.value(.camps, default: [])
+        held = c.value(.held, default: [])
+        split = c.value(.split, default: [])
+        verdict = c.value(.verdict, default: .unknown)
+        summary = c.value(.summary, default: "")
+    }
+}
+
 struct CompareState: Codable, Hashable, Sendable {
     var running: Bool = false
     /// Why the last comparison in this engine failed.
@@ -200,9 +268,16 @@ struct StudyDetail: Codable, Hashable, Sendable, Identifiable {
     var runs: [StudyRun] = []
     var compare: CompareResult?
     var compareState: CompareState = .init()
+    /// Runs a "Check it" study will have; more than `runs` while the series is going.
+    var planned: Int = 0
+    /// The "Check it" series is still starting runs.
+    var repeating: Bool = false
+    var agreement: Agreement?
+
+    var isRepeat: Bool { kind == "repeat" }
 
     enum CodingKeys: String, CodingKey {
-        case id, kind, runs, compare
+        case id, kind, runs, compare, planned, repeating, agreement
         case createdAt = "created_at"
         case compareState = "compare_state"
     }
@@ -217,5 +292,8 @@ extension StudyDetail {
         runs = c.value(.runs, default: [])
         compare = c.optional(.compare)
         compareState = c.value(.compareState, default: CompareState())
+        planned = c.value(.planned, default: 0)
+        repeating = c.value(.repeating, default: false)
+        agreement = c.optional(.agreement)
     }
 }
