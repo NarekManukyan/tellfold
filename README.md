@@ -4,7 +4,7 @@
 
 Tellfold is a free Mac app. You describe something you are about to announce or change, and ask a question about it. Tellfold builds a small crowd of simulated people who would care, lets them talk about it with each other for a few rounds, and then writes you a short answer: how the reaction is likely to go, who pushes back, and why.
 
-[**Download for Mac**](https://narekmanukyan.github.io/tellfold/) · [Website](https://narekmanukyan.github.io/tellfold/) · [Sponsor](https://github.com/sponsors/NarekManukyan)
+[**Download for Mac**](https://zoel-io.github.io/tellfold/) · [Website](https://zoel-io.github.io/tellfold/) · [Sponsor](https://github.com/sponsors/NarekManukyan)
 
 <p align="center"><a href="media/video/out/tellfold-16x9.mp4"><img src="media/video/out/tellfold-preview.webp" width="800" alt="A crowd of eight simulated people talks over a café's price rise round by round while a mood line rises from −0.15 to +0.70. Then six people fold into the Tellfold fan, and the fan opens into a report whose claims cite the posts behind them."></a></p>
 
@@ -50,7 +50,7 @@ Tellfold has no account and no server. Your documents go only to the AI tool you
 
 ## Support Tellfold
 
-Tellfold is free to download and use. If it helped you, [sponsoring it on GitHub](https://github.com/sponsors/NarekManukyan) pays for the time that goes into it. Questions and bug reports are welcome in [Issues](https://github.com/NarekManukyan/tellfold/issues).
+Tellfold is free to download and use. If it helped you, [sponsoring it on GitHub](https://github.com/sponsors/NarekManukyan) pays for the time that goes into it. Questions and bug reports are welcome in [Issues](https://github.com/zoel-io/tellfold/issues).
 
 Developers who want to build from source or use the command line can read [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 

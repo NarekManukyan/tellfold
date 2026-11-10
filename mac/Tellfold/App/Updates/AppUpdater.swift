@@ -3,7 +3,7 @@ import Observation
 import Sparkle
 
 /// In-app updates through Sparkle: Tellfold > Check for Updates… and the daily automatic check, both fed from the
-/// appcast on GitHub Pages (narekmanukyan.github.io/tellfold) that `mac/scripts/release.sh` writes.
+/// appcast on GitHub Pages (zoel-io.github.io/tellfold) that `mac/scripts/release.sh` writes.
 @MainActor @Observable
 final class AppUpdater {
     /// False while a check is already running, or when updates are off (under unit tests).

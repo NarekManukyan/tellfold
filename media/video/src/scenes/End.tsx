@@ -73,7 +73,7 @@ export const End: React.FC = () => {
 						Free for Mac
 					</span>
 				</div>
-				<div style={{fontSize: s(30), color: C.ink2, marginTop: s(26), ...enter(frame, 72, 22)}}>narekmanukyan.github.io/tellfold</div>
+				<div style={{fontSize: s(30), color: C.ink2, marginTop: s(26), ...enter(frame, 72, 22)}}>zoel-io.github.io/tellfold</div>
 			</div>
 		</Stage>
 	);

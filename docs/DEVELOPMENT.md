@@ -15,7 +15,7 @@ The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. T
 ## Install
 
 ```sh
-git clone https://github.com/NarekManukyan/tellfold.git && cd tellfold
+git clone https://github.com/zoel-io/tellfold.git && cd tellfold
 uv sync
 uv run tellfold doctor
 ```
