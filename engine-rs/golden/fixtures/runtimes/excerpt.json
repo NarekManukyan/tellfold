@@ -1,0 +1,50 @@
+[
+ {
+  "body": "{\"error\": {\"message\": \"invalid key\"}}",
+  "excerpt": "invalid key"
+ },
+ {
+  "body": "{\"error\": {\"type\": \"auth\"}}",
+  "excerpt": "auth"
+ },
+ {
+  "body": "{\"error\": {\"code\": 1}}",
+  "excerpt": "{'code': 1}"
+ },
+ {
+  "body": "{\"error\": \"plain\"}",
+  "excerpt": "plain"
+ },
+ {
+  "body": "{\"error\": \"\", \"message\": \"msg\"}",
+  "excerpt": "msg"
+ },
+ {
+  "body": "{\"detail\": [1, \"two\", null, true, 1.5]}",
+  "excerpt": "{'detail': [1, 'two', None, True, 1.5]}"
+ },
+ {
+  "body": "[1, 2]",
+  "excerpt": "[1, 2]"
+ },
+ {
+  "body": "\"text\"",
+  "excerpt": "text"
+ },
+ {
+  "body": "not   json\n at all",
+  "excerpt": "not json at all"
+ },
+ {
+  "body": "",
+  "excerpt": ""
+ },
+ {
+  "body": "{\"message\": {\"nested\": \"x\"}}",
+  "excerpt": "{'nested': 'x'}"
+ },
+ {
+  "body": "{\"error\": {}}",
+  "excerpt": "{}"
+ }
+]

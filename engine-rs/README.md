@@ -17,6 +17,15 @@ checkouts.
 - `tellfold-store`: run folders, `world.db` (`World`, `RunReader`), studies on disk and the call estimate.
 - `tellfold-llm`: the `Llm` trait, `FakeLlm` with purpose routing, `extract_json`, `AdapterLlm` (retries, repair,
   `calls.jsonl`), and seed loading and chunking.
+- `tellfold-runtimes`: `settings.json`, detection of the installed AI tools, Claude Code through the `claude` CLI,
+  the other CLI tools, the HTTP runtimes, and agent/planner routing (`build_llm`).
+
+No test starts a real AI tool. For a manual check against one that is installed and logged in:
+
+```bash
+cargo run -p tellfold-runtimes --example ping -- claude-code
+cargo run -p tellfold-runtimes --example ping -- cursor-agent
+```
 
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.

@@ -1,0 +1,82 @@
+[
+ {
+  "message": "API Error: 429",
+  "status": 429,
+  "terminal_reason": "api_error",
+  "kind": "_Transient",
+  "text": "API Error: 429",
+  "rate_limited": true
+ },
+ {
+  "message": "Overloaded",
+  "status": 529,
+  "terminal_reason": "api_error",
+  "kind": "_Transient",
+  "text": "Overloaded",
+  "rate_limited": true
+ },
+ {
+  "message": "Failed to authenticate: OAuth session expired",
+  "status": null,
+  "terminal_reason": "api_error",
+  "kind": "LLMError",
+  "text": "Claude Code is not logged in: run `claude` once and use /login, then retry. (Failed to authenticate: OAuth session expired)",
+  "rate_limited": null
+ },
+ {
+  "message": "forbidden",
+  "status": 403,
+  "terminal_reason": null,
+  "kind": "LLMError",
+  "text": "Claude Code is not logged in: run `claude` once and use /login, then retry. (forbidden)",
+  "rate_limited": null
+ },
+ {
+  "message": "structured output retries exhausted",
+  "status": null,
+  "terminal_reason": null,
+  "kind": "_BadOutput",
+  "text": "structured output retries exhausted",
+  "rate_limited": null
+ },
+ {
+  "message": "",
+  "status": null,
+  "terminal_reason": null,
+  "kind": "_BadOutput",
+  "text": "the CLI reported an error result",
+  "rate_limited": null
+ },
+ {
+  "message": "usage limit reached",
+  "status": null,
+  "terminal_reason": null,
+  "kind": "_Transient",
+  "text": "usage limit reached",
+  "rate_limited": true
+ },
+ {
+  "message": "  boom  ",
+  "status": 500,
+  "terminal_reason": null,
+  "kind": "_Transient",
+  "text": "boom",
+  "rate_limited": false
+ },
+ {
+  "message": "odd",
+  "status": null,
+  "terminal_reason": "api_error",
+  "kind": "_Transient",
+  "text": "odd",
+  "rate_limited": false
+ },
+ {
+  "message": "please /login",
+  "status": 400,
+  "terminal_reason": null,
+  "kind": "_BadOutput",
+  "text": "please /login",
+  "rate_limited": null
+ }
+]

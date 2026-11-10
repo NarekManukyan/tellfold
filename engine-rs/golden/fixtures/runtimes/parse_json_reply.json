@@ -1,0 +1,153 @@
+[
+ {
+  "stdout": "",
+  "error": "bad_output",
+  "message": "the tool printed nothing",
+  "reply_text": ""
+ },
+ {
+  "stdout": "   ",
+  "error": "bad_output",
+  "message": "the tool printed nothing",
+  "reply_text": ""
+ },
+ {
+  "stdout": "plain words\n",
+  "text": "plain words",
+  "model": null
+ },
+ {
+  "stdout": "\u001b[1mbold\u001b[0m answer\r\n",
+  "text": "bold answer",
+  "model": null
+ },
+ {
+  "stdout": "{\"type\": \"result\", \"is_error\": false, \"result\": \"fine\", \"model\": \"m\"}",
+  "text": "fine",
+  "model": "m"
+ },
+ {
+  "stdout": "{\"response\": \"gem\", \"stats\": {}}",
+  "text": "gem",
+  "model": null
+ },
+ {
+  "stdout": "{\"is_error\": true, \"result\": \"Please log in\"}",
+  "error": "fatal",
+  "message": "HINT (Please log in)"
+ },
+ {
+  "stdout": "{\"error\": {\"message\": \"quota exceeded\"}}",
+  "error": "transient",
+  "message": "{'message': 'quota exceeded'}",
+  "rate_limited": true
+ },
+ {
+  "stdout": "{\"error\": \"bad model: unknown model zz\"}",
+  "error": "fatal",
+  "message": "bad model: unknown model zz"
+ },
+ {
+  "stdout": "{\"error\": {\"code\": 7}}",
+  "error": "transient",
+  "message": "{'code': 7}",
+  "rate_limited": false
+ },
+ {
+  "stdout": "{\"error\": \"x\", \"result\": \"but answered\"}",
+  "text": "but answered",
+  "model": null
+ },
+ {
+  "stdout": "{\"subtype\": \"error\"}",
+  "error": "transient",
+  "message": "the tool reported an error",
+  "rate_limited": false
+ },
+ {
+  "stdout": "{\"stats\": {}}",
+  "error": "bad_output",
+  "message": "the tool's JSON output had no response text",
+  "reply_text": "{\"stats\": {}}"
+ },
+ {
+  "stdout": "{\"result\": \"   \", \"text\": \"from text\"}",
+  "text": "from text",
+  "model": null
+ },
+ {
+  "stdout": "{\"content\": [{\"text\": \"a\"}, {\"text\": \"\"}, {\"content\": \"b\"}]}",
+  "text": "a\nb",
+  "model": null
+ },
+ {
+  "stdout": "[{\"type\": \"system\"}, {\"type\": \"result\", \"result\": \"qw\"}]",
+  "text": "qw",
+  "model": null
+ },
+ {
+  "stdout": "[{\"type\": \"result\", \"is_error\": true, \"error\": \"rate limit hit\"}]",
+  "error": "transient",
+  "message": "rate limit hit",
+  "rate_limited": true
+ },
+ {
+  "stdout": "[{\"type\": \"message\", \"content\": \"one\"}, {\"type\": \"assistant\", \"message\": {\"text\": \"two\"}}, {\"type\": \"message\", \"role\": \"user\", \"content\": \"skip\"}]",
+  "text": "onetwo",
+  "model": null
+ },
+ {
+  "stdout": "{\"type\":\"step_start\"}\n{\"type\":\"text\",\"part\":{\"type\":\"text\",\"text\":\"op\"}}\n{\"type\":\"text\",\"part\":{\"type\":\"text\",\"text\":\"en\"}}\n",
+  "text": "open",
+  "model": null
+ },
+ {
+  "stdout": "{\"type\":\"step_start\"}\n{\"type\":\"error\",\"error\":{\"message\":\"not logged in\"}}\n",
+  "error": "transient",
+  "message": "error event",
+  "rate_limited": false
+ },
+ {
+  "stdout": "{\"type\":\"step_start\"}\nnoise\n{\"type\":\"done\"}\n",
+  "error": "bad_output",
+  "message": "no assistant text in the tool's event stream",
+  "reply_text": ""
+ },
+ {
+  "stdout": "progress\n{\"result\": \"last\"}\n",
+  "text": "last",
+  "model": null
+ },
+ {
+  "stdout": "42",
+  "text": "42",
+  "model": null
+ },
+ {
+  "stdout": "\"just a string\"",
+  "text": "just a string",
+  "model": null
+ },
+ {
+  "stdout": "true",
+  "text": "True",
+  "model": null
+ },
+ {
+  "stdout": "null",
+  "text": "None",
+  "model": null
+ },
+ {
+  "stdout": "[]",
+  "error": "bad_output",
+  "message": "no assistant text in the tool's event stream",
+  "reply_text": ""
+ },
+ {
+  "stdout": "[1, 2]",
+  "error": "bad_output",
+  "message": "no assistant text in the tool's event stream",
+  "reply_text": ""
+ }
+]

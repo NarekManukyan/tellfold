@@ -1,0 +1,27 @@
+[package]
+name = "tellfold-runtimes"
+description = "Settings, agent runtime detection, CLI and HTTP adapters, routing (port of settings.py and tellfold/runtimes/)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+futures.workspace = true
+libc.workspace = true
+rand.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tellfold-llm.workspace = true
+tellfold-models.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+serde.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

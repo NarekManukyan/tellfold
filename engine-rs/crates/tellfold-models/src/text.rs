@@ -23,6 +23,47 @@ pub fn py_prefix(s: &str, n: usize) -> &str {
     }
 }
 
+/// `s[-n:]`: the last `n` code points.
+pub fn py_suffix(s: &str, n: usize) -> &str {
+    let count = s.chars().count();
+    if count <= n {
+        return s;
+    }
+    match s.char_indices().nth(count - n) {
+        Some((i, _)) => &s[i..],
+        None => s,
+    }
+}
+
+/// `str.splitlines()`: splits on every line boundary Python knows, dropping the separators.
+pub fn py_splitlines(s: &str) -> Vec<&str> {
+    let mut lines = Vec::new();
+    let mut start = 0;
+    let mut chars = s.char_indices().peekable();
+    while let Some((i, c)) = chars.next() {
+        let boundary = matches!(
+            c,
+            '\n' | '\r' | '\u{b}' | '\u{c}' | '\u{1c}' | '\u{1d}' | '\u{1e}' | '\u{85}' | '\u{2028}' | '\u{2029}'
+        );
+        if !boundary {
+            continue;
+        }
+        lines.push(&s[start..i]);
+        let mut end = i + c.len_utf8();
+        if c == '\r' {
+            if let Some((j, '\n')) = chars.peek().copied() {
+                chars.next();
+                end = j + 1;
+            }
+        }
+        start = end;
+    }
+    if start < s.len() {
+        lines.push(&s[start..]);
+    }
+    lines
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

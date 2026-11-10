@@ -1,0 +1,612 @@
+[
+ {
+  "class": "CursorAgentLLM",
+  "runtime_id": "cursor-agent",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "-p",
+   "--output-format",
+   "json",
+   "--mode",
+   "ask",
+   "--sandbox",
+   "enabled",
+   "--trust",
+   "--workspace",
+   "/W",
+   "--model",
+   "gpt-5",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "CURSOR_API_KEY",
+   "CURSOR_CONFIG_DIR"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Cursor Agent is not logged in: run `cursor-agent login` (or set CURSOR_API_KEY)."
+ },
+ {
+  "class": "CursorAgentLLM",
+  "runtime_id": "cursor-agent",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "-p",
+   "--output-format",
+   "json",
+   "--mode",
+   "ask",
+   "--sandbox",
+   "enabled",
+   "--trust",
+   "--workspace",
+   "/W",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "CURSOR_API_KEY",
+   "CURSOR_CONFIG_DIR"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Cursor Agent is not logged in: run `cursor-agent login` (or set CURSOR_API_KEY)."
+ },
+ {
+  "class": "CursorAgentLLM",
+  "runtime_id": "cursor-agent",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "-p",
+   "--output-format",
+   "json",
+   "--mode",
+   "ask",
+   "--sandbox",
+   "enabled",
+   "--trust",
+   "--workspace",
+   "/W",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "CURSOR_API_KEY",
+   "CURSOR_CONFIG_DIR"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Cursor Agent is not logged in: run `cursor-agent login` (or set CURSOR_API_KEY)."
+ },
+ {
+  "class": "CodexLLM",
+  "runtime_id": "codex",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--skip-git-repo-check",
+   "--sandbox",
+   "read-only",
+   "--ephemeral",
+   "-C",
+   "/W",
+   "--output-last-message",
+   "/W/last-message.txt",
+   "-m",
+   "gpt-5",
+   "-"
+  ],
+  "stdin": "<instructions>\nbe brief\n</instructions>\n\nthe prompt",
+  "extra_env": {},
+  "passthrough": [
+   "CODEX_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "Codex is not logged in: run `codex login`."
+ },
+ {
+  "class": "CodexLLM",
+  "runtime_id": "codex",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--skip-git-repo-check",
+   "--sandbox",
+   "read-only",
+   "--ephemeral",
+   "-C",
+   "/W",
+   "--output-last-message",
+   "/W/last-message.txt",
+   "-"
+  ],
+  "stdin": "<instructions>\nbe brief\n</instructions>\n\nthe prompt",
+  "extra_env": {},
+  "passthrough": [
+   "CODEX_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "Codex is not logged in: run `codex login`."
+ },
+ {
+  "class": "CodexLLM",
+  "runtime_id": "codex",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--skip-git-repo-check",
+   "--sandbox",
+   "read-only",
+   "--ephemeral",
+   "-C",
+   "/W",
+   "--output-last-message",
+   "/W/last-message.txt",
+   "-"
+  ],
+  "stdin": "<instructions>\nbe brief\n</instructions>\n\nthe prompt",
+  "extra_env": {},
+  "passthrough": [
+   "CODEX_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "Codex is not logged in: run `codex login`."
+ },
+ {
+  "class": "GeminiLLM",
+  "runtime_id": "gemini-cli",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--model",
+   "gpt-5",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "GEMINI_API_KEY",
+   "GOOGLE_API_KEY",
+   "GOOGLE_CLOUD_PROJECT",
+   "GOOGLE_CLOUD_LOCATION",
+   "GOOGLE_GENAI_USE_VERTEXAI",
+   "GOOGLE_APPLICATION_CREDENTIALS",
+   "GEMINI_CLI_HOME"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Gemini CLI is not signed in: run `gemini` once to log in, or set GEMINI_API_KEY."
+ },
+ {
+  "class": "GeminiLLM",
+  "runtime_id": "gemini-cli",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "GEMINI_API_KEY",
+   "GOOGLE_API_KEY",
+   "GOOGLE_CLOUD_PROJECT",
+   "GOOGLE_CLOUD_LOCATION",
+   "GOOGLE_GENAI_USE_VERTEXAI",
+   "GOOGLE_APPLICATION_CREDENTIALS",
+   "GEMINI_CLI_HOME"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Gemini CLI is not signed in: run `gemini` once to log in, or set GEMINI_API_KEY."
+ },
+ {
+  "class": "GeminiLLM",
+  "runtime_id": "gemini-cli",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "GEMINI_API_KEY",
+   "GOOGLE_API_KEY",
+   "GOOGLE_CLOUD_PROJECT",
+   "GOOGLE_CLOUD_LOCATION",
+   "GOOGLE_GENAI_USE_VERTEXAI",
+   "GOOGLE_APPLICATION_CREDENTIALS",
+   "GEMINI_CLI_HOME"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Gemini CLI is not signed in: run `gemini` once to log in, or set GEMINI_API_KEY."
+ },
+ {
+  "class": "QwenLLM",
+  "runtime_id": "qwen-code",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--model",
+   "gpt-5",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "DASHSCOPE_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Qwen Code is not signed in: run `qwen` once to log in, or set DASHSCOPE_API_KEY."
+ },
+ {
+  "class": "QwenLLM",
+  "runtime_id": "qwen-code",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "DASHSCOPE_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Qwen Code is not signed in: run `qwen` once to log in, or set DASHSCOPE_API_KEY."
+ },
+ {
+  "class": "QwenLLM",
+  "runtime_id": "qwen-code",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "--output-format",
+   "json",
+   "--approval-mode",
+   "default",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "GEMINI_CLI_TRUST_WORKSPACE": "true"
+  },
+  "passthrough": [
+   "DASHSCOPE_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Qwen Code is not signed in: run `qwen` once to log in, or set DASHSCOPE_API_KEY."
+ },
+ {
+  "class": "OpenCodeLLM",
+  "runtime_id": "opencode",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "run",
+   "--format",
+   "json",
+   "--model",
+   "gpt-5",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "OPENCODE_CONFIG_CONTENT": "{\"permission\":{\"edit\":\"deny\",\"bash\":\"deny\",\"webfetch\":\"deny\"},\"tools\":{\"bash\":false,\"edit\":false,\"write\":false,\"patch\":false,\"webfetch\":false}}"
+  },
+  "passthrough": [],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "OpenCode has no provider configured: run `opencode auth login`."
+ },
+ {
+  "class": "OpenCodeLLM",
+  "runtime_id": "opencode",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "run",
+   "--format",
+   "json",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "OPENCODE_CONFIG_CONTENT": "{\"permission\":{\"edit\":\"deny\",\"bash\":\"deny\",\"webfetch\":\"deny\"},\"tools\":{\"bash\":false,\"edit\":false,\"write\":false,\"patch\":false,\"webfetch\":false}}"
+  },
+  "passthrough": [],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "OpenCode has no provider configured: run `opencode auth login`."
+ },
+ {
+  "class": "OpenCodeLLM",
+  "runtime_id": "opencode",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "run",
+   "--format",
+   "json",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {
+   "OPENCODE_CONFIG_CONTENT": "{\"permission\":{\"edit\":\"deny\",\"bash\":\"deny\",\"webfetch\":\"deny\"},\"tools\":{\"bash\":false,\"edit\":false,\"write\":false,\"patch\":false,\"webfetch\":false}}"
+  },
+  "passthrough": [],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "OpenCode has no provider configured: run `opencode auth login`."
+ },
+ {
+  "class": "CopilotLLM",
+  "runtime_id": "copilot",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "-s",
+   "--no-ask-user",
+   "--deny-tool",
+   "shell",
+   "--deny-tool",
+   "write",
+   "--model",
+   "gpt-5",
+   "-p",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "COPILOT_GITHUB_TOKEN",
+   "GH_TOKEN",
+   "GITHUB_TOKEN",
+   "COPILOT_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "GitHub Copilot CLI is not signed in: run `copilot` and use /login, or set GH_TOKEN."
+ },
+ {
+  "class": "CopilotLLM",
+  "runtime_id": "copilot",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "-s",
+   "--no-ask-user",
+   "--deny-tool",
+   "shell",
+   "--deny-tool",
+   "write",
+   "-p",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "COPILOT_GITHUB_TOKEN",
+   "GH_TOKEN",
+   "GITHUB_TOKEN",
+   "COPILOT_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "GitHub Copilot CLI is not signed in: run `copilot` and use /login, or set GH_TOKEN."
+ },
+ {
+  "class": "CopilotLLM",
+  "runtime_id": "copilot",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "-s",
+   "--no-ask-user",
+   "--deny-tool",
+   "shell",
+   "--deny-tool",
+   "write",
+   "-p",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "COPILOT_GITHUB_TOKEN",
+   "GH_TOKEN",
+   "GITHUB_TOKEN",
+   "COPILOT_HOME"
+  ],
+  "json_output": false,
+  "unsafe": false,
+  "auth_hint": "GitHub Copilot CLI is not signed in: run `copilot` and use /login, or set GH_TOKEN."
+ },
+ {
+  "class": "GrokLLM",
+  "runtime_id": "grok",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "--directory",
+   "/W",
+   "--model",
+   "gpt-5",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "GROK_API_KEY",
+   "GROK_BASE_URL"
+  ],
+  "json_output": false,
+  "unsafe": true,
+  "auth_hint": "Grok CLI needs an API key: set GROK_API_KEY."
+ },
+ {
+  "class": "GrokLLM",
+  "runtime_id": "grok",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "--directory",
+   "/W",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "GROK_API_KEY",
+   "GROK_BASE_URL"
+  ],
+  "json_output": false,
+  "unsafe": true,
+  "auth_hint": "Grok CLI needs an API key: set GROK_API_KEY."
+ },
+ {
+  "class": "GrokLLM",
+  "runtime_id": "grok",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "--directory",
+   "/W",
+   "--prompt",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "GROK_API_KEY",
+   "GROK_BASE_URL"
+  ],
+  "json_output": false,
+  "unsafe": true,
+  "auth_hint": "Grok CLI needs an API key: set GROK_API_KEY."
+ },
+ {
+  "class": "DroidLLM",
+  "runtime_id": "droid",
+  "model": "gpt-5",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--output-format",
+   "json",
+   "--cwd",
+   "/W",
+   "--model",
+   "gpt-5",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "FACTORY_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Droid is not signed in: run `droid` once to log in, or set FACTORY_API_KEY."
+ },
+ {
+  "class": "DroidLLM",
+  "runtime_id": "droid",
+  "model": "default",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--output-format",
+   "json",
+   "--cwd",
+   "/W",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "FACTORY_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Droid is not signed in: run `droid` once to log in, or set FACTORY_API_KEY."
+ },
+ {
+  "class": "DroidLLM",
+  "runtime_id": "droid",
+  "model": "",
+  "argv": [
+   "/opt/tools/tool",
+   "exec",
+   "--output-format",
+   "json",
+   "--cwd",
+   "/W",
+   "<instructions>\nbe brief\n</instructions>\n\nthe prompt"
+  ],
+  "stdin": null,
+  "extra_env": {},
+  "passthrough": [
+   "FACTORY_API_KEY"
+  ],
+  "json_output": true,
+  "unsafe": false,
+  "auth_hint": "Droid is not signed in: run `droid` once to log in, or set FACTORY_API_KEY."
+ }
+]

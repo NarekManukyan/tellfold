@@ -100,7 +100,7 @@ impl Llm for FakeLlm {
         self.record(purpose, model, prompt);
         match (self.responder)(purpose, prompt, None).await {
             FakeReply::Text(text) => Ok(text),
-            FakeReply::Json(value) => Ok(python_str(&value)),
+            FakeReply::Json(value) => Ok(tellfold_models::json::py_str(&value)),
             FakeReply::Error(e) => Err(e),
         }
     }
@@ -123,33 +123,6 @@ impl Llm for FakeLlm {
         };
         schema.validate(&value).map_err(|e| LlmError(format!("{purpose}: invalid fake output: {e}")))?;
         Ok(value)
-    }
-}
-
-/// `str(value)` of the Python object a JSON value stands for (`{'a': 1}`), for a text call answered with JSON.
-fn python_str(value: &Value) -> String {
-    fn repr(v: &Value) -> String {
-        match v {
-            Value::Null => "None".into(),
-            Value::Bool(b) => if *b { "True" } else { "False" }.into(),
-            Value::Number(n) if n.is_f64() => tellfold_models::json::py_float_repr(n.as_f64().unwrap_or(0.0)),
-            Value::Number(n) => n.to_string(),
-            Value::String(s) => format!("'{}'", s.replace('\\', "\\\\").replace('\'', "\\'")),
-            Value::Array(items) => format!("[{}]", items.iter().map(repr).collect::<Vec<_>>().join(", ")),
-            Value::Object(map) => {
-                format!(
-                    "{{{}}}",
-                    map.iter()
-                        .map(|(k, v)| format!("{}: {}", repr(&Value::String(k.clone())), repr(v)))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )
-            }
-        }
-    }
-    match value {
-        Value::String(s) => s.clone(),
-        other => repr(other),
     }
 }
 

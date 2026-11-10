@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm"]
+members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes"]
 
 [workspace.package]
 version = "0.3.0"
@@ -15,7 +15,8 @@ chardetng = "0.1"
 encoding_rs = "0.8"
 futures = "0.3"
 pdf-extract = "0.7"
-tokio = { version = "1", features = ["sync", "time", "rt"] }
+tokio = { version = "1", features = ["sync", "time", "rt", "process", "io-util", "net", "macros"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 blake2 = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 indexmap = { version = "2", features = ["serde"] }
@@ -31,6 +32,7 @@ rand = "0.8"
 tellfold-models = { path = "crates/tellfold-models" }
 tellfold-store = { path = "crates/tellfold-store" }
 tellfold-llm = { path = "crates/tellfold-llm" }
+tellfold-runtimes = { path = "crates/tellfold-runtimes" }
 
 [profile.release]
 lto = true

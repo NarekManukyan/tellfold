@@ -49,7 +49,7 @@ async fn fake_errors_and_invalid_output() {
     assert_eq!(json_with::<Pick>(&llm, "p", "s", "m", "text-json", &s).await.unwrap().color, "c");
     let err = json_with::<Pick>(&llm, "p", "s", "m", "bad", &s).await.unwrap_err();
     assert!(err.0.starts_with("bad: invalid fake output: "), "{}", err.0);
-    assert_eq!(llm.text("p", "s", "m", "dict").await.unwrap(), r#"{'a': [1, True, None], 'b': 'it\'s'}"#);
+    assert_eq!(llm.text("p", "s", "m", "dict").await.unwrap(), r#"{'a': [1, True, None], 'b': "it's"}"#);
 }
 
 #[tokio::test]

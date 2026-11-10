@@ -377,6 +377,160 @@ def pdf() -> None:
     dump("ingest/pdf.json", {"name": name, "text": text})
 
 
+# ---------- runtimes ----------
+
+CLI_CLASSES = ("CursorAgentLLM", "CodexLLM", "GeminiLLM", "QwenLLM", "OpenCodeLLM", "CopilotLLM", "GrokLLM",
+               "DroidLLM")
+
+
+def _outcome(fn) -> dict[str, object]:
+    from tellfold.runtimes.base import BadOutput, Fatal, Transient
+
+    try:
+        reply = fn()
+    except Transient as e:
+        return {"error": "transient", "message": str(e), "rate_limited": e.rate_limited}
+    except Fatal as e:
+        return {"error": "fatal", "message": str(e)}
+    except BadOutput as e:
+        return {"error": "bad_output", "message": str(e), "reply_text": e.reply_text}
+    return {"text": reply.text, "model": reply.model}
+
+
+def runtimes() -> None:
+    import httpx
+    from claude_agent_sdk._internal.transport.subprocess_cli import SubprocessCLITransport
+    from pydantic import BaseModel
+
+    from tellfold import llm as llm_module
+    from tellfold.runtimes import cli_tools, detect, http_api, registry
+    from tellfold.runtimes.base import AdapterRequest
+    from tellfold.settings import OpenAIEndpoint, Settings, key_env_for
+
+    cli_tools.opencode_major_version.cache_clear()
+    argv = []
+    for name in CLI_CLASSES:
+        cls = getattr(cli_tools, name)
+        tool = cls("/opt/tools/tool")
+        for model in ("gpt-5", "default", ""):
+            request = AdapterRequest(prompt="the prompt", system="  be brief\n", model=model, purpose="engine.round")
+            built, stdin = tool.build(request, "/W")
+            argv.append({"class": name, "runtime_id": cls.runtime_id, "model": model, "argv": built, "stdin": stdin,
+                         "extra_env": tool.extra_env(), "passthrough": list(cls.passthrough_env),
+                         "json_output": cls.json_output, "unsafe": cls.unsafe, "auth_hint": cls.auth_hint})
+    dump("runtimes/cli_argv.json", argv)
+
+    stdouts = [
+        "", "   ", "plain words\n", "\x1b[1mbold\x1b[0m answer\r\n",
+        json.dumps({"type": "result", "is_error": False, "result": "fine", "model": "m"}),
+        json.dumps({"response": "gem", "stats": {}}),
+        json.dumps({"is_error": True, "result": "Please log in"}),
+        json.dumps({"error": {"message": "quota exceeded"}}),
+        json.dumps({"error": "bad model: unknown model zz"}),
+        json.dumps({"error": {"code": 7}}),
+        json.dumps({"error": "x", "result": "but answered"}),
+        json.dumps({"subtype": "error"}),
+        json.dumps({"stats": {}}),
+        json.dumps({"result": "   ", "text": "from text"}),
+        json.dumps({"content": [{"text": "a"}, {"text": ""}, {"content": "b"}]}),
+        json.dumps([{"type": "system"}, {"type": "result", "result": "qw"}]),
+        json.dumps([{"type": "result", "is_error": True, "error": "rate limit hit"}]),
+        json.dumps([{"type": "message", "content": "one"}, {"type": "assistant", "message": {"text": "two"}},
+                    {"type": "message", "role": "user", "content": "skip"}]),
+        '{"type":"step_start"}\n{"type":"text","part":{"type":"text","text":"op"}}\n'
+        '{"type":"text","part":{"type":"text","text":"en"}}\n',
+        '{"type":"step_start"}\n{"type":"error","error":{"message":"not logged in"}}\n',
+        '{"type":"step_start"}\nnoise\n{"type":"done"}\n',
+        "progress\n{\"result\": \"last\"}\n",
+        "42", '"just a string"', "true", "null", "[]", "[1, 2]",
+    ]
+    replies = [{"stdout": out, **_outcome(lambda out=out: cli_tools.parse_json_reply(out, auth_hint="HINT"))}
+               for out in stdouts]
+    dump("runtimes/parse_json_reply.json", replies)
+
+    bodies = ['{"error": {"message": "invalid key"}}', '{"error": {"type": "auth"}}', '{"error": {"code": 1}}',
+              '{"error": "plain"}', '{"error": "", "message": "msg"}', '{"detail": [1, "two", null, true, 1.5]}',
+              '[1, 2]', '"text"', "not   json\n at all", "", '{"message": {"nested": "x"}}', '{"error": {}}']
+    excerpts = [{"body": b, "excerpt": http_api._excerpt(httpx.Response(400, content=b.encode()))} for b in bodies]
+    dump("runtimes/excerpt.json", excerpts)
+
+    dump("runtimes/misc.json", {
+        "ollama_context": [[n, http_api.ollama_context_length("x" * n)] for n in
+                           (0, 5, 12287, 12288, 12289, 36863, 36865, 60_000, 200_000, 10_000_000)],
+        "key_env_for": [[i, key_env_for(i)] for i in ("open-router.ai", "lmstudio", "LM Studio", "__x__", "ß-1")],
+        "parse_version": [[o, detect.parse_version(o)] for o in
+                          ("codex-cli 0.9.1\n", "2026.01.23-916f423", "2.1.283 (Claude Code)", "no digits here",
+                           "", "  \n", "v1.2", "x" * 80, "first\n1.2.3-beta+build", "1.2.3.4.5")],
+        "strip_ansi": [[t, detect.strip_ansi(t)] for t in ("\x1b[1mbold\x1b[0m", "a\r\nb", "\x1b]0;title\x07x")],
+        "opencode_lockdown": cli_tools.OPENCODE_LOCKDOWN_CONFIG,
+        "anthropic_model_id": [[m, http_api.AnthropicAPILLM.model_id(m)] for m in (None, "", "haiku", "sonnet",
+                                                                                  "opus", "claude-x")],
+    })
+
+    settings_cases = [
+        {}, {"concurrency": "8", "think": "yes", "agent_runtime": " ollama "},
+        {"concurrency": 0}, {"concurrency": 17}, {"concurrency": True}, {"think": 2},
+        {"agent_runtime": "Bad Runtime"}, {"agent_model": ""}, {"agent_model": "bad model"},
+        {"planner_runtime": "openai-compatible:lm"}, {"ollama_base_url": "http://h:1/"},
+        {"ollama_base_url": "ftp://h"}, {"ollama_base_url": "http://u:p@h"}, {"runs_dir": 5},
+        {"openai_endpoints": [{"id": "LMStudio", "name": "LM Studio", "base_url": "http://127.0.0.1:1234/v1/",
+                               "models": [" a ", "a", "", "qwen/qwen3-8b"], "key_env": "  "}]},
+        {"openai_endpoints": [{"id": "a", "name": "A", "base_url": "http://h"},
+                              {"id": "A", "name": "B", "base_url": "http://h"}]},
+        {"openai_endpoints": [{"id": "x", "name": "", "base_url": "http://h"}]},
+        {"openai_endpoints": [{"id": "x", "name": "X", "base_url": "http://h", "key_env": "sk-123!"}]},
+        {"openai_endpoints": [{"id": "x", "name": "X", "base_url": "http://h", "models": ["bad model"]}]},
+        {"openai_endpoints": [{"id": "-x", "name": "X", "base_url": "http://h"}]},
+        {"unknown_field": 1, "agent_model": "llama3.2:3b"},
+    ]
+    out = []
+    for case in settings_cases:
+        try:
+            settings = Settings.model_validate(case)
+        except ValueError:
+            out.append({"input": case, "ok": False})
+            continue
+        out.append({"input": case, "ok": True, "json": settings.model_dump_json(indent=2),
+                    "endpoints": [{"runtime_id": e.runtime_id, "api_key_env": e.api_key_env}
+                                  for e in settings.openai_endpoints]})
+    dump("runtimes/settings.json", out)
+
+    class Pick(BaseModel):
+        color: str
+        n: int
+
+    claude = registry.IsolatedClaudeLocal(cli_path="/opt/bin/claude")
+    commands = []
+    for purpose, schema, think in (("engine.round", None, False), ("report.write", None, False),
+                                   ("graph.extract", Pick.model_json_schema(), False),
+                                   ("graph.extract", Pick.model_json_schema(), True)):
+        client = claude if not think else registry.IsolatedClaudeLocal(
+            cli_path="/opt/bin/claude", think_purposes=llm_module.PLANNER_THINK_PURPOSES)
+        system = "Be terse. ünïcode" if schema is None else llm_module._json_system("Sys", schema, structured=True)
+        options = client._options(system, "haiku", schema, purpose)
+        commands.append({"purpose": purpose, "think": think, "schema": schema, "system": system,
+                         "argv": SubprocessCLITransport(prompt="p", options=options)._build_command()})
+    dump("runtimes/claude_argv.json", commands)
+
+    failures = [("API Error: 429", 429, "api_error"), ("Overloaded", 529, "api_error"),
+                ("Failed to authenticate: OAuth session expired", None, "api_error"),
+                ("forbidden", 403, None), ("structured output retries exhausted", None, None), ("", None, None),
+                ("usage limit reached", None, None), ("  boom  ", 500, None), ("odd", None, "api_error"),
+                ("please /login", 400, None)]
+    classified = []
+    for message, status, reason in failures:
+        err = llm_module._classify_api_failure(message, status, reason)
+        classified.append({"message": message, "status": status, "terminal_reason": reason,
+                           "kind": type(err).__name__, "text": str(err),
+                           "rate_limited": getattr(err, "rate_limited", None)})
+    dump("runtimes/claude_failures.json", classified)
+    dump("runtimes/claude_system.json", {
+        "structured": llm_module._json_system("Sys \n", Pick.model_json_schema(), structured=True),
+        "plain": llm_module._json_system("Sys \n", Pick.model_json_schema(), structured=False),
+        "schema": Pick.model_json_schema(),
+    })
+
+
 def main() -> None:
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -393,6 +547,7 @@ def main() -> None:
     prompts()
     extract()
     ingest()
+    runtimes()
     dump("letters.json", {"letters": [letter(i) for i in range(30)],
                           "variants": [default_variant(i) for i in range(30)]})
     print(f"wrote {sum(1 for _ in OUT.rglob('*.json'))} fixtures to {OUT} and {len(schema_classes())} schemas")

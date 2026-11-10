@@ -1,0 +1,202 @@
+[
+ {
+  "input": {},
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "concurrency": "8",
+   "think": "yes",
+   "agent_runtime": " ollama "
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"ollama\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 8,\n  \"think\": true\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "concurrency": 0
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "concurrency": 17
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "concurrency": true
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 1,\n  \"think\": false\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "think": 2
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "agent_runtime": "Bad Runtime"
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "agent_model": ""
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "agent_model": "bad model"
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "planner_runtime": "openai-compatible:lm"
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"openai-compatible:lm\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "ollama_base_url": "http://h:1/"
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://h:1\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": []
+ },
+ {
+  "input": {
+   "ollama_base_url": "ftp://h"
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "ollama_base_url": "http://u:p@h"
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "runs_dir": 5
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "LMStudio",
+     "name": "LM Studio",
+     "base_url": "http://127.0.0.1:1234/v1/",
+     "models": [
+      " a ",
+      "a",
+      "",
+      "qwen/qwen3-8b"
+     ],
+     "key_env": "  "
+    }
+   ]
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"haiku\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [\n    {\n      \"id\": \"lmstudio\",\n      \"name\": \"LM Studio\",\n      \"base_url\": \"http://127.0.0.1:1234/v1\",\n      \"models\": [\n        \"a\",\n        \"qwen/qwen3-8b\"\n      ],\n      \"key_env\": null\n    }\n  ],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": [
+   {
+    "runtime_id": "openai-compatible:lmstudio",
+    "api_key_env": "TELLFOLD_KEY_LMSTUDIO"
+   }
+  ]
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "a",
+     "name": "A",
+     "base_url": "http://h"
+    },
+    {
+     "id": "A",
+     "name": "B",
+     "base_url": "http://h"
+    }
+   ]
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "x",
+     "name": "",
+     "base_url": "http://h"
+    }
+   ]
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "x",
+     "name": "X",
+     "base_url": "http://h",
+     "key_env": "sk-123!"
+    }
+   ]
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "x",
+     "name": "X",
+     "base_url": "http://h",
+     "models": [
+      "bad model"
+     ]
+    }
+   ]
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "openai_endpoints": [
+    {
+     "id": "-x",
+     "name": "X",
+     "base_url": "http://h"
+    }
+   ]
+  },
+  "ok": false
+ },
+ {
+  "input": {
+   "unknown_field": 1,
+   "agent_model": "llama3.2:3b"
+  },
+  "ok": true,
+  "json": "{\n  \"runs_dir\": null,\n  \"agent_runtime\": \"claude-code\",\n  \"agent_model\": \"llama3.2:3b\",\n  \"planner_runtime\": \"claude-code\",\n  \"planner_model\": \"sonnet\",\n  \"ollama_base_url\": \"http://127.0.0.1:11434\",\n  \"openai_endpoints\": [],\n  \"concurrency\": 4,\n  \"think\": false\n}",
+  "endpoints": []
+ }
+]

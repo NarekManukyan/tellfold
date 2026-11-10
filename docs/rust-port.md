@@ -59,29 +59,35 @@ CLI are the only crates that know about tokio's runtime setup.
 | charset-normalizer | `chardetng` + `encoding_rs` | |
 | sqlite3 | `rusqlite` (bundled SQLite, `backup` feature) | |
 | httpx | `reqwest` (rustls) | |
-| anyio, asyncio subprocess | `tokio` (`process`, `sync::Semaphore`, `time`) | process groups killed with `nix::sys::signal::killpg` |
+| anyio, asyncio subprocess | `tokio` (`process`, `sync::Semaphore`, `time`) | each child leads its own process group (`process_group(0)`), killed with `libc::killpg` |
 | claude-agent-sdk | the `claude` CLI directly | see below |
 | `random.Random` | own MT19937 port | see "RNG" |
 | `hashlib.blake2b(digest_size=8)` | `blake2::Blake2bVar` with an 8-byte output | feed tie-breaks |
 
 ## Calling the AI tools without the Python SDK
 
-**Claude Code.** The SDK is a wrapper around the `claude` binary. Rust calls it directly:
+**Claude Code.** The SDK is a wrapper around the `claude` binary, and Rust drives that binary the same way the SDK
+does (checked against claude-agent-sdk 0.2.179 and Claude Code 2.1.283):
 
 ```
-claude -p --output-format json --model <alias> --system-prompt <system> --max-turns 1
-       --tools "" --setting-sources "" --strict-mcp-config --no-session-persistence
-       [--json-schema <schema>]      # structured output for llm.json()
+claude --output-format stream-json --verbose --system-prompt <system> --tools "" --max-turns <1|3>
+       --model <alias> --strict-mcp-config --setting-sources= [--thinking disabled] [--json-schema <schema>]
+       --input-format stream-json --no-session-persistence -p
 ```
 
-The prompt goes in on stdin. `--setting-sources ""` keeps the user's CLAUDE.md, hooks and plugins out of the
-simulation, as `setting_sources=[]` does today; `--tools ""` matches `tools=[]`. The JSON result carries `result`,
-`structured_output`, `is_error`, `subtype` and `api_error_status`, which map onto the same `Transient` / `Fatal` /
-`BadOutput` classification `llm.py` uses. The process runs in its own process group in the isolated working
-directory `IsolatedClaudeLocal` uses, with the same blanked secret variables. Extended thinking for planner calls
-(`think`) maps to the CLI's thinking option that the SDK sets today; the exact flag is confirmed against the
-installed CLI before milestone 3 lands. The flags are pinned by a test that runs a fake `claude` script and checks
-its argv.
+The argv up to `--input-format stream-json` is the SDK's own `_build_command()` output for the same options, pinned
+by a golden test. `--no-session-persistence` keeps simulation calls out of the user's Claude Code history, and `-p`
+replaces the SDK's initialize handshake. The prompt goes in on stdin as one stream-json user message marked
+`client_composed: true`, which is what the SDK's `verbatim_prompts=True` sends: Claude Code then delivers the text as
+written, with no `@path` expansion and no slash commands. `--setting-sources=` keeps the user's CLAUDE.md, hooks and
+plugins out of the simulation, as `setting_sources=[]` does; `--tools ""` matches `tools=[]`. Thinking is turned off
+with `--thinking disabled` (the SDK's `thinking={"type": "disabled"}`) except for the think purposes. The result
+message carries `result`, `structured_output`, `is_error`, `subtype`, `api_error_status` and `terminal_reason`, which
+map onto the same `Transient` / `BadOutput` / not-logged-in classification `llm.py` uses (golden-tested). The process
+runs in its own process group in `$TMPDIR/tellfold-runtime-cwd`, with the engine's environment and every secret
+blanked, as `IsolatedClaudeLocal` does. `calls.jsonl` lines keep `ClaudeLocal`'s shape (`turns`, `api_seconds`,
+`startup_seconds`, no `runtime` key). A test runs a fake `claude` script and checks its argv, stdin, working
+directory and environment.
 
 **Every other tool** is already called as a subprocess or over HTTP in `tellfold/runtimes/cli_tools.py` and
 `http_api.py`: Cursor Agent, Codex, Gemini CLI, Qwen Code, OpenCode, Copilot, Grok, Droid, Ollama, OpenAI-compatible
