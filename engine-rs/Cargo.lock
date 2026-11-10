@@ -1600,6 +1600,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "tellfold-study"
+version = "0.3.0"
+dependencies = [
+ "fancy-regex",
+ "indexmap",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tellfold-engine",
+ "tellfold-llm",
+ "tellfold-models",
+ "tellfold-report",
+ "tellfold-runtimes",
+ "tellfold-store",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

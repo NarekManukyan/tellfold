@@ -1139,6 +1139,218 @@ def report_world_empty(path: Path) -> World:
     return w
 
 
+STUDY_SEED = ROOT / "examples" / "mossbook_pricing.md"
+STUDY_QUESTION = "Will buyers accept the subscription?"
+
+
+def study_run(runs: Path, name: str, **kw) -> tuple[Path, SimConfig]:
+    """A finished canned run of the mossbook seed; `tests/study.rs` in tellfold-study makes the same one."""
+    import anyio
+
+    from tellfold.cli import fake_responder
+    from tellfold.llm import FakeLLM
+
+    run_dir = runs / name
+    run_dir.mkdir(parents=True)
+    seeds = runner.copy_seeds(run_dir, [STUDY_SEED])
+    config = SimConfig(**({"question": STUDY_QUESTION, "seed_files": [str(x) for x in seeds], "num_agents": 6,
+                           "rounds": 2, "batch_size": 3} | kw))
+    anyio.run(lambda: runner.run_pipeline(FakeLLM(fake_responder), run_dir, config, seeds))
+    return run_dir, config
+
+
+def study_fixtures() -> None:
+    """compare.py, agree.py, branch.py and examples.py on canned runs."""
+    import anyio
+
+    from tellfold.agree import bands, build_agreement, match_camps
+    from tellfold.branch import branch_rounds, prepare_branch
+    from tellfold.cli import fake_responder
+    from tellfold.compare import Member, build_compare, digest_run
+    from tellfold.examples import ExampleError, pack_example
+    from tellfold.llm import FakeLLM
+    from tellfold.models import Camp, CampGroupOut, CampMatches, Report
+    from tellfold.runner import RunError
+
+    out: dict = {"question": STUDY_QUESTION}
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp).resolve()
+
+        def norm(value):
+            text = json.dumps(value, ensure_ascii=False)
+            return json.loads(text.replace(str(root), "<TMP>"))
+
+        runs = root / "runs"
+        a, _ = study_run(runs, "a")
+        b, _ = study_run(runs, "b", seed=8)
+        c, c_config = study_run(runs, "c", rounds=3, events=[GodEvent(round=3, content="The paper runs the story")])
+        out["runs"] = {"a": {}, "b": {"seed": 8},
+                       "c": {"rounds": 3, "events": [{"round": 3, "content": "The paper runs the story"}]}}
+
+        def member(letter, run_id, variant, run_dir):
+            return Member(letter=letter, run_id=run_id, variant=variant, run_dir=run_dir)
+
+        out["digest"] = {
+            "a": digest_run(member("A", "a", "Draft A", a), "done").model_dump(mode="json"),
+            "empty": None,
+        }
+        (root / "empty").mkdir()
+        out["digest"]["empty"] = digest_run(member("A", "e", "Draft A", root / "empty")).model_dump(mode="json")
+
+        wa, wb = World(a / "world.db"), World(b / "world.db")
+        post_a, post_b = wa.posts()[0].id, wb.posts()[0].id
+        handle = wb.personas()[0].handle
+        wa.close()
+        wb.close()
+        members = [member("A", "a", "Draft A", a), member("B", "b", "Draft B", b)]
+        compares = {
+            "cited": {"headline": "The crowd preferred Draft B", "better_variant": "draft b",
+                      "why": f"A#{post_a} pushed back while B#{post_b} agreed; B#9999 is made up, #{post_a} is bare.",
+                      "per_variant": [{"variant": "A", "summary": f"Cooler, see A#{post_a}.", "objections": ["Price"]},
+                                      {"variant": "Draft B", "summary": f"Warmer, see B#{post_b} and @{handle}.",
+                                       "objections": []},
+                                      {"variant": "Draft Z", "summary": "not a version", "objections": []},
+                                      {"variant": "b = draft b", "summary": "dupe", "objections": []}],
+                      "objections_only_in": [{"variant": "Draft A", "objections": ["Too vague, says @nobody"]},
+                                             {"variant": "Draft B", "objections": []}],
+                      "caveats": ["Small crowd."]},
+            "tie": {"headline": "A tie", "better_variant": "Draft Q", "why": "", "per_variant": [],
+                    "objections_only_in": [], "caveats": []},
+            "clean": {"headline": "Same", "better_variant": ' "B" ', "why": f"See A#{post_a}.", "per_variant": [],
+                      "objections_only_in": [], "caveats": []},
+        }
+        out["compare"] = {}
+        for name, reply in compares.items():
+            llm = FakeLLM(lambda *_: reply)
+            result = anyio.run(lambda: build_compare(llm, "s1", members, question=STUDY_QUESTION, model="sonnet",
+                                                     language="German", states={"a": "done"}))
+            out["compare"][name] = {"reply": reply, "calls": [list(x) for x in llm.calls],
+                                    "result": result.model_copy(update={"created_at": ""}).model_dump(mode="json")}
+
+        # branch c at round 1 with a new event, continue it, and compare it with its source
+        target = runs / "branch"
+        target.mkdir()
+        new = prepare_branch(c, target, c_config, 1, [GodEvent(round=2, content="The owner apologises")],
+                             study_id="s1", variant="Branch at round 1")
+        prepared = {"config_json": (target / "config.json").read_text(), "tables": tables(target / "world.db"),
+                    "files": sorted(str(p.relative_to(target)) for p in target.rglob("*") if p.is_file())}
+        llm = FakeLLM(fake_responder)
+        events: list = []
+        anyio.run(lambda: runner.run_pipeline(llm, target, new, [Path(x) for x in new.seed_files],
+                                               on_event=lambda n, p: events.append(normalized_event(n, p))))
+        out["branch"] = norm({
+            "rounds": list(branch_rounds(c)),
+            "prepared": prepared,
+            "calls": [list(x) for x in llm.calls],
+            "events": events,
+            "tables": tables(target / "world.db"),
+            "report_json": (target / "report.json").read_text(),
+        })
+        branch_members = [member("A", "c", "Original", c), member("B", "branch", "Branch at round 1", target)]
+        llm = FakeLLM(lambda *_: compares["clean"])
+        anyio.run(lambda: build_compare(llm, "s1", branch_members, question=STUDY_QUESTION, model="sonnet"))
+        out["branch"]["compare_prompt"] = llm.calls[0][2]
+
+        errors = {}
+        (runs / "nothing").mkdir()
+        for label, args in [("no world", (runs / "nothing", 1, [])), ("last round", (c, 3, [])),
+                            ("event outside", (c, 1, [GodEvent(round=4, content="x")])),
+                            ("event at round", (c, 1, [GodEvent(round=1, content="x")]))]:
+            (runs / f"x-{label}").mkdir()
+            try:
+                prepare_branch(args[0], runs / f"x-{label}", c_config, args[1], args[2])
+            except RunError as e:
+                errors[label] = str(e)
+        old = runs / "old"
+        shutil.copytree(c, old)
+        conn = sqlite3.connect(old / "world.db")
+        conn.execute("DROP TABLE memory_history")
+        conn.commit()
+        conn.close()
+        out["branch_old_rounds"] = list(branch_rounds(old))
+        (runs / "x-old").mkdir()
+        try:
+            prepare_branch(old, runs / "x-old", c_config, 1, [])
+        except RunError as e:
+            errors["old run"] = str(e)
+        out["branch_errors"] = errors
+
+        # Check it: three repeats with camps written into their reports
+        repeats = []
+        for seed, camps in [(7, ["Fans", "Doubters"]), (8, ["Supporters"]), (9, ["Happy", "Sceptics"])]:
+            run_dir, _ = study_run(runs, f"r{seed}", seed=seed, num_agents=4, batch_size=2)
+            report = Report.model_validate_json((run_dir / "report.json").read_text())
+            report = report.model_copy(update={"camps": [Camp(name=n, members=["a01"], sentiment=0.1, summary=f"{n}!")
+                                                         for n in camps]})
+            (run_dir / "report.json").write_text(report.model_dump_json())
+            repeats.append(member("ABC"[seed - 7], f"r{seed}", f"Run {seed - 6}", run_dir))
+        out["repeats"] = [[7, ["Fans", "Doubters"]], [8, ["Supporters"]], [9, ["Happy", "Sceptics"]]]
+        replies = {"study.match_camps": {"groups": [{"label": "Fans", "members": ["A: Fans", "B: Supporters", "C: Happy"]},
+                                                    {"label": " ", "members": ["A: Doubters", "C: Sceptics"]}]},
+                   "study.agree": {"held": ["Most buyers accept it"], "split": ["Students leave (A and C)"],
+                                   "verdict": "consistent", "summary": "The conclusion held in all three runs."}}
+        llm = FakeLLM(lambda purpose, prompt, schema: replies[purpose])
+        agreement = anyio.run(lambda: build_agreement(llm, "s1", repeats, question=STUDY_QUESTION, model="sonnet"))
+        out["agreement"] = {"replies": replies, "calls": [list(x) for x in llm.calls],
+                            "result": agreement.model_copy(update={"created_at": ""}).model_dump(mode="json")}
+        plain = [member("A", "a", "Run 1", a), member("B", "b", "Run 2", b)]
+        llm = FakeLLM(fake_responder)
+        agreement = anyio.run(lambda: build_agreement(llm, "s2", plain, question=STUDY_QUESTION, model="haiku",
+                                                      language="French"))
+        out["agreement_canned"] = {"calls": [list(x) for x in llm.calls],
+                                   "result": agreement.model_copy(update={"created_at": ""}).model_dump(mode="json")}
+
+        # pack an example
+        packed = root / "examples" / "cafe"
+        pack_example(a, packed)
+        status = json.loads((packed / "status.json").read_text())
+        conn = sqlite3.connect(f"{(packed / 'world.db').as_uri()}?mode=ro&immutable=1", uri=True)
+        journal = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        conn.close()
+        out["pack"] = norm({
+            "files": sorted(str(p.relative_to(packed)) for p in packed.rglob("*") if p.is_file()),
+            "config_json": (packed / "config.json").read_text(),
+            "status": {**status, "started_at": "T", "updated_at": "T"},
+            "report_html": (packed / "report.html").read_text(),
+            "tables": tables(packed / "world.db"),
+            "journal_mode": journal,
+        })
+        pack_errors = {}
+        for label, prepare in [("exists", lambda: None), ("prompt", None), ("unfinished", None)]:
+            pass
+        try:
+            pack_example(a, packed)
+        except ExampleError as e:
+            pack_errors["exists"] = str(e)
+        with (b / "calls.jsonl").open("a") as f:
+            f.write(json.dumps({"purpose": "x", "prompt": "secret"}) + "\n")
+        try:
+            pack_example(b, root / "examples" / "b")
+        except ExampleError as e:
+            pack_errors["prompt"] = str(e)
+        (b / "report.json").unlink()
+        try:
+            pack_example(b, root / "examples" / "b2")
+        except ExampleError as e:
+            pack_errors["unfinished"] = str(e)
+        out["pack_errors"] = norm(pack_errors)
+
+    matched = CampMatches(groups=[
+        CampGroupOut(label="Stay on free", members=["A: Stayed on free", "B: Free is enough", "B: Upgraders",
+                                                    "C: nope", "D: Stayed on free"]),
+        CampGroupOut(label="Upgrade", members=["b: Upgraders", "A: Stayed on free"]),
+        CampGroupOut(label="Empty", members=[]),
+        CampGroupOut(label="", members=["C:  ANGRY ", "A:Paid up"]),
+    ])
+    loaded = {"A": ["Stayed on free", "Paid up"], "B": ["Free is enough", "Upgraders"], "C": ["Angry"], "D": []}
+    out["match_camps"] = {"matched": matched.model_dump(mode="json"), "loaded": loaded,
+                          "out": [m.model_dump(mode="json") for m in match_camps(matched, loaded_camps=loaded)]}
+    band_cases = [[[(0, None), (1, 0.2), (2, -0.1)], [(0, None), (1, 0.5), (2, 0.1)], [(1, None), (2, 0.4)]],
+                  [], [[(3, 0.12345), (1, -0.98765)]]]
+    out["bands"] = [[case, [x.model_dump(mode="json") for x in bands(case)]] for case in band_cases]
+    dump("study/study.json", out)
+
+
 def main() -> None:
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -1161,6 +1373,7 @@ def main() -> None:
     engine_helpers()
     golden_run()
     report_fixtures()
+    study_fixtures()
     dump("letters.json", {"letters": [letter(i) for i in range(30)],
                           "variants": [default_variant(i) for i in range(30)]})
     print(f"wrote {sum(1 for _ in OUT.rglob('*.json'))} fixtures to {OUT} and {len(schema_classes())} schemas")

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report"]
+members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study"]
 
 [workspace.package]
 version = "0.3.0"
@@ -40,6 +40,7 @@ tellfold-llm = { path = "crates/tellfold-llm" }
 tellfold-runtimes = { path = "crates/tellfold-runtimes" }
 tellfold-engine = { path = "crates/tellfold-engine" }
 tellfold-report = { path = "crates/tellfold-report" }
+tellfold-study = { path = "crates/tellfold-study" }
 
 [profile.release]
 lto = true

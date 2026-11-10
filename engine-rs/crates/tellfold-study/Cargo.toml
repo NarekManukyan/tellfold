@@ -1,0 +1,26 @@
+[package]
+name = "tellfold-study"
+description = "Comparing the runs of a study, Check it, branching a run and packing examples (port of compare.py, agree.py, branch.py, examples.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+fancy-regex.workspace = true
+indexmap.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tellfold-engine.workspace = true
+tellfold-llm.workspace = true
+tellfold-models.workspace = true
+tellfold-report.workspace = true
+tellfold-store.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tellfold-runtimes.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

@@ -50,7 +50,7 @@ impl From<ReportError> for PipelineError {
 
 /// `str.format` for the prompt templates: `{name}` placeholders filled in one pass, so a placeholder inside a filled
 /// value stays as it is. The templates hold their literal braces single (`{"what", "why"}`), not doubled.
-pub(crate) fn fill(template: &str, values: &[(&str, &str)]) -> String {
+pub fn fill(template: &str, values: &[(&str, &str)]) -> String {
     let mut out = String::with_capacity(template.len());
     let mut rest = template;
     while let Some(i) = rest.find('{') {

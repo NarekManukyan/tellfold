@@ -176,6 +176,19 @@ Known differences, none visible in a normal run:
 - An evidence entry made only of non-decimal digits such as `²` raises in Python (`int("²")`); the port treats it
   as text and drops it like any other entry without a citation.
 
+## Studies (compare, Check it, branch, examples)
+
+- **Crate.** `tellfold-study` ports `compare.py`, `agree.py`, `branch.py` and `examples.py`; the study files on
+  disk (`study.py`) were already in `tellfold-store`. It builds on the report crate's evidence, audit and renderer.
+- **Branching.** The world is copied with SQLite's backup API from a read-only `file:` URI (`mode=ro`, or
+  `mode=ro&immutable=1` for a bundled example), so rows still in the source's WAL file come along, as in Python.
+- **Examples.** `pack_example` copies files like `shutil.copy2` (bytes, permissions and modification time), backs
+  the world up into a rollback-journal database and vacuums it. The packed `world.db` holds the same rows as
+  Python's, but its bytes depend on the SQLite version, so the golden test compares rows, not bytes.
+- **Parity.** `golden/make.py` (`study_fixtures`) makes canned runs of the mossbook seed and records the digests,
+  three comparisons, a branch prepared and continued to its report, the branch errors, two Check it agreements and a
+  packed example; the Rust test makes the same runs and compares every call, file, event and row.
+
 ## world.db
 
 The schema is unchanged (tables `personas`, `follows`, `posts`, `reactions`, `actions`, `memories`,
@@ -212,8 +225,8 @@ engine into `engine-rs/golden/fixtures/`: reader output for the example runs, sc
 lines, RNG sequences, the engine's seeded helpers on the example casts, and a whole run on the canned responder
 (every model call, every event, the run folder and every `world.db` row), and the report side: the evidence digest,
 every `build_report` scenario of `test_report.py` (calls, `report.json`, `report.md`, `report.html`), the citation
-audit, interview and ask prompts, rewrites, and the rendered reports of both examples and of the golden run; later
-recorded API sessions. The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
+audit, interview and ask prompts, rewrites, and the rendered reports of both examples and of the golden run, and study folders (comparisons, Check it,
+branches, packed examples); later recorded API sessions. The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
 which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute

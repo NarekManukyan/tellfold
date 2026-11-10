@@ -24,6 +24,8 @@ checkouts.
 - `tellfold-report`: the evidence digest, the report call with its citation audit and repair, `report.md` and
   `report.html` (the Python Jinja template, rendered with minijinja), interviews, report Q&A and the rewrite
   suggestion. `ReportWriter` is the pipeline's report stage.
+- `tellfold-study`: the cited comparison of a study's runs, the "Check it" agreement across repeats, branching a
+  run from a round, and packing a finished run as a built-in example.
 
 No test starts a real AI tool. For a manual check against one that is installed and logged in:
 
@@ -35,6 +37,8 @@ AGENTS=4 ROUNDS=1 cargo run -p tellfold-report --example run -- ../examples/moss
 
 The second example runs a whole simulation with the report and prints every event and the run folder
 (`cargo run -p tellfold-engine --example run` does the same without the report).
+`cargo run -p tellfold-study --example compare -- RUN_A RUN_B` makes a real comparison and Check it of two finished
+run folders.
 
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.
