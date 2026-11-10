@@ -86,7 +86,7 @@ struct EngineIntegrationTests {
 
     /// Every route the app calls, through the app's own client and models: a run, its reads, chat, ask, the report
     /// rebuild, rewrite, a branch, Check it and a comparison, runtimes and settings. Whichever engine answers (the
-    /// Python package, or a Rust binary behind a `uv` shim on PATH), the app must decode every answer.
+    /// Python package, or a Rust binary behind the `uv` shim in engine-rs/scripts), the app must decode every answer.
     @Test(.timeLimit(.minutes(5)))
     func everyRouteTheAppUsesAnswers() async throws {
         let suite = "dev.tellfold.mac.tests.\(UUID().uuidString)"
