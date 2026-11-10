@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Tellfold</title>
-    <link>https://zoel-io.github.io/tellfold/appcast.xml</link>
+    <link>https://narekmanukyan.github.io/tellfold/appcast.xml</link>
     <description>Tellfold updates</description>
 <language>en</language>
     <item>
@@ -11,8 +11,8 @@
       <sparkle:version>58</sparkle:version>
       <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://zoel-io.github.io/tellfold/releases/0.3.0.md</sparkle:releaseNotesLink>
-      <enclosure url="https://github.com/zoel-io/tellfold/releases/download/v0.3.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="mapAaPhbVRuYmIiaA0q/k7FsOMh3SxK7QJH4cSF2Fjn2rgs5yQ8iK99WodnTngVer+xfkHL/TrhmCTzFxv2tCQ==" length="76584539" />
+      <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.3.0.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.3.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="mapAaPhbVRuYmIiaA0q/k7FsOMh3SxK7QJH4cSF2Fjn2rgs5yQ8iK99WodnTngVer+xfkHL/TrhmCTzFxv2tCQ==" length="76584539" />
     </item>
     <item>
       <title>Tellfold 0.2.1</title>
@@ -20,8 +20,8 @@
       <sparkle:version>47</sparkle:version>
       <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://zoel-io.github.io/tellfold/releases/0.2.1.md</sparkle:releaseNotesLink>
-      <enclosure url="https://github.com/zoel-io/tellfold/releases/download/v0.2.1/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="Zaf8KrelZRu/g8GYEBLpAxqr1BAh+q2P++wIe6s/guXImsZQ3NTzYzRhHEdz2bn6SHPOUu5zp6juGVZvPU9cCg==" length="76136292" />
+      <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.2.1.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.2.1/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="Zaf8KrelZRu/g8GYEBLpAxqr1BAh+q2P++wIe6s/guXImsZQ3NTzYzRhHEdz2bn6SHPOUu5zp6juGVZvPU9cCg==" length="76136292" />
     </item>
     <item>
       <title>Tellfold 0.2.0</title>
@@ -29,8 +29,8 @@
       <sparkle:version>38</sparkle:version>
       <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://zoel-io.github.io/tellfold/releases/0.2.0.md</sparkle:releaseNotesLink>
-      <enclosure url="https://github.com/zoel-io/tellfold/releases/download/v0.2.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="S0ZcpdqCmWcXHq1fHe9jNcImQuG6Zx0js2X0EQ7NFEtjjQFOIY3BPtahHxZR3hYKbA6G3Y4+N3Wn5MspKOrrCA==" length="76167582" />
+      <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.2.0.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.2.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="S0ZcpdqCmWcXHq1fHe9jNcImQuG6Zx0js2X0EQ7NFEtjjQFOIY3BPtahHxZR3hYKbA6G3Y4+N3Wn5MspKOrrCA==" length="76167582" />
     </item>
   </channel>
 </rss>

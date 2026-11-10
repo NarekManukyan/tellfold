@@ -22,8 +22,8 @@ PUBLISH=${2:-}
 
 MAC=$(cd "$(dirname "$0")/.." && pwd)
 ROOT=$(dirname "$MAC")
-REPO=zoel-io/tellfold
-SITE_URL=https://zoel-io.github.io/tellfold
+REPO=NarekManukyan/tellfold
+SITE_URL=https://narekmanukyan.github.io/tellfold
 SPARKLE_VERSION=2.10.1
 SPARKLE="$MAC/build/sparkle-$SPARKLE_VERSION"
 NOTARY_PROFILE=${TELLFOLD_NOTARY_PROFILE:-tellfold-notary}
