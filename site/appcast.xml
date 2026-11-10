@@ -6,6 +6,15 @@
     <description>Tellfold updates</description>
 <language>en</language>
     <item>
+      <title>Tellfold 0.3.0</title>
+      <pubDate>Tue, 10 Nov 2026 13:26:50 +0000</pubDate>
+      <sparkle:version>58</sparkle:version>
+      <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://zoel-io.github.io/tellfold/releases/0.3.0.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/zoel-io/tellfold/releases/download/v0.3.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="mapAaPhbVRuYmIiaA0q/k7FsOMh3SxK7QJH4cSF2Fjn2rgs5yQ8iK99WodnTngVer+xfkHL/TrhmCTzFxv2tCQ==" length="76584539" />
+    </item>
+    <item>
       <title>Tellfold 0.2.1</title>
       <pubDate>Tue, 10 Nov 2026 06:58:17 +0000</pubDate>
       <sparkle:version>47</sparkle:version>
