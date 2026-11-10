@@ -118,11 +118,40 @@ servers and the Anthropic and OpenAI APIs. Each adapter is ported with the same 
 
 ## RNG
 
-`engine.py` seeds `random.Random` with strings (`"shoal:active:{seed}:{round}"`) and uses `random()` and
-`_weighted_sample`. The port implements Python's string seeding (bytes plus their SHA-512, `init_by_array`), MT19937,
-`random()` (53-bit from two outputs), `getrandbits`, `_randbelow`, `shuffle`, `sample` and `choice` exactly, and is
-tested against sequences dumped from CPython. Float operations keep Python's order (`x ** y` is `powf`, not `powi`),
-so the same seed picks the same agents.
+`engine.py` seeds `random.Random` with strings (`"shoal:active:{seed}:{round}"`) and uses `random()`, `shuffle`,
+`choices` and `_weighted_sample`; `personas.py` shuffles with `random.Random(f"{question}|{n}")`. The port
+(`tellfold_engine::rng::PyRandom`) implements Python's string seeding (bytes plus their SHA-512, `init_by_array`),
+MT19937, `random()` (53-bit from two outputs), `getrandbits`, `_randbelow`, `shuffle` and `choices` exactly, and is
+tested against sequences dumped from CPython. Float operations keep Python's order (`x ** y` is `powf`, not `powi`;
+`round()` is half-even; float sums use CPython 3.12's compensated `sum`), so the same seed picks the same agents,
+follows and opening authors.
+
+## The engine (graph, personas, rounds, pipeline)
+
+- **Unicode.** `slugify` and `select_chunks` use `re`'s `\w` and `unicodedata.combining`. Their tables are generated
+  from Python by `golden/make.py` into `tellfold-engine/src/unicode_tables.rs`, so slugs and word matches follow
+  Python's Unicode version rather than Rust's.
+- **Concurrency.** Python starts every batch of a round as a task before awaiting the first one, then applies them
+  in batch order. The port builds every prompt first, runs the calls concurrently and applies the replies in batch
+  order, polling every unfinished call before each apply (`in_order` in `engine.rs`). Events from calls that finish
+  early (`batch_failed`) therefore come in the same order as in Python; the golden run checks the whole event stream.
+- **Threads.** `World` is not `Sync`, so the engine's futures are not `Send`: a run lives on one thread
+  (a current-thread runtime or a `LocalSet`). The model calls of a round still run concurrently.
+- **Report stage.** `run_pipeline` takes a `ReportStage` (`build_report` plus `write_report` in Python), so the
+  engine does not depend on the report crate. Milestone 5 supplies the real one.
+- **Cancellation.** Dropping the `run_pipeline` future marks the run `stopped` and emits `run_stopped`, like the
+  Python cancellation branch. A listener that panics is caught and logged, like a listener that raises.
+- **Canned responder.** `cli.fake_responder` (what `TELLFOLD_FAKE_LLM=1` runs on) is ported as
+  `tellfold_llm::canned::fake_responder` and tested reply for reply against Python on every engine schema.
+
+Known differences, none visible in a normal run:
+
+- `select_chunks` sums a chunk's relevance over a set of words. Python sums in hash order, which changes between
+  processes; Rust sums in sorted order. Both use compensated summation, so the result differs at most in the last
+  bit, and then only the order of two chunks with equal relevance could change.
+- A `target_post_id` given as a string of non-ASCII digits (`"٣"`) becomes null instead of a number.
+- A branch run whose `graph.json` is missing fails with the same `[Errno 2] ...` text; a malformed one fails with
+  serde's message instead of pydantic's.
 
 ## world.db
 
@@ -156,8 +185,10 @@ Milestones 2 and 3 can overlap, as can 5 and 6 once 4 has landed.
 ## Golden tests
 
 `engine-rs/golden/make.py` runs with `uv run python engine-rs/golden/make.py` and writes fixtures from the Python
-engine into `engine-rs/golden/fixtures/`: reader output for the example runs now, and later FakeLLM run folders,
-rendered reports, schemas, RNG sequences and recorded API sessions. The Rust tests read the fixtures, so `cargo test`
+engine into `engine-rs/golden/fixtures/`: reader output for the example runs, schemas, prompts, runtime command
+lines, RNG sequences, the engine's seeded helpers on the example casts, and a whole run on the canned responder
+(every model call, every event, the run folder and every `world.db` row); later rendered reports and recorded API
+sessions. The Rust tests read the fixtures, so `cargo test`
 needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
 which makes every parity change visible in review.
 

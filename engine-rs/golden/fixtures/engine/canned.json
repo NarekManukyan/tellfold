@@ -1,0 +1,936 @@
+{
+ "probe": "Users to decide for: a01, a02 and a10. Feed: [#12] [#7] post 3, POST-ID: 44, #12 again.\n- item-1 [organization]: x",
+ "replies": {
+  "Report": {
+   "agents": {
+    "title": "Placeholder title 1",
+    "summary": "Canned summary #2 from the offline test model (engine.round).",
+    "prediction": "Canned prediction #3 from the offline test model (engine.round).",
+    "confidence": "medium",
+    "sections": [
+     {
+      "title": "Placeholder title 5",
+      "body_markdown": "Canned body_markdown #6 from the offline test model (engine.round)."
+     },
+     {
+      "title": "Placeholder title 7",
+      "body_markdown": "Canned body_markdown #8 from the offline test model (engine.round)."
+     },
+     {
+      "title": "Placeholder title 9",
+      "body_markdown": "Canned body_markdown #10 from the offline test model (engine.round)."
+     }
+    ],
+    "key_voices": [
+     "Canned key_voices #11 from the offline test model (engine.round).",
+     "Canned key_voices #12 from the offline test model (engine.round)."
+    ],
+    "reasons": [
+     "Canned reasons #13 from the offline test model (engine.round).",
+     "Canned reasons #14 from the offline test model (engine.round)."
+    ],
+    "camps": [
+     {
+      "name": "Placeholder name 15",
+      "summary": "Canned summary #16 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #17 from the offline test model (engine.round).",
+       "Canned members #18 from the offline test model (engine.round)."
+      ],
+      "sentiment": 0.5
+     },
+     {
+      "name": "Placeholder name 20",
+      "summary": "Canned summary #21 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #22 from the offline test model (engine.round).",
+       "Canned members #23 from the offline test model (engine.round)."
+      ],
+      "sentiment": 0.5
+     },
+     {
+      "name": "Placeholder name 25",
+      "summary": "Canned summary #26 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #27 from the offline test model (engine.round).",
+       "Canned members #28 from the offline test model (engine.round)."
+      ],
+      "sentiment": 0.5
+     }
+    ],
+    "risks": [
+     "Canned risks #30 from the offline test model (engine.round).",
+     "Canned risks #31 from the offline test model (engine.round)."
+    ],
+    "caveats": [
+     "Canned caveats #32 from the offline test model (engine.round).",
+     "Canned caveats #33 from the offline test model (engine.round)."
+    ],
+    "recommendations": [
+     {
+      "action": "test",
+      "title": "Placeholder title 35",
+      "why": "Canned why #36 from the offline test model (engine.round).",
+      "addresses": [
+       "Canned addresses #37 from the offline test model (engine.round).",
+       "Canned addresses #38 from the offline test model (engine.round)."
+      ],
+      "evidence": [
+       "Canned evidence #39 from the offline test model (engine.round).",
+       "Canned evidence #40 from the offline test model (engine.round)."
+      ],
+      "expected_effect": "Canned expected_effect #41 from the offline test model (engine.round).",
+      "confidence": "low"
+     },
+     {
+      "action": "drop",
+      "title": "Placeholder title 44",
+      "why": "Canned why #45 from the offline test model (engine.round).",
+      "addresses": [
+       "Canned addresses #46 from the offline test model (engine.round).",
+       "Canned addresses #47 from the offline test model (engine.round)."
+      ],
+      "evidence": [
+       "Canned evidence #48 from the offline test model (engine.round).",
+       "Canned evidence #49 from the offline test model (engine.round)."
+      ],
+      "expected_effect": "Canned expected_effect #50 from the offline test model (engine.round).",
+      "confidence": "low"
+     },
+     {
+      "action": "add",
+      "title": "Placeholder title 53",
+      "why": "Canned why #54 from the offline test model (engine.round).",
+      "addresses": [
+       "Canned addresses #55 from the offline test model (engine.round).",
+       "Canned addresses #56 from the offline test model (engine.round)."
+      ],
+      "evidence": [
+       "Canned evidence #57 from the offline test model (engine.round).",
+       "Canned evidence #58 from the offline test model (engine.round)."
+      ],
+      "expected_effect": "Canned expected_effect #59 from the offline test model (engine.round).",
+      "confidence": "low"
+     }
+    ]
+   },
+   "plain": {
+    "title": "Placeholder title 1",
+    "summary": "Canned summary #2 from the offline test model (report.write).",
+    "prediction": "Canned prediction #3 from the offline test model (report.write).",
+    "confidence": "medium",
+    "sections": [
+     {
+      "title": "Placeholder title 5",
+      "body_markdown": "Canned body_markdown #6 from the offline test model (report.write)."
+     },
+     {
+      "title": "Placeholder title 7",
+      "body_markdown": "Canned body_markdown #8 from the offline test model (report.write)."
+     },
+     {
+      "title": "Placeholder title 9",
+      "body_markdown": "Canned body_markdown #10 from the offline test model (report.write)."
+     }
+    ],
+    "key_voices": [
+     "Canned key_voices #11 from the offline test model (report.write).",
+     "Canned key_voices #12 from the offline test model (report.write)."
+    ],
+    "reasons": [
+     "Canned reasons #13 from the offline test model (report.write).",
+     "Canned reasons #14 from the offline test model (report.write)."
+    ],
+    "camps": [
+     {
+      "name": "Placeholder name 15",
+      "summary": "Canned summary #16 from the offline test model (report.write).",
+      "members": [
+       "Canned members #17 from the offline test model (report.write).",
+       "Canned members #18 from the offline test model (report.write)."
+      ],
+      "sentiment": 0.5
+     },
+     {
+      "name": "Placeholder name 20",
+      "summary": "Canned summary #21 from the offline test model (report.write).",
+      "members": [
+       "Canned members #22 from the offline test model (report.write).",
+       "Canned members #23 from the offline test model (report.write)."
+      ],
+      "sentiment": 0.5
+     },
+     {
+      "name": "Placeholder name 25",
+      "summary": "Canned summary #26 from the offline test model (report.write).",
+      "members": [
+       "Canned members #27 from the offline test model (report.write).",
+       "Canned members #28 from the offline test model (report.write)."
+      ],
+      "sentiment": 0.5
+     }
+    ],
+    "risks": [
+     "Canned risks #30 from the offline test model (report.write).",
+     "Canned risks #31 from the offline test model (report.write)."
+    ],
+    "caveats": [
+     "Canned caveats #32 from the offline test model (report.write).",
+     "Canned caveats #33 from the offline test model (report.write)."
+    ],
+    "recommendations": [
+     {
+      "action": "test",
+      "title": "Placeholder title 35",
+      "why": "Canned why #36 from the offline test model (report.write).",
+      "addresses": [
+       "Canned addresses #37 from the offline test model (report.write).",
+       "Canned addresses #38 from the offline test model (report.write)."
+      ],
+      "evidence": [
+       "Canned evidence #39 from the offline test model (report.write).",
+       "Canned evidence #40 from the offline test model (report.write)."
+      ],
+      "expected_effect": "Canned expected_effect #41 from the offline test model (report.write).",
+      "confidence": "low"
+     },
+     {
+      "action": "drop",
+      "title": "Placeholder title 44",
+      "why": "Canned why #45 from the offline test model (report.write).",
+      "addresses": [
+       "Canned addresses #46 from the offline test model (report.write).",
+       "Canned addresses #47 from the offline test model (report.write)."
+      ],
+      "evidence": [
+       "Canned evidence #48 from the offline test model (report.write).",
+       "Canned evidence #49 from the offline test model (report.write)."
+      ],
+      "expected_effect": "Canned expected_effect #50 from the offline test model (report.write).",
+      "confidence": "low"
+     },
+     {
+      "action": "add",
+      "title": "Placeholder title 53",
+      "why": "Canned why #54 from the offline test model (report.write).",
+      "addresses": [
+       "Canned addresses #55 from the offline test model (report.write).",
+       "Canned addresses #56 from the offline test model (report.write)."
+      ],
+      "evidence": [
+       "Canned evidence #57 from the offline test model (report.write).",
+       "Canned evidence #58 from the offline test model (report.write)."
+      ],
+      "expected_effect": "Canned expected_effect #59 from the offline test model (report.write).",
+      "confidence": "low"
+     }
+    ]
+   }
+  },
+  "CompareReport": {
+   "agents": {
+    "headline": "Canned headline #1 from the offline test model (engine.round).",
+    "better_variant": "Canned better_variant #2 from the offline test model (engine.round).",
+    "why": "Canned why #3 from the offline test model (engine.round).",
+    "per_variant": [
+     {
+      "variant": "Canned variant #4 from the offline test model (engine.round).",
+      "summary": "Canned summary #5 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #6 from the offline test model (engine.round).",
+       "Canned objections #7 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "variant": "Canned variant #8 from the offline test model (engine.round).",
+      "summary": "Canned summary #9 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #10 from the offline test model (engine.round).",
+       "Canned objections #11 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "variant": "Canned variant #12 from the offline test model (engine.round).",
+      "summary": "Canned summary #13 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #14 from the offline test model (engine.round).",
+       "Canned objections #15 from the offline test model (engine.round)."
+      ]
+     }
+    ],
+    "objections_only_in": [
+     {
+      "variant": "Canned variant #16 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #17 from the offline test model (engine.round).",
+       "Canned objections #18 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "variant": "Canned variant #19 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #20 from the offline test model (engine.round).",
+       "Canned objections #21 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "variant": "Canned variant #22 from the offline test model (engine.round).",
+      "objections": [
+       "Canned objections #23 from the offline test model (engine.round).",
+       "Canned objections #24 from the offline test model (engine.round)."
+      ]
+     }
+    ],
+    "caveats": [
+     "Canned caveats #25 from the offline test model (engine.round).",
+     "Canned caveats #26 from the offline test model (engine.round)."
+    ]
+   },
+   "plain": {
+    "headline": "Canned headline #1 from the offline test model (report.write).",
+    "better_variant": "Canned better_variant #2 from the offline test model (report.write).",
+    "why": "Canned why #3 from the offline test model (report.write).",
+    "per_variant": [
+     {
+      "variant": "Canned variant #4 from the offline test model (report.write).",
+      "summary": "Canned summary #5 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #6 from the offline test model (report.write).",
+       "Canned objections #7 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "variant": "Canned variant #8 from the offline test model (report.write).",
+      "summary": "Canned summary #9 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #10 from the offline test model (report.write).",
+       "Canned objections #11 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "variant": "Canned variant #12 from the offline test model (report.write).",
+      "summary": "Canned summary #13 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #14 from the offline test model (report.write).",
+       "Canned objections #15 from the offline test model (report.write)."
+      ]
+     }
+    ],
+    "objections_only_in": [
+     {
+      "variant": "Canned variant #16 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #17 from the offline test model (report.write).",
+       "Canned objections #18 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "variant": "Canned variant #19 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #20 from the offline test model (report.write).",
+       "Canned objections #21 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "variant": "Canned variant #22 from the offline test model (report.write).",
+      "objections": [
+       "Canned objections #23 from the offline test model (report.write).",
+       "Canned objections #24 from the offline test model (report.write)."
+      ]
+     }
+    ],
+    "caveats": [
+     "Canned caveats #25 from the offline test model (report.write).",
+     "Canned caveats #26 from the offline test model (report.write)."
+    ]
+   }
+  },
+  "RewriteSuggestion": {
+   "agents": {
+    "revised_text": "Canned revised_text #1 from the offline test model (engine.round).",
+    "changes": [
+     {
+      "what": "Canned what #2 from the offline test model (engine.round).",
+      "why": "Canned why #3 from the offline test model (engine.round).",
+      "cites": [
+       0,
+       0
+      ]
+     },
+     {
+      "what": "Canned what #6 from the offline test model (engine.round).",
+      "why": "Canned why #7 from the offline test model (engine.round).",
+      "cites": [
+       0,
+       0
+      ]
+     },
+     {
+      "what": "Canned what #10 from the offline test model (engine.round).",
+      "why": "Canned why #11 from the offline test model (engine.round).",
+      "cites": [
+       0,
+       0
+      ]
+     }
+    ],
+    "kept_on_purpose": [
+     "Canned kept_on_purpose #14 from the offline test model (engine.round).",
+     "Canned kept_on_purpose #15 from the offline test model (engine.round)."
+    ]
+   },
+   "plain": {
+    "revised_text": "Canned revised_text #1 from the offline test model (report.write).",
+    "changes": [
+     {
+      "what": "Canned what #2 from the offline test model (report.write).",
+      "why": "Canned why #3 from the offline test model (report.write).",
+      "cites": [
+       0,
+       0
+      ]
+     },
+     {
+      "what": "Canned what #6 from the offline test model (report.write).",
+      "why": "Canned why #7 from the offline test model (report.write).",
+      "cites": [
+       0,
+       0
+      ]
+     },
+     {
+      "what": "Canned what #10 from the offline test model (report.write).",
+      "why": "Canned why #11 from the offline test model (report.write).",
+      "cites": [
+       0,
+       0
+      ]
+     }
+    ],
+    "kept_on_purpose": [
+     "Canned kept_on_purpose #14 from the offline test model (report.write).",
+     "Canned kept_on_purpose #15 from the offline test model (report.write)."
+    ]
+   }
+  },
+  "CampMatches": {
+   "agents": {
+    "groups": [
+     {
+      "label": "Canned label #1 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #2 from the offline test model (engine.round).",
+       "Canned members #3 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "label": "Canned label #4 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #5 from the offline test model (engine.round).",
+       "Canned members #6 from the offline test model (engine.round)."
+      ]
+     },
+     {
+      "label": "Canned label #7 from the offline test model (engine.round).",
+      "members": [
+       "Canned members #8 from the offline test model (engine.round).",
+       "Canned members #9 from the offline test model (engine.round)."
+      ]
+     }
+    ]
+   },
+   "plain": {
+    "groups": [
+     {
+      "label": "Canned label #1 from the offline test model (report.write).",
+      "members": [
+       "Canned members #2 from the offline test model (report.write).",
+       "Canned members #3 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "label": "Canned label #4 from the offline test model (report.write).",
+      "members": [
+       "Canned members #5 from the offline test model (report.write).",
+       "Canned members #6 from the offline test model (report.write)."
+      ]
+     },
+     {
+      "label": "Canned label #7 from the offline test model (report.write).",
+      "members": [
+       "Canned members #8 from the offline test model (report.write).",
+       "Canned members #9 from the offline test model (report.write)."
+      ]
+     }
+    ]
+   }
+  },
+  "AgreementCall": {
+   "agents": {
+    "held": [
+     "Canned held #1 from the offline test model (engine.round).",
+     "Canned held #2 from the offline test model (engine.round)."
+    ],
+    "split": [
+     "Canned split #3 from the offline test model (engine.round).",
+     "Canned split #4 from the offline test model (engine.round)."
+    ],
+    "verdict": "unstable",
+    "summary": "Canned summary #6 from the offline test model (engine.round)."
+   },
+   "plain": {
+    "held": [
+     "Canned held #1 from the offline test model (report.write).",
+     "Canned held #2 from the offline test model (report.write)."
+    ],
+    "split": [
+     "Canned split #3 from the offline test model (report.write).",
+     "Canned split #4 from the offline test model (report.write)."
+    ],
+    "verdict": "unstable",
+    "summary": "Canned summary #6 from the offline test model (report.write)."
+   }
+  },
+  "Extraction": {
+   "agents": {
+    "entities": [
+     {
+      "name": "Placeholder name 1",
+      "kind": "Canned kind #2 from the offline test model (engine.round).",
+      "summary": "Canned summary #3 from the offline test model (engine.round).",
+      "aliases": [
+       "Canned aliases #4 from the offline test model (engine.round).",
+       "Canned aliases #5 from the offline test model (engine.round)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     },
+     {
+      "name": "Placeholder name 8",
+      "kind": "Canned kind #9 from the offline test model (engine.round).",
+      "summary": "Canned summary #10 from the offline test model (engine.round).",
+      "aliases": [
+       "Canned aliases #11 from the offline test model (engine.round).",
+       "Canned aliases #12 from the offline test model (engine.round)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     },
+     {
+      "name": "Placeholder name 15",
+      "kind": "Canned kind #16 from the offline test model (engine.round).",
+      "summary": "Canned summary #17 from the offline test model (engine.round).",
+      "aliases": [
+       "Canned aliases #18 from the offline test model (engine.round).",
+       "Canned aliases #19 from the offline test model (engine.round)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     }
+    ],
+    "relations": [
+     {
+      "source": "Placeholder name 8",
+      "target": "Placeholder name 15",
+      "label": "Canned label #24 from the offline test model (engine.round).",
+      "evidence": "Canned evidence #25 from the offline test model (engine.round)."
+     },
+     {
+      "source": "Placeholder name 15",
+      "target": "Placeholder name 1",
+      "label": "Canned label #28 from the offline test model (engine.round).",
+      "evidence": "Canned evidence #29 from the offline test model (engine.round)."
+     },
+     {
+      "source": "Placeholder name 1",
+      "target": "Placeholder name 8",
+      "label": "Canned label #32 from the offline test model (engine.round).",
+      "evidence": "Canned evidence #33 from the offline test model (engine.round)."
+     }
+    ]
+   },
+   "plain": {
+    "entities": [
+     {
+      "name": "Placeholder name 1",
+      "kind": "Canned kind #2 from the offline test model (report.write).",
+      "summary": "Canned summary #3 from the offline test model (report.write).",
+      "aliases": [
+       "Canned aliases #4 from the offline test model (report.write).",
+       "Canned aliases #5 from the offline test model (report.write)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     },
+     {
+      "name": "Placeholder name 8",
+      "kind": "Canned kind #9 from the offline test model (report.write).",
+      "summary": "Canned summary #10 from the offline test model (report.write).",
+      "aliases": [
+       "Canned aliases #11 from the offline test model (report.write).",
+       "Canned aliases #12 from the offline test model (report.write)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     },
+     {
+      "name": "Placeholder name 15",
+      "kind": "Canned kind #16 from the offline test model (report.write).",
+      "summary": "Canned summary #17 from the offline test model (report.write).",
+      "aliases": [
+       "Canned aliases #18 from the offline test model (report.write).",
+       "Canned aliases #19 from the offline test model (report.write)."
+      ],
+      "chunk_ids": [
+       0,
+       0
+      ]
+     }
+    ],
+    "relations": [
+     {
+      "source": "Placeholder name 8",
+      "target": "Placeholder name 15",
+      "label": "Canned label #24 from the offline test model (report.write).",
+      "evidence": "Canned evidence #25 from the offline test model (report.write)."
+     },
+     {
+      "source": "Placeholder name 15",
+      "target": "Placeholder name 1",
+      "label": "Canned label #28 from the offline test model (report.write).",
+      "evidence": "Canned evidence #29 from the offline test model (report.write)."
+     },
+     {
+      "source": "Placeholder name 1",
+      "target": "Placeholder name 8",
+      "label": "Canned label #32 from the offline test model (report.write).",
+      "evidence": "Canned evidence #33 from the offline test model (report.write)."
+     }
+    ]
+   }
+  },
+  "PersonaBatch": {
+   "agents": {
+    "personas": [
+     {
+      "slot": "Canned slot #1 from the offline test model (engine.round).",
+      "handle": "fake_user_2",
+      "name": "Placeholder name 3",
+      "bio": "Canned bio #4 from the offline test model (engine.round).",
+      "background": "Canned background #5 from the offline test model (engine.round).",
+      "stance": "Canned stance #6 from the offline test model (engine.round).",
+      "traits": [
+       "Canned traits #7 from the offline test model (engine.round).",
+       "Canned traits #8 from the offline test model (engine.round)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     },
+     {
+      "slot": "Canned slot #11 from the offline test model (engine.round).",
+      "handle": "fake_user_12",
+      "name": "Placeholder name 13",
+      "bio": "Canned bio #14 from the offline test model (engine.round).",
+      "background": "Canned background #15 from the offline test model (engine.round).",
+      "stance": "Canned stance #16 from the offline test model (engine.round).",
+      "traits": [
+       "Canned traits #17 from the offline test model (engine.round).",
+       "Canned traits #18 from the offline test model (engine.round)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     },
+     {
+      "slot": "Canned slot #21 from the offline test model (engine.round).",
+      "handle": "fake_user_22",
+      "name": "Placeholder name 23",
+      "bio": "Canned bio #24 from the offline test model (engine.round).",
+      "background": "Canned background #25 from the offline test model (engine.round).",
+      "stance": "Canned stance #26 from the offline test model (engine.round).",
+      "traits": [
+       "Canned traits #27 from the offline test model (engine.round).",
+       "Canned traits #28 from the offline test model (engine.round)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     }
+    ]
+   },
+   "plain": {
+    "personas": [
+     {
+      "slot": "Canned slot #1 from the offline test model (report.write).",
+      "handle": "fake_user_2",
+      "name": "Placeholder name 3",
+      "bio": "Canned bio #4 from the offline test model (report.write).",
+      "background": "Canned background #5 from the offline test model (report.write).",
+      "stance": "Canned stance #6 from the offline test model (report.write).",
+      "traits": [
+       "Canned traits #7 from the offline test model (report.write).",
+       "Canned traits #8 from the offline test model (report.write)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     },
+     {
+      "slot": "Canned slot #11 from the offline test model (report.write).",
+      "handle": "fake_user_12",
+      "name": "Placeholder name 13",
+      "bio": "Canned bio #14 from the offline test model (report.write).",
+      "background": "Canned background #15 from the offline test model (report.write).",
+      "stance": "Canned stance #16 from the offline test model (report.write).",
+      "traits": [
+       "Canned traits #17 from the offline test model (report.write).",
+       "Canned traits #18 from the offline test model (report.write)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     },
+     {
+      "slot": "Canned slot #21 from the offline test model (report.write).",
+      "handle": "fake_user_22",
+      "name": "Placeholder name 23",
+      "bio": "Canned bio #24 from the offline test model (report.write).",
+      "background": "Canned background #25 from the offline test model (report.write).",
+      "stance": "Canned stance #26 from the offline test model (report.write).",
+      "traits": [
+       "Canned traits #27 from the offline test model (report.write).",
+       "Canned traits #28 from the offline test model (report.write)."
+      ],
+      "activity": 0.5,
+      "influence": 0.5
+     }
+    ]
+   }
+  },
+  "VoicePick": {
+   "agents": {
+    "entity_ids": [
+     "Canned entity_ids #1 from the offline test model (engine.round).",
+     "Canned entity_ids #2 from the offline test model (engine.round)."
+    ]
+   },
+   "plain": {
+    "entity_ids": [
+     "Canned entity_ids #1 from the offline test model (report.write).",
+     "Canned entity_ids #2 from the offline test model (report.write)."
+    ]
+   }
+  },
+  "RoundDecisions": {
+   "agents": {
+    "decisions": [
+     {
+      "agent_id": "a01",
+      "actions": [
+       {
+        "type": "repost",
+        "content": "Canned content #3 from the offline test model (engine.round).",
+        "target_post_id": 12,
+        "target_agent": "a10",
+        "reasoning": "Canned reasoning #6 from the offline test model (engine.round)."
+       },
+       {
+        "type": "post",
+        "content": "Canned content #8 from the offline test model (engine.round).",
+        "target_post_id": 7,
+        "target_agent": "a02",
+        "reasoning": "Canned reasoning #11 from the offline test model (engine.round)."
+       }
+      ],
+      "memory_note": "Canned memory_note #12 from the offline test model (engine.round)."
+     },
+     {
+      "agent_id": "a02",
+      "actions": [
+       {
+        "type": "post",
+        "content": "Canned content #15 from the offline test model (engine.round).",
+        "target_post_id": 12,
+        "target_agent": "a10",
+        "reasoning": "Canned reasoning #18 from the offline test model (engine.round)."
+       },
+       {
+        "type": "follow",
+        "content": "Canned content #20 from the offline test model (engine.round).",
+        "target_post_id": 7,
+        "target_agent": "a01",
+        "reasoning": "Canned reasoning #23 from the offline test model (engine.round)."
+       }
+      ],
+      "memory_note": "Canned memory_note #24 from the offline test model (engine.round)."
+     },
+     {
+      "agent_id": "a10",
+      "actions": [
+       {
+        "type": "follow",
+        "content": "Canned content #27 from the offline test model (engine.round).",
+        "target_post_id": 12,
+        "target_agent": "a02",
+        "reasoning": "Canned reasoning #30 from the offline test model (engine.round)."
+       },
+       {
+        "type": "like",
+        "content": "Canned content #32 from the offline test model (engine.round).",
+        "target_post_id": 7,
+        "target_agent": "a01",
+        "reasoning": "Canned reasoning #35 from the offline test model (engine.round)."
+       }
+      ],
+      "memory_note": "Canned memory_note #36 from the offline test model (engine.round)."
+     }
+    ]
+   },
+   "plain": {
+    "decisions": [
+     {
+      "agent_id": "a01",
+      "actions": [
+       {
+        "type": "repost",
+        "content": "Canned content #3 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #6 from the offline test model (report.write)."
+       },
+       {
+        "type": "post",
+        "content": "Canned content #8 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #11 from the offline test model (report.write)."
+       }
+      ],
+      "memory_note": "Canned memory_note #12 from the offline test model (report.write)."
+     },
+     {
+      "agent_id": "a01",
+      "actions": [
+       {
+        "type": "post",
+        "content": "Canned content #15 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #18 from the offline test model (report.write)."
+       },
+       {
+        "type": "follow",
+        "content": "Canned content #20 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #23 from the offline test model (report.write)."
+       }
+      ],
+      "memory_note": "Canned memory_note #24 from the offline test model (report.write)."
+     },
+     {
+      "agent_id": "a01",
+      "actions": [
+       {
+        "type": "follow",
+        "content": "Canned content #27 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #30 from the offline test model (report.write)."
+       },
+       {
+        "type": "like",
+        "content": "Canned content #32 from the offline test model (report.write).",
+        "target_post_id": null,
+        "target_agent": null,
+        "reasoning": "Canned reasoning #35 from the offline test model (report.write)."
+       }
+      ],
+      "memory_note": "Canned memory_note #36 from the offline test model (report.write)."
+     }
+    ]
+   }
+  },
+  "OpeningPosts": {
+   "agents": {
+    "posts": [
+     {
+      "agent_id": "a01",
+      "content": "Canned content #2 from the offline test model (engine.round).",
+      "memory_note": "Canned memory_note #3 from the offline test model (engine.round)."
+     },
+     {
+      "agent_id": "a02",
+      "content": "Canned content #5 from the offline test model (engine.round).",
+      "memory_note": "Canned memory_note #6 from the offline test model (engine.round)."
+     },
+     {
+      "agent_id": "a10",
+      "content": "Canned content #8 from the offline test model (engine.round).",
+      "memory_note": "Canned memory_note #9 from the offline test model (engine.round)."
+     }
+    ]
+   },
+   "plain": {
+    "posts": [
+     {
+      "agent_id": "a01",
+      "content": "Canned content #2 from the offline test model (report.write).",
+      "memory_note": "Canned memory_note #3 from the offline test model (report.write)."
+     },
+     {
+      "agent_id": "a01",
+      "content": "Canned content #5 from the offline test model (report.write).",
+      "memory_note": "Canned memory_note #6 from the offline test model (report.write)."
+     },
+     {
+      "agent_id": "a01",
+      "content": "Canned content #8 from the offline test model (report.write).",
+      "memory_note": "Canned memory_note #9 from the offline test model (report.write)."
+     }
+    ]
+   }
+  },
+  "SentimentScores": {
+   "agents": {
+    "scores": [
+     {
+      "post_id": 7,
+      "score": 0.5
+     },
+     {
+      "post_id": 44,
+      "score": 0.5
+     },
+     {
+      "post_id": 7,
+      "score": 0.5
+     }
+    ]
+   },
+   "plain": {
+    "scores": [
+     {
+      "post_id": 0,
+      "score": 0.5
+     },
+     {
+      "post_id": 0,
+      "score": 0.5
+     },
+     {
+      "post_id": 0,
+      "score": 0.5
+     }
+    ]
+   }
+  },
+  "text": "(offline test reply for chat.interview) I would keep an eye on how people react."
+ }
+}

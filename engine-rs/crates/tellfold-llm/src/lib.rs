@@ -8,6 +8,7 @@
 //! that validates the reply.
 
 pub mod adapter;
+pub mod canned;
 pub mod extract;
 pub mod fake;
 pub mod ingest;

@@ -1,0 +1,5546 @@
+{
+ "slugify": [
+  [
+   "Acme Corp.",
+   "acme-corp"
+  ],
+  [
+   "The Acme Company Ltd",
+   "the-acme-company-ltd"
+  ],
+  [
+   "Café Ünïcode",
+   "cafe-unicode"
+  ],
+  [
+   "  São Paulo & Rio  ",
+   "sao-paulo-and-rio"
+  ],
+  [
+   "O'Brien’s Pub",
+   "obriens-pub"
+  ],
+  [
+   "東京 タワー",
+   "東京-タワー"
+  ],
+  [
+   "Ελληνικά ΣΟΦΙΑ",
+   "ελληνικα-σοφια"
+  ],
+  [
+   "a_b__c",
+   "a-b-c"
+  ],
+  [
+   "---",
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "x²³ ½",
+   "x23-1-2"
+  ],
+  [
+   "ﬁne ligature",
+   "fine-ligature"
+  ],
+  [
+   "İstanbul",
+   "istanbul"
+  ],
+  [
+   "Hindi हिन्दी",
+   "hindi-ह-नद"
+  ],
+  [
+   "the",
+   "the"
+  ],
+  [
+   "The A",
+   "the-a"
+  ],
+  [
+   "Ⓐcme",
+   "acme"
+  ],
+  [
+   "Straße",
+   "straße"
+  ],
+  [
+   "١٢٣ arabic digits",
+   "١٢٣-arabic-digits"
+  ],
+  [
+   "tab\tnew\nline",
+   "tab-new-line"
+  ]
+ ],
+ "match_key": [
+  [
+   "Acme Corp.",
+   "acme"
+  ],
+  [
+   "The Acme Company Ltd",
+   "acme"
+  ],
+  [
+   "Café Ünïcode",
+   "cafe-unicode"
+  ],
+  [
+   "  São Paulo & Rio  ",
+   "sao-paulo-and-rio"
+  ],
+  [
+   "O'Brien’s Pub",
+   "obriens-pub"
+  ],
+  [
+   "東京 タワー",
+   "東京-タワー"
+  ],
+  [
+   "Ελληνικά ΣΟΦΙΑ",
+   "ελληνικα-σοφια"
+  ],
+  [
+   "a_b__c",
+   "b-c"
+  ],
+  [
+   "---",
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "x²³ ½",
+   "x23-1-2"
+  ],
+  [
+   "ﬁne ligature",
+   "fine-ligature"
+  ],
+  [
+   "İstanbul",
+   "istanbul"
+  ],
+  [
+   "Hindi हिन्दी",
+   "hindi-ह-नद"
+  ],
+  [
+   "the",
+   "the"
+  ],
+  [
+   "The A",
+   "a"
+  ],
+  [
+   "Ⓐcme",
+   "acme"
+  ],
+  [
+   "Straße",
+   "straße"
+  ],
+  [
+   "١٢٣ arabic digits",
+   "١٢٣-arabic-digits"
+  ],
+  [
+   "tab\tnew\nline",
+   "tab-new-line"
+  ]
+ ],
+ "normalize_kind": [
+  [
+   "Company",
+   "organization"
+  ],
+  [
+   " PERSON ",
+   "person"
+  ],
+  [
+   "orgs",
+   "organization"
+  ],
+  [
+   "people",
+   "group"
+  ],
+  [
+   "cities",
+   "concept"
+  ],
+  [
+   "unknown",
+   "concept"
+  ],
+  [
+   "",
+   "concept"
+  ],
+  [
+   "events",
+   "concept"
+  ],
+  [
+   "Brands",
+   "product"
+  ],
+  [
+   "s",
+   "concept"
+  ]
+ ],
+ "cap": [
+  [
+   "First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one?",
+   480,
+   "First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here."
+  ],
+  [
+   "First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one? First sentence here. Second sentence follows! Third one?",
+   100,
+   "First sentence here. Second sentence follows! Third one? First sentence here."
+  ],
+  [
+   "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word ",
+   220,
+   "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word…"
+  ],
+  [
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   480,
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…"
+  ],
+  [
+   "x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: ",
+   50,
+   "x, y; z: x, y; z: x, y; z: x, y; z: x, y; z: x…"
+  ],
+  [
+   "short",
+   10,
+   "short"
+  ],
+  [
+   "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé end",
+   200,
+   "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé…"
+  ],
+  [
+   "One. bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+   120,
+   "One.…"
+  ]
+ ],
+ "agent_id": [
+  [
+   0,
+   5,
+   "a01"
+  ],
+  [
+   8,
+   9,
+   "a09"
+  ],
+  [
+   9,
+   10,
+   "a10"
+  ],
+  [
+   99,
+   100,
+   "a100"
+  ],
+  [
+   0,
+   1000,
+   "a0001"
+  ]
+ ],
+ "clip": [
+  [
+   "  a   b  ",
+   10,
+   "a b"
+  ],
+  [
+   "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word ",
+   30,
+   "word word word word word word…"
+  ],
+  [
+   "éééééééééééééééééééééééééééééééééééééééééééééééééé",
+   10,
+   "ééééééééé…"
+  ]
+ ],
+ "unique_handle": [
+  [
+   "@Jane",
+   "x",
+   "jane_3"
+  ],
+  [
+   "",
+   "Jane Doe",
+   "jane_doe"
+  ],
+  [
+   "",
+   "",
+   "user_2"
+  ],
+  [
+   "___",
+   "!!!",
+   "user_2"
+  ],
+  [
+   "Ünïcode Name",
+   "",
+   "unicode_name"
+  ],
+  [
+   "Acme Corporation Team Account",
+   "",
+   "acme_corporation_tea"
+  ],
+  [
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "",
+   "aaaaaaaaaaaaaaaaaaaa"
+  ],
+  [
+   "j.a.n.e",
+   "",
+   "j_a_n_e"
+  ],
+  [
+   "jane",
+   "",
+   "jane_3"
+  ]
+ ],
+ "examples": {
+  "corner-cafe": {
+   "question": "How will the café's regulars and neighbours react to the new prices and the neighbour card over the first weeks, and will the café lose customers?",
+   "chunk_count": 2,
+   "select_chunks": {
+    "2": [
+     0,
+     1
+    ],
+    "3": [
+     0,
+     1
+    ],
+    "5": [
+     0,
+     1
+    ],
+    "8": [
+     0,
+     1
+    ]
+   },
+   "plan_slots": {
+    "1": [
+     [
+      "a01",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "2": [
+     [
+      "a01",
+      "ENTITY VOICE for Linden & Rye (organization, id linden-and-rye): Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.",
+      "linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "7": [
+     [
+      "a01",
+      "ENTITY VOICE for Linden & Rye (organization, id linden-and-rye): Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.",
+      "linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ENTITY VOICE for Tomás (person, id tomas): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "tomas",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a03",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a04",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a05",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a06",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a07",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "20": [
+     [
+      "a01",
+      "ENTITY VOICE for Linden & Rye (organization, id linden-and-rye): Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.",
+      "linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ENTITY VOICE for Tomás (person, id tomas): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "tomas",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a03",
+      "ENTITY VOICE for Hanna (person, id hanna): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "hanna",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a04",
+      "ENTITY VOICE for Instagram account of Linden & Rye (organization, id instagram-account-of-linden-and-rye): Social media channel where the café posted its note about price changes, alongside posting it on the café window.",
+      "instagram-account-of-linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a05",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a06",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a07",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a08",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a09",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a10",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a11",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a12",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a13",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a14",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a15",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a16",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a17",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a18",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a19",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a20",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ]
+    ],
+    "101": [
+     [
+      "a001",
+      "ENTITY VOICE for Linden & Rye (organization, id linden-and-rye): Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.",
+      "linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a002",
+      "ENTITY VOICE for Tomás (person, id tomas): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "tomas",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a003",
+      "ENTITY VOICE for Hanna (person, id hanna): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.",
+      "hanna",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a004",
+      "ENTITY VOICE for Instagram account of Linden & Rye (organization, id instagram-account-of-linden-and-rye): Social media channel where the café posted its note about price changes, alongside posting it on the café window.",
+      "instagram-account-of-linden-and-rye",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a005",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a006",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a007",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a008",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a009",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a010",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a011",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a012",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a013",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a014",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a015",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a016",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a017",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a018",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a019",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a020",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a021",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a022",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a023",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a024",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a025",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a026",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a027",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a028",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a029",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a030",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a031",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a032",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a033",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a034",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a035",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a036",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a037",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a038",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a039",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a040",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a041",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a042",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a043",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a044",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a045",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a046",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a047",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a048",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a049",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a050",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a051",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a052",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a053",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a054",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a055",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a056",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a057",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a058",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a059",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a060",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a061",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a062",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a063",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a064",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a065",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a066",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a067",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a068",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a069",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a070",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a071",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a072",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a073",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a074",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a075",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a076",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a077",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a078",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a079",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a080",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a081",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a082",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a083",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a084",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a085",
+      "ordinary member of the public; age 25-34; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a086",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a087",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a088",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a089",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a090",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a091",
+      "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a092",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a093",
+      "ordinary member of the public; age 35-44; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a094",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a095",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a096",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a097",
+      "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a098",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a099",
+      "ordinary member of the public; age 18-24; part of: Regulars of Linden & Rye; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a100",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a101",
+      "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ]
+    ]
+   },
+   "plan_slots_no_voices": [
+    [
+     "a01",
+     "ordinary member of the public; age 65+; part of: Regulars of Linden & Rye; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+     null,
+     [
+      0.6,
+      0.95
+     ]
+    ],
+    [
+     "a02",
+     "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ],
+    [
+     "a03",
+     "ordinary member of the public; age 45-54; part of: Regulars of Linden & Rye; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+     null,
+     [
+      0.3,
+      0.6
+     ]
+    ],
+    [
+     "a04",
+     "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ],
+    [
+     "a05",
+     "ordinary member of the public; age 55-64; part of: Regulars of Linden & Rye; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ],
+    [
+     "a06",
+     "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+     null,
+     [
+      0.3,
+      0.6
+     ]
+    ]
+   ],
+   "persona_digest": "Key entities:\n- Linden & Rye [organization]: Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.\n- Regulars of Linden & Rye [group]: Long-time customers, some since the café's first week, who formed relationships and history there; their reaction to the price rise and neighbour card is the central question.\n- Tomás [person]: Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.\n- Hanna [person]: Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.\n- Linden & Rye team [group]: Café staff whose pay was raised to at least €15/hour last spring and who will now get two days off together from April.\n- Price increase (2 March) [event]: New prices for coffee, bread and lunch items taking effect Monday 2 March, driven by rising costs of butter, flour, coffee beans and rent.\n- Neighbour card [product]: New €12/month subscription offering one free filter coffee every day, aimed at making daily visits cheaper for regulars.\n- Filter coffee [product]: Café drink whose price rises from €2.40 to €2.90; refills remain free and it is included daily in the neighbour card.\n- Flat white [product]: Café drink whose price rises from €3.60 to €4.20.\n- Sourdough loaf [product]: Bakery item whose price rises from €5.50 to €6.80.\n- Cinnamon bun [product]: Bakery item whose price rises from €3.20 to €3.90.\n- Lunch soup with bread [product]: Lunch item whose price rises from €7.50 to €8.90.\n- Pay-it-forward board [concept]: Existing café practice letting customers buy coffee for someone in need; explicitly kept unchanged despite price rise.\n- Tuesday closure [event]: New policy from April closing the café on Tuesdays in addition to Mondays, to give the small team two days off together.\n- Open evening (26 February) [event]: Café event on Thursday 26 February at 7pm where owners will answer customer questions about the price changes over free buns.\n- Instagram account of Linden & Rye [organization]: Social media channel where the café posted its note about price changes, alongside posting it on the café window.\nRelations:\n- Linden & Rye announces Price increase (2 March)\n- Linden & Rye introduces Neighbour card\n- Regulars of Linden & Rye reacts to Price increase (2 March)\n- Regulars of Linden & Rye may subscribe to Neighbour card\n- Tomás co-owns Linden & Rye\n- Hanna co-owns Linden & Rye\n- Linden & Rye raised pay for Linden & Rye team\n- Linden & Rye implements Tuesday closure\n- Linden & Rye hosts Open evening (26 February)\n- Regulars of Linden & Rye invited to Open evening (26 February)\n- Linden & Rye keeps unchanged Pay-it-forward board\n- Linden & Rye raises price of Filter coffee\n- Linden & Rye raises price of Flat white\n- Linden & Rye raises price of Sourdough loaf\n- Linden & Rye raises price of Cinnamon bun\n- Linden & Rye raises price of Lunch soup with bread\n- Linden & Rye posts notice on Instagram account of Linden & Rye\n- Neighbour card includes Filter coffee",
+   "engine_digest": "- Linden & Rye (organization): Neighbourhood café and bakery on Alder Street, open nine years, raising prices on 2 March due to rising costs; run by Tomás and Hanna.\n- Regulars of Linden & Rye (group): Long-time customers, some since the café's first week, who formed relationships and history there; their reaction to the price rise and neighbour card is the c…\n- Tomás (person): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.\n- Hanna (person): Co-owner of Linden & Rye who signed the price-change notice and will host the open evening to listen to customers.\n- Linden & Rye team (group): Café staff whose pay was raised to at least €15/hour last spring and who will now get two days off together from April.\n- Price increase (2 March) (event): New prices for coffee, bread and lunch items taking effect Monday 2 March, driven by rising costs of butter, flour, coffee beans and rent.\n- Neighbour card (product): New €12/month subscription offering one free filter coffee every day, aimed at making daily visits cheaper for regulars.\n- Filter coffee (product): Café drink whose price rises from €2.40 to €2.90; refills remain free and it is included daily in the neighbour card.\n- Flat white (product): Café drink whose price rises from €3.60 to €4.20.\n- Sourdough loaf (product): Bakery item whose price rises from €5.50 to €6.80.\n- Cinnamon bun (product): Bakery item whose price rises from €3.20 to €3.90.\n- Lunch soup with bread (product): Lunch item whose price rises from €7.50 to €8.90.\n- Pay-it-forward board (concept): Existing café practice letting customers buy coffee for someone in need; explicitly kept unchanged despite price rise.\n- Tuesday closure (event): New policy from April closing the café on Tuesdays in addition to Mondays, to give the small team two days off together.\n- Open evening (26 February) (event): Café event on Thursday 26 February at 7pm where owners will answer customer questions about the price changes over free buns.\n- Instagram account of Linden & Rye (organization): Social media channel where the café posted its note about price changes, alongside posting it on the café window.\n- Linden & Rye announces Price increase (2 March)\n- Linden & Rye introduces Neighbour card\n- Regulars of Linden & Rye reacts to Price increase (2 March)\n- Regulars of Linden & Rye may subscribe to Neighbour card\n- Tomás co-owns Linden & Rye\n- Hanna co-owns Linden & Rye\n- Linden & Rye raised pay for Linden & Rye team\n- Linden & Rye implements Tuesday closure\n- Linden & Rye hosts Open evening (26 February)\n- Regulars of Linden & Rye invited to Open evening (26 February)\n- Linden & Rye keeps unchanged Pay-it-forward board\n- Linden & Rye raises price of Filter coffee\n- Linden & Rye raises price of Flat white\n- Linden & Rye raises price of Sourdough loaf\n- Linden & Rye raises price of Cinnamon bun\n- Linden & Rye raises price of Lunch soup with bread\n- Linden & Rye posts notice on Instagram account of Linden & Rye\n- Neighbour card includes Filter coffee",
+   "follows": {
+    "7": [
+     [
+      "a01",
+      "a03"
+     ],
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a01",
+      "a04"
+     ],
+     [
+      "a02",
+      "a10"
+     ],
+     [
+      "a02",
+      "a18"
+     ],
+     [
+      "a03",
+      "a01"
+     ],
+     [
+      "a03",
+      "a15"
+     ],
+     [
+      "a04",
+      "a01"
+     ],
+     [
+      "a04",
+      "a03"
+     ],
+     [
+      "a04",
+      "a02"
+     ],
+     [
+      "a05",
+      "a03"
+     ],
+     [
+      "a05",
+      "a01"
+     ],
+     [
+      "a05",
+      "a18"
+     ],
+     [
+      "a06",
+      "a03"
+     ],
+     [
+      "a06",
+      "a19"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a06",
+      "a13"
+     ],
+     [
+      "a06",
+      "a16"
+     ],
+     [
+      "a07",
+      "a03"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a14"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a08",
+      "a14"
+     ],
+     [
+      "a08",
+      "a04"
+     ],
+     [
+      "a09",
+      "a18"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a03"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a10",
+      "a04"
+     ],
+     [
+      "a10",
+      "a18"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a11",
+      "a19"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a12",
+      "a04"
+     ],
+     [
+      "a12",
+      "a20"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a12",
+      "a19"
+     ],
+     [
+      "a12",
+      "a03"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a12",
+      "a16"
+     ],
+     [
+      "a13",
+      "a03"
+     ],
+     [
+      "a13",
+      "a10"
+     ],
+     [
+      "a13",
+      "a01"
+     ],
+     [
+      "a14",
+      "a03"
+     ],
+     [
+      "a14",
+      "a10"
+     ],
+     [
+      "a14",
+      "a01"
+     ],
+     [
+      "a15",
+      "a14"
+     ],
+     [
+      "a15",
+      "a04"
+     ],
+     [
+      "a15",
+      "a09"
+     ],
+     [
+      "a15",
+      "a01"
+     ],
+     [
+      "a15",
+      "a06"
+     ],
+     [
+      "a15",
+      "a12"
+     ],
+     [
+      "a16",
+      "a02"
+     ],
+     [
+      "a16",
+      "a04"
+     ],
+     [
+      "a16",
+      "a01"
+     ],
+     [
+      "a17",
+      "a03"
+     ],
+     [
+      "a17",
+      "a19"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a17",
+      "a04"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a17",
+      "a12"
+     ],
+     [
+      "a18",
+      "a03"
+     ],
+     [
+      "a18",
+      "a04"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a18",
+      "a08"
+     ],
+     [
+      "a18",
+      "a09"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a04"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a19",
+      "a08"
+     ],
+     [
+      "a19",
+      "a15"
+     ],
+     [
+      "a20",
+      "a02"
+     ],
+     [
+      "a20",
+      "a04"
+     ],
+     [
+      "a20",
+      "a03"
+     ],
+     [
+      "a20",
+      "a01"
+     ]
+    ],
+    "8": [
+     [
+      "a01",
+      "a09"
+     ],
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a01",
+      "a04"
+     ],
+     [
+      "a02",
+      "a03"
+     ],
+     [
+      "a02",
+      "a01"
+     ],
+     [
+      "a03",
+      "a18"
+     ],
+     [
+      "a03",
+      "a12"
+     ],
+     [
+      "a04",
+      "a19"
+     ],
+     [
+      "a04",
+      "a10"
+     ],
+     [
+      "a04",
+      "a05"
+     ],
+     [
+      "a05",
+      "a02"
+     ],
+     [
+      "a05",
+      "a19"
+     ],
+     [
+      "a05",
+      "a04"
+     ],
+     [
+      "a06",
+      "a03"
+     ],
+     [
+      "a06",
+      "a17"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a06",
+      "a02"
+     ],
+     [
+      "a06",
+      "a04"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a01"
+     ],
+     [
+      "a07",
+      "a02"
+     ],
+     [
+      "a08",
+      "a04"
+     ],
+     [
+      "a08",
+      "a15"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a08"
+     ],
+     [
+      "a09",
+      "a03"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a10",
+      "a04"
+     ],
+     [
+      "a10",
+      "a12"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a11",
+      "a19"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a12",
+      "a03"
+     ],
+     [
+      "a12",
+      "a04"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a12",
+      "a09"
+     ],
+     [
+      "a12",
+      "a10"
+     ],
+     [
+      "a12",
+      "a15"
+     ],
+     [
+      "a13",
+      "a03"
+     ],
+     [
+      "a13",
+      "a01"
+     ],
+     [
+      "a13",
+      "a11"
+     ],
+     [
+      "a14",
+      "a02"
+     ],
+     [
+      "a14",
+      "a03"
+     ],
+     [
+      "a14",
+      "a01"
+     ],
+     [
+      "a15",
+      "a01"
+     ],
+     [
+      "a15",
+      "a08"
+     ],
+     [
+      "a15",
+      "a13"
+     ],
+     [
+      "a15",
+      "a19"
+     ],
+     [
+      "a15",
+      "a09"
+     ],
+     [
+      "a15",
+      "a04"
+     ],
+     [
+      "a16",
+      "a08"
+     ],
+     [
+      "a16",
+      "a01"
+     ],
+     [
+      "a16",
+      "a04"
+     ],
+     [
+      "a17",
+      "a12"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a17",
+      "a14"
+     ],
+     [
+      "a17",
+      "a04"
+     ],
+     [
+      "a17",
+      "a16"
+     ],
+     [
+      "a18",
+      "a04"
+     ],
+     [
+      "a18",
+      "a19"
+     ],
+     [
+      "a18",
+      "a02"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a18",
+      "a03"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a19",
+      "a04"
+     ],
+     [
+      "a19",
+      "a09"
+     ],
+     [
+      "a19",
+      "a03"
+     ],
+     [
+      "a20",
+      "a09"
+     ],
+     [
+      "a20",
+      "a01"
+     ],
+     [
+      "a20",
+      "a03"
+     ],
+     [
+      "a20",
+      "a04"
+     ]
+    ],
+    "12345": [
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a01",
+      "a04"
+     ],
+     [
+      "a01",
+      "a03"
+     ],
+     [
+      "a02",
+      "a01"
+     ],
+     [
+      "a02",
+      "a03"
+     ],
+     [
+      "a03",
+      "a01"
+     ],
+     [
+      "a03",
+      "a19"
+     ],
+     [
+      "a04",
+      "a01"
+     ],
+     [
+      "a04",
+      "a19"
+     ],
+     [
+      "a04",
+      "a03"
+     ],
+     [
+      "a05",
+      "a01"
+     ],
+     [
+      "a05",
+      "a03"
+     ],
+     [
+      "a05",
+      "a02"
+     ],
+     [
+      "a06",
+      "a05"
+     ],
+     [
+      "a06",
+      "a19"
+     ],
+     [
+      "a06",
+      "a04"
+     ],
+     [
+      "a06",
+      "a16"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a07",
+      "a06"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a03"
+     ],
+     [
+      "a08",
+      "a04"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a05"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a05"
+     ],
+     [
+      "a09",
+      "a19"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a10",
+      "a03"
+     ],
+     [
+      "a10",
+      "a01"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a11",
+      "a03"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a12",
+      "a17"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a12",
+      "a03"
+     ],
+     [
+      "a12",
+      "a04"
+     ],
+     [
+      "a12",
+      "a11"
+     ],
+     [
+      "a12",
+      "a14"
+     ],
+     [
+      "a13",
+      "a15"
+     ],
+     [
+      "a13",
+      "a19"
+     ],
+     [
+      "a13",
+      "a02"
+     ],
+     [
+      "a14",
+      "a09"
+     ],
+     [
+      "a14",
+      "a19"
+     ],
+     [
+      "a14",
+      "a05"
+     ],
+     [
+      "a15",
+      "a04"
+     ],
+     [
+      "a15",
+      "a03"
+     ],
+     [
+      "a15",
+      "a06"
+     ],
+     [
+      "a15",
+      "a10"
+     ],
+     [
+      "a15",
+      "a02"
+     ],
+     [
+      "a15",
+      "a19"
+     ],
+     [
+      "a16",
+      "a07"
+     ],
+     [
+      "a16",
+      "a04"
+     ],
+     [
+      "a16",
+      "a02"
+     ],
+     [
+      "a17",
+      "a04"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a17",
+      "a03"
+     ],
+     [
+      "a17",
+      "a10"
+     ],
+     [
+      "a17",
+      "a12"
+     ],
+     [
+      "a18",
+      "a04"
+     ],
+     [
+      "a18",
+      "a02"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a18",
+      "a03"
+     ],
+     [
+      "a18",
+      "a12"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a19",
+      "a04"
+     ],
+     [
+      "a19",
+      "a20"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a08"
+     ],
+     [
+      "a20",
+      "a02"
+     ],
+     [
+      "a20",
+      "a10"
+     ],
+     [
+      "a20",
+      "a01"
+     ],
+     [
+      "a20",
+      "a03"
+     ]
+    ]
+   },
+   "opening": {
+    "7": [
+     "a02",
+     "a04",
+     "a12",
+     "a13",
+     "a14",
+     "a17"
+    ],
+    "99": [
+     "a02",
+     "a06",
+     "a12",
+     "a17",
+     "a19",
+     "a20"
+    ]
+   },
+   "active": {
+    "7:1:False": [
+     "a17",
+     "a14",
+     "a10",
+     "a13",
+     "a18",
+     "a15",
+     "a12",
+     "a03"
+    ],
+    "7:1:True": [
+     "a06",
+     "a03",
+     "a13",
+     "a18",
+     "a12",
+     "a17",
+     "a14",
+     "a04",
+     "a07",
+     "a10",
+     "a19",
+     "a15",
+     "a08",
+     "a01"
+    ],
+    "7:2:False": [
+     "a03",
+     "a14",
+     "a02",
+     "a04",
+     "a19",
+     "a16",
+     "a17",
+     "a09",
+     "a15",
+     "a01"
+    ],
+    "7:2:True": [
+     "a15",
+     "a17",
+     "a09",
+     "a14",
+     "a13",
+     "a03",
+     "a04",
+     "a02",
+     "a05",
+     "a12",
+     "a01",
+     "a19",
+     "a16"
+    ],
+    "7:5:False": [
+     "a03",
+     "a14",
+     "a19",
+     "a17",
+     "a10",
+     "a01",
+     "a02",
+     "a13",
+     "a15"
+    ],
+    "7:5:True": [
+     "a17",
+     "a10",
+     "a19",
+     "a04",
+     "a01",
+     "a16",
+     "a14",
+     "a15",
+     "a13",
+     "a20",
+     "a02",
+     "a03",
+     "a08",
+     "a12"
+    ],
+    "3:1:False": [
+     "a08",
+     "a14",
+     "a15",
+     "a09",
+     "a12",
+     "a19",
+     "a18"
+    ],
+    "3:1:True": [
+     "a15",
+     "a18",
+     "a08",
+     "a02",
+     "a11",
+     "a14",
+     "a19",
+     "a09",
+     "a12"
+    ],
+    "3:2:False": [
+     "a01",
+     "a07",
+     "a18",
+     "a02",
+     "a12",
+     "a04",
+     "a17",
+     "a06",
+     "a19"
+    ],
+    "3:2:True": [
+     "a01",
+     "a12",
+     "a19",
+     "a02",
+     "a17",
+     "a04",
+     "a15",
+     "a07",
+     "a06",
+     "a18"
+    ],
+    "3:5:False": [
+     "a19",
+     "a15",
+     "a05",
+     "a02",
+     "a08",
+     "a16",
+     "a20",
+     "a18",
+     "a12",
+     "a04",
+     "a03",
+     "a17"
+    ],
+    "3:5:True": [
+     "a20",
+     "a19",
+     "a04",
+     "a15",
+     "a01",
+     "a12",
+     "a05",
+     "a17",
+     "a18",
+     "a08",
+     "a03",
+     "a02",
+     "a16"
+    ]
+   },
+   "active_quiet": [
+    "a01"
+   ],
+   "persona_blocks": [
+    "=== a01 @lindenandrye ===\nName: Linden & Rye (organisation / public account)\nPublic bio: Neighbourhood café & bakery on Alder Street since 2017. New prices from 2 March. Come to our open evening, 26 Feb, 7pm — free buns, honest answers.\nPrivate background: Nine-year-old independent café and bakery run by Tomás and Hanna, with a small team of bakers and baristas. The account speaks for the business as a whole: its costs, its staff, and its relationship with the street it sits on.\nStarting stance on the topic: The café believes the price rise is necessary and fair given rising costs, and wants to show regulars it is softening the blow with the neighbour card, kept pay-it-forward board, and better conditions for staff.\nTraits: warm, transparent, responds to comments, a little defensive under pressure, community-minded\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo",
+    "=== a02 @tomas_lindenrye ===\nName: Tomás Ferreira (organisation / public account)\nPublic bio: Co-owner of Linden & Rye. Baker, not a businessman at heart. Ask me anything about the prices — I'll be at the counter on the 26th.\nPrivate background: Tomás trained as a baker and opened Linden & Rye with Hanna nine years ago; he does most of the early-morning bread and pastry work and knows most regulars by name and usual order. He signed the price notice reluctantly, aware it will sting some long-time customers, but has watched flour, butter and rent costs climb for two years straight.\nStarting stance on the topic: He feels the price rise is overdue and unavoidable, and is anxious but hopeful that honesty, the open evening, and the neighbour card will keep trust intact with people he genuinely considers friends.\nTraits: earnest, a bit anxious, detail-oriented about ingredients, direct in replies, takes criticism personally\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo",
+    "=== a03 @hanna_lindenrye ===\nName: Hanna Brouwer (organisation / public account)\nPublic bio: Co-owner of Linden & Rye. Numbers, rotas, and the neighbour card were my idea. Come talk prices with us, 26 Feb, 7pm.\nPrivate background: Hanna handles the books, staffing and the business side of Linden & Rye, and pushed for both the pay rise for staff last spring and the neighbour card now, seeing them as two sides of the same fairness problem. She has run the numbers enough times to know margins have been shrinking for months despite a loyal customer base.\nStarting stance on the topic: She is confident the price rise is the responsible choice to keep the café and its staff secure long-term, and wants regulars to see the neighbour card and kept traditions as proof the café isn't just chasing profit.\nTraits: pragmatic, calm under criticism, data-driven, patient explainer, protective of staff\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo"
+   ]
+  },
+  "school-phones": {
+   "question": "How will parents, students and teachers react to the phone-free school day, and will the school have to change the policy?",
+   "chunk_count": 2,
+   "select_chunks": {
+    "2": [
+     0,
+     1
+    ],
+    "3": [
+     0,
+     1
+    ],
+    "5": [
+     0,
+     1
+    ],
+    "8": [
+     0,
+     1
+    ]
+   },
+   "plan_slots": {
+    "1": [
+     [
+      "a01",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "2": [
+     [
+      "a01",
+      "ENTITY VOICE for Westbrook Secondary School (organization, id westbrook-secondary-school): Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+      "westbrook-secondary-school",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "7": [
+     [
+      "a01",
+      "ENTITY VOICE for Westbrook Secondary School (organization, id westbrook-secondary-school): Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+      "westbrook-secondary-school",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ENTITY VOICE for Duarte (person, id duarte): Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.",
+      "duarte",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a03",
+      "ordinary member of the public; age 45-54; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a04",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a05",
+      "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a06",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a07",
+      "ordinary member of the public; age 18-24; part of: Teachers of Westbrook Secondary School; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ]
+    ],
+    "20": [
+     [
+      "a01",
+      "ENTITY VOICE for Westbrook Secondary School (organization, id westbrook-secondary-school): Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+      "westbrook-secondary-school",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a02",
+      "ENTITY VOICE for Duarte (person, id duarte): Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.",
+      "duarte",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a03",
+      "ENTITY VOICE for Parents' council (organization, id parents-council): Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.",
+      "parents-council",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a04",
+      "ENTITY VOICE for Amara Lewis (person, id amara-lewis): Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.",
+      "amara-lewis",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a05",
+      "ordinary member of the public; age 45-54; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a06",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a07",
+      "ordinary member of the public; age 35-44; part of: Students with medical needs relying on phones; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a08",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a09",
+      "ordinary member of the public; age 35-44; part of: Teachers of Westbrook Secondary School; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a10",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a11",
+      "ordinary member of the public; age 55-64; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a12",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a13",
+      "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a14",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a15",
+      "ordinary member of the public; age 25-34; part of: Teachers of Westbrook Secondary School; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a16",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a17",
+      "ordinary member of the public; age 45-54; part of: Parents and carers of Westbrook students; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a18",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a19",
+      "ordinary member of the public; age 65+; part of: Students with medical needs relying on phones; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a20",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ]
+    ],
+    "101": [
+     [
+      "a001",
+      "ENTITY VOICE for Westbrook Secondary School (organization, id westbrook-secondary-school): Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+      "westbrook-secondary-school",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a002",
+      "ENTITY VOICE for Duarte (person, id duarte): Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.",
+      "duarte",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a003",
+      "ENTITY VOICE for Parents' council (organization, id parents-council): Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.",
+      "parents-council",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a004",
+      "ENTITY VOICE for Amara Lewis (person, id amara-lewis): Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.",
+      "amara-lewis",
+      [
+       0.0,
+       1.0
+      ]
+     ],
+     [
+      "a005",
+      "ordinary member of the public; age 65+; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a006",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a007",
+      "ordinary member of the public; age 25-34; part of: Students with medical needs relying on phones; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a008",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a009",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a010",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a011",
+      "ordinary member of the public; age 65+; part of: Parents and carers of Westbrook students; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a012",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a013",
+      "ordinary member of the public; age 35-44; part of: Students with medical needs relying on phones; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a014",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a015",
+      "ordinary member of the public; age 18-24; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a016",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a017",
+      "ordinary member of the public; age 55-64; part of: Parents and carers of Westbrook students; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a018",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a019",
+      "ordinary member of the public; age 45-54; part of: Students with medical needs relying on phones; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a020",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a021",
+      "ordinary member of the public; age 45-54; part of: Teachers of Westbrook Secondary School; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a022",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a023",
+      "ordinary member of the public; age 65+; part of: Parents and carers of Westbrook students; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a024",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a025",
+      "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a026",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a027",
+      "ordinary member of the public; age 45-54; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a028",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a029",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a030",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a031",
+      "ordinary member of the public; age 65+; part of: Students with medical needs relying on phones; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a032",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a033",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a034",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a035",
+      "ordinary member of the public; age 25-34; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a036",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a037",
+      "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a038",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a039",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a040",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a041",
+      "ordinary member of the public; age 55-64; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a042",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a043",
+      "ordinary member of the public; age 25-34; part of: Students with medical needs relying on phones; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a044",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a045",
+      "ordinary member of the public; age 18-24; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a046",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a047",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a048",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a049",
+      "ordinary member of the public; age 65+; part of: Students with medical needs relying on phones; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a050",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a051",
+      "ordinary member of the public; age 35-44; part of: Teachers of Westbrook Secondary School; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a052",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a053",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a054",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a055",
+      "ordinary member of the public; age 45-54; part of: Students with medical needs relying on phones; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a056",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a057",
+      "ordinary member of the public; age 35-44; part of: Teachers of Westbrook Secondary School; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a058",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a059",
+      "ordinary member of the public; age 55-64; part of: Parents and carers of Westbrook students; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a060",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a061",
+      "ordinary member of the public; age 25-34; part of: Students with medical needs relying on phones; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a062",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a063",
+      "ordinary member of the public; age 55-64; part of: Teachers of Westbrook Secondary School; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a064",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a065",
+      "ordinary member of the public; age 35-44; part of: Parents and carers of Westbrook students; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a066",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a067",
+      "ordinary member of the public; age 35-44; part of: Students with medical needs relying on phones; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a068",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a069",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a070",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a071",
+      "ordinary member of the public; age 25-34; part of: Parents and carers of Westbrook students; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a072",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a073",
+      "ordinary member of the public; age 35-44; part of: Students with medical needs relying on phones; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a074",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a075",
+      "ordinary member of the public; age 35-44; part of: Teachers of Westbrook Secondary School; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a076",
+      "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a077",
+      "ordinary member of the public; age 65+; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a078",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a079",
+      "ordinary member of the public; age 45-54; part of: Students with medical needs relying on phones; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a080",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a081",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a082",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a083",
+      "ordinary member of the public; age 45-54; part of: Parents and carers of Westbrook students; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a084",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a085",
+      "ordinary member of the public; age 18-24; part of: Students with medical needs relying on phones; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a086",
+      "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a087",
+      "ordinary member of the public; age 25-34; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a088",
+      "ordinary member of the public; age 45-54; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a089",
+      "ordinary member of the public; age 25-34; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a090",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a091",
+      "ordinary member of the public; age 18-24; part of: Students with medical needs relying on phones; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a092",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a093",
+      "ordinary member of the public; age 65+; part of: Teachers of Westbrook Secondary School; starting stance: strongly critical and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a094",
+      "ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a095",
+      "ordinary member of the public; age 25-34; part of: Parents and carers of Westbrook students; starting stance: leans critical, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a096",
+      "ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ],
+     [
+      "a097",
+      "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a098",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+      null,
+      [
+       0.05,
+       0.3
+      ]
+     ],
+     [
+      "a099",
+      "ordinary member of the public; age 18-24; part of: Teachers of Westbrook Secondary School; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a100",
+      "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+      null,
+      [
+       0.3,
+       0.6
+      ]
+     ],
+     [
+      "a101",
+      "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: strongly supportive and vocal about it; engagement: very active: posts and argues often (activity 0.60-0.95)",
+      null,
+      [
+       0.6,
+       0.95
+      ]
+     ]
+    ]
+   },
+   "plan_slots_no_voices": [
+    [
+     "a01",
+     "ordinary member of the public; age 18-24; part of: Parents and carers of Westbrook students; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+     null,
+     [
+      0.3,
+      0.6
+     ]
+    ],
+    [
+     "a02",
+     "ordinary member of the public; age 35-44; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ],
+    [
+     "a03",
+     "ordinary member of the public; age 55-64; part of: Students with medical needs relying on phones; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ],
+    [
+     "a04",
+     "ordinary member of the public; age 25-34; part of: any affected segment not yet covered; starting stance: undecided or conflicted, can see both sides; engagement: occasional: posts or replies now and then (activity 0.30-0.60)",
+     null,
+     [
+      0.3,
+      0.6
+     ]
+    ],
+    [
+     "a05",
+     "ordinary member of the public; age 45-54; part of: Teachers of Westbrook Secondary School; starting stance: leans critical, holds the view moderately; engagement: very active: posts and argues often (activity 0.60-0.95)",
+     null,
+     [
+      0.6,
+      0.95
+     ]
+    ],
+    [
+     "a06",
+     "ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)",
+     null,
+     [
+      0.05,
+      0.3
+     ]
+    ]
+   ],
+   "persona_digest": "Key entities:\n- Westbrook Secondary School [organization]: Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.\n- Phone-free school day policy [concept]: Policy requiring students to lock phones in pouches on arrival, unlockable only at the end of the day, applied during lessons, breaks and lunch for all year groups.\n- Parents and carers of Westbrook students [group]: Addressees of the letter; some have concerns about travel and emergencies and are invited to raise them at an information evening or by email.\n- Students of Westbrook Secondary School [group]: Pupils aged 11-18 affected by the policy; surveyed last spring, with 64% reporting pressure to reply to messages and 41% having seen upsetting content on phones at school.\n- Duarte [person]: Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.\n- Students with medical needs relying on phones [group]: Subset of students (e.g. those needing glucose monitoring) exempted from the phone-free policy if they contact the pastoral lead before 1 August.\n- Sixth-form students [group]: Students aged 16-18 who get a partial exemption, allowed to unlock phones in the sixth-form common room during free periods.\n- Teachers of Westbrook Secondary School [group]: School staff who report that lessons regularly stop because of phones, supporting the rationale for the new policy.\n- Parents' council [organization]: Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.\n- Amara Lewis [person]: Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.\n- Personal phone pouch [product]: Lockable pouch (costing the school €18 each) in which students must lock their phones on arrival; only opened at unlocking stations at day's end.\n- Nearby schools with phone-free policies [group]: Three schools near Westbrook that adopted the same phone-free change last year and reported calmer breaks and fewer online bullying incidents during school hours.\n- Information evening (17 June) [event]: Meeting at Westbrook's main hall on Tuesday 17 June at 6:30pm where parents can raise concerns about the new policy, e.g. about travel and emergencies.\n- Online bullying during school hours [concept]: Issue cited as a motivation for the policy; nearby schools with phone bans reported fewer such incidents after adopting similar rules.\n- Student survey (spring) [event]: Survey conducted last spring among Westbrook students that found 64% feel pressure to reply to messages during the school day and 41% had seen upsetting content on a phone at school.\nRelations:\n- Westbrook Secondary School introduces Phone-free school day policy\n- Westbrook Secondary School consulted Parents' council\n- Westbrook Secondary School consulted Teachers of Westbrook Secondary School\n- Westbrook Secondary School consulted Students of Westbrook Secondary School\n- Teachers of Westbrook Secondary School supports rationale for Phone-free school day policy\n- Students of Westbrook Secondary School is subject to Phone-free school day policy\n- Sixth-form students receives partial exemption from Phone-free school day policy\n- Parents and carers of Westbrook students raises concerns about Phone-free school day policy\n- Amara Lewis announces Phone-free school day policy\n- Duarte handles exemptions for Students with medical needs relying on phones\n- Phone-free school day policy requires use of Personal phone pouch\n- Nearby schools with phone-free policies precedent for Phone-free school day policy\n- Nearby schools with phone-free policies reports reduction in Online bullying during school hours\n- Student survey (spring) justifies Phone-free school day policy\n- Westbrook Secondary School hosts Information evening (17 June)\n- Parents and carers of Westbrook students invited to attend Information evening (17 June)",
+   "engine_digest": "- Westbrook Secondary School (organization): Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.\n- Phone-free school day policy (concept): Policy requiring students to lock phones in pouches on arrival, unlockable only at the end of the day, applied during lessons, breaks and lunch for all year gr…\n- Parents and carers of Westbrook students (group): Addressees of the letter; some have concerns about travel and emergencies and are invited to raise them at an information evening or by email.\n- Students of Westbrook Secondary School (group): Pupils aged 11-18 affected by the policy; surveyed last spring, with 64% reporting pressure to reply to messages and 41% having seen upsetting content on phone…\n- Duarte (person): Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.\n- Students with medical needs relying on phones (group): Subset of students (e.g. those needing glucose monitoring) exempted from the phone-free policy if they contact the pastoral lead before 1 August.\n- Sixth-form students (group): Students aged 16-18 who get a partial exemption, allowed to unlock phones in the sixth-form common room during free periods.\n- Teachers of Westbrook Secondary School (group): School staff who report that lessons regularly stop because of phones, supporting the rationale for the new policy.\n- Parents' council (organization): Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.\n- Amara Lewis (person): Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.\n- Personal phone pouch (product): Lockable pouch (costing the school €18 each) in which students must lock their phones on arrival; only opened at unlocking stations at day's end.\n- Nearby schools with phone-free policies (group): Three schools near Westbrook that adopted the same phone-free change last year and reported calmer breaks and fewer online bullying incidents during school hou…\n- Information evening (17 June) (event): Meeting at Westbrook's main hall on Tuesday 17 June at 6:30pm where parents can raise concerns about the new policy, e.g. about travel and emergencies.\n- Online bullying during school hours (concept): Issue cited as a motivation for the policy; nearby schools with phone bans reported fewer such incidents after adopting similar rules.\n- Student survey (spring) (event): Survey conducted last spring among Westbrook students that found 64% feel pressure to reply to messages during the school day and 41% had seen upsetting conten…\n- Westbrook Secondary School introduces Phone-free school day policy\n- Westbrook Secondary School consulted Parents' council\n- Westbrook Secondary School consulted Teachers of Westbrook Secondary School\n- Westbrook Secondary School consulted Students of Westbrook Secondary School\n- Teachers of Westbrook Secondary School supports rationale for Phone-free school day policy\n- Students of Westbrook Secondary School is subject to Phone-free school day policy\n- Sixth-form students receives partial exemption from Phone-free school day policy\n- Parents and carers of Westbrook students raises concerns about Phone-free school day policy\n- Amara Lewis announces Phone-free school day policy\n- Duarte handles exemptions for Students with medical needs relying on phones\n- Phone-free school day policy requires use of Personal phone pouch\n- Nearby schools with phone-free policies precedent for Phone-free school day policy\n- Nearby schools with phone-free policies reports reduction in Online bullying during school hours\n- Student survey (spring) justifies Phone-free school day policy\n- Westbrook Secondary School hosts Information evening (17 June)\n- Parents and carers of Westbrook students invited to attend Information evening (17 June)",
+   "follows": {
+    "7": [
+     [
+      "a01",
+      "a03"
+     ],
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a02",
+      "a10"
+     ],
+     [
+      "a02",
+      "a03"
+     ],
+     [
+      "a03",
+      "a01"
+     ],
+     [
+      "a03",
+      "a14"
+     ],
+     [
+      "a04",
+      "a01"
+     ],
+     [
+      "a04",
+      "a02"
+     ],
+     [
+      "a05",
+      "a03"
+     ],
+     [
+      "a05",
+      "a01"
+     ],
+     [
+      "a05",
+      "a07"
+     ],
+     [
+      "a05",
+      "a14"
+     ],
+     [
+      "a05",
+      "a02"
+     ],
+     [
+      "a05",
+      "a04"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a06",
+      "a03"
+     ],
+     [
+      "a06",
+      "a13"
+     ],
+     [
+      "a06",
+      "a02"
+     ],
+     [
+      "a07",
+      "a03"
+     ],
+     [
+      "a07",
+      "a14"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a01"
+     ],
+     [
+      "a07",
+      "a02"
+     ],
+     [
+      "a08",
+      "a14"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a02"
+     ],
+     [
+      "a08",
+      "a09"
+     ],
+     [
+      "a09",
+      "a18"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a09",
+      "a03"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a14"
+     ],
+     [
+      "a09",
+      "a17"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a10",
+      "a04"
+     ],
+     [
+      "a10",
+      "a01"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a11",
+      "a03"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a11",
+      "a02"
+     ],
+     [
+      "a12",
+      "a04"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a12",
+      "a20"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a13",
+      "a01"
+     ],
+     [
+      "a13",
+      "a03"
+     ],
+     [
+      "a13",
+      "a10"
+     ],
+     [
+      "a13",
+      "a02"
+     ],
+     [
+      "a13",
+      "a09"
+     ],
+     [
+      "a14",
+      "a03"
+     ],
+     [
+      "a14",
+      "a01"
+     ],
+     [
+      "a14",
+      "a02"
+     ],
+     [
+      "a14",
+      "a10"
+     ],
+     [
+      "a14",
+      "a05"
+     ],
+     [
+      "a14",
+      "a12"
+     ],
+     [
+      "a14",
+      "a04"
+     ],
+     [
+      "a15",
+      "a14"
+     ],
+     [
+      "a15",
+      "a09"
+     ],
+     [
+      "a15",
+      "a04"
+     ],
+     [
+      "a16",
+      "a02"
+     ],
+     [
+      "a16",
+      "a01"
+     ],
+     [
+      "a16",
+      "a04"
+     ],
+     [
+      "a17",
+      "a03"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a18",
+      "a03"
+     ],
+     [
+      "a18",
+      "a08"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a04"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a20",
+      "a02"
+     ],
+     [
+      "a20",
+      "a01"
+     ],
+     [
+      "a20",
+      "a03"
+     ]
+    ],
+    "8": [
+     [
+      "a01",
+      "a09"
+     ],
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a02",
+      "a03"
+     ],
+     [
+      "a02",
+      "a01"
+     ],
+     [
+      "a03",
+      "a18"
+     ],
+     [
+      "a03",
+      "a01"
+     ],
+     [
+      "a04",
+      "a05"
+     ],
+     [
+      "a04",
+      "a08"
+     ],
+     [
+      "a05",
+      "a02"
+     ],
+     [
+      "a05",
+      "a14"
+     ],
+     [
+      "a05",
+      "a03"
+     ],
+     [
+      "a05",
+      "a01"
+     ],
+     [
+      "a05",
+      "a04"
+     ],
+     [
+      "a05",
+      "a19"
+     ],
+     [
+      "a06",
+      "a03"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a06",
+      "a02"
+     ],
+     [
+      "a06",
+      "a17"
+     ],
+     [
+      "a07",
+      "a01"
+     ],
+     [
+      "a07",
+      "a02"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a03"
+     ],
+     [
+      "a07",
+      "a11"
+     ],
+     [
+      "a08",
+      "a04"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a14"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a08",
+      "a15"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a08"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a03"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a09",
+      "a07"
+     ],
+     [
+      "a09",
+      "a14"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a10",
+      "a04"
+     ],
+     [
+      "a10",
+      "a01"
+     ],
+     [
+      "a11",
+      "a19"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a11",
+      "a08"
+     ],
+     [
+      "a12",
+      "a03"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a12",
+      "a04"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a13",
+      "a01"
+     ],
+     [
+      "a13",
+      "a03"
+     ],
+     [
+      "a13",
+      "a02"
+     ],
+     [
+      "a13",
+      "a11"
+     ],
+     [
+      "a13",
+      "a14"
+     ],
+     [
+      "a14",
+      "a02"
+     ],
+     [
+      "a14",
+      "a01"
+     ],
+     [
+      "a14",
+      "a03"
+     ],
+     [
+      "a14",
+      "a04"
+     ],
+     [
+      "a14",
+      "a10"
+     ],
+     [
+      "a14",
+      "a19"
+     ],
+     [
+      "a14",
+      "a09"
+     ],
+     [
+      "a15",
+      "a01"
+     ],
+     [
+      "a15",
+      "a13"
+     ],
+     [
+      "a15",
+      "a05"
+     ],
+     [
+      "a16",
+      "a08"
+     ],
+     [
+      "a16",
+      "a01"
+     ],
+     [
+      "a16",
+      "a02"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a17",
+      "a14"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a18",
+      "a02"
+     ],
+     [
+      "a18",
+      "a04"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a19",
+      "a09"
+     ],
+     [
+      "a20",
+      "a09"
+     ],
+     [
+      "a20",
+      "a01"
+     ],
+     [
+      "a20",
+      "a03"
+     ]
+    ],
+    "12345": [
+     [
+      "a01",
+      "a02"
+     ],
+     [
+      "a01",
+      "a03"
+     ],
+     [
+      "a02",
+      "a03"
+     ],
+     [
+      "a02",
+      "a05"
+     ],
+     [
+      "a03",
+      "a01"
+     ],
+     [
+      "a03",
+      "a02"
+     ],
+     [
+      "a04",
+      "a01"
+     ],
+     [
+      "a04",
+      "a03"
+     ],
+     [
+      "a05",
+      "a01"
+     ],
+     [
+      "a05",
+      "a03"
+     ],
+     [
+      "a05",
+      "a02"
+     ],
+     [
+      "a05",
+      "a15"
+     ],
+     [
+      "a05",
+      "a04"
+     ],
+     [
+      "a05",
+      "a07"
+     ],
+     [
+      "a06",
+      "a05"
+     ],
+     [
+      "a06",
+      "a01"
+     ],
+     [
+      "a06",
+      "a16"
+     ],
+     [
+      "a06",
+      "a04"
+     ],
+     [
+      "a07",
+      "a06"
+     ],
+     [
+      "a07",
+      "a03"
+     ],
+     [
+      "a07",
+      "a04"
+     ],
+     [
+      "a07",
+      "a01"
+     ],
+     [
+      "a07",
+      "a02"
+     ],
+     [
+      "a08",
+      "a01"
+     ],
+     [
+      "a08",
+      "a04"
+     ],
+     [
+      "a08",
+      "a03"
+     ],
+     [
+      "a08",
+      "a05"
+     ],
+     [
+      "a08",
+      "a02"
+     ],
+     [
+      "a09",
+      "a04"
+     ],
+     [
+      "a09",
+      "a05"
+     ],
+     [
+      "a09",
+      "a02"
+     ],
+     [
+      "a09",
+      "a01"
+     ],
+     [
+      "a09",
+      "a03"
+     ],
+     [
+      "a09",
+      "a16"
+     ],
+     [
+      "a09",
+      "a18"
+     ],
+     [
+      "a10",
+      "a02"
+     ],
+     [
+      "a10",
+      "a07"
+     ],
+     [
+      "a10",
+      "a01"
+     ],
+     [
+      "a11",
+      "a04"
+     ],
+     [
+      "a11",
+      "a03"
+     ],
+     [
+      "a11",
+      "a01"
+     ],
+     [
+      "a11",
+      "a02"
+     ],
+     [
+      "a12",
+      "a01"
+     ],
+     [
+      "a12",
+      "a02"
+     ],
+     [
+      "a12",
+      "a17"
+     ],
+     [
+      "a12",
+      "a03"
+     ],
+     [
+      "a13",
+      "a02"
+     ],
+     [
+      "a13",
+      "a15"
+     ],
+     [
+      "a13",
+      "a01"
+     ],
+     [
+      "a13",
+      "a19"
+     ],
+     [
+      "a13",
+      "a14"
+     ],
+     [
+      "a14",
+      "a05"
+     ],
+     [
+      "a14",
+      "a09"
+     ],
+     [
+      "a14",
+      "a02"
+     ],
+     [
+      "a14",
+      "a01"
+     ],
+     [
+      "a14",
+      "a16"
+     ],
+     [
+      "a14",
+      "a04"
+     ],
+     [
+      "a14",
+      "a19"
+     ],
+     [
+      "a15",
+      "a04"
+     ],
+     [
+      "a15",
+      "a03"
+     ],
+     [
+      "a15",
+      "a02"
+     ],
+     [
+      "a16",
+      "a07"
+     ],
+     [
+      "a16",
+      "a02"
+     ],
+     [
+      "a16",
+      "a04"
+     ],
+     [
+      "a17",
+      "a04"
+     ],
+     [
+      "a17",
+      "a01"
+     ],
+     [
+      "a17",
+      "a02"
+     ],
+     [
+      "a18",
+      "a02"
+     ],
+     [
+      "a18",
+      "a01"
+     ],
+     [
+      "a18",
+      "a04"
+     ],
+     [
+      "a19",
+      "a01"
+     ],
+     [
+      "a19",
+      "a02"
+     ],
+     [
+      "a19",
+      "a20"
+     ],
+     [
+      "a20",
+      "a02"
+     ],
+     [
+      "a20",
+      "a01"
+     ],
+     [
+      "a20",
+      "a03"
+     ]
+    ]
+   },
+   "opening": {
+    "7": [
+     "a02",
+     "a04",
+     "a09",
+     "a11",
+     "a13",
+     "a14"
+    ],
+    "99": [
+     "a01",
+     "a02",
+     "a05",
+     "a13",
+     "a19",
+     "a20"
+    ]
+   },
+   "active": {
+    "7:1:False": [
+     "a05",
+     "a10",
+     "a13",
+     "a07",
+     "a08",
+     "a15",
+     "a14",
+     "a12",
+     "a03"
+    ],
+    "7:1:True": [
+     "a07",
+     "a12",
+     "a11",
+     "a15",
+     "a06",
+     "a13",
+     "a05",
+     "a08",
+     "a10",
+     "a18",
+     "a14",
+     "a09",
+     "a03"
+    ],
+    "7:2:False": [
+     "a16",
+     "a14",
+     "a03",
+     "a17",
+     "a13",
+     "a05",
+     "a09",
+     "a02"
+    ],
+    "7:2:True": [
+     "a15",
+     "a17",
+     "a07",
+     "a14",
+     "a13",
+     "a03",
+     "a04",
+     "a02",
+     "a05",
+     "a09",
+     "a01",
+     "a19",
+     "a16"
+    ],
+    "7:5:False": [
+     "a13",
+     "a14",
+     "a01",
+     "a02",
+     "a03",
+     "a08"
+    ],
+    "7:5:True": [
+     "a14",
+     "a20",
+     "a02",
+     "a10",
+     "a17",
+     "a05",
+     "a01",
+     "a03",
+     "a08",
+     "a13"
+    ],
+    "3:1:False": [
+     "a05",
+     "a11",
+     "a12",
+     "a08",
+     "a09",
+     "a14"
+    ],
+    "3:1:True": [
+     "a12",
+     "a08",
+     "a14",
+     "a02",
+     "a09",
+     "a15",
+     "a05",
+     "a11"
+    ],
+    "3:2:False": [
+     "a12",
+     "a01",
+     "a06",
+     "a18",
+     "a05",
+     "a02",
+     "a07"
+    ],
+    "3:2:True": [
+     "a01",
+     "a09",
+     "a18",
+     "a02",
+     "a14",
+     "a05",
+     "a12",
+     "a07",
+     "a06",
+     "a17"
+    ],
+    "3:5:False": [
+     "a09",
+     "a08",
+     "a07",
+     "a02",
+     "a12",
+     "a20",
+     "a14",
+     "a05",
+     "a04",
+     "a18"
+    ],
+    "3:5:True": [
+     "a18",
+     "a09",
+     "a05",
+     "a02",
+     "a07",
+     "a12",
+     "a20",
+     "a16",
+     "a08",
+     "a04",
+     "a03",
+     "a14"
+    ]
+   },
+   "active_quiet": [
+    "a01"
+   ],
+   "persona_blocks": [
+    "=== a01 @westbrooksecondary ===\nName: Westbrook Secondary School (organisation / public account)\nPublic bio: Official account of Westbrook Secondary School. Phone-free school day starts 3 September. Info evening Tue 17 June, 6:30pm, main hall.\nPrivate background: Westbrook Secondary School is the official institutional account, posting updates, policy announcements and logistical information for parents, students and staff.\nStarting stance on the topic: The school stands firmly behind the phone-free policy as the outcome of a year of consultation with staff, students and the parents' council, and will communicate clearly while remaining open to feedback at the information evening.\nTraits: formal, informative, measured, responsive to queries\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo",
+    "=== a02 @headteacher_lewis ===\nName: Amara Lewis (organisation / public account)\nPublic bio: Headteacher, Westbrook Secondary School. Signed the letter on our phone-free school day. Here to answer questions, not just issue rules.\nPrivate background: Amara Lewis has led Westbrook Secondary for several years and personally signed the letter announcing the phone-free policy after overseeing a year-long consultation with teachers, students and the parents' council. She has seen teachers' reports of lessons disrupted by phones and the survey data on pressure and upsetting content, which shaped her conviction that the change is necessary.\nStarting stance on the topic: Amara is confident the phone-free policy is the right call based on staff reports, student survey data and the experience of nearby schools, but she wants to be seen as approachable and willing to adjust details like emergency contact arrangements if real problems emerge.\nTraits: articulate, calm under criticism, evidence-citing, approachable\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo",
+    "=== a03 @westbrookparentscoun ===\nName: Westbrook Parents' Council (organisation / public account)\nPublic bio: Elected parent reps at Westbrook Secondary. Consulted on the phone-free policy for a year. Your voice to the school leadership team.\nPrivate background: The Parents' Council is the elected body of parent representatives who spent a year in discussion with the school leadership about the phone-free policy, weighing concerns about safety and communication against evidence of disruption and bullying.\nStarting stance on the topic: The council broadly endorses the policy as a reasonable compromise reached after genuine consultation, while continuing to press the school on practical details such as emergency contact and the sixth-form exemption.\nTraits: diplomatic, consensus-seeking, detail-oriented, represents mixed parent views\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: hi\n- R1: yo"
+   ]
+  }
+ },
+ "merge": {
+  "parts": [
+   {
+    "entities": [
+     {
+      "name": "Acme Corporation",
+      "kind": "company",
+      "summary": "Acme makes widgets.",
+      "aliases": [
+       "Acme"
+      ],
+      "chunk_ids": [
+       0
+      ]
+     },
+     {
+      "name": "Jane Doe",
+      "kind": "person",
+      "summary": "Chief executive of Acme.",
+      "aliases": [],
+      "chunk_ids": [
+       0,
+       999
+      ]
+     },
+     {
+      "name": "Topic 0",
+      "kind": "concept",
+      "summary": "",
+      "aliases": [],
+      "chunk_ids": []
+     },
+     {
+      "name": "the City Council",
+      "kind": "government",
+      "summary": "Local regulator.",
+      "aliases": [
+       "Council"
+      ],
+      "chunk_ids": [
+       0
+      ]
+     },
+     {
+      "name": "Small landlords",
+      "kind": "community",
+      "summary": "Owners of a few flats.",
+      "aliases": [],
+      "chunk_ids": []
+     }
+    ],
+    "relations": [
+     {
+      "source": "Acme",
+      "target": "Jane Doe",
+      "label": "Employs ",
+      "evidence": "Jane runs it."
+     },
+     {
+      "source": "Council",
+      "target": "Acme Corporation",
+      "label": "regulates",
+      "evidence": ""
+     },
+     {
+      "source": "Jane Doe",
+      "target": "nobody",
+      "label": "x",
+      "evidence": ""
+     }
+    ]
+   },
+   {
+    "entities": [
+     {
+      "name": "Acme Corporation",
+      "kind": "company",
+      "summary": "Acme makes widgets.",
+      "aliases": [
+       "Acme"
+      ],
+      "chunk_ids": [
+       4
+      ]
+     },
+     {
+      "name": "Jane Doe",
+      "kind": "person",
+      "summary": "Chief executive of Acme.",
+      "aliases": [],
+      "chunk_ids": [
+       4,
+       999
+      ]
+     },
+     {
+      "name": "Topic 4",
+      "kind": "concept",
+      "summary": "",
+      "aliases": [],
+      "chunk_ids": []
+     },
+     {
+      "name": "the City Council",
+      "kind": "government",
+      "summary": "Local regulator.",
+      "aliases": [
+       "Council"
+      ],
+      "chunk_ids": [
+       4
+      ]
+     },
+     {
+      "name": "Small landlords",
+      "kind": "community",
+      "summary": "Owners of a few flats.",
+      "aliases": [],
+      "chunk_ids": []
+     }
+    ],
+    "relations": [
+     {
+      "source": "Acme",
+      "target": "Jane Doe",
+      "label": "Employs ",
+      "evidence": "Jane runs it."
+     },
+     {
+      "source": "Council",
+      "target": "Acme Corporation",
+      "label": "regulates",
+      "evidence": ""
+     },
+     {
+      "source": "Jane Doe",
+      "target": "nobody",
+      "label": "x",
+      "evidence": ""
+     }
+    ]
+   },
+   {
+    "entities": [
+     {
+      "name": "ACME corp",
+      "kind": "Company",
+      "summary": "Acme   makes widgets.",
+      "aliases": [],
+      "chunk_ids": [
+       7,
+       2
+      ]
+     },
+     {
+      "name": "Council",
+      "kind": "org",
+      "summary": "local regulator.",
+      "aliases": [],
+      "chunk_ids": []
+     },
+     {
+      "name": "Jane Doe Inc",
+      "kind": "people",
+      "summary": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "aliases": [
+       "J",
+       "JD"
+      ],
+      "chunk_ids": []
+     },
+     {
+      "name": "!!!",
+      "kind": "person",
+      "summary": "",
+      "aliases": [],
+      "chunk_ids": []
+     },
+     {
+      "name": "Acme Corporation",
+      "kind": "person",
+      "summary": "",
+      "aliases": [],
+      "chunk_ids": []
+     }
+    ],
+    "relations": [
+     {
+      "source": "acme",
+      "target": "council",
+      "label": "lobbies",
+      "evidence": "w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w "
+     },
+     {
+      "source": "Council",
+      "target": "Acme",
+      "label": "regulates",
+      "evidence": "late evidence"
+     }
+    ]
+   }
+  ],
+  "graph": {
+   "entities": [
+    {
+     "id": "acme-corporation",
+     "name": "Acme Corporation",
+     "kind": "organization",
+     "summary": "Acme makes widgets.",
+     "source_chunk_ids": [
+      0,
+      2,
+      4,
+      7
+     ]
+    },
+    {
+     "id": "jane-doe",
+     "name": "Jane Doe",
+     "kind": "person",
+     "summary": "Chief executive of Acme.…",
+     "source_chunk_ids": [
+      0,
+      4,
+      999
+     ]
+    },
+    {
+     "id": "the-city-council",
+     "name": "the City Council",
+     "kind": "organization",
+     "summary": "Local regulator.",
+     "source_chunk_ids": [
+      0,
+      4
+     ]
+    },
+    {
+     "id": "small-landlords",
+     "name": "Small landlords",
+     "kind": "group",
+     "summary": "Owners of a few flats.",
+     "source_chunk_ids": []
+    },
+    {
+     "id": "topic-0",
+     "name": "Topic 0",
+     "kind": "concept",
+     "summary": "",
+     "source_chunk_ids": []
+    },
+    {
+     "id": "topic-4",
+     "name": "Topic 4",
+     "kind": "concept",
+     "summary": "",
+     "source_chunk_ids": []
+    }
+   ],
+   "relations": [
+    {
+     "source": "acme-corporation",
+     "target": "jane-doe",
+     "label": "employs",
+     "evidence": "Jane runs it."
+    },
+    {
+     "source": "the-city-council",
+     "target": "acme-corporation",
+     "label": "regulates",
+     "evidence": "late evidence"
+    },
+    {
+     "source": "acme-corporation",
+     "target": "the-city-council",
+     "label": "lobbies",
+     "evidence": "w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w…"
+    }
+   ]
+  }
+ },
+ "to_action": [
+  [
+   {
+    "type": " Comment ",
+    "target_post_id": "#3",
+    "content": "  hi  ",
+    "reasoning": "r"
+   },
+   {
+    "agent_id": "a02",
+    "type": "reply",
+    "content": "hi",
+    "target_post_id": 3,
+    "target_agent_id": null,
+    "reasoning": "r"
+   }
+  ],
+  [
+   {
+    "type": "like",
+    "target_post_id": 4,
+    "reasoning": "nope"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid like: post 4 not in own feed] nope"
+   }
+  ],
+  [
+   {
+    "type": "like"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid like: post None not in own feed]"
+   }
+  ],
+  [
+   {
+    "type": "retweet",
+    "target_post_id": 5,
+    "content": "c"
+   },
+   {
+    "agent_id": "a02",
+    "type": "repost",
+    "content": "c",
+    "target_post_id": 5,
+    "target_agent_id": null,
+    "reasoning": ""
+   }
+  ],
+  [
+   {
+    "type": "post",
+    "target_post_id": 5,
+    "content": " new "
+   },
+   {
+    "agent_id": "a02",
+    "type": "post",
+    "content": "new",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": ""
+   }
+  ],
+  [
+   {
+    "type": "follow",
+    "target_agent": "@Bob"
+   },
+   {
+    "agent_id": "a02",
+    "type": "follow",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": "a01",
+    "reasoning": ""
+   }
+  ],
+  [
+   {
+    "type": "follow",
+    "target_agent": "dan"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid follow: follow target 'dan' not in own feed]"
+   }
+  ],
+  [
+   {
+    "type": "follow"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid follow: follow target None not in own feed]"
+   }
+  ],
+  [
+   {
+    "type": "dance",
+    "reasoning": "why"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid dance: unknown action type] why"
+   }
+  ],
+  [
+   {
+    "type": "skip"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": ""
+   }
+  ],
+  [
+   {
+    "type": "dislike",
+    "target_post_id": "post 3"
+   },
+   {
+    "agent_id": "a02",
+    "type": "nothing",
+    "content": "",
+    "target_post_id": null,
+    "target_agent_id": null,
+    "reasoning": "[invalid dislike: post None not in own feed]"
+   }
+  ],
+  [
+   {
+    "type": "upvote",
+    "target_post_id": 5.0
+   },
+   {
+    "agent_id": "a02",
+    "type": "like",
+    "content": "",
+    "target_post_id": 5,
+    "target_agent_id": null,
+    "reasoning": ""
+   }
+  ]
+ ]
+}

@@ -1,0 +1,1449 @@
+{
+ "config": {
+  "question": "Will the Acme widget subscription win over small landlords?",
+  "seed_files": [
+   "seed.md"
+  ],
+  "num_agents": 9,
+  "rounds": 3,
+  "batch_size": 3,
+  "feed_size": 6,
+  "memory_size": 2,
+  "agent_model": "haiku",
+  "planner_model": "sonnet",
+  "concurrency": 4,
+  "language": "English",
+  "events": [
+   {
+    "round": 2,
+    "content": "Acme doubles the price."
+   },
+   {
+    "round": 2,
+    "content": "Acme doubles the price."
+   }
+  ],
+  "seed": 11,
+  "think": false,
+  "agent_runtime": "claude-code",
+  "planner_runtime": "claude-code",
+  "cast_from": null,
+  "study_id": null,
+  "variant": null,
+  "branched_from": null,
+  "branch_round": null
+ },
+ "config_json": "{\n  \"question\": \"Will the Acme widget subscription win over small landlords?\",\n  \"seed_files\": [\n    \"seed.md\"\n  ],\n  \"num_agents\": 9,\n  \"rounds\": 3,\n  \"batch_size\": 3,\n  \"feed_size\": 6,\n  \"memory_size\": 2,\n  \"agent_model\": \"haiku\",\n  \"planner_model\": \"sonnet\",\n  \"concurrency\": 4,\n  \"language\": \"English\",\n  \"events\": [\n    {\n      \"round\": 2,\n      \"content\": \"Acme doubles the price.\"\n    },\n    {\n      \"round\": 2,\n      \"content\": \"Acme doubles the price.\"\n    }\n  ],\n  \"seed\": 11,\n  \"think\": false,\n  \"agent_runtime\": \"claude-code\",\n  \"planner_runtime\": \"claude-code\",\n  \"cast_from\": null,\n  \"study_id\": null,\n  \"variant\": null,\n  \"branched_from\": null,\n  \"branch_round\": null\n}\n",
+ "graph_json": "{\n  \"entities\": [\n    {\n      \"id\": \"small-landlords\",\n      \"name\": \"Small landlords\",\n      \"kind\": \"group\",\n      \"summary\": \"Owners of a few flats.\",\n      \"source_chunk_ids\": [\n        0,\n        1,\n        2,\n        3,\n        4,\n        5,\n        6\n      ]\n    },\n    {\n      \"id\": \"acme-corporation\",\n      \"name\": \"Acme Corporation\",\n      \"kind\": \"organization\",\n      \"summary\": \"Acme makes widgets.\",\n      \"source_chunk_ids\": [\n        0,\n        4\n      ]\n    },\n    {\n      \"id\": \"jane-doe\",\n      \"name\": \"Jane Doe\",\n      \"kind\": \"person\",\n      \"summary\": \"Chief executive of Acme.\",\n      \"source_chunk_ids\": [\n        0,\n        4\n      ]\n    },\n    {\n      \"id\": \"the-city-council\",\n      \"name\": \"the City Council\",\n      \"kind\": \"organization\",\n      \"summary\": \"Local regulator.\",\n      \"source_chunk_ids\": [\n        0,\n        4\n      ]\n    },\n    {\n      \"id\": \"topic-0\",\n      \"name\": \"Topic 0\",\n      \"kind\": \"concept\",\n      \"summary\": \"\",\n      \"source_chunk_ids\": [\n        0,\n        1,\n        2,\n        3\n      ]\n    },\n    {\n      \"id\": \"topic-4\",\n      \"name\": \"Topic 4\",\n      \"kind\": \"concept\",\n      \"summary\": \"\",\n      \"source_chunk_ids\": [\n        4,\n        5,\n        6\n      ]\n    }\n  ],\n  \"relations\": [\n    {\n      \"source\": \"acme-corporation\",\n      \"target\": \"jane-doe\",\n      \"label\": \"employs\",\n      \"evidence\": \"Jane runs it.\"\n    },\n    {\n      \"source\": \"the-city-council\",\n      \"target\": \"acme-corporation\",\n      \"label\": \"regulates\",\n      \"evidence\": \"\"\n    }\n  ]\n}\n",
+ "personas_json": "[\n{\n  \"id\": \"a01\",\n  \"handle\": \"fake_user_2\",\n  \"name\": \"Placeholder name 3\",\n  \"bio\": \"Canned bio #4 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #5 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #6 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #7 from the offline test model (personas.batch).\",\n    \"Canned traits #8 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": \"the-city-council\"\n},\n{\n  \"id\": \"a02\",\n  \"handle\": \"fake_user_12\",\n  \"name\": \"Placeholder name 13\",\n  \"bio\": \"Canned bio #14 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #15 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #16 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #17 from the offline test model (personas.batch).\",\n    \"Canned traits #18 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": \"jane-doe\"\n},\n{\n  \"id\": \"a03\",\n  \"handle\": \"fake_user_22\",\n  \"name\": \"Placeholder name 23\",\n  \"bio\": \"Canned bio #24 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #25 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #26 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #27 from the offline test model (personas.batch).\",\n    \"Canned traits #28 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": \"acme-corporation\"\n},\n{\n  \"id\": \"a04\",\n  \"handle\": \"fake_user_32\",\n  \"name\": \"Placeholder name 33\",\n  \"bio\": \"Canned bio #34 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #35 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #36 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #37 from the offline test model (personas.batch).\",\n    \"Canned traits #38 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a05\",\n  \"handle\": \"fake_user_42\",\n  \"name\": \"Placeholder name 43\",\n  \"bio\": \"Canned bio #44 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #45 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #46 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #47 from the offline test model (personas.batch).\",\n    \"Canned traits #48 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.6,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a06\",\n  \"handle\": \"fake_user_52\",\n  \"name\": \"Placeholder name 53\",\n  \"bio\": \"Canned bio #54 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #55 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #56 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #57 from the offline test model (personas.batch).\",\n    \"Canned traits #58 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a07\",\n  \"handle\": \"fake_user_62\",\n  \"name\": \"Placeholder name 63\",\n  \"bio\": \"Canned bio #64 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #65 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #66 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #67 from the offline test model (personas.batch).\",\n    \"Canned traits #68 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a08\",\n  \"handle\": \"fake_user_72\",\n  \"name\": \"Placeholder name 73\",\n  \"bio\": \"Canned bio #74 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #75 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #76 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #77 from the offline test model (personas.batch).\",\n    \"Canned traits #78 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.5,\n  \"influence\": 0.5,\n  \"entity_id\": null\n},\n{\n  \"id\": \"a09\",\n  \"handle\": \"fake_user_82\",\n  \"name\": \"Placeholder name 83\",\n  \"bio\": \"Canned bio #84 from the offline test model (personas.batch).\",\n  \"background\": \"Canned background #85 from the offline test model (personas.batch).\",\n  \"stance\": \"Canned stance #86 from the offline test model (personas.batch).\",\n  \"traits\": [\n    \"Canned traits #87 from the offline test model (personas.batch).\",\n    \"Canned traits #88 from the offline test model (personas.batch).\"\n  ],\n  \"activity\": 0.3,\n  \"influence\": 0.5,\n  \"entity_id\": null\n}\n]\n",
+ "status": {
+  "state": "done",
+  "stage": "finished",
+  "round": 3,
+  "total_rounds": 3,
+  "detail": "report ready",
+  "error": null,
+  "pid": 0,
+  "started_at": "T",
+  "updated_at": "T",
+  "failed_batches": [
+   {
+    "round": 2,
+    "batch": 1,
+    "agents": [
+     "a04",
+     "a08"
+    ],
+    "error": "rate limited (fake)"
+   }
+  ]
+ },
+ "tables": {
+  "posts": [
+   [
+    1,
+    0,
+    "a02",
+    "Canned content #2 from the offline test model (engine.seed).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    2,
+    0,
+    "a03",
+    "Canned content #5 from the offline test model (engine.seed).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    3,
+    0,
+    "a09",
+    "Canned content #8 from the offline test model (engine.seed).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    4,
+    1,
+    "a06",
+    "Canned content #8 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    5,
+    1,
+    "a02",
+    "Canned content #8 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    6,
+    2,
+    "a02",
+    "Canned content #15 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    7,
+    2,
+    "a06",
+    "Canned content #8 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    8,
+    3,
+    "a02",
+    "Canned content #15 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    9,
+    3,
+    "a04",
+    "Canned content #8 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    10,
+    3,
+    "a03",
+    "Canned content #8 from the offline test model (engine.round).",
+    null,
+    null,
+    0,
+    0,
+    0,
+    0
+   ]
+  ],
+  "reactions": [],
+  "follows": [
+   [
+    "a01",
+    "a03"
+   ],
+   [
+    "a01",
+    "a05"
+   ],
+   [
+    "a01",
+    "a07"
+   ],
+   [
+    "a02",
+    "a01"
+   ],
+   [
+    "a02",
+    "a03"
+   ],
+   [
+    "a02",
+    "a06"
+   ],
+   [
+    "a02",
+    "a09"
+   ],
+   [
+    "a03",
+    "a02"
+   ],
+   [
+    "a03",
+    "a05"
+   ],
+   [
+    "a03",
+    "a09"
+   ],
+   [
+    "a04",
+    "a01"
+   ],
+   [
+    "a04",
+    "a02"
+   ],
+   [
+    "a04",
+    "a03"
+   ],
+   [
+    "a04",
+    "a07"
+   ],
+   [
+    "a04",
+    "a09"
+   ],
+   [
+    "a05",
+    "a01"
+   ],
+   [
+    "a05",
+    "a03"
+   ],
+   [
+    "a05",
+    "a04"
+   ],
+   [
+    "a05",
+    "a07"
+   ],
+   [
+    "a05",
+    "a08"
+   ],
+   [
+    "a05",
+    "a09"
+   ],
+   [
+    "a06",
+    "a01"
+   ],
+   [
+    "a06",
+    "a02"
+   ],
+   [
+    "a06",
+    "a03"
+   ],
+   [
+    "a06",
+    "a05"
+   ],
+   [
+    "a07",
+    "a01"
+   ],
+   [
+    "a07",
+    "a02"
+   ],
+   [
+    "a07",
+    "a03"
+   ],
+   [
+    "a07",
+    "a05"
+   ],
+   [
+    "a08",
+    "a02"
+   ],
+   [
+    "a08",
+    "a03"
+   ],
+   [
+    "a08",
+    "a04"
+   ],
+   [
+    "a08",
+    "a07"
+   ],
+   [
+    "a08",
+    "a09"
+   ],
+   [
+    "a09",
+    "a02"
+   ],
+   [
+    "a09",
+    "a03"
+   ],
+   [
+    "a09",
+    "a04"
+   ],
+   [
+    "a09",
+    "a05"
+   ]
+  ],
+  "actions": [
+   [
+    1,
+    0,
+    "{\"agent_id\":\"a02\",\"type\":\"post\",\"content\":\"Canned content #2 from the offline test model (engine.seed).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"\"}"
+   ],
+   [
+    2,
+    0,
+    "{\"agent_id\":\"a03\",\"type\":\"post\",\"content\":\"Canned content #5 from the offline test model (engine.seed).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"\"}"
+   ],
+   [
+    3,
+    0,
+    "{\"agent_id\":\"a09\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.seed).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"\"}"
+   ],
+   [
+    4,
+    1,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid reply: post 84 not in own feed] Canned reasoning #54 from the offline test model (engine.round).\"}"
+   ],
+   [
+    5,
+    1,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":9,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #59 from the offline test model (engine.round).\"}"
+   ],
+   [
+    6,
+    1,
+    "{\"agent_id\":\"a06\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid repost: post 58 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"}"
+   ],
+   [
+    7,
+    1,
+    "{\"agent_id\":\"a06\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}"
+   ],
+   [
+    8,
+    1,
+    "{\"agent_id\":\"a09\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid like: post 47 not in own feed] Canned reasoning #42 from the offline test model (engine.round).\"}"
+   ],
+   [
+    9,
+    1,
+    "{\"agent_id\":\"a09\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid reply: post 57 not in own feed] Canned reasoning #47 from the offline test model (engine.round).\"}"
+   ],
+   [
+    10,
+    1,
+    "{\"agent_id\":\"a02\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid repost: post 18 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"}"
+   ],
+   [
+    11,
+    1,
+    "{\"agent_id\":\"a02\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}"
+   ],
+   [
+    12,
+    1,
+    "{\"agent_id\":\"a08\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid like: post 75 not in own feed] Canned reasoning #42 from the offline test model (engine.round).\"}"
+   ],
+   [
+    13,
+    1,
+    "{\"agent_id\":\"a08\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid reply: post 14 not in own feed] Canned reasoning #47 from the offline test model (engine.round).\"}"
+   ],
+   [
+    14,
+    2,
+    "{\"agent_id\":\"a02\",\"type\":\"post\",\"content\":\"Canned content #15 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #18 from the offline test model (engine.round).\"}"
+   ],
+   [
+    15,
+    2,
+    "{\"agent_id\":\"a02\",\"type\":\"follow\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":\"a09\",\"reasoning\":\"Canned reasoning #23 from the offline test model (engine.round).\"}"
+   ],
+   [
+    16,
+    2,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid reply: post 8 not in own feed] Canned reasoning #54 from the offline test model (engine.round).\"}"
+   ],
+   [
+    17,
+    2,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":44,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #59 from the offline test model (engine.round).\"}"
+   ],
+   [
+    18,
+    2,
+    "{\"agent_id\":\"a06\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid repost: post 58 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"}"
+   ],
+   [
+    19,
+    2,
+    "{\"agent_id\":\"a06\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}"
+   ],
+   [
+    20,
+    3,
+    "{\"agent_id\":\"a02\",\"type\":\"post\",\"content\":\"Canned content #15 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #18 from the offline test model (engine.round).\"}"
+   ],
+   [
+    21,
+    3,
+    "{\"agent_id\":\"a02\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid follow: already following] Canned reasoning #23 from the offline test model (engine.round).\"}"
+   ],
+   [
+    22,
+    3,
+    "{\"agent_id\":\"a04\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid repost: post 38 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"}"
+   ],
+   [
+    23,
+    3,
+    "{\"agent_id\":\"a04\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}"
+   ],
+   [
+    24,
+    3,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":1,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #66 from the offline test model (engine.round).\"}"
+   ],
+   [
+    25,
+    3,
+    "{\"agent_id\":\"a05\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid dislike: post 12 not in own feed] Canned reasoning #71 from the offline test model (engine.round).\"}"
+   ],
+   [
+    26,
+    3,
+    "{\"agent_id\":\"a03\",\"type\":\"nothing\",\"content\":\"\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"}"
+   ],
+   [
+    27,
+    3,
+    "{\"agent_id\":\"a03\",\"type\":\"post\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"target_post_id\":null,\"target_agent_id\":null,\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}"
+   ]
+  ],
+  "round_stats": [
+   [
+    0,
+    "{\"round\":0,\"actions\":{\"post\":3},\"new_posts\":3,\"active_agents\":3,\"sentiment\":0.5,\"llm_calls\":2,\"llm_seconds\":0.0}"
+   ],
+   [
+    1,
+    "{\"round\":1,\"actions\":{\"nothing\":8,\"post\":2},\"new_posts\":2,\"active_agents\":5,\"sentiment\":0.5,\"llm_calls\":3,\"llm_seconds\":0.0}"
+   ],
+   [
+    2,
+    "{\"round\":2,\"actions\":{\"post\":2,\"follow\":1,\"nothing\":3},\"new_posts\":2,\"active_agents\":5,\"sentiment\":null,\"llm_calls\":3,\"llm_seconds\":0.0}"
+   ],
+   [
+    3,
+    "{\"round\":3,\"actions\":{\"post\":3,\"nothing\":5},\"new_posts\":3,\"active_agents\":4,\"sentiment\":0.5,\"llm_calls\":3,\"llm_seconds\":0.0}"
+   ]
+  ],
+  "events": [
+   [
+    1,
+    2,
+    "Acme doubles the price."
+   ],
+   [
+    2,
+    2,
+    "Acme doubles the price."
+   ]
+  ],
+  "memories": [
+   [
+    "a02",
+    "[\"R2: Canned memory_note #24 from the offline test model (engine.round).\", \"R3: Canned memory_note #24 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a03",
+    "[\"R0: Canned memory_note #6 from the offline test model (engine.seed).\", \"R3: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a04",
+    "[\"R3: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a05",
+    "[\"R2: Canned memory_note #60 from the offline test model (engine.round).\", \"R3: Canned memory_note #72 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a06",
+    "[\"R1: Canned memory_note #12 from the offline test model (engine.round).\", \"R2: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a08",
+    "[\"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a09",
+    "[\"R0: Canned memory_note #9 from the offline test model (engine.seed).\", \"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ]
+  ],
+  "memory_history": [
+   [
+    "a02",
+    0,
+    "[\"R0: Canned memory_note #3 from the offline test model (engine.seed).\"]"
+   ],
+   [
+    "a03",
+    0,
+    "[\"R0: Canned memory_note #6 from the offline test model (engine.seed).\"]"
+   ],
+   [
+    "a09",
+    0,
+    "[\"R0: Canned memory_note #9 from the offline test model (engine.seed).\"]"
+   ],
+   [
+    "a02",
+    1,
+    "[\"R0: Canned memory_note #3 from the offline test model (engine.seed).\", \"R1: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a03",
+    1,
+    "[\"R0: Canned memory_note #6 from the offline test model (engine.seed).\"]"
+   ],
+   [
+    "a05",
+    1,
+    "[\"R1: Canned memory_note #60 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a06",
+    1,
+    "[\"R1: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a08",
+    1,
+    "[\"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a09",
+    1,
+    "[\"R0: Canned memory_note #9 from the offline test model (engine.seed).\", \"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a02",
+    2,
+    "[\"R1: Canned memory_note #12 from the offline test model (engine.round).\", \"R2: Canned memory_note #24 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a03",
+    2,
+    "[\"R0: Canned memory_note #6 from the offline test model (engine.seed).\"]"
+   ],
+   [
+    "a05",
+    2,
+    "[\"R1: Canned memory_note #60 from the offline test model (engine.round).\", \"R2: Canned memory_note #60 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a06",
+    2,
+    "[\"R1: Canned memory_note #12 from the offline test model (engine.round).\", \"R2: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a08",
+    2,
+    "[\"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a09",
+    2,
+    "[\"R0: Canned memory_note #9 from the offline test model (engine.seed).\", \"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a02",
+    3,
+    "[\"R2: Canned memory_note #24 from the offline test model (engine.round).\", \"R3: Canned memory_note #24 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a03",
+    3,
+    "[\"R0: Canned memory_note #6 from the offline test model (engine.seed).\", \"R3: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a04",
+    3,
+    "[\"R3: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a05",
+    3,
+    "[\"R2: Canned memory_note #60 from the offline test model (engine.round).\", \"R3: Canned memory_note #72 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a06",
+    3,
+    "[\"R1: Canned memory_note #12 from the offline test model (engine.round).\", \"R2: Canned memory_note #12 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a08",
+    3,
+    "[\"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ],
+   [
+    "a09",
+    3,
+    "[\"R0: Canned memory_note #9 from the offline test model (engine.seed).\", \"R1: Canned memory_note #48 from the offline test model (engine.round).\"]"
+   ]
+  ],
+  "post_sentiment": [
+   [
+    1,
+    0.5
+   ],
+   [
+    2,
+    0.5
+   ],
+   [
+    3,
+    0.5
+   ],
+   [
+    4,
+    0.5
+   ],
+   [
+    5,
+    0.5
+   ],
+   [
+    10,
+    0.5
+   ]
+  ],
+  "sqlite_sequence": [
+   [
+    "actions",
+    27
+   ],
+   [
+    "events",
+    2
+   ],
+   [
+    "posts",
+    10
+   ]
+  ]
+ },
+ "calls": [
+  [
+   "graph.extract",
+   "sonnet",
+   "Question the simulation will try to answer:\nWill the Acme widget subscription win over small landlords?\n\nExtract the entities and relations from the chunks below. Favour the actors whose reaction to the question matters, and the things they would react to. A typical chunk yields 3-12 entities.\n\n<chunk id=\"0\" source=\"seed.md\">\nSection 1. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 1 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 2. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 2 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\n<chunk id=\"1\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 3. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 3 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 4. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 4 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\n<chunk id=\"2\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 5. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 5 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 6. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 6 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\n<chunk id=\"3\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 7. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 7 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 8. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 8 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\nReturn a JSON object:\n{\"entities\": [{\"name\": str, \"kind\": str, \"summary\": str, \"aliases\": [str], \"chunk_ids\": [int]}],\n  \"relations\": [{\"source\": entity name, \"target\": entity name, \"label\": str, \"evidence\": str}]}"
+  ],
+  [
+   "graph.extract",
+   "sonnet",
+   "Question the simulation will try to answer:\nWill the Acme widget subscription win over small landlords?\n\nExtract the entities and relations from the chunks below. Favour the actors whose reaction to the question matters, and the things they would react to. A typical chunk yields 3-12 entities.\n\n<chunk id=\"4\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 9. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 9 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 10. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 10 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\n<chunk id=\"5\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 11. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 11 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 12. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 12 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\n<chunk id=\"6\" source=\"seed.md\">\nin detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 13. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 13 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n\nSection 14. Acme Corporation sells widgets to small landlords across the region. Jane Doe, its chief executive, says the new subscription saves money. The City Council worries about tenants, and landlord groups ask whether paragraph 14 of the contract can change after signing. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail. Prices, support hours and repair times are listed in detail.\n</chunk>\n\nReturn a JSON object:\n{\"entities\": [{\"name\": str, \"kind\": str, \"summary\": str, \"aliases\": [str], \"chunk_ids\": [int]}],\n  \"relations\": [{\"source\": entity name, \"target\": entity name, \"label\": str, \"evidence\": str}]}"
+  ],
+  [
+   "personas.cast",
+   "sonnet",
+   "Question: Will the Acme widget subscription win over small landlords?\n\nCandidate entities (id [kind]: name: summary):\n- acme-corporation [organization]: Acme Corporation: Acme makes widgets.\n- jane-doe [person]: Jane Doe: Chief executive of Acme.\n- the-city-council [organization]: the City Council: Local regulator.\n\nReturn up to 3 entity_ids from the list, most relevant first. Return fewer, or none, if few would genuinely post about this."
+  ],
+  [
+   "personas.batch",
+   "sonnet",
+   "Question being simulated:\nWill the Acme widget subscription win over small landlords?\n\nBackground material (from the seed documents):\nKey entities:\n- Small landlords [group]: Owners of a few flats.\n- Acme Corporation [organization]: Acme makes widgets.\n- Jane Doe [person]: Chief executive of Acme.\n- the City Council [organization]: Local regulator.\n- Topic 0 [concept]: \n- Topic 4 [concept]: \nRelations:\n- Acme Corporation employs Jane Doe\n- the City Council regulates Acme Corporation\n\nAccounts already created (do not reuse these handles or near-duplicate these people):\n- (none yet)\n\nWrite exactly one persona for each slot below, in the same order, honouring every slot's brief:\n- slot a01: ENTITY VOICE for the City Council (organization, id the-city-council): Local regulator.\n- slot a02: ENTITY VOICE for Jane Doe (person, id jane-doe): Chief executive of Acme.\n- slot a03: ENTITY VOICE for Acme Corporation (organization, id acme-corporation): Acme makes widgets.\n- slot a04: ordinary member of the public; age 35-44; part of: Small landlords; starting stance: strongly critical and vocal about it; engagement: occasional: posts or replies now and then (activity 0.30-0.60)\n- slot a05: ordinary member of the public; age 55-64; part of: any affected segment not yet covered; starting stance: indifferent, barely follows the topic and only reacts if it touches daily life; engagement: very active: posts and argues often (activity 0.60-0.95)\n- slot a06: ordinary member of the public; age 45-54; part of: Small landlords; starting stance: undecided or conflicted, can see both sides; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)\n- slot a07: ordinary member of the public; age 65+; part of: any affected segment not yet covered; starting stance: leans supportive, holds the view moderately; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)\n- slot a08: ordinary member of the public; age 25-34; part of: Small landlords; starting stance: leans critical, holds the view moderately; engagement: occasional: posts or replies now and then (activity 0.30-0.60)\n- slot a09: ordinary member of the public; age 18-24; part of: any affected segment not yet covered; starting stance: strongly supportive and vocal about it; engagement: lurker: mostly reads, rarely posts (activity 0.05-0.30)\n\nWrite `name`, `bio`, `background`, `stance` and `traits` in English; pick names that fit the setting of the material. Handles stay lowercase ASCII.\n\nReturn a JSON object:\n{\"personas\": [{\"slot\": slot id, \"handle\": str, \"name\": str, \"bio\": str, \"background\": str,\n  \"stance\": str, \"traits\": [str], \"activity\": float, \"influence\": float}]}"
+  ],
+  [
+   "engine.seed",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nSituation (from the source material):\n- Small landlords (group): Owners of a few flats.\n- Acme Corporation (organization): Acme makes widgets.\n- Jane Doe (person): Chief executive of Acme.\n- the City Council (organization): Local regulator.\n- Topic 0 (concept): \n- Topic 4 (concept): \n- Acme Corporation employs Jane Doe\n- the City Council regulates Acme Corporation\n\n\n\nUsers who post now:\n\n=== a02 @fake_user_12 ===\nName: Placeholder name 13 (organisation / public account)\nPublic bio: Canned bio #14 from the offline test model (personas.batch).\nPrivate background: Canned background #15 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #16 from the offline test model (personas.batch).\nTraits: Canned traits #17 from the offline test model (personas.batch)., Canned traits #18 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\n\n=== a03 @fake_user_22 ===\nName: Placeholder name 23 (organisation / public account)\nPublic bio: Canned bio #24 from the offline test model (personas.batch).\nPrivate background: Canned background #25 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #26 from the offline test model (personas.batch).\nTraits: Canned traits #27 from the offline test model (personas.batch)., Canned traits #28 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\n\n=== a09 @fake_user_82 ===\nName: Placeholder name 83\nPublic bio: Canned bio #84 from the offline test model (personas.batch).\nPrivate background: Canned background #85 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #86 from the offline test model (personas.batch).\nTraits: Canned traits #87 from the offline test model (personas.batch)., Canned traits #88 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)"
+  ],
+  [
+   "engine.sentiment",
+   "haiku",
+   "Question: Will the Acme widget subscription win over small landlords?\n\nPosts from round 0:\n#1: Canned content #2 from the offline test model (engine.seed).\n#2: Canned content #5 from the offline test model (engine.seed).\n#3: Canned content #8 from the offline test model (engine.seed)."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 1 of 3.\n\nUsers to decide for: 3. Each block holds one user's private profile, memory and own feed.\n\n=== a06 @fake_user_52 ===\nName: Placeholder name 53\nPublic bio: Canned bio #54 from the offline test model (personas.batch).\nPrivate background: Canned background #55 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #56 from the offline test model (personas.batch).\nTraits: Canned traits #57 from the offline test model (personas.batch)., Canned traits #58 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nFollows 4 accounts, followed by 1.\n\nFeed (the only posts this user may reference):\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a09 @fake_user_82 ===\nName: Placeholder name 83\nPublic bio: Canned bio #84 from the offline test model (personas.batch).\nPrivate background: Canned background #85 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #86 from the offline test model (personas.batch).\nTraits: Canned traits #87 from the offline test model (personas.batch)., Canned traits #88 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: Canned memory_note #9 from the offline test model (engine.seed).\nFollows 4 accounts, followed by 4.\nYour recent posts (for consistency; you cannot react to these):\n- round 0: Canned content #8 from the offline test model (engine.seed). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n\n=== a05 @fake_user_42 ===\nName: Placeholder name 43\nPublic bio: Canned bio #44 from the offline test model (personas.batch).\nPrivate background: Canned background #45 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #46 from the offline test model (personas.batch).\nTraits: Canned traits #47 from the offline test model (personas.batch)., Canned traits #48 from the offline test model (personas.batch).\nActivity level: high (posts and replies often)\nFollows 6 accounts, followed by 5.\n\nFeed (the only posts this user may reference):\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a06, a09, a05."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 1 of 3.\n\nUsers to decide for: 2. Each block holds one user's private profile, memory and own feed.\n\n=== a02 @fake_user_12 ===\nName: Placeholder name 13 (organisation / public account)\nPublic bio: Canned bio #14 from the offline test model (personas.batch).\nPrivate background: Canned background #15 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #16 from the offline test model (personas.batch).\nTraits: Canned traits #17 from the offline test model (personas.batch)., Canned traits #18 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: Canned memory_note #3 from the offline test model (engine.seed).\nFollows 3 accounts, followed by 6.\nYour recent posts (for consistency; you cannot react to these):\n- round 0: Canned content #2 from the offline test model (engine.seed). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a08 @fake_user_72 ===\nName: Placeholder name 73\nPublic bio: Canned bio #74 from the offline test model (personas.batch).\nPrivate background: Canned background #75 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #76 from the offline test model (personas.batch).\nTraits: Canned traits #77 from the offline test model (personas.batch)., Canned traits #78 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nFollows 5 accounts, followed by 1.\n\nFeed (the only posts this user may reference):\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a02, a08."
+  ],
+  [
+   "engine.sentiment",
+   "haiku",
+   "Question: Will the Acme widget subscription win over small landlords?\n\nPosts from round 1:\n#4: Canned content #8 from the offline test model (engine.round).\n#5: Canned content #8 from the offline test model (engine.round)."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 2 of 3.\n\nBREAKING NEWS this round (every user has just seen this):\n- Acme doubles the price.\n- Acme doubles the price.\n\nUsers to decide for: 3. Each block holds one user's private profile, memory and own feed.\n\n=== a06 @fake_user_52 ===\nName: Placeholder name 53\nPublic bio: Canned bio #54 from the offline test model (personas.batch).\nPrivate background: Canned background #55 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #56 from the offline test model (personas.batch).\nTraits: Canned traits #57 from the offline test model (personas.batch)., Canned traits #58 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R1: Canned memory_note #12 from the offline test model (engine.round).\nFollows 4 accounts, followed by 1.\nYour recent posts (for consistency; you cannot react to these):\n- round 1: Canned content #8 from the offline test model (engine.round). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#5] @fake_user_12 (a02) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a05 @fake_user_42 ===\nName: Placeholder name 43\nPublic bio: Canned bio #44 from the offline test model (personas.batch).\nPrivate background: Canned background #45 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #46 from the offline test model (personas.batch).\nTraits: Canned traits #47 from the offline test model (personas.batch)., Canned traits #48 from the offline test model (personas.batch).\nActivity level: high (posts and replies often)\nMemory (oldest first):\n- R1: Canned memory_note #60 from the offline test model (engine.round).\nFollows 6 accounts, followed by 5.\n\nFeed (the only posts this user may reference):\n[#5] @fake_user_12 (a02), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a02 @fake_user_12 ===\nName: Placeholder name 13 (organisation / public account)\nPublic bio: Canned bio #14 from the offline test model (personas.batch).\nPrivate background: Canned background #15 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #16 from the offline test model (personas.batch).\nTraits: Canned traits #17 from the offline test model (personas.batch)., Canned traits #18 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: Canned memory_note #3 from the offline test model (engine.seed).\n- R1: Canned memory_note #12 from the offline test model (engine.round).\nFollows 3 accounts, followed by 6.\nYour recent posts (for consistency; you cannot react to these):\n- round 0: Canned content #2 from the offline test model (engine.seed). [likes 0, dislikes 0, reposts 0, replies 0]\n- round 1: Canned content #8 from the offline test model (engine.round). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#4] @fake_user_52 (a06) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a06, a05, a02."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 2 of 3.\n\nBREAKING NEWS this round (every user has just seen this):\n- Acme doubles the price.\n- Acme doubles the price.\n\nUsers to decide for: 2. Each block holds one user's private profile, memory and own feed.\n\n=== a04 @fake_user_32 ===\nName: Placeholder name 33\nPublic bio: Canned bio #34 from the offline test model (personas.batch).\nPrivate background: Canned background #35 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #36 from the offline test model (personas.batch).\nTraits: Canned traits #37 from the offline test model (personas.batch)., Canned traits #38 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nFollows 5 accounts, followed by 3.\n\nFeed (the only posts this user may reference):\n[#5] @fake_user_12 (a02) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a08 @fake_user_72 ===\nName: Placeholder name 73\nPublic bio: Canned bio #74 from the offline test model (personas.batch).\nPrivate background: Canned background #75 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #76 from the offline test model (personas.batch).\nTraits: Canned traits #77 from the offline test model (personas.batch)., Canned traits #78 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R1: Canned memory_note #48 from the offline test model (engine.round).\nFollows 5 accounts, followed by 1.\n\nFeed (the only posts this user may reference):\n[#5] @fake_user_12 (a02) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a04, a08."
+  ],
+  [
+   "engine.sentiment",
+   "haiku",
+   "Question: Will the Acme widget subscription win over small landlords?\n\nPosts from round 2:\n#6: Canned content #15 from the offline test model (engine.round).\n#7: Canned content #8 from the offline test model (engine.round)."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 3 of 3.\n\nEarlier news:\n- Acme doubles the price.\n- Acme doubles the price.\n\nUsers to decide for: 3. Each block holds one user's private profile, memory and own feed.\n\n=== a04 @fake_user_32 ===\nName: Placeholder name 33\nPublic bio: Canned bio #34 from the offline test model (personas.batch).\nPrivate background: Canned background #35 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #36 from the offline test model (personas.batch).\nTraits: Canned traits #37 from the offline test model (personas.batch)., Canned traits #38 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nFollows 5 accounts, followed by 3.\n\nFeed (the only posts this user may reference):\n[#6] @fake_user_12 (a02) [you follow], round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #15 from the offline test model (engine.round).\n[#7] @fake_user_52 (a06), round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#5] @fake_user_12 (a02) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n\n=== a02 @fake_user_12 ===\nName: Placeholder name 13 (organisation / public account)\nPublic bio: Canned bio #14 from the offline test model (personas.batch).\nPrivate background: Canned background #15 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #16 from the offline test model (personas.batch).\nTraits: Canned traits #17 from the offline test model (personas.batch)., Canned traits #18 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R1: Canned memory_note #12 from the offline test model (engine.round).\n- R2: Canned memory_note #24 from the offline test model (engine.round).\nFollows 4 accounts, followed by 6.\nYour recent posts (for consistency; you cannot react to these):\n- round 0: Canned content #2 from the offline test model (engine.seed). [likes 0, dislikes 0, reposts 0, replies 0]\n- round 1: Canned content #8 from the offline test model (engine.round). [likes 0, dislikes 0, reposts 0, replies 0]\n- round 2: Canned content #15 from the offline test model (engine.round). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#7] @fake_user_52 (a06) [you follow], round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\n=== a05 @fake_user_42 ===\nName: Placeholder name 43\nPublic bio: Canned bio #44 from the offline test model (personas.batch).\nPrivate background: Canned background #45 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #46 from the offline test model (personas.batch).\nTraits: Canned traits #47 from the offline test model (personas.batch)., Canned traits #48 from the offline test model (personas.batch).\nActivity level: high (posts and replies often)\nMemory (oldest first):\n- R1: Canned memory_note #60 from the offline test model (engine.round).\n- R2: Canned memory_note #60 from the offline test model (engine.round).\nFollows 6 accounts, followed by 5.\n\nFeed (the only posts this user may reference):\n[#6] @fake_user_12 (a02), round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #15 from the offline test model (engine.round).\n[#7] @fake_user_52 (a06), round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#5] @fake_user_12 (a02), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#2] @fake_user_22 (a03) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #5 from the offline test model (engine.seed).\n[#1] @fake_user_12 (a02), round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a04, a02, a05."
+  ],
+  [
+   "engine.round",
+   "haiku",
+   "Question being simulated: Will the Acme widget subscription win over small landlords?\n\nRound 3 of 3.\n\nEarlier news:\n- Acme doubles the price.\n- Acme doubles the price.\n\nUsers to decide for: 1. Each block holds one user's private profile, memory and own feed.\n\n=== a03 @fake_user_22 ===\nName: Placeholder name 23 (organisation / public account)\nPublic bio: Canned bio #24 from the offline test model (personas.batch).\nPrivate background: Canned background #25 from the offline test model (personas.batch).\nStarting stance on the topic: Canned stance #26 from the offline test model (personas.batch).\nTraits: Canned traits #27 from the offline test model (personas.batch)., Canned traits #28 from the offline test model (personas.batch).\nActivity level: medium (reads a lot, chimes in now and then)\nMemory (oldest first):\n- R0: Canned memory_note #6 from the offline test model (engine.seed).\nFollows 3 accounts, followed by 8.\nYour recent posts (for consistency; you cannot react to these):\n- round 0: Canned content #5 from the offline test model (engine.seed). [likes 0, dislikes 0, reposts 0, replies 0]\nFeed (the only posts this user may reference):\n[#6] @fake_user_12 (a02) [you follow], round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #15 from the offline test model (engine.round).\n[#7] @fake_user_52 (a06), round 2 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#5] @fake_user_12 (a02) [you follow], round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#4] @fake_user_52 (a06), round 1 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.round).\n[#1] @fake_user_12 (a02) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #2 from the offline test model (engine.seed).\n[#3] @fake_user_82 (a09) [you follow], round 0 - likes 0, dislikes 0, reposts 0, replies 0\n  Canned content #8 from the offline test model (engine.seed).\n\nReturn exactly one decision per user: a03."
+  ],
+  [
+   "engine.sentiment",
+   "haiku",
+   "Question: Will the Acme widget subscription win over small landlords?\n\nPosts from round 3:\n#8: Canned content #15 from the offline test model (engine.round).\n#9: Canned content #8 from the offline test model (engine.round).\n#10: Canned content #8 from the offline test model (engine.round)."
+  ]
+ ],
+ "events": [
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "reading",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "reading 1 seed file",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "reading",
+    "detail": "reading 1 seed file"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "graph",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "extracting from 7 chunks",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "graph",
+    "detail": "extracting from 7 chunks",
+    "chunks": 7,
+    "estimated_calls": 15
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "graph",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "extract 1/2: chunks 0-3 5 entities",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "graph",
+    "detail": "extract 1/2: chunks 0-3 5 entities"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "graph",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "extract 2/2: chunks 4-6 5 entities",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "graph",
+    "detail": "extract 2/2: chunks 4-6 5 entities"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "graph",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "graph: 6 entities, 2 relations",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "graph",
+    "detail": "graph: 6 entities, 2 relations"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "personas",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "creating 9 personas",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "personas",
+    "detail": "creating 9 personas",
+    "entities": 6,
+    "relations": 2
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "seeding follows and opening posts",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "seeding",
+    "detail": "seeding follows and opening posts",
+    "personas": 9
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "building the follow graph",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "seeding",
+    "detail": "building the follow graph",
+    "step": "follow_graph"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "follow graph ready",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "seeding",
+    "detail": "follow graph ready",
+    "step": "follow_graph_done"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "writing opening posts",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "seeding",
+    "detail": "writing opening posts",
+    "step": "opening_posts"
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 0,
+    "post_ids": [
+     1,
+     2,
+     3
+    ]
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "opening posts written",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "seeding",
+    "detail": "opening posts written",
+    "step": "opening_posts_done"
+   }
+  ],
+  [
+   "round_done",
+   {
+    "round": 0,
+    "actions": {
+     "post": 3
+    },
+    "new_posts": 3,
+    "active_agents": 3,
+    "sentiment": 0.5,
+    "llm_calls": 2,
+    "llm_seconds": 0.0,
+    "total_rounds": 3
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "seeding",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "opening posts written",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "simulating 3 rounds",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "rounds",
+    "detail": "simulating 3 rounds"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 0,
+    "total_rounds": 3,
+    "detail": "round 1 of 3: 2 batches deciding",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "round_start",
+   {
+    "round": 1,
+    "active": 5,
+    "total_rounds": 3,
+    "active_agents": [
+     "a06",
+     "a09",
+     "a05",
+     "a02",
+     "a08"
+    ],
+    "batches": 2,
+    "events": []
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 1,
+    "post_ids": [
+     4
+    ]
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 1,
+    "post_ids": [
+     5
+    ]
+   }
+  ],
+  [
+   "round_done",
+   {
+    "round": 1,
+    "actions": {
+     "nothing": 8,
+     "post": 2
+    },
+    "new_posts": 2,
+    "active_agents": 5,
+    "sentiment": 0.5,
+    "llm_calls": 3,
+    "llm_seconds": 0.0,
+    "total_rounds": 3
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 1,
+    "total_rounds": 3,
+    "detail": "round 1 of 3 done",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 1,
+    "total_rounds": 3,
+    "detail": "round 2 of 3: 2 batches deciding",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": []
+   }
+  ],
+  [
+   "round_start",
+   {
+    "round": 2,
+    "active": 5,
+    "total_rounds": 3,
+    "active_agents": [
+     "a06",
+     "a05",
+     "a02",
+     "a04",
+     "a08"
+    ],
+    "batches": 2,
+    "events": [
+     "Acme doubles the price.",
+     "Acme doubles the price."
+    ]
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 1,
+    "total_rounds": 3,
+    "detail": "round 2 of 3: 2 batches deciding",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "batch_failed",
+   {
+    "round": 2,
+    "batch": 1,
+    "agents": [
+     "a04",
+     "a08"
+    ],
+    "error": "rate limited (fake)"
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 2,
+    "post_ids": [
+     6,
+     7
+    ]
+   }
+  ],
+  [
+   "round_done",
+   {
+    "round": 2,
+    "actions": {
+     "post": 2,
+     "follow": 1,
+     "nothing": 3
+    },
+    "new_posts": 2,
+    "active_agents": 5,
+    "sentiment": null,
+    "llm_calls": 3,
+    "llm_seconds": 0.0,
+    "total_rounds": 3
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 2,
+    "total_rounds": 3,
+    "detail": "round 2 of 3 done",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 2,
+    "total_rounds": 3,
+    "detail": "round 3 of 3: 2 batches deciding",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "round_start",
+   {
+    "round": 3,
+    "active": 4,
+    "total_rounds": 3,
+    "active_agents": [
+     "a04",
+     "a02",
+     "a05",
+     "a03"
+    ],
+    "batches": 2,
+    "events": []
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 3,
+    "post_ids": [
+     8,
+     9
+    ]
+   }
+  ],
+  [
+   "posts_added",
+   {
+    "round": 3,
+    "post_ids": [
+     10
+    ]
+   }
+  ],
+  [
+   "round_done",
+   {
+    "round": 3,
+    "actions": {
+     "post": 3,
+     "nothing": 5
+    },
+    "new_posts": 3,
+    "active_agents": 4,
+    "sentiment": 0.5,
+    "llm_calls": 3,
+    "llm_seconds": 0.0,
+    "total_rounds": 3
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "rounds",
+    "round": 3,
+    "total_rounds": 3,
+    "detail": "round 3 of 3 done",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "running",
+    "stage": "report",
+    "round": 3,
+    "total_rounds": 3,
+    "detail": "writing the report",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "stage",
+   {
+    "stage": "report",
+    "detail": "writing the report"
+   }
+  ],
+  [
+   "status",
+   {
+    "state": "done",
+    "stage": "finished",
+    "round": 3,
+    "total_rounds": 3,
+    "detail": "report ready",
+    "error": null,
+    "pid": 0,
+    "started_at": "T",
+    "updated_at": "T",
+    "failed_batches": [
+     {
+      "round": 2,
+      "batch": 1,
+      "agents": [
+       "a04",
+       "a08"
+      ],
+      "error": "rate limited (fake)"
+     }
+    ]
+   }
+  ],
+  [
+   "run_done",
+   {}
+  ]
+ ]
+}
