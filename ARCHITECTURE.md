@@ -191,6 +191,15 @@ async def build_compare(llm, study_id, members: list[Member], *, question, model
   claims that held in every run and claims that split, with a verdict (consistent, mixed, unstable). Written to
   `studies/<id>/agreement.json`.
 
+### `tellfold/branch.py` — branch a run from a round
+The engine keeps every agent's memory at the end of each round in `memory_history (agent_id, round, notes)`.
+`prepare_branch(source_dir, run_dir, source, r, events)` copies the seeds, graph, personas and `world.db` (SQLite
+backup API), then `World.truncate_after(r)` deletes posts, reactions, follows, actions, round stats, sentiment and
+events from later rounds (reactions and follows through their actions), recomputes the posts' counters, restarts the
+id counters and restores the memories of round r. The new config has `branched_from`, `branch_round`, the source's
+events up to r plus the new ones, and `run_pipeline` continues from round r + 1. Runs from before the history can be
+branched from round 0 (empty memories) or their last round. A branch joins a study with its source ("Original").
+
 ### `tellfold/rewrite.py` — suggest a better version
 One `report.rewrite` call gets the run's text document (the pasted `description.md`, else the first text seed),
 the report and the posts it cites, and returns a `RewriteSuggestion`: `revised_text`, `changes` (what, why, cited
@@ -212,6 +221,7 @@ tellfold run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--age
           [--language English] [--open]
           [--cast-from RUN_DIR] [--variant "Draft B"]   # reuse a run's people, join its study
 tellfold compare RUN_DIR           # compare the runs of RUN_DIR's study (studies/<id>/compare.json)
+tellfold branch RUN_DIR --at 2 [--event "3:TEXT"]... [--drop-events]   # what if...? continue from round 2
 tellfold rewrite RUN_DIR           # suggest a better version of the text (rewrite.json)
 tellfold check RUN_DIR [--runs 3]  # run it again with other seeds; what held (studies/<id>/agreement.json)
 tellfold report RUN_DIR            # rebuild report from an existing run

@@ -156,12 +156,18 @@ def _post_line(post: Post, ev: Evidence, letter: str) -> str:
             f'[engagement {engagement(post)}, sentiment {_signed(score)}]: "{body}"')
 
 
-def _run_block(loaded: _Loaded) -> str:
-    m, d, ev = loaded.member, loaded.digest, loaded.evidence
+def _run_block(loaded: _Loaded, letters: dict[str, str]) -> str:
+    m, d, ev, config = loaded.member, loaded.digest, loaded.evidence, loaded.config
     lines = [f"## {m.letter} = {m.variant}"]
+    if config is not None and config.branched_from is not None and config.branch_round is not None:
+        source = letters.get(config.branched_from, config.branched_from)
+        lines.append(f"A BRANCH of {source}: rounds 0 to {config.branch_round} are identical to {source}; "
+                     f"only what happened after round {config.branch_round} differs.")
     seed = _seed_text(m.run_dir)
     if seed:
         lines += ["TEXT THE CROWD READ:", seed]
+    if config is not None and config.events:
+        lines.append("NEWS EVENTS: " + "; ".join(f"round {e.round}: {e.content}" for e in config.events))
     lines.append(f"final sentiment {_signed(d.final_sentiment)}; {d.posts} posts")
     if d.rounds:
         lines.append("by round: " + ", ".join(f"r{p.round} {_signed(p.sentiment)} ({p.posts} posts)"
@@ -194,7 +200,8 @@ def _run_block(loaded: _Loaded) -> str:
 # ---------------------------------------------------------------- the comparison
 
 COMPARE_SYSTEM = """\
-You compare how one simulated crowd reacted to different versions of the same announcement. The same people (the \
+You compare how one simulated crowd reacted to different versions of the same announcement, or to the same \
+announcement with different news events (a branch that continues a run from a given round). The same people (the \
 same personas, with the same backgrounds and starting stances) read each version on a simulated microblogging \
 platform over several rounds. You receive a digest per version, computed from each run's database: the text the \
 crowd read, sentiment by round, opinion camps, the run's own report, its top posts and stance shifts.
@@ -203,7 +210,7 @@ Ground rules:
 - Use only the digests. Never invent posts, people, quotes or numbers.
 - Every run has a letter. Cite posts with the letter of their run, like A#12 or B#7, never a bare #12. Cite \
 people as @handle. Quote short fragments of posts exactly when they make a point vivid.
-- Explain differences by what changed in the text, and say when a difference is small enough to be chance: \
+- Explain differences by what changed in the text or in the events, and say when a difference is small enough to be chance: \
 one run per version is a single sample.
 - Write every prose field in {language}. Keep the version labels, @handles and refs exactly as given."""
 
@@ -236,7 +243,8 @@ async def build_compare(llm: LLM, study_id: str, members: list[Member], *, quest
     labels = [m.variant for m in members]
     legend = "; ".join(f"{m.letter} = {m.variant}" for m in members)
     prompt = COMPARE_TASK.format(question=question, legend=legend, labels=", ".join(f'"{x}"' for x in labels),
-                                 digests="\n\n".join(_run_block(x) for x in loaded))
+                                 digests="\n\n".join(_run_block(x, {m.run_id: m.letter for m in members})
+                                                       for x in loaded))
     draft = await llm.json(prompt, system=COMPARE_SYSTEM.format(language=language), model=model,
                            purpose="compare.write", schema=CompareReport)
     report = _finalize(draft, members)

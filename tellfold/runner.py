@@ -104,13 +104,15 @@ def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
     """(agent, planner) model calls for a run when nothing needs a retry. Mirrored in the Mac app
     (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both.
     A run that reuses a cast (`cast_from`) makes no graph or persona calls."""
-    reused = config.cast_from is not None
+    reused = config.cast_from is not None or config.branched_from is not None
+    branched = config.branched_from is not None and config.branch_round is not None
     graph = 0 if reused else math.ceil(min(chunks, MAX_EXTRACT_CHUNKS) / CHUNKS_PER_CALL)
     personas = 0 if reused else math.ceil(config.num_agents / 10)
-    opening = math.ceil(round(0.3 * config.num_agents) / config.batch_size) + 1  # opening posts + sentiment
+    opening = 0 if branched else math.ceil(round(0.3 * config.num_agents) / config.batch_size) + 1  # posts + sentiment
     active = max(1, math.ceil(config.num_agents * ESTIMATED_ACTIVE_SHARE))
     per_round = math.ceil(active / config.batch_size) + 1  # decisions + sentiment
-    return opening + config.rounds * per_round, graph + personas + 1
+    rounds = config.rounds - (config.branch_round or 0) if branched else config.rounds
+    return opening + rounds * per_round, graph + personas + 1
 
 
 def estimate_calls(config: SimConfig, chunks: int) -> int:
@@ -282,51 +284,65 @@ async def run_pipeline(
             finish_stopped()
             return None
 
-        if config.cast_from:
-            source = cast_dir or run_dir.parent / config.cast_from
-            cast = load_cast(source)
-            graph, personas = cast.graph, cast.personas
-            if config.num_agents != len(personas):  # the crowd is the source's, whatever size was asked for
-                config = config.model_copy(update={"num_agents": len(personas)})
-                write_json(run_dir / "config.json", config)
-            track.stage(RunStage.GRAPH, f"reusing the topic map of {config.cast_from}", chunks=len(chunks),
-                        reused=True, estimated_calls=estimate_calls(config, len(chunks)))
-            write_json(run_dir / "graph.json", graph)
-            track.stage(RunStage.PERSONAS, f"reusing the {len(personas)} people of {config.cast_from}",
-                        entities=len(graph.entities), relations=len(graph.relations), reused=True)
-            write_json(run_dir / "personas.json", personas)
-        else:
-            selected = select_chunks(chunks, config.question)
-            detail = (f"extracting from {len(chunks)} chunks" if len(selected) == len(chunks) else
-                      f"extracting from the {len(selected)} of {len(chunks)} chunks most relevant to the question")
-            track.stage(RunStage.GRAPH, detail, chunks=len(chunks),
+        if config.branched_from is not None and config.branch_round is not None:
+            # A branch: rounds 0..branch_round are already in the copied world (tellfold/branch.py).
+            first_round = config.branch_round + 1
+            graph = KnowledgeGraph.model_validate_json((run_dir / "graph.json").read_text(encoding="utf-8"))
+            track.stage(RunStage.GRAPH, f"reusing the topic map of {config.branched_from}", reused=True,
                         estimated_calls=estimate_calls(config, len(chunks)))
-            graph = await extract_graph(llm, selected, question=config.question, model=config.planner_model,
-                                        on_progress=track.detail)
-            write_json(run_dir / "graph.json", graph)
+            track.stage(RunStage.PERSONAS, f"reusing the people of {config.branched_from}", reused=True)
+            world = World(run_dir / "world.db", seed=config.seed)
+            engine = Engine(llm, world, config, on_event=track.engine_event)
+            track.stage(RunStage.SEEDING, f"rounds 0 to {config.branch_round} copied from {config.branched_from}",
+                        reused=True, personas=len(world.personas()))
+            track.update(round=config.branch_round)
+        else:
+            first_round = 1
+            if config.cast_from:
+                source = cast_dir or run_dir.parent / config.cast_from
+                cast = load_cast(source)
+                graph, personas = cast.graph, cast.personas
+                if config.num_agents != len(personas):  # the crowd is the source's, whatever size was asked for
+                    config = config.model_copy(update={"num_agents": len(personas)})
+                    write_json(run_dir / "config.json", config)
+                track.stage(RunStage.GRAPH, f"reusing the topic map of {config.cast_from}", chunks=len(chunks),
+                            reused=True, estimated_calls=estimate_calls(config, len(chunks)))
+                write_json(run_dir / "graph.json", graph)
+                track.stage(RunStage.PERSONAS, f"reusing the {len(personas)} people of {config.cast_from}",
+                            entities=len(graph.entities), relations=len(graph.relations), reused=True)
+                write_json(run_dir / "personas.json", personas)
+            else:
+                selected = select_chunks(chunks, config.question)
+                detail = (f"extracting from {len(chunks)} chunks" if len(selected) == len(chunks) else
+                          f"extracting from the {len(selected)} of {len(chunks)} chunks most relevant to the question")
+                track.stage(RunStage.GRAPH, detail, chunks=len(chunks),
+                            estimated_calls=estimate_calls(config, len(chunks)))
+                graph = await extract_graph(llm, selected, question=config.question, model=config.planner_model,
+                                            on_progress=track.detail)
+                write_json(run_dir / "graph.json", graph)
+                if stopping():
+                    finish_stopped()
+                    return None
+
+                track.stage(RunStage.PERSONAS, f"creating {config.num_agents} personas",
+                            entities=len(graph.entities), relations=len(graph.relations))
+                personas = await generate_personas(llm, graph, question=config.question, n=config.num_agents,
+                                                   model=config.planner_model, language=config.language)
+                write_json(run_dir / "personas.json", personas)
             if stopping():
                 finish_stopped()
                 return None
 
-            track.stage(RunStage.PERSONAS, f"creating {config.num_agents} personas",
-                        entities=len(graph.entities), relations=len(graph.relations))
-            personas = await generate_personas(llm, graph, question=config.question, n=config.num_agents,
-                                               model=config.planner_model, language=config.language)
-            write_json(run_dir / "personas.json", personas)
-        if stopping():
-            finish_stopped()
-            return None
+            world = World(run_dir / "world.db", seed=config.seed)
+            world.add_personas(personas)
+            engine = Engine(llm, world, config, on_event=track.engine_event)
 
-        world = World(run_dir / "world.db", seed=config.seed)
-        world.add_personas(personas)
-        engine = Engine(llm, world, config, on_event=track.engine_event)
-
-        track.stage(RunStage.SEEDING, "seeding follows and opening posts", personas=len(personas))
-        await engine.seed_world(graph)
-        track.update(round=0)
+            track.stage(RunStage.SEEDING, "seeding follows and opening posts", personas=len(personas))
+            await engine.seed_world(graph)
+            track.update(round=0)
 
         track.stage(RunStage.ROUNDS, f"simulating {config.rounds} rounds")
-        for r in range(1, config.rounds + 1):
+        for r in range(first_round, config.rounds + 1):
             if stopping():
                 break
             await engine.run_round(r)

@@ -199,6 +199,33 @@ def test_checking_an_example_uses_this_machines_ai_tool(runs_dir: Path, packed: 
     assert snapshot(packed) == before
 
 
+def test_branching_an_example_uses_this_machines_ai_tool_and_its_run_id(runs_dir: Path, packed: Path,
+                                                                        ready: Ready, tmp_path: Path) -> None:
+    settings = tmp_path / "settings.json"
+    save_settings(Settings(agent_runtime="ollama", agent_model="llama3", planner_runtime="ollama",
+                           planner_model="qwen3"), settings)
+    app = create_app(runs_dir, lambda run_dir, concurrency, think: FakeLLM(fake_responder), fake_llm=True,
+                     poll_interval=0.05, shutdown_grace=0.5, examples_dir=packed, runtime_ready=ready,
+                     settings_path=settings)
+    before = snapshot(packed)
+    with TestClient(app) as c:
+        ready.value = False
+        res = c.post("/api/runs/example-cafe/branch", json={"round": 1})
+        assert res.status_code == 409 and "AI tool" in res.json()["detail"]
+        ready.value = True
+        res = c.post("/api/runs/example-cafe/branch", json={"round": 1})
+        assert res.status_code == 200, res.text
+        branch = res.json()["id"]
+        deadline = time.monotonic() + 30
+        while c.get(f"/api/runs/{branch}").json()["status"]["state"] != "done" and time.monotonic() < deadline:
+            time.sleep(0.05)
+        config = c.get(f"/api/runs/{branch}").json()["config"]
+    assert (config["agent_runtime"], config["agent_model"]) == ("ollama", "llama3")
+    assert (config["planner_runtime"], config["planner_model"]) == ("ollama", "qwen3")
+    assert (config["branched_from"], config["cast_from"]) == ("example-cafe", "example-cafe")  # not "cafe"
+    assert snapshot(packed) == before
+
+
 def test_a_normal_run_with_the_same_id_prefix_does_not_collide(client: TestClient, runs_dir: Path) -> None:
     lookalike = fake_run(runs_dir)
     lookalike = lookalike.rename(runs_dir / "example-cafe-2")

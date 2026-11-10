@@ -57,6 +57,7 @@ from tellfold.runner import (  # noqa: F401 - re-exported: older callers and tes
     write_report,
 )
 from tellfold.agree import build_agreement
+from tellfold.branch import prepare_branch
 from tellfold.compare import COMPARE_FILE, Member, build_compare
 from tellfold.rewrite import REWRITE_FILE, RewriteError, build_rewrite
 from tellfold.runner import load_cast, now_iso
@@ -68,6 +69,7 @@ from tellfold.study import (
     letter,
     new_study_id,
     plan_variant,
+    repeat_config,
     save_study,
     study_dir,
     study_of,
@@ -656,12 +658,11 @@ def check(
     console.print(f"[bold]Check it[/]: {runs - 1} more run{'s' if runs > 2 else ''} of {run_dir.name}, one after "
                   "another" + ("  [yellow](fake LLM)[/]" if fake_mode() else ""), soft_wrap=True)
     for i in range(1, runs):
-        variant = f"Run {i + 1}"
         new_dir = create_run_dir(out, config.question)
         files = copy_seeds(new_dir, seeds)
-        new = config.model_copy(update={"seed_files": [str(f) for f in files], "seed": config.seed + i,
-                                        "cast_from": run_dir.resolve().name, "study_id": study.id,
-                                        "variant": variant, **({"agent_model": agent_model} if agent_model else {})})
+        new = repeat_config(config, run_dir.resolve().name, i, seed_files=files, study_id=study.id,
+                            agent_model=agent_model)
+        variant = new.variant or ""
         study = join_study(out, study, new_dir.name, variant)
         write_json(new_dir / "config.json", new)
         try:
@@ -693,6 +694,63 @@ def check(
     console.print(Panel(body, title=f"{agreement.verdict.capitalize()} across {agreement.runs} runs",
                         title_align="left", border_style="cyan"))
     console.print(f"Check: [bold]{folder / AGREEMENT_FILE}[/]", soft_wrap=True)
+
+
+@app.command()
+def branch(
+    run_dir: Annotated[Path, typer.Argument(exists=True, file_okay=False, help="The run to branch.")],
+    at: Annotated[int, typer.Option("--at", min=0, help="Keep rounds 0 to AT exactly as they happened.")],
+    event: Annotated[list[str] | None, typer.Option(
+        "--event", help="Something that happens after AT, as ROUND:TEXT. Repeatable.")] = None,
+    drop_events: Annotated[bool, typer.Option(
+        "--drop-events", help="Drop the run's own events after AT (by default they still happen).")] = False,
+    open_report: Annotated[bool, typer.Option("--open", help="Open report.html when done.")] = False,
+) -> None:
+    """What if...? Copy a run up to round AT, change what happens next, and continue it as a new run."""
+    config, world = load_run(run_dir)
+    try:
+        happened = world.events()  # includes events added while the run was going, which config.json lacks
+    finally:
+        world.close()
+    new_events = [parse_event(e, config.rounds) for e in event or []]
+    seen = {(e.round, e.content) for e in happened}
+    planned = happened + [e for e in config.events if (e.round, e.content) not in seen]  # not reached yet
+    later = [] if drop_events else [e for e in planned if e.round > at]
+    out = run_dir.resolve().parent
+    try:
+        study, label = plan_variant(out, run_dir.resolve().name, config, variant=f"Branch at round {at}",
+                                    now=now_iso(), source_label="Original")
+    except StudyError as e:
+        fail(str(e))
+    new_dir = create_run_dir(out, config.question)
+    try:
+        new = prepare_branch(run_dir.resolve(), new_dir, config, at, later + new_events, study_id=study.id,
+                             variant=label)
+    except RunError as e:
+        shutil.rmtree(new_dir, ignore_errors=True)
+        fail(str(e))
+    join_study(out, study, new_dir.name, label)
+    console.print(f"[bold]Tellfold[/] branch [cyan]{new_dir}[/] of {run_dir.name} after round {at}"
+                  + ("  [yellow](fake LLM)[/]" if fake_mode() else ""), soft_wrap=True)
+    view = RunView(new.rounds)
+    seeds = [Path(p) for p in new.seed_files if Path(p).is_file()]
+    try:
+        llm = make_llm(new_dir, new.concurrency, think=new.think, config=new)
+        with Live(get_renderable=view.render, console=console, refresh_per_second=8):
+            built = anyio.run(partial(run_pipeline, llm, new_dir, new, seeds, on_event=pipeline_listener(view, new)))
+    except KeyboardInterrupt:
+        mark_stopped(new_dir)
+        console.print(f"\n[yellow]Interrupted.[/] Everything written so far is in {new_dir}.", soft_wrap=True)
+        raise typer.Exit(EXIT_INTERRUPTED)
+    except (LLMError, RunError) as e:
+        console.line()
+        fail(f"{e}\nPartial results are in {new_dir}.")
+    if built is None:
+        fail("the branch stopped before a round finished")
+    print_summary(built, new_dir)
+    console.print(f"Study:  {study.id}. Compare it with the original: tellfold compare {new_dir}", soft_wrap=True)
+    if open_report:
+        webbrowser.open((new_dir / "report.html").resolve().as_uri())
 
 
 @app.command()

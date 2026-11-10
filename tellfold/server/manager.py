@@ -19,6 +19,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import shutil
 import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -30,6 +31,7 @@ from pydantic_core import to_jsonable_python
 
 from tellfold.chat import ask_report, interview
 from tellfold.agree import MAX_RUNS, build_agreement
+from tellfold.branch import prepare_branch
 from tellfold.compare import COMPARE_FILE, Member, build_compare
 from tellfold.llm import LLM
 from tellfold.models import (
@@ -48,6 +50,7 @@ from tellfold.report import build_report
 from tellfold.rewrite import REWRITE_FILE, RewriteError, build_rewrite
 from tellfold.runner import (
     SEEDS_DIR,
+    RunError,
     copy_seeds,
     create_run_dir,
     now_iso,
@@ -58,7 +61,18 @@ from tellfold.runner import (
 )
 from tellfold.server.reader import RunReader
 from tellfold.settings import load_settings
-from tellfold.study import AGREEMENT_FILE, letter, load_study, new_study_id, save_study, study_dir
+from tellfold.study import (
+    AGREEMENT_FILE,
+    StudyError,
+    join_study,
+    letter,
+    load_study,
+    new_study_id,
+    plan_variant,
+    repeat_config,
+    save_study,
+    study_dir,
+)
 from tellfold.world import World
 
 log = logging.getLogger(__name__)
@@ -316,6 +330,35 @@ class RunManager:
         finally:
             world.close()
 
+    async def branch(self, source_id: str, round: int, events: list[GodEvent]) -> tuple[str, str]:
+        """Copy a run up to the end of `round`, give it new events after that, and continue it as a new run in a
+        study with its source. Returns (new run id, study id)."""
+        if self.is_live(source_id):
+            raise Conflict("the run is still in progress; branch it once it has finished")
+        with self.reader(source_id) as r:
+            source = r.config()
+        if source is None:
+            raise Conflict("this run has no settings to branch from")
+        if self.is_example(source_id):
+            source = await self._local_tool(source, "to branch an example run")
+        label = f"Branch at round {round}"
+        try:
+            study, label = plan_variant(self.runs_dir, source_id, source, variant=label, now=now_iso(),
+                                        source_label="Original")
+        except StudyError as e:
+            raise BadRequest(str(e)) from None
+        run_dir = self.create_run_dir(source.question)
+        try:
+            config = prepare_branch(self.run_path(source_id), run_dir, source, round, events, source_id=source_id,
+                                    immutable=self.is_example(source_id), study_id=study.id, variant=label)
+        except RunError as e:
+            shutil.rmtree(run_dir, ignore_errors=True)
+            raise BadRequest(str(e)) from None
+        join_study(self.runs_dir, study, run_dir.name, label)
+        seeds = [Path(p) for p in config.seed_files if Path(p).is_file()]
+        await self.start(run_dir, config, seeds)
+        return run_dir.name, study.id
+
     async def rewrite(self, run_id: str) -> RewriteSuggestion:
         """Suggest a better version of the run's text (one `report.rewrite` call) and keep it in rewrite.json."""
         if self.is_live(run_id):
@@ -520,11 +563,9 @@ class RunManager:
                     return
                 run_dir = self.create_run_dir(source.question)
                 seeds = copy_seeds(run_dir, files)
-                variant = f"Run {i + 1}"
-                config = source.model_copy(update={
-                    "seed_files": [str(p) for p in seeds], "seed": source.seed + i, "cast_from": source_id,
-                    "study_id": study.id, "variant": variant,
-                    **({"agent_model": agent_model} if agent_model else {})})
+                config = repeat_config(source, source_id, i, seed_files=seeds, study_id=study.id,
+                                       agent_model=agent_model)
+                variant = config.variant or ""
                 study = self._join(study, run_dir.name, variant)
                 await self.start(run_dir, config, seeds)
                 live = self._live.get(run_dir.name)

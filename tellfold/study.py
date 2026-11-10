@@ -87,7 +87,7 @@ def study_of(runs_dir: Path, run_id: str, config: SimConfig) -> Study | None:
 
 
 def plan_variant(runs_dir: Path, source_id: str, source: SimConfig, *, study_id: str | None = None,
-                 variant: str | None = None, now: str = "") -> tuple[Study, str]:
+                 variant: str | None = None, now: str = "", source_label: str | None = None) -> tuple[Study, str]:
     """The study a new run made from `source_id` joins, with the source already in it, and the new run's label.
 
     The study is `study_id`, else the source's own study, else a new one. A "Check it" study holds only repeats of
@@ -106,9 +106,21 @@ def plan_variant(runs_dir: Path, source_id: str, source: SimConfig, *, study_id:
     study = study or Study(id=study_id or new_study_id(), created_at=now)
     if not any(r.id == source_id for r in study.runs):
         own_label = "" if repeat_source else (source.variant or "").strip()  # not "Run 2" of a check
-        study.runs.append(StudyRun(id=source_id, variant=own_label or default_variant(len(study.runs))))
+        study.runs.append(StudyRun(id=source_id, variant=own_label or source_label
+                                   or default_variant(len(study.runs))))
     label = (variant or "").strip()[:60] or default_variant(len(study.runs))
     return study, label
+
+
+def repeat_config(source: SimConfig, source_id: str, i: int, *, seed_files: list[Path], study_id: str,
+                  agent_model: str | None = None) -> SimConfig:
+    """Run `i + 1` of a "Check it" series of `source_id`: the same people (through `cast_from`), text and settings
+    with the next RNG seed. A repeat of a branch replays the branch's people and events from round 0, so it is not a
+    branch itself: it has no world to continue from."""
+    return source.model_copy(update={
+        "seed_files": [str(p) for p in seed_files], "seed": source.seed + i, "cast_from": source_id,
+        "study_id": study_id, "variant": f"Run {i + 1}", "branched_from": None, "branch_round": None,
+        **({"agent_model": agent_model} if agent_model else {})})
 
 
 def join_study(runs_dir: Path, study: Study, run_id: str, variant: str) -> Study:

@@ -426,6 +426,14 @@ final class AppModel {
         return config
     }
 
+    /// "Branch from here…": a copy of the run up to `round` continues with `events`; shows the study with its source.
+    func branch(runID: String, round: Int, events: [GodEvent]) async throws {
+        guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        let created = try await api.branch(runID: runID, round: round, events: events)
+        await refreshRuns()
+        selectStudy(created.studyID)
+    }
+
     func selectStudy(_ studyID: String) { selectedRunID = StudySelection.tag(studyID) }
 
     /// "Check it": runs a finished run again with the same people and text, then shows the study.

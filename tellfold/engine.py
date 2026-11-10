@@ -227,6 +227,7 @@ class Engine:
             llm_seconds=round(ledger.seconds, 2),
         )
         self.world.save_round_stats(stats)
+        self.world.snapshot_memories(0)
         self._emit("stage", {"stage": "opening_posts_done", "posts": len(new_posts)})
         self._emit("round_done", {**stats.model_dump(mode="json"), "total_rounds": self.config.rounds})
 
@@ -313,6 +314,7 @@ class Engine:
             llm_seconds=round(ledger.seconds, 2),
         )
         self.world.save_round_stats(stats)
+        self.world.snapshot_memories(r)
         self._emit("round_done", {**stats.model_dump(mode="json"), "total_rounds": self.config.rounds})
         return stats
 

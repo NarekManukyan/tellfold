@@ -6,6 +6,17 @@ import SwiftUI
 struct RoundScrubber: View {
     let store: RunStore
     let replay: ReplayController
+    @State private var branchRound: BranchRound?
+
+    private struct BranchRound: Identifiable {
+        let round: Int
+        var id: Int { round }
+    }
+
+    private var canBranch: Bool {
+        BranchLogic.canBranch(round: store.playhead, latestRound: store.latestRound, totalRounds: store.totalRounds,
+                              isLive: store.isLive)
+    }
 
     private var lastRound: Int { max(store.totalRounds, store.latestRound, 1) }
 
@@ -38,13 +49,16 @@ struct RoundScrubber: View {
                     ForEach(ReplayController.speeds, id: \.self) { Text(speedText($0)).tag($0) }
                 }
                 .pickerStyle(.inline)
+                Divider()
+                Button("Branch from Round \(store.playhead)…") { branchRound = BranchRound(round: store.playhead) }
+                    .disabled(!canBranch)
             } label: {
                 Text(speedText(replay.speed)).font(Theme.mono(12, .medium))
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
-            .help("Replay speed")
+            .help("Replay speed, and branching the run from this round")
             .accessibilityLabel("Replay speed")
             .accessibilityValue(speedText(replay.speed))
 
@@ -61,6 +75,13 @@ struct RoundScrubber: View {
         .padding(.horizontal, Theme.space4)
         .padding(.vertical, 2)
         .glassSurface(in: .capsule)
+        .contextMenu {
+            Button("Branch from Round \(store.playhead)…") { branchRound = BranchRound(round: store.playhead) }
+                .disabled(!canBranch)
+        }
+        .sheet(item: $branchRound) { item in
+            BranchSheet(store: store, round: item.round)
+        }
     }
 
     private func speedText(_ speed: Double) -> String {

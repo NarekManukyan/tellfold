@@ -132,6 +132,8 @@ class SimConfig(BaseModel):
     cast_from: str | None = None  # run id whose topic map and people this run reuses (no graph or persona calls)
     study_id: str | None = None  # the study (a group of compared runs) this run belongs to
     variant: str | None = None  # short label inside the study, e.g. "Draft B"
+    branched_from: str | None = None  # run id this run continues from (rounds 0..branch_round are copied)
+    branch_round: int | None = None  # the last round copied from `branched_from`
 
 
 class ReportSection(BaseModel):

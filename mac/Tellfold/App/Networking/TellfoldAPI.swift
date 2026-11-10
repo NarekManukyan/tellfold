@@ -246,6 +246,14 @@ actor TellfoldAPI {
     func studies() async throws -> [StudySummary] { try await get("studies") }
     func study(_ studyID: String) async throws -> StudyDetail { try await get("studies", studyID) }
 
+    /// Continues a copy of a run from the end of `round` with `events` after it; returns the new run and its study.
+    func branch(runID: String, round: Int, events: [GodEvent]) async throws -> (id: String, studyID: String) {
+        struct Body: Encodable { let round: Int; let events: [GodEvent] }
+        struct Created: Decodable, Sendable { let id: String; let study_id: String }
+        let r: Created = try await post(["runs", runID, "branch"], body: Body(round: round, events: events))
+        return (r.id, r.study_id)
+    }
+
     /// Suggests a better version of the run's text (one planner call; saved as rewrite.json).
     func rewrite(runID: String) async throws -> RewriteSuggestion {
         var req = makeRequest(["runs", runID, "rewrite"], method: "POST")

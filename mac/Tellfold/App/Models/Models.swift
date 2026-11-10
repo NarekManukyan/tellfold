@@ -389,11 +389,16 @@ struct SimConfig: Codable, Hashable, Sendable {
     var studyID: String?
     /// Its label in that study, e.g. "Draft B".
     var variant: String?
+    /// The run this one continues from ("Branch from here…"): rounds 0...branchRound are copied from it.
+    var branchedFrom: String?
+    var branchRound: Int?
 
     enum CodingKeys: String, CodingKey {
         case question, rounds, concurrency, language, events, seed, think, variant
         case castFrom = "cast_from"
         case studyID = "study_id"
+        case branchedFrom = "branched_from"
+        case branchRound = "branch_round"
         case seedFiles = "seed_files"
         case numAgents = "num_agents"
         case batchSize = "batch_size"
@@ -428,6 +433,8 @@ extension SimConfig {
         castFrom = c.optional(.castFrom)
         studyID = c.optional(.studyID)
         variant = c.optional(.variant)
+        branchedFrom = c.optional(.branchedFrom)
+        branchRound = c.optional(.branchRound)
     }
 }
 

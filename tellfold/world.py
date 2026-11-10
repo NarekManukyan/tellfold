@@ -61,6 +61,12 @@ CREATE TABLE IF NOT EXISTS memories (
     agent_id TEXT PRIMARY KEY,
     notes TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS memory_history (
+    agent_id TEXT NOT NULL,
+    round INTEGER NOT NULL,
+    notes TEXT NOT NULL,
+    PRIMARY KEY (agent_id, round)
+);
 CREATE TABLE IF NOT EXISTS round_stats (
     round INTEGER PRIMARY KEY,
     data TEXT NOT NULL
@@ -355,6 +361,66 @@ class World:
     def memory(self, agent_id: str) -> AgentMemory:
         row = self._db.execute("SELECT notes FROM memories WHERE agent_id = ?", (agent_id,)).fetchone()
         return AgentMemory(agent_id=agent_id, notes=json.loads(row["notes"]) if row else [])
+
+    def snapshot_memories(self, round: int) -> None:
+        """Keep every agent's memory as it is at the end of `round`, so a branch can start from that round."""
+        with self._db:
+            self._db.execute("DELETE FROM memory_history WHERE round = ?", (round,))
+            self._db.execute(
+                "INSERT INTO memory_history (agent_id, round, notes) SELECT agent_id, ?, notes FROM memories", (round,)
+            )
+
+    def memory_rounds(self) -> list[int]:
+        """Rounds whose end-of-round memories were kept (older runs: none)."""
+        return [r[0] for r in self._db.execute("SELECT DISTINCT round FROM memory_history ORDER BY round")]
+
+    def last_round(self) -> int:
+        row = self._db.execute("SELECT MAX(round) FROM round_stats").fetchone()
+        return int(row[0]) if row and row[0] is not None else 0
+
+    def truncate_after(self, round: int) -> None:
+        """Delete everything that happened after `round` and restore the agents' memories as they were then.
+
+        Reactions and follows made later are found through their actions; the posts' counters are recomputed
+        from what remains, and the id counters restart after the last kept row, so a continued run numbers its
+        posts on from there. Raises ValueError when the memories at `round` were not kept (older runs can branch
+        from their last round, or from round 0 with empty memories)."""
+        history, last = self.memory_rounds(), self.last_round()
+        if round not in history and round != last and round != 0:
+            raise ValueError(f"this run did not keep its agents' memories for round {round}; "
+                             "it can be branched from its last round or from round 0")
+        later = [(r, Action.model_validate_json(d)) for r, d in
+                 self._db.execute("SELECT round, data FROM actions WHERE round > ?", (round,))]
+        with self._db:
+            for _, a in later:
+                if a.type in (ActionType.LIKE, ActionType.DISLIKE) and a.target_post_id is not None:
+                    self._db.execute("DELETE FROM reactions WHERE agent_id = ? AND post_id = ?",
+                                     (a.agent_id, a.target_post_id))
+                elif a.type is ActionType.FOLLOW and a.target_agent_id is not None:
+                    self._db.execute("DELETE FROM follows WHERE follower = ? AND followee = ?",
+                                     (a.agent_id, a.target_agent_id))
+            self._db.execute("DELETE FROM post_sentiment WHERE post_id IN (SELECT id FROM posts WHERE round > ?)",
+                             (round,))
+            self._db.execute("DELETE FROM reactions WHERE post_id IN (SELECT id FROM posts WHERE round > ?)", (round,))
+            for table in ("posts", "actions", "round_stats", "events"):
+                self._db.execute(f"DELETE FROM {table} WHERE round > ?", (round,))
+            self._db.execute(
+                "UPDATE posts SET "
+                "likes = (SELECT COUNT(*) FROM reactions r WHERE r.post_id = posts.id AND r.kind = 'like'), "
+                "dislikes = (SELECT COUNT(*) FROM reactions r WHERE r.post_id = posts.id AND r.kind = 'dislike'), "
+                "replies = (SELECT COUNT(*) FROM posts c WHERE c.parent_id = posts.id), "
+                "reposts = (SELECT COUNT(*) FROM posts c WHERE c.repost_of = posts.id)"
+            )
+            for table, key in (("posts", "id"), ("actions", "seq"), ("events", "seq")):
+                self._db.execute(f"UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX({key}), 0) FROM {table}) "
+                                 "WHERE name = ?", (table,))
+            if round in history:
+                self._db.execute("DELETE FROM memories")
+                self._db.execute("INSERT INTO memories (agent_id, notes) SELECT agent_id, notes FROM memory_history "
+                                 "WHERE round = ?", (round,))
+            elif round == 0 and last != 0:
+                self._db.execute("DELETE FROM memories")  # an older run: round 0 starts from empty memories
+            self._db.execute("DELETE FROM memory_history WHERE round > ?", (round,))
 
     def save_round_stats(self, stats: RoundStats) -> None:
         with self._db:

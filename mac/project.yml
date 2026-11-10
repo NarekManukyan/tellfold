@@ -54,6 +54,9 @@ targets:
         buildPhase: resources
       # The fictional seed documents behind "Start from an example" on the New simulation sheet.
       - path: ../examples
+        # no intermediate group for "..": XcodeGen names it after the checkout folder, so every worktree rewrote
+        # project.pbxproj (and parallel branches conflicted on it)
+        createIntermediateGroups: false
         buildPhase: resources
         excludes:
           - "*.sh"

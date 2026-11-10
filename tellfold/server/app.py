@@ -225,6 +225,16 @@ class StudyDetail(BaseModel):
     agreement: Agreement | None = None  # what held across the runs of a repeat study
 
 
+class BranchIn(BaseModel):
+    round: int = Field(ge=0)
+    events: list[EventIn] = Field(default_factory=list, max_length=50)  # what happens after `round`
+
+
+class BranchOut(BaseModel):
+    id: str
+    study_id: str
+
+
 class CheckIn(BaseModel):
     runs: int = Field(3, ge=2, le=5)
     agent_model: str | None = Field(None, max_length=120, pattern=_MODEL.pattern)
@@ -593,6 +603,19 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
                 "compare": manager.compare_result(study.id), "compare_state": manager.compare_state(study.id),
                 "planned": study.planned, "repeating": manager.is_repeating(study.id),
                 "agreement": manager.agreement(study.id)}
+
+    @app.post("/api/runs/{run_id}/branch", response_model=BranchOut)
+    async def branch(run_id: str, body: BranchIn) -> dict:
+        """Continue a copy of the run from the end of `round` with new events; it joins a study with its source."""
+        run_dir_of(run_id)
+        events = [GodEvent(round=e.round, content=e.content.strip()) for e in body.events if e.content.strip()]
+        try:
+            new_id, study_id = await manager.branch(run_id, body.round, events)
+        except BadRequest as e:
+            raise HTTPException(400, str(e)) from None
+        except Conflict as e:
+            raise HTTPException(409, str(e)) from None
+        return {"id": new_id, "study_id": study_id}
 
     @app.post("/api/runs/{run_id}/rewrite", response_model=RewriteSuggestion)
     async def rewrite(run_id: str) -> RewriteSuggestion:
