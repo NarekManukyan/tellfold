@@ -8,6 +8,8 @@ import Testing
 ///     TEST_RUNNER_TELLFOLD_REAL_ENGINE=1 TEST_RUNNER_TELLFOLD_HOME=/private/tmp/tellfold-mac-home xcodebuild test ...
 ///
 /// Set TELLFOLD_HOME so the engine reads and writes a scratch settings file instead of the user's.
+/// TEST_RUNNER_TELLFOLD_UV_PATH points the app at another `uv`, such as a shim that starts a different engine
+/// build with the same arguments.
 @MainActor
 @Suite(.enabled(if: ProcessInfo.processInfo.environment["TELLFOLD_REAL_ENGINE"] == "1"), .serialized)
 struct EngineIntegrationTests {
@@ -22,6 +24,7 @@ struct EngineIntegrationTests {
         prefs.offlineTestModel = true
         prefs.logLevel = .info
         if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
+        if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
 
         let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
         engine.start()
@@ -38,7 +41,8 @@ struct EngineIntegrationTests {
         #expect(engine.state.isRunning)
         #expect(engine.health?.fakeLLM == true)
         #expect(engine.commandDescription.contains("tellfold serve --port 0"))
-        #expect(try await client.runs().isEmpty)
+        // The bundled examples are listed; the new runs folder adds nothing.
+        #expect(try await client.runs().allSatisfy(\.example))
         #expect(!(try await client.runtimes()).isEmpty)
         _ = try await client.settings()
 
@@ -78,5 +82,115 @@ struct EngineIntegrationTests {
         #expect(engine.state == .stopped)
         #expect(engine.api == nil)
         try? FileManager.default.removeItem(at: runs)
+    }
+
+    /// Every route the app calls, through the app's own client and models: a run, its reads, chat, ask, the report
+    /// rebuild, rewrite, a branch, Check it and a comparison, runtimes and settings. Whichever engine answers (the
+    /// Python package, or a Rust binary behind a `uv` shim on PATH), the app must decode every answer.
+    @Test(.timeLimit(.minutes(5)))
+    func everyRouteTheAppUsesAnswers() async throws {
+        let suite = "dev.tellfold.mac.tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let prefs = AppPreferences(defaults: defaults)
+        let runs = URL.temporaryDirectory.appending(path: "tellfold-engine-test-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: runs) }
+        prefs.runsFolder = runs.path
+        prefs.offlineTestModel = true
+        if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
+        if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
+        let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
+        engine.start()
+        defer { engine.shutdownNow() }
+        var api: TellfoldAPI?
+        for _ in 0..<1200 where api == nil {
+            api = engine.api
+            if case .failed(let message) = engine.state { Issue.record("engine failed: \(message)\n\(engine.logText)"); return }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        let client = try #require(api, "engine never became ready:\n\(engine.logText)")
+
+        func finished(_ id: String) async throws -> RunDetail {
+            for _ in 0..<600 {
+                let detail = try await client.run(id)
+                if !detail.live, let state = detail.status?.state, state != .running, state != .queued { return detail }
+                try await Task.sleep(for: .milliseconds(100))
+            }
+            throw TellfoldAPIError(status: 0, message: "\(id) did not finish")
+        }
+        func settled(_ studyID: String) async throws -> StudyDetail {
+            for _ in 0..<600 {
+                let study = try await client.study(studyID)
+                if !study.repeating, !study.compareState.running,
+                   study.compare != nil || study.agreement != nil || study.compareState.error != nil { return study }
+                try await Task.sleep(for: .milliseconds(100))
+            }
+            throw TellfoldAPIError(status: 0, message: "study \(studyID) did not settle")
+        }
+
+        try FileManager.default.createDirectory(at: runs, withIntermediateDirectories: true)
+        let seed = runs.appending(path: "seed.md")
+        try Data("# Pricing\nThe subscription goes from 5 to 8 dollars next month. Long-time buyers are upset.".utf8).write(to: seed)
+        var request = NewRunRequest(files: [seed], question: "Will subscribers accept the new price?")
+        request.agents = 4
+        request.rounds = 2
+        request.batch = 2
+        request.events = [GodEvent(round: 2, content: "A rival keeps its one-time price")]
+        let id = try await client.createRun(request)
+        let detail = try await finished(id)
+        #expect(detail.status?.state == .done && detail.report != nil && detail.events.count == 1)
+        #expect(try await client.runs().contains { $0.id == id })
+        #expect(!(try await client.posts(runID: id)).isEmpty)
+        #expect(!(try await client.actions(runID: id, round: 1)).isEmpty)
+        let person = try #require(detail.personas.first)
+        #expect(try await client.agent(runID: id, agentID: person.id).persona.id == person.id)
+        #expect(try await client.agent(runID: id, agentID: "@" + person.handle).persona.id == person.id)
+        let seeds = try await client.seeds(runID: id)
+        #expect(seeds.map(\.name) == ["seed.md"])
+        #expect(try await client.seedData(runID: id, name: "seed.md") == (try Data(contentsOf: seed)))
+        #expect(String(decoding: try await client.reportHTML(runID: id), as: UTF8.self).contains("<html"))
+        #expect(!(try await client.chat(runID: id, agentID: person.id, message: "Why?",
+                                        history: [ChatTurn(question: "Hi", answer: "Hello")])).isEmpty)
+        #expect(!(try await client.ask(runID: id, question: "Who changed their mind?")).isEmpty)
+        do {
+            try await client.injectEvent(runID: id, round: 2, content: "Too late")
+            Issue.record("an event was accepted by a finished run")
+        } catch let error as TellfoldAPIError {
+            #expect(error.isConflict)
+        }
+        do {
+            try await client.stop(runID: id)
+            Issue.record("a finished run was stopped")
+        } catch let error as TellfoldAPIError {
+            #expect(error.isConflict)
+        }
+
+        try await client.rebuildReport(runID: id)
+        var rebuilding = true
+        for _ in 0..<300 where rebuilding {
+            rebuilding = try await client.run(id).reportRebuild.running
+            if rebuilding { try await Task.sleep(for: .milliseconds(100)) }
+        }
+        #expect(try await client.run(id).reportRebuild.error == nil)
+        let suggestion = try await client.rewrite(runID: id)
+        #expect(try await client.savedRewrite(runID: id) == suggestion)
+
+        let branch = try await client.branch(runID: id, round: 1, events: [GodEvent(round: 2, content: "The owner apologises")])
+        #expect(try await finished(branch.id).config.branchedFrom == id)
+        let compared = try await settled(branch.studyID)
+        #expect(compared.compare != nil && compared.runs.count == 2)
+        try await client.compareStudy(branch.studyID)
+        #expect(try await settled(branch.studyID).compare != nil)
+
+        let check = try await client.checkRun(runID: id, runs: 2)
+        let checked = try await settled(check)
+        #expect(checked.kind == "repeat" && checked.agreement != nil && checked.runs.count == 2)
+        #expect(try await client.studies().contains { $0.id == check })
+
+        #expect(!(try await client.runtimes()).isEmpty)
+        #expect(try await client.testRuntime(id: "claude-code").ok)
+        let settings = try await client.settings()
+        #expect(try await client.updateSettings(settings) == settings)
+        engine.stop()
     }
 }

@@ -49,6 +49,11 @@ The second example runs a whole simulation with the report and prints every even
 `cargo run -p tellfold-study --example compare -- RUN_A RUN_B` makes a real comparison and Check it of two finished
 run folders.
 
+To run the Mac app (Debug) on the Rust engine, build it with `cargo build --release -p tellfold-cli` and set the
+app's uv path to `engine-rs/scripts/uv-shim.sh`. The shim takes the `uv run --project <path> tellfold ...` command
+the app runs and starts the binary instead. The Mac engine tests use it through `TEST_RUNNER_TELLFOLD_UV_PATH` (see
+"Parity soak" in the plan).
+
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.
 

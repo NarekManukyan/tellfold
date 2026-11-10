@@ -273,7 +273,7 @@ shipping until milestone 10.
 | 6 | `tellfold-study`: compare, Check it, branch, examples packing | `test_study.py`, `test_check.py`, `test_branch.py`, `test_examples.py`; golden study folders |
 | 7 | `tellfold-cli`: every command, live view, `doctor`, `runtimes`, `shoal` alias, legacy names | `test_cli.py`, `test_rename_compat.py`; golden `--help` texts; CLI runs equal to Python's under `TELLFOLD_FAKE_LLM=1` |
 | 8 | `tellfold-server`: all routes, SSE, run manager, watcher, uploads, auth, shutdown, web UI | `test_server.py`, `test_runtimes_server.py`, `test_serve_shutdown.py`; an API recorder replays the same request script against both servers and diffs every response and SSE stream |
-| 9 | Parity soak: the Mac app's test suite against the Rust binary, real end-to-end runs with Claude Code and Cursor Agent, size and start-up numbers | Mac tests green with `enginePath` pointing at the Rust binary; side-by-side real runs reviewed by hand |
+| 9 | Parity soak: the Mac app's test suite against the Rust binary, real end-to-end runs with Claude Code and Cursor Agent, size and start-up numbers | Mac tests green against the Rust binary (through `engine-rs/scripts/uv-shim.sh`); side-by-side real runs reviewed by hand; see "Parity soak" |
 | 10 | Switch (after approval): `bundle-engine.sh` builds and signs the Rust binary, `EngineCommand` starts `Resources/engine/tellfold serve ...`; Debug builds keep the `uv` path as an option until Python is retired | a Release build of the app, notarisation dry run, Mac tests |
 
 Milestones 2 and 3 can overlap, as can 5 and 6 once 4 has landed.
@@ -293,6 +293,46 @@ which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute
 paths of temporary folders. Nothing else.
+
+## Parity soak (milestone 9)
+
+Measured on 11 November 2026, on an Apple silicon Mac with macOS 27, against the installed app (0.2.1, Python 3.13
+engine) and a release build of `tellfold-cli`.
+
+**Mac tests.** The app's unit suite (230 tests in 31 suites) passes unchanged. `EngineIntegrationTests` gained
+`everyRouteTheAppUsesAnswers`, which starts the engine through `EngineController` and calls every `TellfoldAPI`
+method the app uses: a run with an event, its reads, seeds, the report HTML, chat, ask, refused writes on a finished
+run, a report rebuild, rewrite, a branch and its comparison, Check it, runtimes, the runtime test and settings. Both
+engine tests pass against Python (`uv run`) and against the Rust binary. For the latter,
+`engine-rs/scripts/uv-shim.sh` stands in for `uv` and starts the binary with the arguments the app passes:
+
+    TEST_RUNNER_TELLFOLD_REAL_ENGINE=1 TEST_RUNNER_TELLFOLD_HOME=/private/tmp/tellfold-mac-home \
+    TEST_RUNNER_TELLFOLD_UV_PATH=$PWD/engine-rs/scripts/uv-shim.sh xcodebuild test ...
+
+**Real runs.** The same small run (the corner cafe example, 3 people, 1 round, agents and planner on one runtime)
+went through `tellfold serve` and the HTTP API, followed by the runtime test, chat and ask:
+
+| engine | runtime | calls (failed) | citations checked (marked) | run time |
+|---|---|---|---|---|
+| Rust | Claude Code (haiku / sonnet) | 8 (0) | 47 (0) | 178 s |
+| Rust | Cursor Agent (default) | 9 (0), report repaired once | 62 (0) | 308 s |
+| Python | Claude Code (haiku / sonnet) | 8 (0) | 57 (0) | 202 s |
+
+Both engines wrote the same set of files. The answers differ run to run, as they do between two Python runs. No
+agent CLI processes were left behind after the servers exited.
+
+**Size and start-up.** Median of 7 starts each, `serve --port 0` on the canned model, measured from spawn:
+
+| | Python engine (bundled) | Rust binary |
+|---|---|---|
+| on disk in the app | 186 MB, 5,070 files | 13 MB, 1 file (6.3 MB gzipped) |
+| app bundle total | 195 MB | about 22 MB |
+| to the `{"port": N}` line | 411 ms (383 to 579) | 6 ms (5 to 7) |
+| resident memory when idle | 93 MB | 9 MB |
+| exit after stdin closes | 294 ms | 1 ms |
+
+The binary links only system libraries (`libSystem`, `libiconv`, CoreFoundation). The first launch of a newly
+built binary takes several seconds on macOS while the system scans it; later launches take the times above.
 
 ## Risks
 
