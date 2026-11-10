@@ -112,9 +112,10 @@ async def run_process(argv: list[str], *, stdin: str | None, cwd: str, env: dict
 
 def _end_group(pgid: int) -> None:
     """Stop whatever the tool left running in its process group after it exited. Cursor Agent leaves a node
-    worker behind after every call (about 150 MB each, for minutes), which piles up over a run."""
+    worker behind after every call (about 150 MB each, for minutes) that ignores SIGTERM, and they pile up over a
+    run. The tool has already answered, so anything still in its group is killed outright."""
     with contextlib.suppress(ProcessLookupError, PermissionError, OSError):
-        os.killpg(pgid, signal.SIGTERM)
+        os.killpg(pgid, signal.SIGKILL)
 
 
 def _kill_group(proc: asyncio.subprocess.Process) -> None:

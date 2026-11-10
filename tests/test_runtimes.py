@@ -531,11 +531,11 @@ def test_live_process_groups_are_tracked_and_killed(tmp_path: Path) -> None:
 
 def test_processes_a_tool_leaves_behind_are_ended(tmp_path: Path) -> None:
     pid_file = tmp_path / "worker.pid"
-    script = make_script(tmp_path / "bin", "tool", f"sleep 30 >/dev/null 2>&1 &\necho $! > {pid_file}\necho done")
+    script = make_script(tmp_path / "bin", "tool", f"(trap '' TERM; sleep 30) >/dev/null 2>&1 &\necho $! > {pid_file}\necho done")
     result = asyncio.run(cli_tools.run_process([str(script)], stdin=None, cwd=str(tmp_path), env=dict(os.environ)))
     assert result.returncode == 0 and result.stdout.strip() == "done"
     worker = int(pid_file.read_text().strip())
-    for _ in range(100):  # SIGTERM lands asynchronously
+    for _ in range(100):  # the signal lands asynchronously; the worker ignores SIGTERM, like Cursor's does
         try:
             os.kill(worker, 0)
         except ProcessLookupError:
