@@ -26,6 +26,11 @@ pub fn py_dumps<T: Serialize + ?Sized>(value: &T) -> String {
     write_with(value, PyDumps)
 }
 
+/// `json.dumps(value, ensure_ascii=False, separators=(",", ":"))`: compact, with Python's float repr.
+pub fn py_dumps_compact<T: Serialize + ?Sized>(value: &T) -> String {
+    write_with(value, PyCompact)
+}
+
 fn write_with<T: Serialize + ?Sized, F: Formatter>(value: &T, formatter: F) -> String {
     let mut out = Vec::with_capacity(128);
     let mut ser = serde_json::Serializer::with_formatter(&mut out, formatter);
@@ -171,6 +176,18 @@ impl Formatter for PyDumps {
     fn begin_object_value<W: ?Sized + Write>(&mut self, w: &mut W) -> io::Result<()> {
         w.write_all(b": ")
     }
+    fn write_f64<W: ?Sized + Write>(&mut self, w: &mut W, value: f64) -> io::Result<()> {
+        w.write_all(py_float_repr(value).as_bytes())
+    }
+    fn write_f32<W: ?Sized + Write>(&mut self, w: &mut W, value: f32) -> io::Result<()> {
+        self.write_f64(w, value as f64)
+    }
+}
+
+/// Compact separators with Python's float repr.
+struct PyCompact;
+
+impl Formatter for PyCompact {
     fn write_f64<W: ?Sized + Write>(&mut self, w: &mut W, value: f64) -> io::Result<()> {
         w.write_all(py_float_repr(value).as_bytes())
     }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study", "crates/tellfold-cli"]
+members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study", "crates/tellfold-server", "crates/tellfold-cli"]
 
 [workspace.package]
 version = "0.3.0"
@@ -11,6 +11,7 @@ publish = false
 
 [workspace.dependencies]
 async-trait = "0.1"
+axum = { version = "0.8", default-features = false, features = ["http1", "tokio", "multipart", "query"] }
 chardetng = "0.1"
 encoding_rs = "0.8"
 futures = "0.3"
@@ -41,6 +42,7 @@ tellfold-runtimes = { path = "crates/tellfold-runtimes" }
 tellfold-engine = { path = "crates/tellfold-engine" }
 tellfold-report = { path = "crates/tellfold-report" }
 tellfold-study = { path = "crates/tellfold-study" }
+tellfold-server = { path = "crates/tellfold-server" }
 
 [profile.release]
 lto = true

@@ -938,8 +938,3 @@ pub fn runtimes(con: &Console, p: &Parsed) -> Done {
     }
     Ok(())
 }
-
-/// `ui` and `serve` run the HTTP server, which comes with the next milestone of the port.
-pub fn not_yet(con: &Console, name: &str) -> Done {
-    Err(fail(con, &format!("`tellfold {name}` is not in the Rust engine yet; use the Python engine for it")))
-}

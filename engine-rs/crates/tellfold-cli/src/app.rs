@@ -136,6 +136,8 @@ fn dispatch(con: &Console, command: &Command, p: &Parsed) -> Done {
         "agents" => commands::agents(con, p),
         "doctor" => commands::doctor(con, p),
         "runtimes" => commands::runtimes(con, p),
-        other => commands::not_yet(con, other),
+        "serve" => crate::serve::serve(con, p),
+        "ui" => crate::serve::ui(con, p),
+        other => unreachable!("no command {other}"),
     }
 }

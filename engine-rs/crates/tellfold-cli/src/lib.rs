@@ -6,10 +6,11 @@ pub mod commands;
 pub mod help;
 pub mod llm;
 pub mod paths;
+pub mod serve;
 pub mod spec;
 pub mod term;
 pub mod ui;
 pub mod view;
 
 /// `tellfold.__version__`.
-pub const VERSION: &str = "0.1.0";
+pub const VERSION: &str = tellfold_server::VERSION;

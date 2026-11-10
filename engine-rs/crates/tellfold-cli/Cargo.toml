@@ -12,6 +12,7 @@ name = "tellfold"
 path = "src/main.rs"
 
 [dependencies]
+axum.workspace = true
 futures.workspace = true
 indexmap.workspace = true
 serde.workspace = true
@@ -21,9 +22,10 @@ tellfold-llm.workspace = true
 tellfold-models.workspace = true
 tellfold-report.workspace = true
 tellfold-runtimes.workspace = true
+tellfold-server.workspace = true
 tellfold-store.workspace = true
 tellfold-study.workspace = true
-tokio = { workspace = true, features = ["rt", "time", "signal", "sync", "macros"] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "signal", "sync", "macros", "net"] }
 
 [dev-dependencies]
 regex.workspace = true

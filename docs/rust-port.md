@@ -52,7 +52,7 @@ CLI are the only crates that know about tokio's runtime setup.
 | Python | Rust | notes |
 |---|---|---|
 | pydantic | `serde`, `serde_json` (`preserve_order`), `indexmap` | output must match `model_dump_json` byte for byte; schemas are pydantic's, checked in; see "JSON" below |
-| FastAPI, uvicorn, python-multipart | `axum`, `tower-http`, `tokio`, axum `multipart` | SSE through `axum::response::sse` |
+| FastAPI, uvicorn, python-multipart | `axum` (with `multipart`), `tokio` | SSE written as a plain streamed body; see "The server" below |
 | typer, rich | own click-compatible parser and a port of the rich subset the CLI prints (`tellfold-cli`) | see "The command line" below; help, errors, tables and panels match byte for byte |
 | jinja2 | `minijinja` | `templates/report.html` is ported as it is; filters re-implemented where minijinja differs |
 | pymupdf | `pdf-extract` on `lopdf`, with `pdfium-render` as fallback if text quality falls short | see "Risks" |
@@ -206,8 +206,7 @@ Known differences, none visible in a normal run:
   not (plain output is unaffected). Emoji codes such as `:smile:` in model text are not replaced, and a stray
   closing markup tag is skipped instead of raising. `doctor` shows a "Tellfold engine" row in place of the
   `claude-agent-sdk` import and Python rows, since the binary needs neither. Where Python lets an exception through
-  with a traceback (an unknown runtime in `compare`, say), the port prints `error: ...` and exits 1. `ui` and
-  `serve` start the HTTP server, which arrives with milestone 8; until then they say so and exit 1.
+  with a traceback (an unknown runtime in `compare`, say), the port prints `error: ...` and exits 1.
 - **Parity.** `golden/make_cli_help.py` records typer's `--help` for the group and all 13 commands at five widths,
   usage errors, and rich's tables, panels and prints (plain and coloured). `golden/make_cli_runs.py` records a
   56-step session of the Python command on the canned model (runs with events, report, agents, ask, chat, a study
@@ -215,6 +214,40 @@ Known differences, none visible in a normal run:
   run errors); the Rust test replays it with the binary and compares exit codes, stdout, stderr and every file
   written. `tests/cli.rs` ports the helper tests of `test_cli.py` and the command-line parts of
   `test_rename_compat.py`.
+
+## The server
+
+- **Crate.** `tellfold-server` ports `tellfold/server/` with axum: the JSON API, the SSE stream, the run manager
+  and its watcher, uploads, the local-only and token guards, and the Studio frontend. `tellfold serve` and
+  `tellfold ui` in `tellfold-cli` start it with the options, messages and stdout line of `cli.py`.
+- **One thread for runs.** The engine's futures hold SQLite connections and are not `Send`, and the Python server
+  does everything on one event loop. The run manager therefore lives on its own thread with a single-threaded tokio
+  runtime; handlers send it closures (`Handle::call`) and await the reply, while connections and SSE streams are
+  served on a multi-threaded runtime. Live runs, report rebuilds, comparisons and "Check it" series are local
+  tasks of the manager, so a run outlives every client. Each SSE client has a bounded queue that drops its oldest
+  events, as in Python.
+- **FastAPI's answers.** Errors are `{"detail": "..."}` with the same status codes and texts. JSON bodies and query
+  parameters are checked before a handler looks at the run, and a failure is a 422 with pydantic's error list
+  (`type`, `loc`, `msg`, `input`, `ctx`), which the Mac app shows as "field: message". Responses are pydantic's
+  JSON; SSE data is `json.dumps` with compact separators. Unknown `/api` paths and methods give
+  `{"detail": "not found"}`; other GETs serve the frontend, which is embedded in the binary at build time.
+- **Shutdown.** On Ctrl-C, SIGTERM or (for `serve`) stdin closing, the server stops accepting, gives open
+  connections 3 seconds, then stops live runs (5 seconds' grace, then they are cancelled and marked stopped) and
+  ends every SSE stream. As in Python, a timer ends the process 15 seconds after stdin closes, or 5 seconds after
+  the server stops, killing any agent CLI still running, if something is stuck.
+- **Differences.** File responses carry `last-modified` and `accept-ranges` but no `etag`, and do not serve
+  `Range` requests. A malformed multipart body is reported with the parser's own message after "could not read the
+  form:". A JSON body that is not JSON gets pydantic's `json_invalid` error with "Expecting value" whatever the
+  problem was. `ui` exits like Python after Ctrl-C ("Aborted.", exit 1); `serve` exits 0 after a signal instead of
+  re-raising SIGTERM.
+- **Parity.** `golden/make_api.py` drives the Python app through 116 steps on the canned model: uploads and their
+  errors, a run with events, every read route, chat, ask, rewrite, report rebuild, an example copied in and refused
+  writes, a study made with `cast_from` and compared, a branch, Check it, a branch of the example, settings, the
+  runtime test, the frontend routes and the guards. `tests/api.rs` sends the same requests to the Rust server and
+  compares status codes, content types, headers and bodies after masking ids, timestamps, pids and timings.
+  `tests/live.rs` and `tests/studies.rs` port the tests that need a run held mid-round, an SSE client or a run
+  written by another process (`test_server.py`, `test_check.py`, `test_examples.py`, `test_runtimes_server.py`), and
+  `tellfold-cli/tests/serve.rs` starts the binary the way the Mac app does.
 
 ## world.db
 
@@ -253,8 +286,9 @@ lines, RNG sequences, the engine's seeded helpers on the example casts, and a wh
 (every model call, every event, the run folder and every `world.db` row), and the report side: the evidence digest,
 every `build_report` scenario of `test_report.py` (calls, `report.json`, `report.md`, `report.html`), the citation
 audit, interview and ask prompts, rewrites, and the rendered reports of both examples and of the golden run, and study folders (comparisons, Check it,
-branches, packed examples); later recorded API sessions. `golden/make_cli_help.py` and `golden/make_cli_runs.py`
-record the command line (help screens, errors, rendering, and a session of commands). The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
+branches, packed examples). `golden/make_cli_help.py` and `golden/make_cli_runs.py`
+record the command line (help screens, errors, rendering, and a session of commands), and `golden/make_api.py` a
+session of HTTP requests. The Rust tests read the fixtures, so `cargo test` needs neither Python nor network. Changing Python behaviour means regenerating the fixtures in the same pull request,
 which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute
