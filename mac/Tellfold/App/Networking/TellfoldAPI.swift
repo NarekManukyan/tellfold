@@ -57,7 +57,12 @@ struct NewRunRequest: Hashable, Sendable {
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
-    static let maxFiles = 20
+    /// The engine's limits (`MAX_FILES` and `MAX_TOTAL_BYTES` in tellfold/server/app.py).
+    static let maxFiles = 100
+    static let maxTotalBytes = 100 * 1024 * 1024
+
+    /// Chunks the topic map reads at most (`MAX_EXTRACT_CHUNKS` in tellfold/graph.py).
+    static let maxExtractChunks = 64
 
     /// Share of the crowd expected to act in a round (`ESTIMATED_ACTIVE_SHARE` in tellfold/runner.py).
     static let estimatedActiveShare = 0.4
@@ -66,7 +71,7 @@ struct NewRunRequest: Hashable, Sendable {
     /// planning (graph, personas, report) when nothing needs a retry.
     static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int) -> (agent: Int, planner: Int) {
         let batch = Double(max(1, batch))
-        let graph = Int((Double(chunks) / 4).rounded(.up))
+        let graph = Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
         let personas = Int((Double(agents) / 10).rounded(.up))
         let openingAuthors = (0.3 * Double(agents)).rounded(.toNearestOrEven)
         let opening = Int((openingAuthors / batch).rounded(.up)) + 1
@@ -82,10 +87,12 @@ struct NewRunRequest: Hashable, Sendable {
     }
 
     /// Rough chunk count for the estimate: ~1,600 characters per chunk, PDFs yield ~30 % text per byte.
-    static func estimatedChunks(files: [URL], inlineDocuments: [InlineDocument] = []) -> Int {
+    /// `sizes` are file sizes already known, so the estimate doesn't read the disk for them.
+    static func estimatedChunks(files: [URL], sizes: [URL: Int] = [:],
+                                inlineDocuments: [InlineDocument] = []) -> Int {
         var chars = Double(inlineDocuments.reduce(0) { $0 + $1.data.count })
         for url in files {
-            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            let size = sizes[url] ?? (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
             chars += url.pathExtension.lowercased() == "pdf" ? Double(size) * 0.3 : Double(size)
         }
         return max(1, Int((chars / 1600).rounded(.up)))

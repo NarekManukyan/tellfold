@@ -248,6 +248,50 @@ struct NewSimulationTests {
         }
     }
 
+    // MARK: folders
+
+    @Test func aFolderAddsItsDocumentsButNotDependenciesHiddenOrEmptyFiles() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "seed-folder-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        func write(_ path: String, _ text: String) throws {
+            let url = root.appending(path: path)
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try text.write(to: url, atomically: true, encoding: .utf8)
+        }
+        try write("README.md", "# Project")
+        try write("guides/setup.md", "Install it.")
+        try write("guides/faq.txt", "Questions.")
+        try write("guides/empty.md", "")
+        try write("guides/notes.swift", "let x = 1")
+        try write(".hidden/secret.md", "no")
+        try write("node_modules/pkg/README.md", "no")
+        try write("build/out.md", "no")
+        #expect(AppModel.isFolder(root))
+        let base = root.resolvingSymlinksInPath().path + "/"
+        let names = AppModel.seedFiles(inFolder: root).map {
+            $0.resolvingSymlinksInPath().path.replacingOccurrences(of: base, with: "")
+        }
+        #expect(names == ["guides/faq.txt", "guides/setup.md", "README.md"])
+    }
+
+    @Test func scanningStopsAtTheFileLimitAndSaysWhatWasLeftOut() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "seed-scan-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        for i in 0..<(NewRunRequest.maxFiles + 30) {
+            try "doc \(i)".write(to: root.appending(path: "doc\(i).md"), atomically: true, encoding: .utf8)
+        }
+        let loose = root.appending(path: "notes.swift")
+        try "x".write(to: loose, atomically: true, encoding: .utf8)
+        let scan = SeedScan.scan([root, loose], existing: [], existingBytes: 0, knownFolders: [])
+        #expect(scan.folders.count == 1 && scan.folders[0].files.count == NewRunRequest.maxFiles)
+        #expect(scan.folders[0].bytes == scan.folders[0].files.reduce(0) { $0 + (scan.bytes[$1] ?? 0) })
+        #expect(scan.rejected == ["notes.swift"])
+        #expect(scan.message?.contains("past \(NewRunRequest.maxFiles) files") == true)
+        // The same folder twice adds nothing.
+        #expect(SeedScan.scan([root], existing: [], existingBytes: 0, knownFolders: [root]).folders.isEmpty)
+    }
+
     // MARK: cost
 
     @Test func costLineNamesTheCallsAndWhereTheyGo() {

@@ -23,7 +23,7 @@ import anyio
 from pydantic import BaseModel, ValidationError
 
 from tellfold.engine import Engine
-from tellfold.graph import extract_graph
+from tellfold.graph import CHUNKS_PER_CALL, MAX_EXTRACT_CHUNKS, extract_graph, select_chunks
 from tellfold.ingest import chunk_text, load_documents
 from tellfold.llm import LLM
 from tellfold.models import FailedBatch, Report, RunStage, RunState, RunStatus, SimConfig
@@ -102,7 +102,7 @@ ESTIMATED_ACTIVE_SHARE = 0.4
 def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
     """(agent, planner) model calls for a run when nothing needs a retry. Mirrored in the Mac app
     (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both."""
-    graph = math.ceil(chunks / 4)
+    graph = math.ceil(min(chunks, MAX_EXTRACT_CHUNKS) / CHUNKS_PER_CALL)
     personas = math.ceil(config.num_agents / 10)
     opening = math.ceil(round(0.3 * config.num_agents) / config.batch_size) + 1  # opening posts + sentiment
     active = max(1, math.ceil(config.num_agents * ESTIMATED_ACTIVE_SHARE))
@@ -252,9 +252,11 @@ async def run_pipeline(
             finish_stopped()
             return None
 
-        track.stage(RunStage.GRAPH, f"extracting from {len(chunks)} chunks", chunks=len(chunks),
-                    estimated_calls=estimate_calls(config, len(chunks)))
-        graph = await extract_graph(llm, chunks, question=config.question, model=config.planner_model,
+        selected = select_chunks(chunks, config.question)
+        detail = (f"extracting from {len(chunks)} chunks" if len(selected) == len(chunks) else
+                  f"extracting from the {len(selected)} of {len(chunks)} chunks most relevant to the question")
+        track.stage(RunStage.GRAPH, detail, chunks=len(chunks), estimated_calls=estimate_calls(config, len(chunks)))
+        graph = await extract_graph(llm, selected, question=config.question, model=config.planner_model,
                                     on_progress=track.detail)
         write_json(run_dir / "graph.json", graph)
         if stopping():

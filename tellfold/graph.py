@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from collections import Counter
@@ -14,6 +15,10 @@ from tellfold.llm import LLM, LLMError
 from tellfold.models import Chunk, Entity, KnowledgeGraph, Relation
 
 CHUNKS_PER_CALL = 4
+# A folder of documents can hold hundreds of chunks; mapping them all took over a hundred slow calls before the
+# simulation even started. Past this many calls, only the chunks that matter most to the question are read.
+MAX_EXTRACT_CALLS = 16
+MAX_EXTRACT_CHUNKS = MAX_EXTRACT_CALLS * CHUNKS_PER_CALL
 SUMMARY_CAP = 480
 EVIDENCE_CAP = 220
 KINDS = ("person", "organization", "group", "product", "place", "concept", "event")
@@ -73,6 +78,35 @@ or likely position regarding the question.
 text as `evidence`.
 - Skip generic nouns that are not identifiable actors or topics ("people", "the market", "experts").
 - Write summaries and evidence in the language of the source text. Reply with JSON only."""
+
+
+_WORD = re.compile(r"\w{3,}")
+
+
+def select_chunks(chunks: list[Chunk], question: str, limit: int = MAX_EXTRACT_CHUNKS) -> list[Chunk]:
+    """All chunks when they fit. Otherwise the opening chunk of each document (up to half the budget), then the
+    chunks that share the most words with the question, rarer words counting more. Kept in document order."""
+    if len(chunks) <= limit:
+        return chunks
+    words = [{w.lower() for w in _WORD.findall(c.text)} for c in chunks]
+    seen_in = Counter(w for ws in words for w in ws)
+    asked = {w.lower() for w in _WORD.findall(question)}
+    total = len(chunks)
+
+    def relevance(i: int) -> float:
+        return sum(math.log(total / seen_in[w]) for w in asked & words[i])
+
+    picked: set[int] = set()
+    sources: set[str] = set()
+    for i, chunk in enumerate(chunks):
+        if chunk.source not in sources and len(picked) < limit // 2:
+            sources.add(chunk.source)
+            picked.add(i)
+    for i in sorted(range(total), key=lambda i: (-relevance(i), i)):
+        if len(picked) >= limit:
+            break
+        picked.add(i)
+    return [chunks[i] for i in sorted(picked)]
 
 
 async def extract_graph(

@@ -16,9 +16,12 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import json as _json
 import os
+import re
 import signal
+import subprocess
 import tempfile
 import threading
 from collections.abc import Awaitable, Callable
@@ -78,7 +81,8 @@ ProcessRunner = Callable[..., Awaitable[ProcessResult]]
 
 
 async def run_process(argv: list[str], *, stdin: str | None, cwd: str, env: dict[str, str]) -> ProcessResult:
-    """Spawn without a shell in its own process group; kill the whole group if we are cancelled."""
+    """Spawn without a shell in its own process group; kill the whole group if we are cancelled, and end anything
+    the tool left running in it once it exits."""
     proc = await asyncio.create_subprocess_exec(
         *argv,
         stdin=asyncio.subprocess.PIPE if stdin is not None else asyncio.subprocess.DEVNULL,
@@ -101,8 +105,17 @@ async def run_process(argv: list[str], *, stdin: str | None, cwd: str, env: dict
     finally:
         with _live_lock:
             _live_groups.discard(proc.pid)
+    _end_group(proc.pid)
     return ProcessResult(proc.returncode if proc.returncode is not None else -1,
                          out.decode("utf-8", "replace"), err.decode("utf-8", "replace"))
+
+
+def _end_group(pgid: int) -> None:
+    """Stop whatever the tool left running in its process group after it exited. Cursor Agent leaves a node
+    worker behind after every call (about 150 MB each, for minutes) that ignores SIGTERM, and they pile up over a
+    run. The tool has already answered, so anything still in its group is killed outright."""
+    with contextlib.suppress(ProcessLookupError, PermissionError, OSError):
+        os.killpg(pgid, signal.SIGKILL)
 
 
 def _kill_group(proc: asyncio.subprocess.Process) -> None:
@@ -275,10 +288,11 @@ class CLIAdapterLLM(AdapterLLM):
 
 
 class CursorAgentLLM(CLIAdapterLLM):
-    """`cursor-agent -p --output-format json --mode ask --sandbox enabled --workspace <tmp> [--model M] PROMPT`.
+    """`cursor-agent -p --output-format json --mode ask --sandbox enabled --trust --workspace <tmp> [--model M] PROMPT`.
 
     Flags verified with `cursor-agent --help` (2026.01.23). `--mode ask` is read-only Q&A; `--force` and
-    `--approve-mcps` are never passed, so no command runs and no MCP server is approved. JSON output is one
+    `--approve-mcps` are never passed, so no command runs and no MCP server is approved. `--trust` only skips the
+    "Workspace Trust Required" prompt for the empty scratch folder; without it every headless call exits 1. JSON output is one
     `{type: "result", is_error, result, ...}` object; errors exit non-zero with text on stderr.
     """
 
@@ -287,7 +301,7 @@ class CursorAgentLLM(CLIAdapterLLM):
     passthrough_env = ("CURSOR_API_KEY", "CURSOR_CONFIG_DIR")
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "-p", "--output-format", "json", "--mode", "ask", "--sandbox", "enabled",
+        argv = [self.binary, "-p", "--output-format", "json", "--mode", "ask", "--sandbox", "enabled", "--trust",
                 "--workspace", workdir]
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
@@ -321,12 +335,17 @@ class CodexLLM(CLIAdapterLLM):
 
 class GeminiLLM(CLIAdapterLLM):
     """`gemini -p PROMPT --output-format json --approval-mode default [-m M]` (official CLI reference).
-    JSON output is `{response, stats, error?}`. `default` approval never auto-approves a tool."""
+    JSON output is `{response, stats, error?}`. `default` approval never auto-approves a tool. Folder trust is on by
+    default since v0.39.1 and headless runs exit in an untrusted folder, so GEMINI_CLI_TRUST_WORKSPACE trusts the
+    empty scratch folder (older versions ignore the variable)."""
 
     runtime_id = "gemini-cli"
     auth_hint = "Gemini CLI is not signed in: run `gemini` once to log in, or set GEMINI_API_KEY."
     passthrough_env = ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION",
                        "GOOGLE_GENAI_USE_VERTEXAI", "GOOGLE_APPLICATION_CREDENTIALS", "GEMINI_CLI_HOME")
+
+    def extra_env(self) -> dict[str, str]:
+        return {"GEMINI_CLI_TRUST_WORKSPACE": "true"}
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
         argv = [self.binary, "--output-format", "json", "--approval-mode", "default"]
@@ -336,15 +355,16 @@ class GeminiLLM(CLIAdapterLLM):
 
 
 class QwenLLM(GeminiLLM):
-    """`qwen -p PROMPT --output-format json [-m M]` (Qwen Code headless docs; a Gemini CLI fork). The JSON shape
-    varies across versions (`{response}` or a list of messages ending in a `result`); both are handled."""
+    """`qwen -p PROMPT --output-format json --approval-mode default [-m M]` (Qwen Code headless docs; a Gemini CLI
+    fork). The JSON shape varies across versions (`{response}` or a list of messages ending in a `result`); both are
+    handled. Without `--approval-mode` Qwen now defaults to `auto`, which approves edits and "safe" commands."""
 
     runtime_id = "qwen-code"
     auth_hint = "Qwen Code is not signed in: run `qwen` once to log in, or set DASHSCOPE_API_KEY."
     passthrough_env = ("DASHSCOPE_API_KEY",)
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "--output-format", "json"]
+        argv = [self.binary, "--output-format", "json", "--approval-mode", "default"]
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
         return [*argv, "--prompt", request.combined()], None
@@ -358,10 +378,23 @@ OPENCODE_LOCKDOWN_CONFIG = _json.dumps({
 }, separators=(",", ":"))
 
 
+@functools.lru_cache(maxsize=8)
+def opencode_major_version(binary: str) -> int:
+    """The major version `opencode --version` prints, or 1 when it can't be read."""
+    try:
+        out = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return 1
+    match = re.search(r"(\d+)\.\d+", out)
+    return int(match.group(1)) if match else 1
+
+
 class OpenCodeLLM(CLIAdapterLLM):
-    """`opencode run --format json --dir <tmp> [-m provider/model] PROMPT` (opencode.ai/docs/cli). JSON format is
-    a stream of events; text parts are concatenated. Never passes `--auto`, and OPENCODE_CONFIG_CONTENT denies the
-    bash, edit and webfetch permissions (OpenCode allows them by default and `run` never asks)."""
+    """`opencode run --format json [--standalone] [-m provider/model] PROMPT` in the scratch folder
+    (opencode.ai/docs/cli). JSON format is a stream of events; text parts are concatenated. Never passes `--auto`,
+    and OPENCODE_CONFIG_CONTENT denies the bash, edit and webfetch permissions (OpenCode allows them by default and
+    `run` never asks). v2 dropped `--dir` and attaches `run` to an already running background server, which never
+    sees that config, so v2 gets `--standalone` (a private server started with this environment)."""
 
     runtime_id = "opencode"
     auth_hint = "OpenCode has no provider configured: run `opencode auth login`."
@@ -370,7 +403,9 @@ class OpenCodeLLM(CLIAdapterLLM):
         return {"OPENCODE_CONFIG_CONTENT": OPENCODE_LOCKDOWN_CONFIG}
 
     def build(self, request: AdapterRequest, workdir: str) -> tuple[list[str], str | None]:
-        argv = [self.binary, "run", "--format", "json", "--dir", workdir]
+        argv = [self.binary, "run", "--format", "json"]
+        if opencode_major_version(self.binary) >= 2:
+            argv.append("--standalone")
         if request.model_or_none:
             argv += ["--model", request.model_or_none]
         return [*argv, request.combined()], None

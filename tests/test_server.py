@@ -247,6 +247,8 @@ def test_upload_validation(client: TestClient, runs_dir: Path) -> None:
     assert post({"events": json.dumps([{"round": 9, "content": "late"}])}, good) == 400
     big = b"x" * (20 * 1024 * 1024 + 1)
     assert post({}, [("files[]", ("big.txt", big, "text/plain"))]) == 413
+    too_many = [("files[]", (f"doc{i}.md", b"# doc", "text/markdown")) for i in range(101)]
+    assert post({}, too_many) == 400  # a folder of docs may send up to 100 files
     assert client.get("/api/runs").json() == []
     assert [p for p in runs_dir.iterdir()] == []  # failed uploads leave no run directory behind
 
@@ -561,6 +563,7 @@ def test_estimate_reference_values_match_the_mac_app():
 
     for agents, rounds, batch, chunks, agent_calls, planner_calls in [
         (20, 6, 6, 3, 20, 4), (6, 3, 3, 1, 8, 3), (5, 4, 2, 7, 10, 4), (200, 50, 20, 40, 254, 31), (25, 10, 4, 9, 43, 7),
+        (20, 6, 6, 640, 20, 19),
     ]:
         config = SimConfig(question="q", seed_files=[], num_agents=agents, rounds=rounds, batch_size=batch)
         assert estimate_call_split(config, chunks) == (agent_calls, planner_calls)

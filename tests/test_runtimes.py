@@ -9,8 +9,10 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import signal
 import stat
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -348,6 +350,7 @@ def test_cursor_agent_argv_isolation_and_json_parsing(fake_bin: str) -> None:
     assert argv[:3] == [fake_bin, "-p", "--output-format"]
     assert argv[argv.index("--mode") + 1] == "ask" and argv[argv.index("--sandbox") + 1] == "enabled"
     assert argv[argv.index("--workspace") + 1] == call["cwd"] and call["cwd_was_empty"]
+    assert "--trust" in argv  # headless calls fail on the workspace-trust prompt without it
     assert argv[argv.index("--model") + 1] == "gpt-5"
     assert "--force" not in argv and "--approve-mcps" not in argv and "-f" not in argv
     assert "be brief" in argv[-1] and "the prompt" in argv[-1] and not argv[-1].startswith("-")
@@ -395,9 +398,10 @@ def test_codex_prompt_on_stdin_and_last_message_file(fake_bin: str) -> None:
 
 @pytest.mark.parametrize(("cls", "stdout", "expected", "flags"), [
     (cli_tools.GeminiLLM, json.dumps({"response": "gem", "stats": {}}), "gem", ["--approval-mode", "default"]),
-    (cli_tools.QwenLLM, json.dumps([{"type": "system"}, {"type": "result", "result": "qw"}]), "qw", ["--prompt"]),
+    (cli_tools.QwenLLM, json.dumps([{"type": "system"}, {"type": "result", "result": "qw"}]), "qw",
+     ["--prompt", "--approval-mode"]),
     (cli_tools.OpenCodeLLM, '{"type":"step_start"}\n{"type":"text","part":{"type":"text","text":"op"}}\n'
-                            '{"type":"text","part":{"type":"text","text":"en"}}\n', "open", ["run", "--dir"]),
+                            '{"type":"text","part":{"type":"text","text":"en"}}\n', "open", ["run", "--format"]),
     (cli_tools.CopilotLLM, "plain copilot answer\n", "plain copilot answer", ["--deny-tool", "--no-ask-user"]),
     (cli_tools.GrokLLM, "\x1b[1mgrok says\x1b[0m\n", "grok says", ["--directory", "--prompt"]),
     (cli_tools.DroidLLM, json.dumps({"type": "result", "is_error": False, "result": "dr"}), "dr", ["exec", "--cwd"]),
@@ -451,6 +455,32 @@ def test_opencode_child_denies_bash_edit_and_webfetch(fake_bin: str, monkeypatch
     assert config["tools"]["bash"] is False and config["tools"]["edit"] is False
 
 
+def test_gemini_trusts_only_the_empty_scratch_folder(fake_bin: str) -> None:
+    runner = FakeRunner(ProcessResult(0, json.dumps({"response": "ok"}), ""))
+    run(cli_tools.GeminiLLM(fake_bin, runner=runner).text, "p", system="s", model="", purpose="x")
+    call = runner.calls[0]
+    # folder trust is on by default and headless runs exit in an untrusted folder
+    assert call["env"]["GEMINI_CLI_TRUST_WORKSPACE"] == "true" and call["cwd_was_empty"]
+    assert "--yolo" not in call["argv"] and call["argv"][call["argv"].index("--approval-mode") + 1] == "default"
+
+
+@pytest.mark.parametrize(("version", "standalone"), [("1.19.5", False), ("opencode 2.2.6", True), ("", False)])
+def test_opencode_v2_runs_its_own_server(tmp_path: Path, version: str, standalone: bool) -> None:
+    binary = make_script(tmp_path / "bin", "opencode", f'echo "{version}"')
+    cli_tools.opencode_major_version.cache_clear()
+    runner = FakeRunner(ProcessResult(0, '{"type":"step_start"}\n{"type":"text","part":{"type":"text","text":"hi"}}\n', ""))
+    run(cli_tools.OpenCodeLLM(str(binary), runner=runner).text, "p", system="s", model="", purpose="x")
+    argv = runner.calls[0]["argv"]
+    assert ("--standalone" in argv) == standalone
+    assert "--dir" not in argv  # v2 removed it; the scratch folder is the working directory instead
+
+
+def test_ollama_context_fits_long_prompts() -> None:
+    assert http_api.ollama_context_length("short") == 8192
+    assert http_api.ollama_context_length("x" * 60_000) == 32768
+    assert http_api.ollama_context_length("x" * 10_000_000) == 65536
+
+
 def test_grok_is_disabled_unless_opted_in(fake_bin: str, isolated_home: Path,
                                           monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(cli_tools.UNSAFE_OPT_IN_ENV, raising=False)
@@ -497,6 +527,23 @@ def test_live_process_groups_are_tracked_and_killed(tmp_path: Path) -> None:
     live, result = asyncio.run(scenario())
     assert len(live) == 1 and result.returncode == -9
     assert cli_tools.live_process_groups() == set()
+
+
+def test_processes_a_tool_leaves_behind_are_ended(tmp_path: Path) -> None:
+    pid_file = tmp_path / "worker.pid"
+    script = make_script(tmp_path / "bin", "tool", f"(trap '' TERM; sleep 30) >/dev/null 2>&1 &\necho $! > {pid_file}\necho done")
+    result = asyncio.run(cli_tools.run_process([str(script)], stdin=None, cwd=str(tmp_path), env=dict(os.environ)))
+    assert result.returncode == 0 and result.stdout.strip() == "done"
+    worker = int(pid_file.read_text().strip())
+    for _ in range(100):  # the signal lands asynchronously; the worker ignores SIGTERM, like Cursor's does
+        try:
+            os.kill(worker, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.02)
+    else:
+        os.kill(worker, signal.SIGKILL)
+        raise AssertionError("the background worker outlived the call")
 
 
 def test_parse_json_reply_errors() -> None:
