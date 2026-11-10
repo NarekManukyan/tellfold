@@ -383,9 +383,17 @@ struct SimConfig: Codable, Hashable, Sendable {
     var think: Bool = false
     var agentRuntime: String = "claude-code"
     var plannerRuntime: String = "claude-code"
+    /// The run whose topic map and people this run reused ("Try another version…").
+    var castFrom: String?
+    /// The study (runs compared with each other) this run was made for.
+    var studyID: String?
+    /// Its label in that study, e.g. "Draft B".
+    var variant: String?
 
     enum CodingKeys: String, CodingKey {
-        case question, rounds, concurrency, language, events, seed, think
+        case question, rounds, concurrency, language, events, seed, think, variant
+        case castFrom = "cast_from"
+        case studyID = "study_id"
         case seedFiles = "seed_files"
         case numAgents = "num_agents"
         case batchSize = "batch_size"
@@ -417,6 +425,9 @@ extension SimConfig {
         think = c.value(.think, default: false)
         agentRuntime = c.value(.agentRuntime, default: "claude-code")
         plannerRuntime = c.value(.plannerRuntime, default: "claude-code")
+        castFrom = c.optional(.castFrom)
+        studyID = c.optional(.studyID)
+        variant = c.optional(.variant)
     }
 }
 
@@ -462,9 +473,11 @@ extension Camp {
 struct Misquote: Codable, Hashable, Sendable {
     var postID: Int
     var quote: String
+    /// "A#12" when the quote was cited in a study comparison.
+    var ref: String?
 
     enum CodingKeys: String, CodingKey {
-        case quote
+        case quote, ref
         case postID = "post_id"
     }
 }
@@ -474,6 +487,8 @@ struct CitationAudit: Codable, Hashable, Sendable {
     var checked: Int = 0
     var unknownPosts: [Int] = []
     var unknownHandles: [String] = []
+    /// Cited "A#12" refs that are not posts in that run (study comparisons).
+    var unknownRefs: [String] = []
     var misquotes: [Misquote] = []
     /// A repair call was made because the first draft had problems.
     var repaired: Bool = false
@@ -493,6 +508,7 @@ struct CitationAudit: Codable, Hashable, Sendable {
         case checked, misquotes, repaired, marked
         case unknownPosts = "unknown_posts"
         case unknownHandles = "unknown_handles"
+        case unknownRefs = "unknown_refs"
     }
 }
 
@@ -502,6 +518,7 @@ extension CitationAudit {
         checked = c.value(.checked, default: 0)
         unknownPosts = c.value(.unknownPosts, default: [])
         unknownHandles = c.value(.unknownHandles, default: [])
+        unknownRefs = c.value(.unknownRefs, default: [])
         misquotes = c.value(.misquotes, default: [])
         repaired = c.value(.repaired, default: false)
         marked = c.value(.marked, default: 0)
@@ -619,13 +636,18 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     var hasReport: Bool
     /// A built-in example run shipped with the app: read-only.
     var example: Bool = false
+    /// The study the run was made for ("Try another version…"). A source run joins its study without this field.
+    var studyID: String?
+    /// Its label in that study.
+    var variant: String?
 
     var createdDate: Date? { TellfoldDates.parse(createdAt) }
     /// 0...1 progress through the rounds.
     var progress: Double { totalRounds > 0 ? min(1, Double(round) / Double(totalRounds)) : 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, question, state, stage, round, agents, example
+        case id, question, state, stage, round, agents, example, variant
+        case studyID = "study_id"
         case totalRounds = "total_rounds"
         case createdAt = "created_at"
         case hasReport = "has_report"
@@ -645,6 +667,8 @@ extension RunSummary {
         createdAt = c.value(.createdAt, default: "")
         hasReport = c.value(.hasReport, default: false)
         example = c.value(.example, default: false)
+        studyID = c.optional(.studyID)
+        variant = c.optional(.variant)
     }
 }
 

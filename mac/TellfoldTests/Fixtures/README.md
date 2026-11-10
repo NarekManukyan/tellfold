@@ -17,3 +17,7 @@ and an `/api` request without a token. Home-folder paths were replaced with `/Us
 
 `runtimes_handwritten.json` is hand-written from the `RuntimeInfo` shape in MAC_CONTRACT.md (covers `auth: missing`,
 an `openai-compatible:` id and an unknown extra field).
+
+`study_detail.json` and `studies.json` come from the offline engine through FastAPI's test client: a 4-agent, 2-round
+run, then a second run with `cast_from` set to it (its study), captured once the comparison was written:
+`GET /api/studies/{id}` and `GET /api/studies`.

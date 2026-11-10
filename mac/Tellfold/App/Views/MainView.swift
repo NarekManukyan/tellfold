@@ -25,6 +25,9 @@ struct MainView: View {
         .sheet(isPresented: $model.isAgentSetupPresented) {
             AgentSetupView()
         }
+        .sheet(item: $model.anotherVersionSource) { source in
+            AnotherVersionSheet(source: source)
+        }
         .onAppear { model.openWindowAction = openWindow }
     }
 
@@ -32,6 +35,9 @@ struct MainView: View {
         if let store = model.currentStore {
             RunDetailContainer(store: store)
                 .id(store.runID)
+        } else if let study = model.currentStudyStore {
+            StudyView(store: study)
+                .id(study.studyID)
         } else if !model.engine.state.isRunning {
             EngineUnavailableView()
         } else if model.hasLoadedRuns && model.runs.isEmpty {

@@ -11,6 +11,25 @@ struct RunSidebar: View {
     var body: some View {
         @Bindable var model = model
         List(selection: $model.selectedRunID) {
+            if !studyRows.isEmpty {
+                Section {
+                    ForEach(studyRows) { study in
+                        StudyRowView(study: study)
+                            .tag(StudySelection.tag(study.id))
+                    }
+                } header: {
+                    HStack {
+                        Text("Studies")
+                            .font(Theme.ui(12, .semibold))
+                            .foregroundStyle(Theme.muted)
+                        Spacer()
+                        Text("\(studyRows.count)").font(Theme.small).foregroundStyle(Theme.faint)
+                    }
+                    .padding(.trailing, 8)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isHeader)
+                }
+            }
             ForEach(stateSections, id: \.title) { section in
                 Section {
                     ForEach(section.runs) { run in
@@ -86,6 +105,12 @@ struct RunSidebar: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    /// Studies whose question matches the search field.
+    private var studyRows: [StudyRow] {
+        let query = model.searchText.trimmingCharacters(in: .whitespaces).lowercased()
+        return model.studyRows.filter { query.isEmpty || $0.question.lowercased().contains(query) }
     }
 
     /// Runs filtered by the search field, grouped by state: running first, then the ones that need a look.
@@ -165,6 +190,34 @@ struct RunSidebar: View {
 
     private var deleteBinding: Binding<Bool> {
         Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } })
+    }
+}
+
+/// A study in the sidebar: its question and its versions ("Draft A vs Draft B").
+private struct StudyRowView: View {
+    let study: StudyRow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(study.question)
+                .lineLimit(2)
+                .font(Theme.ui(13, .medium))
+                .foregroundStyle(Theme.text)
+            HStack(spacing: 6) {
+                Image(systemName: "square.split.2x1")
+                    .foregroundStyle(Theme.accent)
+                Text(study.title).lineLimit(1)
+                Spacer(minLength: 0)
+                if study.isActive || study.comparing {
+                    ProgressView().controlSize(.mini)
+                }
+            }
+            .font(Theme.small)
+            .foregroundStyle(Theme.muted)
+        }
+        .padding(.vertical, 3)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Study: \(study.question), \(study.title)")
     }
 }
 

@@ -240,6 +240,7 @@ private struct SummaryCard: View {
             HStack(spacing: Theme.space2) {
                 Button("Read full report") { navigate(.report) }
                     .buttonStyle(.consolePrimary)
+                AnotherVersionButton(store: store)
                 RunAgainButton(store: store)
                 Text("A scenario exploration of a simulated crowd, not a poll of real people.")
                     .font(Theme.caption)

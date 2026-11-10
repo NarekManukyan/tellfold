@@ -41,6 +41,10 @@ Every run lives in `runs/<run_id>/` (run_id = `YYYYMMDD-HHMMSS-<slug>`; created 
 | `calls.jsonl` | llm | one line per LLM call: ts, purpose, model, seconds, ok, error, prompt_chars, output_chars |
 | `report.json` / `report.html` / `report.md` | report | `Report` + rendered pages |
 
+Runs compared with each other form a **study**, kept in `runs/studies/<study_id>/`: `study.json` (`Study`: the
+member runs and their labels, "Draft A", "Draft B"), `compare.json` (`CompareResult`) and, for the comparison's own
+model calls, `config.json` (a copy of the newest member's config) and `calls.jsonl`. The folder has no run of its own.
+
 ## Module contracts
 
 ### `tellfold/llm.py` — local Claude backend
@@ -165,6 +169,22 @@ def render_markdown(report: Report) -> str
   SVG), action mix per round, top threads rendered as a feed, persona directory. Light/dark via
   `prefers-color-scheme`. No external assets.
 
+### `tellfold/compare.py` and `tellfold/study.py` — studies
+```python
+def plan_variant(runs_dir, source_id, source: SimConfig, *, study_id=None, variant=None) -> tuple[Study, str]
+def join_study(runs_dir, study: Study, run_id: str, variant: str) -> Study
+def digest_run(member: Member, state: str = "") -> RunDigest
+async def build_compare(llm, study_id, members: list[Member], *, question, model, language) -> CompareResult
+```
+- A run with `SimConfig.cast_from` set reuses the source run's `graph.json` and `personas.json`: no graph or persona
+  calls; both stages are still announced (with `reused: true`). It joins the source's study, or starts one with the
+  source labelled "Draft A". A read-only example joins through `study.json` only.
+- Python digests every run (sentiment by round, final sentiment, camps, stance shifts, objections from the report's
+  risks, posts per round). One `compare.write` call gets the digests and each version's text and returns a
+  `CompareReport`. Posts are cited `A#12` (post 12 of the study's first run); the citation audit checks those refs
+  against the right run and marks the ones that don't match `[unverified]`.
+- The server writes the comparison by itself once every member has finished with a report.
+
 ### `tellfold/chat.py`
 ```python
 async def interview(llm: LLM, world: World, agent_id: str, question: str, *, model: str,
@@ -178,6 +198,8 @@ Agent answers in character using persona + memory + its own posts and replies.
 tellfold run SEED... -q "question" [--agents 20] [--rounds 6] [--batch 6] [--agent-model haiku]
           [--planner-model sonnet] [--concurrency 4] [--event "3:Breaking news text"]... [--out runs]
           [--language English] [--open]
+          [--cast-from RUN_DIR] [--variant "Draft B"]   # reuse a run's people, join its study
+tellfold compare RUN_DIR           # compare the runs of RUN_DIR's study (studies/<id>/compare.json)
 tellfold report RUN_DIR            # rebuild report from an existing run
 tellfold chat RUN_DIR --agent a03  # interactive interview (REPL)
 tellfold ask RUN_DIR "question"    # one-shot question to the report agent

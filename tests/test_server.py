@@ -282,7 +282,7 @@ def test_full_run_and_every_endpoint(client: TestClient, factory: Factory, runs_
     assert runs[0] | {"created_at": None} == {
         "id": run_id, "question": "Will Harbour Town accept the ferry fare rise?", "state": "done",
         "stage": "finished", "round": 2, "total_rounds": 2, "agents": 4, "created_at": None, "has_report": True,
-        "example": False}
+        "example": False, "study_id": None, "variant": None}
 
     posts = client.get(f"/api/runs/{run_id}/posts").json()
     assert posts and [p["id"] for p in posts] == sorted(p["id"] for p in posts)

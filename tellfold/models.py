@@ -129,6 +129,9 @@ class SimConfig(BaseModel):
     think: bool = False  # extended thinking for graph/personas/report calls (slower, more thorough)
     agent_runtime: str = "claude-code"  # tellfold.runtimes id for engine.* and chat.interview calls
     planner_runtime: str = "claude-code"  # tellfold.runtimes id for graph, personas, report and ask calls
+    cast_from: str | None = None  # run id whose topic map and people this run reuses (no graph or persona calls)
+    study_id: str | None = None  # the study (a group of compared runs) this run belongs to
+    variant: str | None = None  # short label inside the study, e.g. "Draft B"
 
 
 class ReportSection(BaseModel):
@@ -148,6 +151,7 @@ class Camp(BaseModel):
 class Misquote(BaseModel):
     post_id: int
     quote: str
+    ref: str | None = None  # "A#12" when the quote was cited in a study comparison
 
 
 class CitationAudit(BaseModel):
@@ -156,13 +160,14 @@ class CitationAudit(BaseModel):
     checked: int = 0  # post ids, handles and quotes found in the report text
     unknown_posts: list[int] = Field(default_factory=list)  # cited #ids that are not posts in this run
     unknown_handles: list[str] = Field(default_factory=list)  # cited @handles that are not agents in this run
+    unknown_refs: list[str] = Field(default_factory=list)  # cited "A#12" refs that are not posts in that run (studies)
     misquotes: list[Misquote] = Field(default_factory=list)  # quotes not found in the post cited next to them
     repaired: bool = False  # a repair call was made because the first draft had problems
     marked: int = 0  # citations still wrong after the repair, replaced in the text with "[unverified]"
 
     @property
     def problems(self) -> int:
-        return len(self.unknown_posts) + len(self.unknown_handles) + len(self.misquotes)
+        return len(self.unknown_posts) + len(self.unknown_handles) + len(self.unknown_refs) + len(self.misquotes)
 
 
 class Report(BaseModel):
@@ -178,6 +183,95 @@ class Report(BaseModel):
     caveats: list[str] = Field(default_factory=list)
     # Filled in by Python, never asked of the model (kept out of the JSON schema). None in older reports.
     citation_audit: SkipJsonSchema[CitationAudit | None] = None
+
+
+# ---------- studies: runs compared with each other (written to runs/studies/<id>/) ----------
+
+class StudyRun(BaseModel):
+    id: str  # run id
+    variant: str  # label shown in the study, e.g. "Draft A"
+
+
+class Study(BaseModel):
+    """`studies/<id>/study.json`: which runs belong together. Runs also carry `SimConfig.study_id`, but a read-only
+    run (a built-in example) can join a study only through this file."""
+
+    id: str
+    kind: Literal["compare"] = "compare"
+    created_at: str = ""  # ISO 8601 UTC
+    runs: list[StudyRun] = Field(default_factory=list)
+
+
+class VariantSummary(BaseModel):
+    variant: str  # one of the labels given in the prompt
+    summary: str  # how the crowd took this version, with citations like A#12
+    objections: list[str] = Field(default_factory=list)  # the main objections raised against this version
+
+
+class VariantObjections(BaseModel):
+    variant: str
+    objections: list[str] = Field(default_factory=list)  # objections that came up only against this version
+
+
+class RoundPoint(BaseModel):
+    round: int
+    sentiment: float | None = None
+    posts: int = 0  # new posts in the round
+
+
+class CampDigest(BaseModel):
+    name: str
+    size: int
+    sentiment: float | None = None
+    summary: str = ""
+
+
+class ShiftDigest(BaseModel):
+    """A vocal agent's first and latest post, and how far the scored sentiment moved between them."""
+
+    agent_id: str
+    handle: str
+    first_post: int
+    last_post: int
+    change: float | None = None  # last minus first; None when either post was not scored
+
+
+class RunDigest(BaseModel):
+    """What Python measures about one run of a study, before any model call."""
+
+    letter: str  # citation prefix: "A" for the study's first run
+    run_id: str
+    variant: str
+    state: str = ""
+    headline: str | None = None  # the run's report title
+    rounds: list[RoundPoint] = Field(default_factory=list)
+    final_sentiment: float | None = None  # the last scored round
+    camps: list[CampDigest] = Field(default_factory=list)
+    shifts: list[ShiftDigest] = Field(default_factory=list)
+    objections: list[str] = Field(default_factory=list)  # the run's report risks
+    posts: int = 0
+
+
+class CompareReport(BaseModel):
+    """The cited comparison of the runs in a study, written by one `compare.write` call."""
+
+    headline: str
+    better_variant: str | None = None  # the label of the version the crowd took better; None for a tie
+    why: str = ""  # cited reasons for the verdict
+    per_variant: list[VariantSummary] = Field(default_factory=list)
+    objections_only_in: list[VariantObjections] = Field(default_factory=list)
+    caveats: list[str] = Field(default_factory=list)
+    # Filled in by Python, never asked of the model (kept out of the JSON schema).
+    citation_audit: SkipJsonSchema[CitationAudit | None] = None
+
+
+class CompareResult(BaseModel):
+    """`studies/<id>/compare.json`."""
+
+    study_id: str
+    created_at: str = ""
+    runs: list[RunDigest] = Field(default_factory=list)
+    report: CompareReport
 
 
 # ---------- run lifecycle (written to runs/<id>/status.json by tellfold.runner) ----------

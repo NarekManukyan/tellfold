@@ -53,7 +53,10 @@ from tellfold.runner import (  # noqa: F401 - re-exported: older callers and tes
     write_json,
     write_report,
 )
+from tellfold.compare import COMPARE_FILE, Member, build_compare
+from tellfold.runner import load_cast, now_iso
 from tellfold.settings import env
+from tellfold.study import StudyError, join_study, letter, plan_variant, study_dir, study_of
 from tellfold.world import World
 
 app = typer.Typer(
@@ -509,6 +512,12 @@ def run(
     planner_runtime: Annotated[str | None, typer.Option(
         help="Runtime for graph, personas and report (see `tellfold runtimes`). Default: settings, "
              "else claude-code.")] = None,
+    cast_from: Annotated[Path | None, typer.Option(
+        "--cast-from", exists=True, file_okay=False,
+        help="Reuse the topic map and people of this run (in the --out folder) and compare the two: no graph or "
+             "persona calls. Both runs join a study; see `tellfold compare`.")] = None,
+    variant: Annotated[str | None, typer.Option(
+        help="Label of this run in its study, e.g. \"Draft B\". Default: the next letter.")] = None,
 ) -> None:
     """Run a full simulation: ingest, graph, personas, rounds, report."""
     files = expand_seeds(seeds)
@@ -521,7 +530,25 @@ def run(
         language=language, events=[parse_event(e, rounds) for e in event or []], seed=seed, think=think,
         agent_runtime=agent_runtime, planner_runtime=planner_runtime,
     )
+    study = None
+    if cast_from is not None:
+        if cast_from.resolve().parent != out.resolve():
+            fail(f"--cast-from must be a run in the --out folder ({out})")
+        try:
+            source = SimConfig.model_validate_json((cast_from / "config.json").read_text(encoding="utf-8"))
+            cast = load_cast(cast_from)
+            study, label = plan_variant(out, cast_from.name, source, variant=variant, now=now_iso())
+        except (OSError, ValueError) as e:
+            fail(f"cannot reuse {cast_from}: {e}")
+        except (RunError, StudyError) as e:
+            fail(str(e))
+        config = config.model_copy(update={"cast_from": cast_from.name, "study_id": study.id, "variant": label,
+                                           "num_agents": len(cast.personas)})
+    elif variant:
+        fail("--variant needs --cast-from: a study compares runs of one crowd")
     run_dir = create_run_dir(out, question)
+    if study is not None:
+        join_study(out, study, run_dir.name, config.variant or "")
     files = copy_seeds(run_dir, files)
     config = config.model_copy(update={"seed_files": [str(f) for f in files]})
     write_json(run_dir / "config.json", config)
@@ -552,8 +579,45 @@ def run(
                       soft_wrap=True)
         raise typer.Exit(EXIT_INTERRUPTED)
     print_summary(report, run_dir)
+    if study is not None:
+        console.print(f"Study:  {study.id}. Compare the versions with: tellfold compare {run_dir}", soft_wrap=True)
     if open_report:
         webbrowser.open((run_dir / "report.html").resolve().as_uri())
+
+
+@app.command()
+def compare(
+    run_dir: Annotated[Path, typer.Argument(exists=True, file_okay=False, help="A run that belongs to a study.")],
+    model: Annotated[str | None, typer.Option(help="Override the planner model.")] = None,
+) -> None:
+    """Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json."""
+    config, world = load_run(run_dir)
+    world.close()
+    runs_dir = run_dir.resolve().parent
+    study = study_of(runs_dir, run_dir.resolve().name, config)
+    if study is None:
+        fail(f"{run_dir} is not part of a study. Make one with: tellfold run SEED -q ... --cast-from {run_dir}")
+    members = [Member(letter=letter(i), run_id=r.id, variant=r.variant, run_dir=runs_dir / r.id)
+               for i, r in enumerate(study.runs) if (runs_dir / r.id / "report.json").is_file()]
+    if len(members) < 2:
+        fail("a comparison needs at least two runs of the study with a report")
+    folder = study_dir(runs_dir, study.id)
+    llm = make_llm(run_dir, 1, config=config)
+    try:
+        with console.status("Comparing the versions..."):
+            result = anyio.run(partial(build_compare, llm, study.id, members, question=config.question,
+                                       model=model or config.planner_model, language=config.language))
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted.[/] Nothing was written.")
+        raise typer.Exit(EXIT_INTERRUPTED)
+    except LLMError as e:
+        fail(str(e))
+    folder.mkdir(parents=True, exist_ok=True)
+    write_json(folder / COMPARE_FILE, result)
+    verdict = result.report.better_variant or "a tie"
+    console.print(Panel(Text.assemble((result.report.why, ""), "\n\n", ("better: ", "dim"), (verdict, "bold")),
+                        title=result.report.headline, title_align="left", border_style="cyan"))
+    console.print(f"Comparison: [bold]{folder / COMPARE_FILE}[/]", soft_wrap=True)
 
 
 @app.command()

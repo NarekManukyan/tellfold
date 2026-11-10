@@ -8,6 +8,7 @@ Every payload is JSON-safe so a server can forward it as is.
 
 from __future__ import annotations
 
+import json
 import logging
 import math
 import os
@@ -26,7 +27,7 @@ from tellfold.engine import Engine
 from tellfold.graph import CHUNKS_PER_CALL, MAX_EXTRACT_CHUNKS, extract_graph, select_chunks
 from tellfold.ingest import chunk_text, load_documents
 from tellfold.llm import LLM
-from tellfold.models import FailedBatch, Report, RunStage, RunState, RunStatus, SimConfig
+from tellfold.models import FailedBatch, KnowledgeGraph, Persona, Report, RunStage, RunState, RunStatus, SimConfig
 from tellfold.personas import generate_personas
 from tellfold.report import build_report, render_html, render_markdown
 from tellfold.world import World
@@ -101,9 +102,11 @@ ESTIMATED_ACTIVE_SHARE = 0.4
 
 def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
     """(agent, planner) model calls for a run when nothing needs a retry. Mirrored in the Mac app
-    (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both."""
-    graph = math.ceil(min(chunks, MAX_EXTRACT_CHUNKS) / CHUNKS_PER_CALL)
-    personas = math.ceil(config.num_agents / 10)
+    (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both.
+    A run that reuses a cast (`cast_from`) makes no graph or persona calls."""
+    reused = config.cast_from is not None
+    graph = 0 if reused else math.ceil(min(chunks, MAX_EXTRACT_CHUNKS) / CHUNKS_PER_CALL)
+    personas = 0 if reused else math.ceil(config.num_agents / 10)
     opening = math.ceil(round(0.3 * config.num_agents) / config.batch_size) + 1  # opening posts + sentiment
     active = max(1, math.ceil(config.num_agents * ESTIMATED_ACTIVE_SHARE))
     per_round = math.ceil(active / config.batch_size) + 1  # decisions + sentiment
@@ -113,6 +116,29 @@ def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
 def estimate_calls(config: SimConfig, chunks: int) -> int:
     """Model calls for a run when nothing needs a retry, shown so users can judge rate-limit cost."""
     return sum(estimate_call_split(config, chunks))
+
+
+# ---------- reusing a cast ----------
+
+
+class Cast(BaseModel):
+    """The topic map and the people of a finished run, reused by a run with `cast_from` set."""
+
+    graph: KnowledgeGraph
+    personas: list[Persona]
+
+
+def load_cast(source_dir: Path) -> Cast:
+    """The graph and personas of `source_dir`; RunError when the run never got that far."""
+    try:
+        graph = KnowledgeGraph.model_validate_json((source_dir / "graph.json").read_text(encoding="utf-8"))
+        raw = (source_dir / "personas.json").read_text(encoding="utf-8")
+        personas = [Persona.model_validate(p) for p in json.loads(raw)]
+    except (OSError, ValueError, ValidationError) as e:
+        raise RunError(f"cannot reuse the people of {source_dir.name}: it has no topic map or people yet") from e
+    if not personas:
+        raise RunError(f"cannot reuse the people of {source_dir.name}: it has no people")
+    return Cast(graph=graph, personas=personas)
 
 
 # ---------- status.json ----------
@@ -219,8 +245,12 @@ async def run_pipeline(
     *,
     on_event: OnEvent | None = None,
     stop: anyio.Event | None = None,
+    cast_dir: Path | None = None,
 ) -> Report | None:
     """Run a whole simulation in `run_dir`.
+
+    With `config.cast_from` set, the graph and persona stages are skipped: their files are copied from `cast_dir`
+    (default: the sibling run folder named `cast_from`), and both stages are still announced as done.
 
     Returns the report, or None when the run was stopped before a single round completed. `stop` is checked
     between stages and between rounds: the current round always finishes, then the run is marked `stopped`
@@ -252,22 +282,37 @@ async def run_pipeline(
             finish_stopped()
             return None
 
-        selected = select_chunks(chunks, config.question)
-        detail = (f"extracting from {len(chunks)} chunks" if len(selected) == len(chunks) else
-                  f"extracting from the {len(selected)} of {len(chunks)} chunks most relevant to the question")
-        track.stage(RunStage.GRAPH, detail, chunks=len(chunks), estimated_calls=estimate_calls(config, len(chunks)))
-        graph = await extract_graph(llm, selected, question=config.question, model=config.planner_model,
-                                    on_progress=track.detail)
-        write_json(run_dir / "graph.json", graph)
-        if stopping():
-            finish_stopped()
-            return None
+        if config.cast_from:
+            source = cast_dir or run_dir.parent / config.cast_from
+            cast = load_cast(source)
+            graph, personas = cast.graph, cast.personas
+            if config.num_agents != len(personas):  # the crowd is the source's, whatever size was asked for
+                config = config.model_copy(update={"num_agents": len(personas)})
+                write_json(run_dir / "config.json", config)
+            track.stage(RunStage.GRAPH, f"reusing the topic map of {config.cast_from}", chunks=len(chunks),
+                        reused=True, estimated_calls=estimate_calls(config, len(chunks)))
+            write_json(run_dir / "graph.json", graph)
+            track.stage(RunStage.PERSONAS, f"reusing the {len(personas)} people of {config.cast_from}",
+                        entities=len(graph.entities), relations=len(graph.relations), reused=True)
+            write_json(run_dir / "personas.json", personas)
+        else:
+            selected = select_chunks(chunks, config.question)
+            detail = (f"extracting from {len(chunks)} chunks" if len(selected) == len(chunks) else
+                      f"extracting from the {len(selected)} of {len(chunks)} chunks most relevant to the question")
+            track.stage(RunStage.GRAPH, detail, chunks=len(chunks),
+                        estimated_calls=estimate_calls(config, len(chunks)))
+            graph = await extract_graph(llm, selected, question=config.question, model=config.planner_model,
+                                        on_progress=track.detail)
+            write_json(run_dir / "graph.json", graph)
+            if stopping():
+                finish_stopped()
+                return None
 
-        track.stage(RunStage.PERSONAS, f"creating {config.num_agents} personas",
-                    entities=len(graph.entities), relations=len(graph.relations))
-        personas = await generate_personas(llm, graph, question=config.question, n=config.num_agents,
-                                           model=config.planner_model, language=config.language)
-        write_json(run_dir / "personas.json", personas)
+            track.stage(RunStage.PERSONAS, f"creating {config.num_agents} personas",
+                        entities=len(graph.entities), relations=len(graph.relations))
+            personas = await generate_personas(llm, graph, question=config.question, n=config.num_agents,
+                                               model=config.planner_model, language=config.language)
+            write_json(run_dir / "personas.json", personas)
         if stopping():
             finish_stopped()
             return None

@@ -54,6 +54,12 @@ struct NewRunRequest: Hashable, Sendable {
     var seed: Int = 7
     /// Documents that exist only in memory, such as the pasted description, sent like uploaded seed files.
     var inlineDocuments: [InlineDocument] = []
+    /// Reuse this run's topic map and people ("Try another version…"); the engine then skips both stages.
+    var castFrom: String?
+    /// The study to join; nil starts one (or joins the cast's own study).
+    var studyID: String?
+    /// The label in the study, e.g. "Draft B"; nil lets the engine pick the next letter.
+    var variant: String?
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
@@ -168,6 +174,9 @@ actor TellfoldAPI {
         form.add("language", request.language)
         form.add("think", request.think ? "true" : "false")
         form.add("seed", String(request.seed))
+        if let castFrom = request.castFrom { form.add("cast_from", castFrom) }
+        if let studyID = request.studyID { form.add("study_id", studyID) }
+        if let variant = request.variant { form.add("variant", variant) }
         let events = request.events.filter { !$0.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         if !events.isEmpty {
             let data = try Self.encoder.encode(events)
@@ -230,6 +239,16 @@ actor TellfoldAPI {
     /// The generated `report.html` (the endpoint needs the bearer token, so a browser cannot open it directly).
     func reportHTML(runID: String) async throws -> Data {
         try await sendRaw(makeRequest(["runs", runID, "report.html"]))
+    }
+
+    // MARK: Studies
+
+    func studies() async throws -> [StudySummary] { try await get("studies") }
+    func study(_ studyID: String) async throws -> StudyDetail { try await get("studies", studyID) }
+
+    /// Writes (or rewrites) the study's comparison in the background.
+    func compareStudy(_ studyID: String) async throws {
+        let _: OkResponse = try await post(["studies", studyID, "compare"], body: Optional<String>.none)
     }
 
     /// Live events for one run. Iterate it in a task; cancelling the task closes the connection.

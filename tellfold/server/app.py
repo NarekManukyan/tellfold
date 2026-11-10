@@ -26,17 +26,21 @@ from starlette.datastructures import UploadFile
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from tellfold import __version__
+from tellfold.compare import digest_run
 from tellfold.llm import LLMError
 from tellfold.models import (
+    CompareResult,
     GodEvent,
     KnowledgeGraph,
     Persona,
     Post,
     Report,
     RoundStats,
+    RunDigest,
     RunStatus,
     SimConfig,
 )
+from tellfold.runner import now_iso
 from tellfold.server.manager import (
     BadRequest,
     Conflict,
@@ -48,6 +52,7 @@ from tellfold.server.manager import (
 )
 from tellfold.server.runtime_routes import register_runtime_routes, runtime_form_fields
 from tellfold.settings import env, load_settings
+from tellfold.study import STUDY_ID, StudyError, join_study, plan_variant
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 STATIC_DIR = WEB_DIR / "static"
@@ -83,6 +88,8 @@ class RunSummary(BaseModel):
     created_at: str
     has_report: bool
     example: bool = False  # a built-in example run: read-only
+    study_id: str | None = None  # the study the run was made for ("Try another version…")
+    variant: str | None = None  # its label in that study
 
 
 class CallTotals(BaseModel):
@@ -172,6 +179,44 @@ class ChatIn(BaseModel):
 
 class AskIn(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
+
+
+class StudyMemberOut(BaseModel):
+    id: str
+    variant: str
+    letter: str  # citation prefix in the comparison: A#12 is post 12 of run A
+
+
+class StudySummary(BaseModel):
+    id: str
+    kind: str
+    created_at: str
+    question: str
+    runs: list[StudyMemberOut]
+    has_compare: bool
+    comparing: bool
+
+
+class StudyRunOut(StudyMemberOut):
+    question: str
+    state: str
+    has_report: bool
+    example: bool = False
+    digest: RunDigest
+
+
+class CompareState(BaseModel):
+    running: bool = False
+    error: str | None = None  # why the last comparison in this server failed
+
+
+class StudyDetail(BaseModel):
+    id: str
+    kind: str
+    created_at: str
+    runs: list[StudyRunOut]
+    compare: CompareResult | None
+    compare_state: CompareState
 
 
 # ---------- local-only guard ----------
@@ -442,6 +487,21 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
                 seed=_int_field(form, "seed", 7, 0, 2**31 - 1),
             )
             config_fields.update(runtime_form_fields(form, load_settings(settings_path)))
+            study = None
+            cast_from = _str_field(form, "cast_from", "", max_len=200, pattern=_RUN_ID)
+            study_id = _str_field(form, "study_id", "", max_len=100, pattern=STUDY_ID) or None
+            variant = _str_field(form, "variant", "", max_len=60) or None
+            if cast_from:
+                source = cast_source(cast_from)
+                try:
+                    study, variant = plan_variant(runs_dir, cast_from, source, study_id=study_id, variant=variant,
+                                                  now=now_iso())
+                except StudyError as e:
+                    raise HTTPException(400, str(e)) from None
+                config_fields.update(cast_from=cast_from, study_id=study.id, variant=variant,
+                                     num_agents=source.num_agents)
+            elif study_id or variant:
+                raise HTTPException(400, "study_id and variant need cast_from: a study compares runs of one crowd")
             run_dir = manager.create_run_dir(question)
             try:
                 seeds = await _save_uploads(uploads, run_dir / "seeds")
@@ -451,8 +511,78 @@ def create_app(runs_dir: Path, llm_factory: LLMFactory, *, fake_llm: bool | None
         finally:
             await form.close()
         config = SimConfig(seed_files=[str(p) for p in seeds], **config_fields)
+        if study is not None:
+            join_study(runs_dir, study, run_dir.name, config.variant or "")
         run_id = await manager.start(run_dir, config, seeds)
         return {"id": run_id}
+
+    def cast_source(run_id: str) -> SimConfig:
+        """The config of the run whose people a new run reuses; 400 unless it got as far as having people."""
+        if ".." in run_id:
+            raise HTTPException(400, "invalid cast_from")
+        path = manager.run_path(run_id)
+        if not manager.is_example(run_id) and path.resolve().parent != runs_dir.resolve():
+            raise HTTPException(400, "invalid cast_from")
+        with manager.reader(run_id) as r:
+            config = r.config()
+        if config is None:
+            raise HTTPException(400, f"cast_from: there is no run {run_id}")
+        if not (path / "personas.json").is_file() or not (path / "graph.json").is_file():
+            raise HTTPException(400, f"cast_from: {run_id} has no people yet")
+        return config
+
+    # ----- studies -----
+
+    def study_or_404(study_id: str):
+        if not STUDY_ID.match(study_id) or ".." in study_id:
+            raise HTTPException(400, "invalid study id")
+        study = manager.study(study_id)
+        if study is None:
+            raise HTTPException(404, "study not found")
+        return study
+
+    @app.get("/api/studies", response_model=list[StudySummary])
+    async def list_studies() -> list[dict]:
+        from tellfold.study import list_studies as studies_on_disk
+
+        out = []
+        for study in studies_on_disk(runs_dir):
+            members = manager.study_members(study)
+            if not members:
+                continue
+            with manager.reader(members[0].run_id) as r:
+                config = r.config()
+            out.append({"id": study.id, "kind": study.kind, "created_at": study.created_at,
+                        "question": config.question if config else "",
+                        "runs": [{"id": m.run_id, "variant": m.variant, "letter": m.letter} for m in members],
+                        "has_compare": manager.compare_result(study.id) is not None,
+                        "comparing": manager.compare_state(study.id)["running"]})
+        out.sort(key=lambda s: (s["created_at"], s["id"]), reverse=True)
+        return out
+
+    @app.get("/api/studies/{study_id}", response_model=StudyDetail)
+    async def get_study(study_id: str) -> dict:
+        study = study_or_404(study_id)
+        runs = []
+        for m in manager.study_members(study):
+            with manager.reader(m.run_id) as r:
+                summary = r.summary(live=manager.is_live(m.run_id))
+            if summary is None:
+                continue
+            runs.append({"id": m.run_id, "variant": m.variant, "letter": m.letter, "question": summary["question"],
+                         "state": summary["state"], "has_report": summary["has_report"],
+                         "example": manager.is_example(m.run_id), "digest": digest_run(m, summary["state"])})
+        return {"id": study.id, "kind": study.kind, "created_at": study.created_at, "runs": runs,
+                "compare": manager.compare_result(study.id), "compare_state": manager.compare_state(study.id)}
+
+    @app.post("/api/studies/{study_id}/compare", response_model=Ok)
+    async def compare_study(study_id: str) -> dict:
+        study_or_404(study_id)
+        try:
+            manager.compare(study_id)
+        except Conflict as e:
+            raise HTTPException(409, str(e)) from None
+        return {"ok": True}
 
     @app.get("/api/runs/{run_id}", response_model=RunDetail)
     async def get_run(run_id: str) -> dict:
