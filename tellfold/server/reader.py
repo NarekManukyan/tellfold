@@ -354,6 +354,8 @@ class RunReader:
             "agents": config.num_agents,
             "created_at": status.started_at,
             "has_report": self.has_report(),
+            "study_id": config.study_id,
+            "variant": config.variant,
         }
 
     def detail(self, *, live: bool) -> dict[str, Any] | None:

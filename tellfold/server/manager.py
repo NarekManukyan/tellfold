@@ -29,12 +29,14 @@ import anyio
 from pydantic_core import to_jsonable_python
 
 from tellfold.chat import ask_report, interview
+from tellfold.compare import COMPARE_FILE, Member, build_compare
 from tellfold.llm import LLM
-from tellfold.models import GodEvent, KnowledgeGraph, RunState, RunStatus, SimConfig
+from tellfold.models import CompareResult, GodEvent, KnowledgeGraph, RunState, RunStatus, SimConfig, Study
 from tellfold.report import build_report
 from tellfold.runner import create_run_dir, now_iso, run_pipeline, write_json, write_report, write_status
 from tellfold.server.reader import RunReader
 from tellfold.settings import load_settings
+from tellfold.study import letter, load_study, study_dir
 from tellfold.world import World
 
 log = logging.getLogger(__name__)
@@ -103,6 +105,8 @@ class RunManager:
     _sent: dict[str, _Sent] = field(default_factory=dict)
     _rebuilding: dict[str, asyncio.Task] = field(default_factory=dict)
     _rebuild_errors: dict[str, str] = field(default_factory=dict)  # why the last rebuild failed
+    _comparing: dict[str, asyncio.Task] = field(default_factory=dict)  # study id -> compare task
+    _compare_errors: dict[str, str] = field(default_factory=dict)  # why the last comparison failed
     _loop: asyncio.AbstractEventLoop | None = None
     _loop_thread: int | None = None
 
@@ -159,20 +163,24 @@ class RunManager:
         return create_run_dir(self.runs_dir, question)
 
     async def start(self, run_dir: Path, config: SimConfig, seeds: list[Path]) -> str:
-        """Start `config` in `run_dir` (already created, seeds already saved) as a background task."""
+        """Start `config` in `run_dir` (already created, seeds already saved) as a background task.
+
+        With `config.cast_from` set, the cast is read from that run's folder (an example's too)."""
         self._bind_loop()
         run_id = run_dir.name
         write_json(run_dir / "config.json", config)
         llm = self.llm_factory(run_dir, config.concurrency, config.think)
         live = LiveRun(run_id=run_id, run_dir=run_dir, config=config, stop=anyio.Event())
         self._live[run_id] = live
-        live.task = asyncio.create_task(self._execute(live, llm, seeds), name=f"tellfold-run-{run_id}")
+        cast_dir = self.run_path(config.cast_from) if config.cast_from else None
+        live.task = asyncio.create_task(self._execute(live, llm, seeds, cast_dir), name=f"tellfold-run-{run_id}")
         return run_id
 
-    async def _execute(self, live: LiveRun, llm: LLM, seeds: list[Path]) -> None:
+    async def _execute(self, live: LiveRun, llm: LLM, seeds: list[Path], cast_dir: Path | None = None) -> None:
         on_event = self._listener(live)
         try:
-            await run_pipeline(llm, live.run_dir, live.config, seeds, on_event=on_event, stop=live.stop)
+            await run_pipeline(llm, live.run_dir, live.config, seeds, on_event=on_event, stop=live.stop,
+                               cast_dir=cast_dir)
         except asyncio.CancelledError:
             self._mark_stopped(live.run_dir, "stopped: server shut down")
             raise
@@ -181,6 +189,8 @@ class RunManager:
         finally:
             self._live.pop(live.run_id, None)
             self.refresh_status(live.run_id)
+        if live.config.study_id:
+            self._compare_when_ready(live.config.study_id)
 
     def _listener(self, live: LiveRun) -> Callable[[str, dict], None]:
         def on_event(name: str, data: dict) -> None:
@@ -311,6 +321,90 @@ class RunManager:
         """Whether a report rebuild is running, and why the last one failed (None if it did not)."""
         task = self._rebuilding.get(run_id)
         return {"running": task is not None and not task.done(), "error": self._rebuild_errors.get(run_id)}
+
+    # ---------- studies ----------
+
+    def study(self, study_id: str) -> Study | None:
+        return load_study(self.runs_dir, study_id)
+
+    def study_members(self, study: Study) -> list[Member]:
+        """The study's runs that still exist, lettered in study order (A is the first run ever added)."""
+        members = []
+        for i, run in enumerate(study.runs):
+            path = self.run_path(run.id)
+            if (path / "config.json").is_file():
+                members.append(Member(letter=letter(i), run_id=run.id, variant=run.variant, run_dir=path,
+                                      immutable=self.is_example(run.id)))
+        return members
+
+    def run_state(self, run_id: str) -> RunState | None:
+        status = self.effective_status(run_id)
+        return status.state if status else None
+
+    def compare_result(self, study_id: str) -> CompareResult | None:
+        try:
+            path = study_dir(self.runs_dir, study_id) / COMPARE_FILE
+            return CompareResult.model_validate_json(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+
+    def compare_state(self, study_id: str) -> dict[str, Any]:
+        task = self._comparing.get(study_id)
+        return {"running": task is not None and not task.done(), "error": self._compare_errors.get(study_id)}
+
+    def _ready_members(self, study: Study) -> list[Member]:
+        """Members that finished with a report; empty while any member is still running."""
+        members = self.study_members(study)
+        if any(self.is_live(m.run_id) or self.run_state(m.run_id) in (RunState.RUNNING, RunState.QUEUED)
+               for m in members):
+            return []
+        return [m for m in members if (m.run_dir / "report.json").is_file()]
+
+    def compare(self, study_id: str) -> None:
+        """Start (or redo) the study's comparison in the background."""
+        study = self.study(study_id)
+        if study is None:
+            raise KeyError(study_id)
+        task = self._comparing.get(study_id)
+        if task is not None and not task.done():
+            raise Conflict("the comparison is already being written")
+        members = self._ready_members(study)
+        if len(members) < 2:
+            raise Conflict("a comparison needs at least two finished runs with a report")
+        self._compare_errors.pop(study_id, None)
+        self._comparing[study_id] = asyncio.create_task(self._compare(study, members),
+                                                        name=f"tellfold-compare-{study_id}")
+
+    def _compare_when_ready(self, study_id: str) -> None:
+        """After a study run ends: compare once every member is finished, unless a comparison is under way."""
+        study = self.study(study_id)
+        task = self._comparing.get(study_id)
+        if study is None or (task is not None and not task.done()):
+            return
+        if len(self._ready_members(study)) >= 2:
+            with contextlib.suppress(Conflict, KeyError):
+                self.compare(study_id)
+
+    async def _compare(self, study: Study, members: list[Member]) -> None:
+        folder = study_dir(self.runs_dir, study.id)
+        try:
+            with self.reader(members[-1].run_id) as r:
+                config = r.config()
+            assert config is not None
+            # The study folder gets the newest run's config, so the comparison uses the same AI tool and models,
+            # and its calls are logged in the study folder (calls.jsonl), not in one of the runs.
+            folder.mkdir(parents=True, exist_ok=True)
+            write_json(folder / "config.json", config)
+            llm = self.llm_factory(folder, 1, False)
+            states = {m.run_id: (self.run_state(m.run_id) or RunState.DONE).value for m in members}
+            result = await build_compare(llm, study.id, members, question=config.question,
+                                         model=config.planner_model, language=config.language, states=states)
+            write_json(folder / COMPARE_FILE, result)
+        except Exception as e:  # noqa: BLE001 - shown in the study view, the server keeps running
+            log.warning("comparison for study %s failed", study.id, exc_info=True)
+            self._compare_errors[study.id] = str(e) or type(e).__name__
+        finally:
+            self._comparing.pop(study.id, None)
 
     # ---------- fan-out ----------
 
@@ -461,7 +555,7 @@ class RunManager:
                 task.cancel()
             if pending:
                 await asyncio.wait(pending, timeout=2)
-        for task in list(self._rebuilding.values()):
+        for task in [*self._rebuilding.values(), *self._comparing.values()]:
             task.cancel()
         for watch in list(self._watches.values()):
             watch.task.cancel()

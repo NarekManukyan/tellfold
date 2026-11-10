@@ -21,11 +21,28 @@ final class AppModel {
     @ObservationIgnored private var reconciling: Set<String> = []
     var searchText = ""
 
+    /// The sidebar selection: a run id, or a study tagged `study:<id>` (`StudySelection`).
     var selectedRunID: String? {
         didSet { if oldValue != selectedRunID { makeStore() } }
     }
-    /// The store for `selectedRunID`.
+    /// The store for `selectedRunID` when a run is selected.
     private(set) var currentStore: RunStore?
+    /// The store for the selected study.
+    private(set) var currentStudyStore: StudyStore?
+    /// Studies (runs of one crowd compared with each other), from `GET /api/studies`. Empty with an older engine.
+    private(set) var studies: [StudySummary] = []
+    /// The run "Try another version…" makes a new version of; the main window presents the sheet for it.
+    var anotherVersionSource: AnotherVersionSource?
+    /// A post to show once its run is open (a citation in a study comparison).
+    var pendingPostFocus: PostFocus?
+
+    struct PostFocus: Equatable {
+        var runID: String
+        var postID: Int
+    }
+
+    var selectedStudyID: String? { StudySelection.studyID(from: selectedRunID) }
+    var studyRows: [StudyRow] { StudyLogic.rows(studies: studies, runs: runs) }
 
     var isNewSimulationPresented = false
     /// What the sheet opens with (a question from the empty state, or a run's settings for "Run again…"); the sheet
@@ -119,10 +136,23 @@ final class AppModel {
             reconcileRounds(list)
             runsError = nil
             hasLoadedRuns = true
-            if let id = selectedRunID, !list.contains(where: { $0.id == id }) { selectedRunID = nil }
+            await refreshStudies()
+            if let id = selectedRunID, selectedStudyID == nil, !list.contains(where: { $0.id == id }) { selectedRunID = nil }
+            if let id = selectedStudyID, !studies.contains(where: { $0.id == id }) { selectedRunID = nil }
         } catch is CancellationError {
         } catch {
             runsError = error.localizedDescription
+        }
+    }
+
+    func refreshStudies() async {
+        guard let api else { return }
+        do {
+            studies = try await api.studies()
+        } catch let error as TellfoldAPIError where error.isNotFound {
+            studies = []  // an engine from before studies
+        } catch {
+            // keep the last list; the runs list shows the error
         }
     }
 
@@ -184,10 +214,17 @@ final class AppModel {
 
     private func makeStore() {
         currentStore?.stopStreaming()
+        currentStudyStore?.stop()
+        currentStudyStore = nil
         // Without an engine a store could never load (it would spin forever) and would hide the engine's own
         // status view; keep the selection and build the store once the engine is back (`apiChanged`).
         guard let id = selectedRunID, let api else {
             currentStore = nil
+            return
+        }
+        if let studyID = StudySelection.studyID(from: id) {
+            currentStore = nil
+            currentStudyStore = StudyStore(studyID: studyID, api: api)
             return
         }
         let store = RunStore(runID: id, api: api)
@@ -332,6 +369,44 @@ final class AppModel {
             }
         }
         newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromExample: isExample(runID)))
+    }
+
+    // MARK: Studies
+
+    /// Opens "Try another version…" for a finished run.
+    func tryAnotherVersion(runID: String, config: SimConfig, text: String? = nil) {
+        anotherVersionSource = AnotherVersionSource(runID: runID, config: config, fromExample: isExample(runID), text: text)
+    }
+
+    /// Downloads a run's seed documents into a temporary folder; empty when the engine has none.
+    func downloadSeeds(runID: String) async -> [URL] {
+        guard let api, let list = try? await api.seeds(runID: runID), !list.isEmpty else { return [] }
+        let folder = FileManager.default.temporaryDirectory.appending(path: "tellfold-version-\(UUID().uuidString)")
+        guard (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil else { return [] }
+        var urls: [URL] = []
+        for item in list {
+            guard let data = try? await api.seedData(runID: runID, name: item.name) else { continue }
+            let url = folder.appending(path: item.name)
+            if (try? data.write(to: url)) != nil { urls.append(url) }
+        }
+        return urls
+    }
+
+    /// Starts a new version of a run and shows its study, where both runs and then the comparison appear.
+    func createVersion(_ request: NewRunRequest) async throws {
+        guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        let id = try await api.createRun(request)
+        await refreshRuns()
+        let studyID = runs.first { $0.id == id }?.studyID ?? StudyLogic.study(of: id, runs: runs, studies: studies)
+        selectedRunID = studyID.map(StudySelection.tag) ?? id
+    }
+
+    func selectStudy(_ studyID: String) { selectedRunID = StudySelection.tag(studyID) }
+
+    /// Opens a run and selects one of its posts once the run has loaded (a citation such as `B#7`).
+    func openPost(runID: String, postID: Int) {
+        pendingPostFocus = PostFocus(runID: runID, postID: postID)
+        selectedRunID = runID
     }
 
     static let seedContentTypes: [UTType] = [

@@ -46,6 +46,7 @@ struct RunDetailView: View {
             .onChange(of: store.isPlaying) { _, _ in replay.sync() }
             .onChange(of: store.replaySpeed) { _, _ in replay.sync() }
             .onChange(of: store.detail?.id) { _, _ in replay.attach(store) }
+            .onChange(of: store.posts.count, initial: true) { _, _ in focusPendingPost() }
             .onDisappear { replay.detach() }
     }
 
@@ -115,6 +116,13 @@ struct RunDetailView: View {
                 }
                 .disabled(!store.canRunAgain)
 
+                Button {
+                    if let config = store.config { app.tryAnotherVersion(runID: store.runID, config: config) }
+                } label: {
+                    Label("Try Another Version…", systemImage: "square.split.2x1")
+                }
+                .disabled(!store.canTryAnotherVersion)
+
                 if store.controls.injectEvent {
                     Button {
                         store.showsInjectEvent = true
@@ -174,6 +182,14 @@ struct RunDetailView: View {
         stopping = true
         defer { stopping = false }
         await store.stop()  // errors land in store.actionError
+    }
+
+    /// Selects the post a study citation pointed at, once this run's posts have loaded.
+    private func focusPendingPost() {
+        guard let focus = app.pendingPostFocus, focus.runID == store.runID,
+              store.posts.contains(where: { $0.id == focus.postID }), let url = RunUI.postURL(focus.postID) else { return }
+        app.pendingPostFocus = nil
+        _ = route(url)
     }
 
     /// Routes `tellfold://agent/<id>` and `tellfold://post/<id>` links from rendered text; other URLs open normally.

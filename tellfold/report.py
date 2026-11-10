@@ -486,15 +486,23 @@ _ELLIPSIS = re.compile(r"\.{3}|…")
 _MIN_QUOTE_WORDS = 3
 
 
+# A post in one run of a study, cited as "A#12": the letter names the run (see tellfold/compare.py).
+_PREFIXED_REF = re.compile(r"(?<![\w&#])([A-Z])#(\d+)\b")
+
+# Letter -> that run's posts, for citations in a study comparison.
+RunPosts = dict[str, dict[int, Post]]
+
+
 @dataclass
 class _Citation:
-    kind: Literal["post", "handle", "quote"]
+    kind: Literal["post", "handle", "quote", "ref"]
     start: int  # span in the text, replaced by UNVERIFIED when the citation is marked
     end: int
     ok: bool
     post_id: int | None = None
     handle: str | None = None
     quote: str | None = None
+    ref: str | None = None  # "A#12", for kind "ref" and for quotes paired with a prefixed ref
 
 
 def _report_texts(report: Report) -> list[str]:
@@ -556,8 +564,11 @@ def _sentence_bounds(masked: str, start: int, end: int) -> tuple[int, int]:
     return lo, nxt.end() if nxt else len(masked)
 
 
-def _citations(text: str, posts: dict[int, Post], handles: set[str]) -> list[_Citation]:
-    """#ids, @handles and quoted fragments (3+ words) in one text, each checked against the run."""
+def _citations(text: str, posts: dict[int, Post], handles: set[str], *,
+               runs: RunPosts | None = None) -> list[_Citation]:
+    """#ids, @handles and quoted fragments (3+ words) in one text, each checked against the run.
+
+    With `runs` (a study comparison), "A#12" refs are checked against run A's posts too, and quotes pair with them."""
     quotes = [(m.start(), m.end(), next(g for g in m.groups() if g)) for m in _QUOTE.finditer(text)]
 
     def inside_quote(i: int) -> bool:
@@ -568,6 +579,12 @@ def _citations(text: str, posts: dict[int, Post], handles: set[str]) -> list[_Ci
         if not inside_quote(m.start()):
             pid = int(m.group(1))
             found.append(_Citation("post", m.start(), m.end(), pid in posts, post_id=pid))
+    if runs is not None:
+        for m in _PREFIXED_REF.finditer(text):
+            if not inside_quote(m.start()):
+                letter, pid = m.group(1), int(m.group(2))
+                found.append(_Citation("ref", m.start(), m.end(), pid in runs.get(letter, {}), post_id=pid,
+                                       ref=f"{letter}#{pid}"))
     for m in _HANDLE_REF.finditer(text):
         if not inside_quote(m.start()):
             handle = m.group(1)
@@ -581,34 +598,56 @@ def _citations(text: str, posts: dict[int, Post], handles: set[str]) -> list[_Ci
         if len(quote.split()) < _MIN_QUOTE_WORDS:
             continue
         lo, hi = _sentence_bounds(masked_text, a, b)
-        ids = [int(m.group(1)) for m in _POST_REF.finditer(masked_text[lo:hi])]
-        ids = [pid for pid in ids if pid in posts]
-        if not ids:
+        sentence = masked_text[lo:hi]
+        # (posts of the run the ref points into, post id, "A#12" or None)
+        cited = [(posts, int(m.group(1)), None) for m in _POST_REF.finditer(sentence)]
+        if runs is not None:
+            cited += [(runs.get(m.group(1), {}), int(m.group(2)), f"{m.group(1)}#{m.group(2)}")
+                      for m in _PREFIXED_REF.finditer(sentence)]
+        cited = [c for c in cited if c[1] in c[0]]
+        if not cited:
             continue  # not tied to a post that exists (an unknown #id is reported on its own)
-        ok = any(_quote_matches(quote, _post_sources(pid, posts)) for pid in ids)
-        found.append(_Citation("quote", a, b, ok, post_id=ids[0], quote=quote.strip()))
+        ok = any(_quote_matches(quote, _post_sources(pid, source)) for source, pid, _ in cited)
+        found.append(_Citation("quote", a, b, ok, post_id=cited[0][1], quote=quote.strip(), ref=cited[0][2]))
     return found
 
 
 def audit_citations(report: Report, posts: dict[int, Post], personas: Iterable[Persona]) -> CitationAudit:
     """Check every #id, @handle and quoted fragment in the report against the run's posts and agents."""
-    handles = {p.handle.lower() for p in personas}
-    found = [c for text in _report_texts(report) for c in _citations(text, posts, handles)]
+    return audit_texts(_report_texts(report), posts, {p.handle.lower() for p in personas})
+
+
+def audit_texts(texts: Iterable[str], posts: dict[int, Post], handles: set[str], *,
+                runs: RunPosts | None = None) -> CitationAudit:
+    """The audit of any cited prose: `handles` are lowercased; `runs` checks "A#12" refs in a study comparison."""
+    found = [c for text in texts for c in _citations(text, posts, handles, runs=runs)]
     unknown_posts: list[int] = []
     unknown_handles: list[str] = []
+    unknown_refs: list[str] = []
     misquotes: list[Misquote] = []
     for c in found:
         if c.ok:
             continue
         if c.kind == "post" and c.post_id not in unknown_posts:
             unknown_posts.append(c.post_id)
+        elif c.kind == "ref" and c.ref not in unknown_refs:
+            unknown_refs.append(c.ref)
         elif c.kind == "handle" and c.handle not in unknown_handles:
             unknown_handles.append(c.handle)
-        elif c.kind == "quote" and not any(q.post_id == c.post_id and q.quote == c.quote for q in misquotes):
-            misquotes.append(Misquote(post_id=c.post_id, quote=c.quote))
-    return CitationAudit(
-        checked=len(found), unknown_posts=unknown_posts, unknown_handles=unknown_handles, misquotes=misquotes
-    )
+        elif c.kind == "quote" and not any(q.post_id == c.post_id and q.ref == c.ref and q.quote == c.quote
+                                           for q in misquotes):
+            misquotes.append(Misquote(post_id=c.post_id, quote=c.quote, ref=c.ref))
+    return CitationAudit(checked=len(found), unknown_posts=unknown_posts, unknown_handles=unknown_handles,
+                         unknown_refs=unknown_refs, misquotes=misquotes)
+
+
+def mark_unverified_texts(text: str, posts: dict[int, Post], handles: set[str], *,
+                          runs: RunPosts | None = None) -> tuple[str, int]:
+    """`text` with every citation that does not match replaced by [unverified], and how many were replaced."""
+    bad = sorted((c for c in _citations(text, posts, handles, runs=runs) if not c.ok), key=lambda c: -c.start)
+    for c in bad:
+        text = text[: c.start] + UNVERIFIED + text[c.end :]
+    return text, len(bad)
 
 
 def _citation_repair_prompt(prompt: str, draft: Report, audit: CitationAudit, posts: dict[int, Post]) -> str:
@@ -645,10 +684,8 @@ def _mark_unverified(report: Report, audit: CitationAudit, ev: Evidence, *, repa
 
     def mark(text: str) -> str:
         nonlocal marked
-        bad = sorted((c for c in _citations(text, ev.posts, handles) if not c.ok), key=lambda c: -c.start)
-        for c in bad:
-            text = text[: c.start] + UNVERIFIED + text[c.end :]
-        marked += len(bad)
+        text, count = mark_unverified_texts(text, ev.posts, handles)
+        marked += count
         return text
 
     if audit.problems:

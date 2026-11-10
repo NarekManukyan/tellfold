@@ -61,6 +61,9 @@ extension RunStore {
 
     /// A finished, stopped or failed run whose settings can seed a new simulation.
     var canRunAgain: Bool { !isLive && config != nil && (status?.state.isTerminal ?? false) }
+
+    /// A finished run with a report and people: its crowd can read another version of the text.
+    var canTryAnotherVersion: Bool { canRunAgain && report != nil && !personas.isEmpty }
 }
 
 /// The controls that change a run. A built-in example is read-only, so it shows none of them: no Stop, no Inject event
@@ -89,6 +92,21 @@ struct RunAgainButton: View {
         .buttonStyle(.console(.secondary))
         .disabled(!store.canRunAgain || !app.engine.state.isRunning)
         .help("Start a new simulation from this run's question and settings")
+    }
+}
+
+/// "Try another version…": the same people read an edited text, and the two runs are compared.
+struct AnotherVersionButton: View {
+    let store: RunStore
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        Button("Try another version…") {
+            if let config = store.config { app.tryAnotherVersion(runID: store.runID, config: config) }
+        }
+        .buttonStyle(.console(.secondary))
+        .disabled(!store.canTryAnotherVersion || !app.engine.state.isRunning)
+        .help("Edit the text and run it past the same people, then compare the two versions")
     }
 }
 
