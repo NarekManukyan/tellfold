@@ -54,6 +54,8 @@ Tellfold is free to download and use. If it helped you, [sponsoring it on GitHub
 
 Developers who want to build from source or use the command line can read [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
+Tellfold can also be used from other tools. [docs/MCP.md](docs/MCP.md) sets it up as an MCP server for Claude Code, Claude Desktop and Cursor, so an assistant can test a changelog or an announcement for you, and [integrations/claude-code](integrations/claude-code/README.md) has a ready-made Claude Code skill. [docs/API.md](docs/API.md) documents the local HTTP API the app and the MCP server use.
+
 ## Licence
 
 Copyright © 2026 Narek Manukyan. All rights reserved. The source is public so you can read and check it. No licence is granted to copy, change or redistribute it.
