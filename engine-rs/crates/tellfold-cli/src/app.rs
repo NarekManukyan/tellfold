@@ -124,7 +124,7 @@ fn usage_error(command: Option<&Command>, error: UsageError) -> i32 {
 }
 
 fn dispatch(con: &Console, command: &Command, p: &Parsed) -> Done {
-    if !matches!(command.name, "serve" | "ui") {
+    if !matches!(command.name, "serve" | "ui" | "mcp") {
         commands::catch_interrupts();
     }
     match command.name {
@@ -141,6 +141,7 @@ fn dispatch(con: &Console, command: &Command, p: &Parsed) -> Done {
         "runtimes" => commands::runtimes(con, p),
         "serve" => crate::serve::serve(con, p),
         "ui" => crate::serve::ui(con, p),
+        "mcp" => crate::mcp::mcp(con, p),
         other => unreachable!("no command {other}"),
     }
 }

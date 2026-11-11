@@ -5,6 +5,7 @@ pub mod args;
 pub mod commands;
 pub mod help;
 pub mod llm;
+pub mod mcp;
 pub mod paths;
 pub mod serve;
 pub mod spec;

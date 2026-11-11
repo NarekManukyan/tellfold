@@ -6,6 +6,10 @@ use crate::args::{Kind, Param};
 pub const APP_HELP: &str =
     "Seed documents in, a simulated social reaction and a prediction report out. Runs on your local Claude Code CLI.";
 
+/// Commands only the Rust engine has, so the typer screens recorded from `cli.py` (`golden/fixtures/cli`) leave
+/// them out.
+pub const RUST_ONLY: &[&str] = &["mcp"];
+
 pub struct Command {
     pub name: &'static str,
     pub help: &'static str,
@@ -230,6 +234,30 @@ pub fn commands() -> Vec<Command> {
                     .secondary(&["--no-watch-stdin"])
                     .quiet_default("true")
                     .default_help("watch-stdin"),
+            ],
+        },
+        Command {
+            name: "mcp",
+            help: "MCP server on stdin/stdout for Claude Code, Claude Desktop and Cursor: start simulations, wait for them, read the reports.",
+            usage_args: "",
+            params: vec![
+                opt(
+                    "runs",
+                    &["--runs"],
+                    PATH,
+                    "Folder that holds run directories (default: settings runs_dir, else the Mac app's runs folder).",
+                ),
+                opt(
+                    "url",
+                    &["--url"],
+                    STR,
+                    "Use the Tellfold server at this URL (e.g. http://127.0.0.1:8765) instead of starting one.",
+                )
+                .envvar(&["TELLFOLD_URL"]),
+                opt("token", &["--token"], STR, "Bearer token of the --url server, if it has one (also used by the server started here).")
+                    .envvar(&["TELLFOLD_SERVE_TOKEN", "SHOAL_SERVE_TOKEN"]),
+                opt("examples", &["--examples"], PATH, "Folder of read-only example runs to list next to the runs."),
+                opt("log_level", &["--log-level"], STR, "debug, info, warning or error (logs go to stderr).").default("warning"),
             ],
         },
     ]

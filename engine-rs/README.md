@@ -30,7 +30,8 @@ checkouts.
   its own thread, the watcher for runs started elsewhere, uploads, the local-only and token guards, and the
   embedded frontend.
 - `tellfold-cli`: the `tellfold` binary with every command, including `serve` (the Mac app's engine) and `ui`, the
-  live run view, and typer's help and error screens. `TELLFOLD_FAKE_LLM=1` runs it on the canned model.
+  live run view, and typer's help and error screens, plus `mcp`, the MCP server over the HTTP API (only Rust has
+  it, so the typer help fixtures leave it out). `TELLFOLD_FAKE_LLM=1` runs it on the canned model.
 
 No test starts a real AI tool. For a manual check against one that is installed and logged in:
 

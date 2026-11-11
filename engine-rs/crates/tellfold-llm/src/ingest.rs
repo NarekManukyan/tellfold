@@ -54,13 +54,17 @@ pub fn load_documents(paths: &[PathBuf]) -> Result<Vec<(String, String)>, Ingest
     Ok(docs)
 }
 
-fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
+/// Collects the seed files under `dir`, stopping once `out` holds more than `limit`.
+fn walk(dir: &Path, out: &mut Vec<PathBuf>, limit: usize) {
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {
+        if out.len() > limit {
+            return;
+        }
         let path = entry.path();
         // `rglob` does not descend into symlinked directories (`recurse_symlinks=False`).
         if entry.file_type().is_ok_and(|t| t.is_dir()) {
-            walk(&path, out);
+            walk(&path, out, limit);
         } else if path.is_dir() {
             continue;
         } else if SUPPORTED_SUFFIXES.contains(&suffix(&path).as_str()) {
@@ -69,12 +73,22 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-fn expand(paths: &[PathBuf]) -> Result<Vec<PathBuf>, IngestError> {
+/// The seed files `paths` stand for: files as given (checked), folders recursively, symlinked folders not followed.
+pub fn expand(paths: &[PathBuf]) -> Result<Vec<PathBuf>, IngestError> {
+    expand_at_most(paths, usize::MAX)
+}
+
+/// `expand`, but a folder walk stops once more than `limit` files are found, so a caller with a file limit need
+/// not walk a huge tree: more than `limit` files back means the limit is broken.
+pub fn expand_at_most(paths: &[PathBuf], limit: usize) -> Result<Vec<PathBuf>, IngestError> {
     let mut files = Vec::new();
     for path in paths {
+        if files.len() > limit {
+            break;
+        }
         if path.is_dir() {
             let mut found = Vec::new();
-            walk(path, &mut found);
+            walk(path, &mut found, limit - files.len());
             found.sort(); // Path ordering compares components, like sorting pathlib paths
             files.extend(found);
         } else if !path.exists() {

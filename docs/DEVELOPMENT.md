@@ -47,7 +47,8 @@ There are four more fictional seeds that have nothing to do with software: `exam
 
 ## Commands
 
-The command is `tellfold` (`run`, `report`, `ui`, `serve`, `chat`, `ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
+The command is `tellfold` (`run`, `compare`, `check`, `branch`, `rewrite`, `report`, `ui`, `serve`, `mcp`, `chat`,
+`ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
 
 ### `tellfold run SEED... -q QUESTION [options]`
 
@@ -90,6 +91,12 @@ Prints a table of every persona with followers, posts, activity, influence and s
 ### `tellfold doctor`
 
 Runs the setup checks described under Install. Exits with status 1 if anything fails.
+
+### `tellfold mcp`
+
+An MCP server on stdin/stdout for Claude Code, Claude Desktop and Cursor. Only the Rust engine has it
+(`cargo run -p tellfold-cli -- mcp`). See [MCP.md](MCP.md) for the setup and the tools, and [API.md](API.md) for the
+HTTP API behind it, which `serve` and `ui` also expose.
 
 ## What a run leaves behind
 
