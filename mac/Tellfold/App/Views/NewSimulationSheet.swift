@@ -40,6 +40,10 @@ struct NewSimulationSheet: View {
     /// The user (or "Run again…") picked the runtimes; later detection results no longer replace them.
     @State private var runtimesChosen = false
     @AppStorage("newSimulation.advancedOpen") private var advancedOpen = false
+    @AppStorage("newSimulation.reviewCast") private var reviewCast = false
+    /// The saved audience to start from; nil casts new people from the material.
+    @State private var audienceID: String?
+    @State private var showsAudiences = false
     @FocusState private var focus: Field?
 
     private enum Field { case question, description }
@@ -101,6 +105,9 @@ struct NewSimulationSheet: View {
         .task { await prepare() }
         .onChange(of: model.pendingSeedFiles) { _, new in
             if !new.isEmpty { add(new); model.pendingSeedFiles = [] }
+        }
+        .sheet(isPresented: $showsAudiences) {
+            AudiencesSheet()
         }
         .sheet(isPresented: $showsAgentSetup, onDismiss: {
             runtimesChosen = false
@@ -275,9 +282,59 @@ struct NewSimulationSheet: View {
                              choose: { preset in agents = preset.agents; rounds = preset.rounds },
                              customDetail: SizePreset.detect(agents: agents, rounds: rounds) == nil
                                  ? "\(agents) people · \(rounds) rounds" : nil)
+            castRow
             languageRow
         }
     }
+
+    private var audience: SavedAudience? { audienceID.flatMap { model.audiences.audience($0) } }
+
+    /// Who is in the crowd (new people, or a saved audience) and whether to check them before the run.
+    private var castRow: some View {
+        VStack(alignment: .leading, spacing: Theme.space2) {
+            HStack(spacing: Theme.space2) {
+                Text("People").font(Theme.body).foregroundStyle(Theme.secondary)
+                Picker("People", selection: $audienceID) {
+                    Text("Cast new people from the material").tag(String?.none)
+                    if !model.audiences.audiences.isEmpty {
+                        Divider()
+                        ForEach(model.audiences.audiences) { saved in
+                            Text("\(saved.name) (\(saved.personas.count))").tag(Optional(saved.id))
+                        }
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                .accessibilityLabel("People")
+                Button("Manage…") { showsAudiences = true }
+                    .buttonStyle(.console(.ghost, compact: true))
+                    .disabled(model.audiences.audiences.isEmpty)
+                    .help("Rename or delete saved audiences")
+            }
+            if let audience {
+                Text(NewSimulationRules.audienceNote(audience))
+                    .font(Theme.small)
+                    .foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Toggle(isOn: $reviewCast) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Review the cast before the run").font(Theme.body).foregroundStyle(Theme.text)
+                    Text("Pause once the people are ready, to remove, edit or add people before anything is simulated.")
+                        .font(Theme.caption)
+                        .foregroundStyle(Theme.muted)
+                }
+            }
+            .toggleStyle(.checkbox)
+        }
+        .padding(.top, Theme.space2)
+        .onChange(of: model.audiences.audiences) { _, list in
+            if let id = audienceID, !list.contains(where: { $0.id == id }) { audienceID = nil }
+        }
+    }
+
+    /// The crowd size the run really has: the audience's, or the chosen number.
+    private var crowdSize: Int { audience?.personas.count ?? agents }
 
     private var languageRow: some View {
         HStack(spacing: Theme.space2) {
@@ -546,7 +603,7 @@ struct NewSimulationSheet: View {
 
     private var summary: String {
         NewSimulationRules.summary(
-            agents: agents, rounds: rounds, agentRuntime: model.runtime(agentRuntime), agentRuntimeID: agentRuntime,
+            agents: crowdSize, rounds: rounds, agentRuntime: model.runtime(agentRuntime), agentRuntimeID: agentRuntime,
             agentModel: agentModel, plannerRuntime: model.runtime(plannerRuntime), plannerRuntimeID: plannerRuntime,
             plannerModel: plannerModel,
             noToolYet: model.engine.state.isRunning && !model.runtimes.isEmpty && model.recommendedRuntime == nil
@@ -559,7 +616,8 @@ struct NewSimulationSheet: View {
         guard NewSimulationRules.hasMaterial(description: text, fileCount: allFiles.count),
               !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
         let chunks = NewRunRequest.estimatedChunks(files: allFiles, sizes: fileBytes, inlineDocuments: text.isEmpty ? [] : [.description(text)])
-        let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
+        let split = NewRunRequest.estimatedCallSplit(agents: crowdSize, rounds: rounds, batch: batch, chunks: chunks,
+                                                     reusesCast: audience != nil)
         return NewSimulationRules.costLine(
             agentCalls: split.agent, plannerCalls: split.planner,
             agentRuntime: model.runtime(agentRuntime)?.name ?? agentRuntime, agentModel: agentModel,
@@ -675,7 +733,9 @@ struct NewSimulationSheet: View {
             events: events.map { GodEvent(round: $0.round, content: $0.content.trimmingCharacters(in: .whitespacesAndNewlines)) }
                 .filter { !$0.content.isEmpty },
             seed: seed,
-            inlineDocuments: text.isEmpty ? [] : [.description(text)])
+            inlineDocuments: text.isEmpty ? [] : [.description(text)],
+            reviewCast: reviewCast,
+            audience: audience)
         do {
             _ = try await model.createRun(request)
             model.prefs.lastLanguage = language

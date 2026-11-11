@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 final class AppModel {
     let prefs: AppPreferences
     let engine: EngineController
+    /// Saved audiences (casts to reuse) in Application Support.
+    let audiences: AudienceStore
     @ObservationIgnored let notifier = Notifier()
 
     private(set) var runs: [RunSummary] = []
@@ -78,6 +80,7 @@ final class AppModel {
     init(prefs: AppPreferences = AppPreferences()) {
         self.prefs = prefs
         engine = EngineController(prefs: prefs)
+        audiences = AudienceStore()
     }
 
     // MARK: Lifecycle

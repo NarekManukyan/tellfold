@@ -83,6 +83,10 @@ private struct RunDetailContainer: View {
         .sheet(isPresented: $store.showsInjectEvent) {
             InjectEventSheet(store: store)
         }
+        .sheet(isPresented: $store.showsCastEditor) {
+            CastEditorSheet(store: store)
+                .interactiveDismissDisabled()
+        }
         .alert("Action Failed", isPresented: Binding(get: { store.actionError != nil },
                                                      set: { if !$0 { store.actionError = nil } })) {
             Button("OK", role: .cancel) { store.actionError = nil }

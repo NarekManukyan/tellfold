@@ -223,6 +223,13 @@ nonisolated enum NewSimulationRules {
 
     /// "20 people react over 6 rounds. Runs locally with Claude Code (haiku + sonnet)."
     /// With `noToolYet` (nothing on this Mac can run it) the second sentence asks for a tool instead of naming one.
+    /// Under the People picker when a saved audience is chosen.
+    static func audienceNote(_ audience: SavedAudience) -> String {
+        let n = audience.personas.count
+        return "\(n) \(n == 1 ? "person" : "people") from \u{201C}\(audience.name)\u{201D}. Casting is skipped, so the run "
+            + "costs fewer model calls; the size above sets only the rounds."
+    }
+
     static func summary(agents: Int, rounds: Int, agentRuntime: RuntimeInfo?, agentRuntimeID: String, agentModel: String,
                         plannerRuntime: RuntimeInfo?, plannerRuntimeID: String, plannerModel: String,
                         noToolYet: Bool = false) -> String {

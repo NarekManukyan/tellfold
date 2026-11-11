@@ -60,6 +60,12 @@ struct NewRunRequest: Hashable, Sendable {
     var studyID: String?
     /// The label in the study, e.g. "Draft B"; nil lets the engine pick the next letter.
     var variant: String?
+    /// Pause once the people are ready so they can be checked and edited before the run.
+    var reviewCast = false
+    /// Give every camp a turn to post and keep strongly held views from being starved.
+    var fairTurns = true
+    /// Start from a saved audience: its people (and topic map) are used as they are, so casting is skipped.
+    var audience: SavedAudience?
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
@@ -75,10 +81,12 @@ struct NewRunRequest: Hashable, Sendable {
 
     /// The same formula as `tellfold.runner.estimate_call_split`: model calls for the crowd (agent runtime) and for
     /// planning (graph, personas, report) when nothing needs a retry.
-    static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int) -> (agent: Int, planner: Int) {
+    /// `reusesCast` (a saved audience) skips the graph and persona calls.
+    static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int,
+                                   reusesCast: Bool = false) -> (agent: Int, planner: Int) {
         let batch = Double(max(1, batch))
-        let graph = Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
-        let personas = Int((Double(agents) / 10).rounded(.up))
+        let graph = reusesCast ? 0 : Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
+        let personas = reusesCast ? 0 : Int((Double(agents) / 10).rounded(.up))
         let openingAuthors = (0.3 * Double(agents)).rounded(.toNearestOrEven)
         let opening = Int((openingAuthors / batch).rounded(.up)) + 1
         let active = max(1, (Double(agents) * estimatedActiveShare).rounded(.up))
@@ -177,6 +185,9 @@ actor TellfoldAPI {
         if let castFrom = request.castFrom { form.add("cast_from", castFrom) }
         if let studyID = request.studyID { form.add("study_id", studyID) }
         if let variant = request.variant { form.add("variant", variant) }
+        if request.reviewCast { form.add("review_cast", "true") }
+        if request.fairTurns { form.add("fair_turns", "true") }
+        if let audience = request.audience { form.add("audience", try audience.formJSON()) }
         let events = request.events.filter { !$0.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         if !events.isEmpty {
             let data = try Self.encoder.encode(events)
@@ -230,6 +241,34 @@ actor TellfoldAPI {
         struct Body: Encodable { let question: String }
         let r: ReplyResponse = try await post(["runs", runID, "ask"], body: Body(question: question))
         return r.reply
+    }
+
+    // MARK: The cast of a run waiting at personas_ready
+
+    /// The cast under review while the run waits, else the run's people.
+    func cast(runID: String) async throws -> CastResponse { try await get("runs", runID, "personas") }
+
+    /// Replaces the waiting cast; returns it as the engine tidied it (ids renumbered, handles made unique).
+    func replaceCast(runID: String, personas: [Persona]) async throws -> [Persona] {
+        struct Body: Encodable { let personas: [Persona] }
+        var req = makeRequest(["runs", runID, "personas"], method: "PUT")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try Self.encoder.encode(Body(personas: personas))
+        let r: CastResponse = try await send(req)
+        return r.personas
+    }
+
+    /// Lets the waiting run go on with its cast.
+    func confirmCast(runID: String) async throws {
+        let _: OkResponse = try await post(["runs", runID, "personas"], body: Optional<String>.none)
+    }
+
+    /// The engine writes `count` people for a group described in words and adds them; returns the whole cast.
+    func addGroup(runID: String, description: String, count: Int) async throws -> [Persona] {
+        struct Body: Encodable { let description: String; let count: Int }
+        let r: CastResponse = try await post(["runs", runID, "personas", "group"],
+                                             body: Body(description: description, count: count))
+        return r.personas
     }
 
     func rebuildReport(runID: String) async throws {
