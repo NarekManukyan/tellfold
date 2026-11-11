@@ -424,8 +424,8 @@ fn render_columns(items: &[Renderable], options: Options) -> Vec<Seg> {
     while column_count > 1 {
         // The widths in reading order, padded with empty cells to whole rows.
         let mut laid_out = item_widths.clone();
-        if count % column_count != 0 {
-            laid_out.extend(std::iter::repeat(0).take(column_count - count % column_count));
+        if !count.is_multiple_of(column_count) {
+            laid_out.extend(std::iter::repeat_n(0, column_count - count % column_count));
         }
         let mut widths: Vec<usize> = Vec::new();
         let mut column_no = 0;
@@ -448,8 +448,8 @@ fn render_columns(items: &[Renderable], options: Options) -> Vec<Seg> {
         }
     }
     let mut cells: Vec<Renderable> = items.to_vec();
-    if count % column_count != 0 {
-        cells.extend(std::iter::repeat(Renderable::text("")).take(column_count - count % column_count));
+    if !count.is_multiple_of(column_count) {
+        cells.extend(std::iter::repeat_n(Renderable::text(""), column_count - count % column_count));
     }
     let mut table = Table::grid((0, 1, 0, 1), true, false);
     for row in cells.chunks(column_count) {

@@ -326,7 +326,7 @@ fn allocate<V: Copy>(mix: &[(V, f64)], count: usize, rng: &mut PyRandom) -> Vec<
     for &i in by_remainder.iter().take(short) {
         counts[i] += 1;
     }
-    let mut items: Vec<V> = mix.iter().zip(&counts).flat_map(|((v, _), &c)| std::iter::repeat(*v).take(c)).collect();
+    let mut items: Vec<V> = mix.iter().zip(&counts).flat_map(|((v, _), &c)| std::iter::repeat_n(*v, c)).collect();
     rng.shuffle(&mut items);
     items
 }

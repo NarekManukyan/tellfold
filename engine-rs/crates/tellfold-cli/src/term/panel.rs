@@ -168,7 +168,7 @@ impl Panel {
 fn edge(row: [char; 4], width: usize) -> String {
     let mut out = String::new();
     out.push(row[0]);
-    out.extend(std::iter::repeat(row[1]).take(width));
+    out.extend(std::iter::repeat_n(row[1], width));
     out.push(row[3]);
     out
 }

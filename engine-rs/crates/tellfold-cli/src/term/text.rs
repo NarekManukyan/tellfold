@@ -337,7 +337,7 @@ impl Text {
             }
         }
         if pad && length < max_width {
-            self.chars.extend(std::iter::repeat(' ').take((max_width - length) as usize));
+            self.chars.extend(std::iter::repeat_n(' ', (max_width - length) as usize));
         }
     }
 
@@ -350,7 +350,7 @@ impl Text {
     pub(crate) fn pad(&mut self, count: usize) {
         if count > 0 {
             self.pad_left(count as isize);
-            self.chars.extend(std::iter::repeat(' ').take(count));
+            self.chars.extend(std::iter::repeat_n(' ', count));
         }
     }
 
@@ -358,7 +358,7 @@ impl Text {
     fn pad_left(&mut self, count: isize) {
         if count > 0 {
             let count = count as usize;
-            let mut chars: Vec<char> = std::iter::repeat(' ').take(count).collect();
+            let mut chars: Vec<char> = std::iter::repeat_n(' ', count).collect();
             chars.append(&mut self.chars);
             self.chars = chars;
             for span in &mut self.spans {
@@ -371,7 +371,7 @@ impl Text {
     /// Port of `Text.pad_right`.
     fn pad_right(&mut self, count: isize) {
         if count > 0 {
-            self.chars.extend(std::iter::repeat(' ').take(count as usize));
+            self.chars.extend(std::iter::repeat_n(' ', count as usize));
         }
     }
 
@@ -400,7 +400,7 @@ impl Text {
                 span.end += spaces;
             }
         }
-        self.chars.extend(std::iter::repeat(' ').take(spaces));
+        self.chars.extend(std::iter::repeat_n(' ', spaces));
     }
 
     /// Splits into lines at the given offsets, sharing out the spans (port of `Text.divide`).

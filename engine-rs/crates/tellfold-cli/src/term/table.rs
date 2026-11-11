@@ -61,7 +61,7 @@ fn edge_line(left: char, horizontal: char, cross: char, right: char, widths: &[u
         out.push(left);
     }
     for (i, &width) in widths.iter().enumerate() {
-        out.extend(std::iter::repeat(horizontal).take(width));
+        out.extend(std::iter::repeat_n(horizontal, width));
         if i + 1 < widths.len() {
             out.push(cross);
         }
@@ -752,7 +752,7 @@ impl Table {
                             padded.extend(aligned);
                             aligned = padded;
                         } else {
-                            aligned.extend(std::iter::repeat(blank).take(extra));
+                            aligned.extend(std::iter::repeat_n(blank, extra));
                         }
                     }
                     set_shape(&aligned, width, max_height)

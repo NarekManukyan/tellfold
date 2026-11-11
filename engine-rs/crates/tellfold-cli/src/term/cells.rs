@@ -185,7 +185,7 @@ pub(crate) fn set_cell_size(text: &[char], total: isize) -> Vec<char> {
         let size = text.len() as isize;
         if size < total {
             let mut out = text.to_vec();
-            out.extend(std::iter::repeat(' ').take((total - size) as usize));
+            out.extend(std::iter::repeat_n(' ', (total - size) as usize));
             return out;
         }
         return py_prefix(text, total);
@@ -199,7 +199,7 @@ pub(crate) fn set_cell_size(text: &[char], total: isize) -> Vec<char> {
     }
     if size < total {
         let mut out = text.to_vec();
-        out.extend(std::iter::repeat(' ').take((total - size) as usize));
+        out.extend(std::iter::repeat_n(' ', (total - size) as usize));
         return out;
     }
     split_text_at(text, total as usize).0

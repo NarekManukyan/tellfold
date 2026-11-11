@@ -71,7 +71,7 @@ jobs:
       - name: Fail if they changed
         run: |
           git status --short engine-rs/golden engine-rs/schemas
-          git diff --exit-code --stat -- engine-rs/golden engine-rs/schemas
+          git diff --exit-code -- engine-rs/golden engine-rs/schemas
           test -z "$(git status --porcelain engine-rs/golden engine-rs/schemas)"
 
   # The binary the app ships: Apple silicon, macOS 15, built and smoke-tested by the app's own script.

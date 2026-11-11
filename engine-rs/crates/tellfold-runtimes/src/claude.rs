@@ -439,7 +439,7 @@ impl ClaudeCode {
         let mut result = None;
         for message in &output.messages {
             match message.get("type").and_then(Value::as_str) {
-                Some("assistant") if message.get("parent_tool_use_id").map_or(true, Value::is_null) => {
+                Some("assistant") if message.get("parent_tool_use_id").is_none_or(Value::is_null) => {
                     let blocks = message.pointer("/message/content").and_then(Value::as_array);
                     texts.extend(blocks.into_iter().flatten().filter_map(|b| {
                         (b.get("type").and_then(Value::as_str) == Some("text"))

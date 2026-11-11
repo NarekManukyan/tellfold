@@ -52,7 +52,7 @@ fn expandtabs(text: &str) -> String {
         match c {
             '\t' => {
                 let spaces = 8 - column % 8;
-                out.extend(std::iter::repeat(' ').take(spaces));
+                out.extend(std::iter::repeat_n(' ', spaces));
                 column += spaces;
             }
             '\n' | '\r' => {

@@ -52,7 +52,7 @@ fn directories_skip_symlinked_folders_like_rglob() {
     fs::write(d.join("sub/a.md"), "alpha").unwrap();
     std::os::unix::fs::symlink(d.join("sub"), d.join("linked")).unwrap();
     std::os::unix::fs::symlink(&d, d.join("sub/loop")).unwrap();
-    let names: Vec<String> = load_documents(&[d.clone()]).unwrap().into_iter().map(|(n, _)| n).collect();
+    let names: Vec<String> = load_documents(std::slice::from_ref(&d)).unwrap().into_iter().map(|(n, _)| n).collect();
     assert_eq!(names, ["a.md"]);
 }
 

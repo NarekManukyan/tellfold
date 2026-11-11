@@ -361,7 +361,7 @@ pub(crate) fn most_common<I: IntoIterator<Item = String>>(values: I) -> String {
     }
     let mut best: Option<(&String, usize)> = None;
     for (v, &n) in &counts {
-        if best.map_or(true, |(_, b)| n > b) {
+        if best.is_none_or(|(_, b)| n > b) {
             best = Some((v, n));
         }
     }
