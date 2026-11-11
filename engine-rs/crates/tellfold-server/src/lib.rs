@@ -102,6 +102,8 @@ pub fn create_app(mut manager: ManagerOptions, options: AppOptions) -> (Router, 
     if manager.runtime_ready.is_none() && !options.fake_llm {
         manager.runtime_ready = Some(runtime_installed(manager.settings_path.clone()));
     }
+    // TokenAuthMiddleware's ValueError: an empty token would let a bare "Bearer " through
+    assert!(options.token.as_deref() != Some(""), "an empty token would disable authentication");
     let _ = std::fs::create_dir_all(&manager.runs_dir);
     let settings_path = manager.settings_path.clone();
     let thread = spawn_manager(manager);

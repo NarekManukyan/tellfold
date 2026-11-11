@@ -67,8 +67,12 @@ pub fn py_match(pattern: &Regex, text: &str) -> bool {
 }
 
 impl From<Closed> for ApiError {
-    fn from(_: Closed) -> Self {
-        ApiError::new(503, "the server is shutting down")
+    fn from(closed: Closed) -> Self {
+        match closed {
+            Closed::ShuttingDown => ApiError::new(503, "the server is shutting down"),
+            // FastAPI's answer to an unhandled exception
+            Closed::Panicked => ApiError::internal("a manager job panicked"),
+        }
     }
 }
 
@@ -537,12 +541,11 @@ pub async fn check_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<Str
     let loc = [json!("body")];
     let fields = checker.object(&value, &loc, None).map(|obj| {
         let runs = checker.int(obj, "runs", &loc, Some(3), Some(2), Some(5));
-        let before = checker.errors.len();
         let model = checker.string(obj, "agent_model", &loc, false, None, Some(120), Some(model_pattern()));
-        (runs, model, before == checker.errors.len())
+        (runs, model)
     });
     checker.finish()?;
-    let Some((Some(runs), agent_model, _)) = fields else { unreachable!("validated") };
+    let Some((Some(runs), agent_model)) = fields else { unreachable!("validated") };
     on_manager(&app.handle, move |m| async move {
         run_dir_of(&m, &run_id)?;
         let study = m.check(&run_id, runs, agent_model).await?;

@@ -2,10 +2,11 @@
 //! messages of `create_run` in `tellfold/server/app.py`.
 
 use std::collections::HashSet;
+use std::io::{Seek, Write};
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex, OnceLock};
 
-use axum::body::Bytes;
+use axum::extract::multipart::MultipartError;
 use axum::extract::{FromRequest, Multipart, Request};
 use axum::http::header;
 use regex::Regex;
@@ -31,11 +32,33 @@ pub const MAX_FIELDS: usize = 100;
 pub const MAX_TOTAL_BYTES: usize = 100 * 1024 * 1024;
 pub const MAX_FORM_BYTES: usize = MAX_TOTAL_BYTES + 1024 * 1024;
 
+/// Bytes an uploaded file part may keep in memory before the rest goes to a temporary file, like Starlette's
+/// `SpooledTemporaryFile`.
+const SPOOL_BYTES: usize = 1024 * 1024;
+
+/// An uploaded file's contents, read as they arrive.
+#[derive(Debug)]
+pub struct Upload {
+    pub size: usize,
+    file: Mutex<tempfile::SpooledTempFile>,
+}
+
+impl Upload {
+    /// Copies the contents to `target`.
+    fn save(&self, target: &Path) -> std::io::Result<()> {
+        let mut file = self.file.lock().expect("not poisoned");
+        file.rewind()?;
+        let mut out = std::fs::File::create(target)?;
+        std::io::copy(&mut *file, &mut out)?;
+        Ok(())
+    }
+}
+
 /// One part of the form: a text field, or a file (a part with a file name).
 #[derive(Debug, Clone)]
 pub enum FormItem {
     Text(String),
-    File { filename: String, data: Bytes },
+    File { filename: String, data: Arc<Upload> },
 }
 
 /// The parsed form: items in the order sent; `get` returns the last value of a key, as Starlette's form does.
@@ -190,19 +213,22 @@ async fn read_form(request: Request, app: &AppState) -> Result<Form, ApiError> {
             .map_err(|e| ApiError::new(400, format!("could not read the form: {}", e.body_text())))?;
         let (mut files, mut fields) = (0, 0);
         loop {
-            let field = match multipart.next_field().await {
+            let mut field = match multipart.next_field().await {
                 Ok(Some(field)) => field,
                 Ok(None) => break,
-                Err(e) => return Err(ApiError::new(400, format!("could not read the form: {}", e.body_text()))),
+                Err(e) => return Err(form_error(e)),
             };
             let key = field.name().unwrap_or("").to_string();
             let filename = field.file_name().map(str::to_string);
-            let data = field
-                .bytes()
-                .await
-                .map_err(|e| ApiError::new(400, format!("could not read the form: {}", e.body_text())))?;
             match filename {
                 Some(filename) => {
+                    let mut spool = tempfile::SpooledTempFile::new(SPOOL_BYTES);
+                    let mut size = 0;
+                    while let Some(chunk) = field.chunk().await.map_err(form_error)? {
+                        size += chunk.len();
+                        spool.write_all(&chunk).map_err(ApiError::internal)?;
+                    }
+                    let data = Arc::new(Upload { size, file: Mutex::new(spool) });
                     files += 1;
                     if files > MAX_FILES {
                         return Err(ApiError::new(
@@ -213,6 +239,7 @@ async fn read_form(request: Request, app: &AppState) -> Result<Form, ApiError> {
                     form.items.push((key, FormItem::File { filename, data }));
                 }
                 None => {
+                    let data = field.bytes().await.map_err(form_error)?;
                     fields += 1;
                     if fields > MAX_FIELDS {
                         return Err(ApiError::new(
@@ -235,6 +262,16 @@ async fn read_form(request: Request, app: &AppState) -> Result<Form, ApiError> {
     Ok(form)
 }
 
+/// A broken form is a 400; one over the body limit (a chunked upload has no Content-Length to refuse up front) is
+/// the 413 `_save_uploads` gives for too much in total.
+fn form_error(e: MultipartError) -> ApiError {
+    if e.status() == axum::http::StatusCode::PAYLOAD_TOO_LARGE {
+        ApiError::new(413, "the seed files add up to more than 100 MB")
+    } else {
+        ApiError::new(400, format!("could not read the form: {}", e.body_text()))
+    }
+}
+
 fn url_pairs(body: &[u8]) -> Vec<(String, String)> {
     let decode = |s: &str| percent_encoding::percent_decode_str(&s.replace('+', " ")).decode_utf8_lossy().into_owned();
     String::from_utf8_lossy(body)
@@ -250,14 +287,14 @@ fn url_pairs(body: &[u8]) -> Vec<(String, String)> {
 /// Everything the form says about the run, before any file is written.
 struct Planned {
     config: SimConfig,
-    uploads: Vec<(String, Bytes)>,
+    uploads: Vec<(String, Arc<Upload>)>,
     cast_from: String,
     study_id: Option<String>,
     variant: Option<String>,
 }
 
 fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
-    let uploads: Vec<(String, Bytes)> = ["files[]", "files"]
+    let uploads: Vec<(String, Arc<Upload>)> = ["files[]", "files"]
         .iter()
         .flat_map(|key| {
             form.items.iter().filter(move |(k, _)| k == key).filter_map(|(_, item)| match item {
@@ -280,7 +317,7 @@ fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
                 format!("{}: only .pdf, .md, .markdown and .txt are supported", repr(filename)),
             ));
         }
-        if data.len() > MAX_FILE_BYTES {
+        if data.size > MAX_FILE_BYTES {
             return Err(ApiError::new(413, format!("{filename} is larger than 20 MB")));
         }
     }
@@ -340,7 +377,7 @@ fn cast_source(m: &Manager, run_id: &str) -> Result<SimConfig, ApiError> {
     Ok(config)
 }
 
-fn save_uploads(uploads: &[(String, Bytes)], dest: &Path) -> Result<Vec<PathBuf>, ApiError> {
+fn save_uploads(uploads: &[(String, Arc<Upload>)], dest: &Path) -> Result<Vec<PathBuf>, ApiError> {
     std::fs::create_dir_all(dest).map_err(ApiError::internal)?;
     let mut taken = HashSet::new();
     let mut saved = Vec::new();
@@ -348,18 +385,18 @@ fn save_uploads(uploads: &[(String, Bytes)], dest: &Path) -> Result<Vec<PathBuf>
     for (filename, data) in uploads {
         let name = safe_filename(if filename.is_empty() { "seed" } else { filename }, &mut taken);
         let target = dest.join(&name);
-        if data.len() > MAX_FILE_BYTES {
+        if data.size > MAX_FILE_BYTES {
             return Err(ApiError::new(413, format!("{filename} is larger than 20 MB")));
         }
-        if total + data.len() > MAX_TOTAL_BYTES {
+        if total + data.size > MAX_TOTAL_BYTES {
             let _ = std::fs::write(&target, b"");
             return Err(ApiError::new(413, "the seed files add up to more than 100 MB"));
         }
-        std::fs::write(&target, data).map_err(ApiError::internal)?;
-        if data.is_empty() {
+        data.save(&target).map_err(ApiError::internal)?;
+        if data.size == 0 {
             return Err(ApiError::new(400, format!("{filename} is empty")));
         }
-        total += data.len();
+        total += data.size;
         saved.push(target);
     }
     Ok(saved)

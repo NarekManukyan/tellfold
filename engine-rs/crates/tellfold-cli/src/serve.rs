@@ -103,17 +103,33 @@ async fn run_server(
             })
             .await
     });
+    let mut outcome = None;
     tokio::select! {
         _ = stop_signal(stdin_closed) => {}
-        _ = &mut server => {}
+        result = &mut server => outcome = Some(result),
     }
+    // A second Ctrl-C while shutting down exits at once, like uvicorn's force_exit.
+    tokio::spawn(async {
+        if tokio::signal::ctrl_c().await.is_ok() {
+            kill_live_process_groups();
+            let _ = std::io::stderr().flush();
+            std::process::exit(0);
+        }
+    });
     let _ = stop_tx.send(true);
-    let finished = tokio::time::timeout(GRACEFUL, &mut server).await.is_ok();
-    manager.shutdown().await;
-    if !finished {
-        let _ = tokio::time::timeout(GRACEFUL, &mut server).await;
+    if outcome.is_none() {
+        outcome = tokio::time::timeout(GRACEFUL, &mut server).await.ok();
     }
-    Ok(())
+    manager.shutdown().await;
+    if outcome.is_none() {
+        outcome = tokio::time::timeout(GRACEFUL, &mut server).await.ok();
+    }
+    // the server's own failure (or panic) is the command's error; a server still draining is not
+    match outcome {
+        Some(Ok(result)) => result,
+        Some(Err(join)) => Err(std::io::Error::other(format!("the server crashed: {join}"))),
+        None => Ok(()),
+    }
 }
 
 pub fn serve(_con: &Console, p: &Parsed) -> Done {

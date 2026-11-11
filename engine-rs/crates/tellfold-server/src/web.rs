@@ -53,6 +53,26 @@ fn bytes_response(data: Vec<u8>, method: &Method, content_type: &str) -> Respons
     response
 }
 
+/// A file's contents in 64 KiB chunks.
+fn file_chunks(
+    file: tokio::fs::File,
+) -> impl futures::Stream<Item = std::io::Result<axum::body::Bytes>> + Send + 'static {
+    use tokio::io::AsyncReadExt;
+    futures::stream::unfold(Some(file), |file| async move {
+        let mut file = file?;
+        let mut buf = vec![0u8; 64 * 1024];
+        match file.read(&mut buf).await {
+            Ok(0) => None,
+            Ok(n) => {
+                buf.truncate(n);
+                Some((Ok(axum::body::Bytes::from(buf)), Some(file)))
+            }
+            // the error ends the body; nothing is read after it
+            Err(e) => Some((Err(e), None)),
+        }
+    })
+}
+
 /// `quote(name)` with Python's default safe characters.
 fn py_quote(text: &str) -> String {
     const SAFE: &percent_encoding::AsciiSet =
@@ -69,10 +89,15 @@ pub async fn file_response(
     attachment: Option<&str>,
     extra: &[(&'static str, &'static str)],
 ) -> ApiResult {
-    let data = tokio::fs::read(path).await.map_err(ApiError::internal)?;
-    let modified = tokio::fs::metadata(path).await.ok().and_then(|m| m.modified().ok());
-    let mut response = bytes_response(data, method, content_type);
+    let file = tokio::fs::File::open(path).await.map_err(ApiError::internal)?;
+    let meta = file.metadata().await.map_err(ApiError::internal)?;
+    let modified = meta.modified().ok();
+    // streamed in chunks, and a HEAD request only stats the file
+    let body = if method == Method::HEAD { Body::empty() } else { Body::from_stream(file_chunks(file)) };
+    let mut response = Response::new(body);
     let headers = response.headers_mut();
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_str(content_type).map_err(ApiError::internal)?);
+    headers.insert(header::CONTENT_LENGTH, HeaderValue::from(meta.len()));
     if let Some(name) = attachment {
         let quoted = py_quote(name);
         let disposition = if quoted != name {

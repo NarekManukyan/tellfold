@@ -26,6 +26,7 @@ use std::time::Duration;
 
 use futures::future::{BoxFuture, LocalBoxFuture};
 use futures::FutureExt;
+use std::panic::AssertUnwindSafe;
 use serde_json::{json, Value};
 use tokio::sync::{mpsc, oneshot, watch, Notify};
 use tokio::task::JoinHandle;
@@ -163,9 +164,12 @@ impl Queue {
 
 type Job = Box<dyn FnOnce(Rc<Manager>) -> LocalBoxFuture<'static, ()> + Send>;
 
-/// The manager thread is gone (the server is shutting down).
-#[derive(Debug, Clone, Copy)]
-pub struct Closed;
+/// A job that did not answer: the manager thread is gone (the server is shutting down), or the job panicked.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Closed {
+    ShuttingDown,
+    Panicked,
+}
 
 /// Runs closures on the manager's thread. Cheap to clone.
 #[derive(Clone)]
@@ -184,12 +188,14 @@ impl Handle {
         let (tx, rx) = oneshot::channel();
         let job: Job = Box::new(move |manager| {
             async move {
-                let _ = tx.send(f(manager).await);
+                // a panicking job answers Panicked instead of dropping its reply
+                let result = AssertUnwindSafe(f(manager)).catch_unwind().await.map_err(|_| Closed::Panicked);
+                let _ = tx.send(result);
             }
             .boxed_local()
         });
-        self.jobs.send(job).map_err(|_| Closed)?;
-        rx.await.map_err(|_| Closed)
+        self.jobs.send(job).map_err(|_| Closed::ShuttingDown)?;
+        rx.await.map_err(|_| Closed::ShuttingDown)?
     }
 
     /// Runs `f` on the manager thread without waiting (e.g. from a `Drop`).
@@ -274,6 +280,72 @@ struct Watch {
     last_db: Option<(f64, f64, u64)>,
     last_round: Option<i64>,
     last_state: Option<RunState>,
+}
+
+/// The event a run written by another process ends with, by its new state (Python's `_TERMINAL_EVENTS`).
+const TERMINAL_EVENTS: [(RunState, &str); 3] =
+    [(RunState::Done, "run_done"), (RunState::Failed, "run_failed"), (RunState::Stopped, "run_stopped")];
+
+impl Watch {
+    /// `posts_added`, one per round, for posts a run written elsewhere added since the last poll.
+    fn posts_added(&mut self, reader: &RunReader) -> Vec<(&'static str, Value)> {
+        let signature = reader.db_signature();
+        let Some(last) = self.last_post_id else {
+            self.last_post_id = Some(reader.max_post_id());
+            self.last_db = Some(signature);
+            return Vec::new();
+        };
+        if self.last_db == Some(signature) {
+            return Vec::new();
+        }
+        self.last_db = Some(signature);
+        let new = reader.new_post_ids(last);
+        let Some((_, newest)) = new.last() else { return Vec::new() };
+        self.last_post_id = Some(*newest);
+        let mut by_round: Vec<(i64, Vec<i64>)> = Vec::new();
+        for (round, id) in new {
+            match by_round.iter_mut().find(|(r, _)| *r == round) {
+                Some((_, ids)) => ids.push(id),
+                None => by_round.push((round, vec![id])),
+            }
+        }
+        by_round.into_iter().map(|(round, ids)| ("posts_added", json!({"round": round, "post_ids": ids}))).collect()
+    }
+
+    /// `round_done` for each round completed elsewhere since the last poll.
+    fn rounds_done(&mut self, reader: &RunReader, status: &RunStatus) -> Vec<(&'static str, Value)> {
+        let Some(last) = self.last_round else {
+            self.last_round = Some(status.round);
+            self.last_state = Some(status.state); // just finished in-process: its own events were sent
+            return Vec::new();
+        };
+        if status.round <= last {
+            return Vec::new();
+        }
+        self.last_round = Some(status.round);
+        let stats = reader.round_stats();
+        (last + 1..=status.round)
+            .filter_map(|round| stats.iter().find(|s| s.round == round))
+            .map(|s| {
+                let mut data = serde_json::to_value(s).unwrap_or_else(|_| json!({}));
+                data["total_rounds"] = json!(status.total_rounds);
+                ("round_done", data)
+            })
+            .collect()
+    }
+
+    /// The terminal event when a run seen running has ended.
+    fn terminal_event(&self, status: &RunStatus) -> Option<(&'static str, Value)> {
+        if !matches!(self.last_state, Some(RunState::Running | RunState::Queued)) {
+            return None;
+        }
+        let (_, name) = TERMINAL_EVENTS.iter().find(|(state, _)| *state == status.state)?;
+        let data = match status.state {
+            RunState::Failed => json!({"error": status.error.clone().unwrap_or_default()}),
+            _ => json!({}),
+        };
+        Some((name, data))
+    }
 }
 
 #[derive(Default)]
@@ -730,7 +802,7 @@ impl Manager {
         if self.is_live(run_id) {
             return Err(conflict("the run is still in progress; it writes its own report"));
         }
-        if self.st.borrow().rebuilding.contains_key(run_id) {
+        if running(&self.st.borrow().rebuilding, run_id) {
             return Err(conflict("the report is already being rebuilt"));
         }
         let (config, world) = self.open_world(run_id)?;
@@ -777,7 +849,7 @@ impl Manager {
     /// Whether a report rebuild is running, and why the last one failed (None if it did not).
     pub fn rebuild_state(&self, run_id: &str) -> ReportRebuild {
         let st = self.st.borrow();
-        ReportRebuild { running: st.rebuilding.contains_key(run_id), error: st.rebuild_errors.get(run_id).cloned() }
+        ReportRebuild { running: running(&st.rebuilding, run_id), error: st.rebuild_errors.get(run_id).cloned() }
     }
 
     // ---------- studies ----------
@@ -815,15 +887,15 @@ impl Manager {
     /// `{running, error}` of the study's comparison in this server.
     pub fn compare_state(&self, study_id: &str) -> Value {
         let st = self.st.borrow();
-        json!({"running": st.comparing.contains_key(study_id), "error": st.compare_errors.get(study_id)})
+        json!({"running": running(&st.comparing, study_id), "error": st.compare_errors.get(study_id)})
     }
 
     pub fn is_comparing(&self, study_id: &str) -> bool {
-        self.st.borrow().comparing.contains_key(study_id)
+        running(&self.st.borrow().comparing, study_id)
     }
 
     pub fn is_repeating(&self, study_id: &str) -> bool {
-        self.st.borrow().repeating.contains_key(study_id)
+        running(&self.st.borrow().repeating, study_id)
     }
 
     /// Members that finished with a report; empty while any member is still running.
@@ -1147,64 +1219,10 @@ impl Manager {
             watch.last_state = None;
             return;
         }
-        let mut events: Vec<(&str, Value)> = Vec::new();
-        // posts_added for runs written by another process
-        let signature = reader.db_signature();
-        match watch.last_post_id {
-            None => {
-                watch.last_post_id = Some(reader.max_post_id());
-                watch.last_db = Some(signature);
-            }
-            Some(last) if watch.last_db != Some(signature) => {
-                watch.last_db = Some(signature);
-                let new = reader.new_post_ids(last);
-                if let Some((_, newest)) = new.last() {
-                    watch.last_post_id = Some(*newest);
-                    let mut by_round: Vec<(i64, Vec<i64>)> = Vec::new();
-                    for (round, id) in new {
-                        match by_round.iter_mut().find(|(r, _)| *r == round) {
-                            Some((_, ids)) => ids.push(id),
-                            None => by_round.push((round, vec![id])),
-                        }
-                    }
-                    for (round, ids) in by_round {
-                        events.push(("posts_added", json!({"round": round, "post_ids": ids})));
-                    }
-                }
-            }
-            Some(_) => {}
-        }
+        let mut events = watch.posts_added(&reader);
         if let Some(status) = status {
-            // round_done for rounds completed elsewhere
-            match watch.last_round {
-                None => {
-                    watch.last_round = Some(status.round);
-                    watch.last_state = Some(status.state); // just finished in-process: its own events were sent
-                }
-                Some(last) if status.round > last => {
-                    let stats = reader.round_stats();
-                    for round in last + 1..=status.round {
-                        if let Some(s) = stats.iter().find(|s| s.round == round) {
-                            let mut data = serde_json::to_value(s).unwrap_or_else(|_| json!({}));
-                            data["total_rounds"] = json!(status.total_rounds);
-                            events.push(("round_done", data));
-                        }
-                    }
-                    watch.last_round = Some(status.round);
-                }
-                Some(_) => {}
-            }
-            // terminal transition
-            if matches!(watch.last_state, Some(RunState::Running | RunState::Queued)) {
-                match status.state {
-                    RunState::Done => events.push(("run_done", json!({}))),
-                    RunState::Failed => {
-                        events.push(("run_failed", json!({"error": status.error.clone().unwrap_or_default()})))
-                    }
-                    RunState::Stopped => events.push(("run_stopped", json!({}))),
-                    _ => {}
-                }
-            }
+            events.extend(watch.rounds_done(&reader, &status));
+            events.extend(watch.terminal_event(&status));
             watch.last_state = Some(status.state);
         }
         drop(st);
@@ -1217,19 +1235,21 @@ impl Manager {
 
     /// Ask every live run to stop, give them `shutdown_grace`, then cancel what is left.
     pub async fn shutdown(&self) {
-        let (mut tasks, dones) = {
+        let (mut tasks, dones, run_dirs) = {
             let mut st = self.st.borrow_mut();
             st.closing = true; // a "Check it" series must not start its next run during the grace wait
             let mut tasks = Vec::new();
             let mut dones = Vec::new();
+            let mut run_dirs = Vec::new();
             for live in st.live.values_mut() {
                 live.stop.store(true, Ordering::SeqCst);
                 if let Some(task) = live.task.take() {
                     tasks.push(task);
                     dones.push(live.done.clone());
+                    run_dirs.push(live.run_dir.clone());
                 }
             }
-            (tasks, dones)
+            (tasks, dones, run_dirs)
         };
         if !tasks.is_empty() {
             let all_done = futures::future::join_all(dones.into_iter().map(|mut d| async move {
@@ -1241,6 +1261,11 @@ impl Manager {
                     task.abort();
                 }
                 let _ = tokio::time::timeout(Duration::from_secs(2), futures::future::join_all(tasks)).await;
+                // The pipeline marks itself stopped when it is dropped; this catches a run whose own status
+                // write failed, like `_mark_stopped(run_dir, "stopped: server shut down")` after cancelling.
+                for run_dir in &run_dirs {
+                    Self::mark_stopped(run_dir, "stopped: server shut down");
+                }
             }
         }
         let (others, queues) = {
@@ -1261,7 +1286,7 @@ impl Manager {
         }
     }
 
-    /// Marks a run cancelled outside the pipeline as stopped (the pipeline does this itself when it is dropped).
+    /// Marks a run that is still `running` or `queued` on disk as stopped with `detail`.
     pub fn mark_stopped(run_dir: &Path, detail: &str) {
         if let Some(mut status) = read_status(run_dir) {
             if matches!(status.state, RunState::Running | RunState::Queued) {
@@ -1277,6 +1302,12 @@ impl Manager {
     pub fn graph(&self, run_id: &str) -> KnowledgeGraph {
         self.reader(run_id).graph().unwrap_or_default()
     }
+}
+
+/// Whether the task under `key` is still going: `task is not None and not task.done()`. A task that panicked has
+/// finished without removing its entry, and must not block the next rebuild, comparison or series.
+fn running(tasks: &HashMap<String, JoinHandle<()>>, key: &str) -> bool {
+    tasks.get(key).is_some_and(|task| !task.is_finished())
 }
 
 /// `str(e) or type(e).__name__` of a report-stage error.

@@ -653,3 +653,11 @@ async fn watcher_streams_a_run_written_by_another_process() {
     assert_eq!(server.post(&format!("/api/runs/{run_id}/events"), json!({"round": 2, "content": "x"})).await.0, 409);
     server.shutdown().await;
 }
+
+#[test]
+#[should_panic(expected = "an empty token would disable authentication")]
+fn an_empty_token_is_refused() {
+    let tmp = tempfile::tempdir().unwrap();
+    let options = ManagerOptions::new(&tmp.path().join("runs"), Factory::new().llm_factory());
+    let _ = create_app(options, AppOptions { fake_llm: true, token: Some(String::new()), ..Default::default() });
+}
