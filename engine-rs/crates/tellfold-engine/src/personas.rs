@@ -126,7 +126,8 @@ pub struct GroupBatch {
 }
 
 tellfold_llm::json_model!(PersonaBatch, "../../../schemas/PersonaBatch.json");
-tellfold_llm::json_model!(GroupBatch, "../../../schemas/GroupBatch.json");
+// Rust-only (the Python engine has no groups), so it lives with the crate: golden/make.py rewrites schemas/.
+tellfold_llm::json_model!(GroupBatch, "../schemas/GroupBatch.json");
 tellfold_llm::json_model!(VoicePick, "../../../schemas/VoicePick.json");
 
 pub const VOICES_SYSTEM: &str = "\
