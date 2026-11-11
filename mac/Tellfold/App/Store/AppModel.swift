@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 final class AppModel {
     let prefs: AppPreferences
     let engine: EngineController
+    /// Saved audiences (casts to reuse) in Application Support.
+    let audiences: AudienceStore
     @ObservationIgnored let notifier = Notifier()
 
     private(set) var runs: [RunSummary] = []
@@ -72,12 +74,15 @@ final class AppModel {
     @ObservationIgnored var openWindowAction: OpenWindowAction?
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var knownStates: [String: RunState] = [:]
+    /// Runs that were waiting for their cast to be checked at the last refresh.
+    @ObservationIgnored private var knownWaiting: Set<String> = []
 
     var api: TellfoldAPI? { engine.api }
 
     init(prefs: AppPreferences = AppPreferences()) {
         self.prefs = prefs
         engine = EngineController(prefs: prefs)
+        audiences = AudienceStore()
     }
 
     // MARK: Lifecycle
@@ -91,6 +96,7 @@ final class AppModel {
         engine.onAPIChange = { [weak self] api in self?.apiChanged(api) }
         engine.start()
         requestNotificationPermissionIfNeeded()
+        Task { await audiences.reload() }
     }
 
     func shutdown() {
@@ -203,12 +209,20 @@ final class AppModel {
     }
 
     private func notifyTransitions(_ list: [RunSummary]) {
-        defer { knownStates = Dictionary(list.map { ($0.id, $0.state) }, uniquingKeysWith: { a, _ in a }) }
+        defer {
+            knownStates = Dictionary(list.map { ($0.id, $0.state) }, uniquingKeysWith: { a, _ in a })
+            knownWaiting = Set(list.filter(\.awaitsCast).map(\.id))
+        }
         guard hasLoadedRuns, prefs.notificationsEnabled else { return }
         for run in list where run.state.isTerminal {
             if let previous = knownStates[run.id], previous.isActive {
                 notifier.notifyFinished(run: run)
             }
+        }
+        // in front, the cast editor opens by itself
+        guard !NSApp.isActive else { return }
+        for run in list where run.awaitsCast && !knownWaiting.contains(run.id) {
+            notifier.notifyCastReady(run: run)
         }
     }
 

@@ -39,6 +39,9 @@ final class RunStore: Identifiable {
     var selectedPostID: Int?
     /// Shows the Inject Event sheet (presented by the main window).
     var showsInjectEvent = false
+    /// The cast editor is up: set when the run starts waiting at `personas_ready`, cleared when it stops waiting.
+    /// "Later" closes the sheet; the toolbar's Check the Cast button opens it again.
+    var showsCastEditor = false
 
     /// Latest `RunStatus` (from the stream when live, otherwise from the detail).
     private(set) var status: RunStatus?
@@ -164,10 +167,12 @@ final class RunStore: Identifiable {
     }
 
     private func apply(detail: RunDetail) {
+        let wasWaiting = status?.awaitsCast ?? false
         self.detail = detail
         if let s = detail.status {
             status = s
             mergeBatchFailures(s.failedBatches)
+            noteCastPause(wasWaiting: wasWaiting, status: s)
         }
         if stageDetail.isEmpty || !(detail.status?.state.isActive ?? false) { stageDetail = detail.status?.detail ?? "" }
     }
@@ -212,6 +217,7 @@ final class RunStore: Identifiable {
         switch event {
         case .status(let s):
             let stageChanged = s.stage != status?.stage
+            noteCastPause(wasWaiting: status?.awaitsCast ?? false, status: s)
             status = s
             detail?.status = s
             mergeBatchFailures(s.failedBatches)
@@ -236,6 +242,8 @@ final class RunStore: Identifiable {
             mergeBatchFailures([e])
         case .eventInjected(let e):
             if !(detail?.events.contains(e) ?? true) { detail?.events.append(e) }
+        case .personasReady:
+            if status?.awaitsCast ?? true { showsCastEditor = true }
         case .runDone, .runStopped:
             detail?.live = false
             await finishRun()
@@ -247,6 +255,17 @@ final class RunStore: Identifiable {
             break
         }
     }
+
+    /// Opens the cast editor when the run starts waiting for its cast, and closes it once the run goes on or ends.
+    private func noteCastPause(wasWaiting: Bool, status: RunStatus) {
+        if status.awaitsCast, !wasWaiting {
+            showsCastEditor = true
+        } else if !status.awaitsCast {
+            showsCastEditor = false
+        }
+    }
+
+    var awaitsCast: Bool { isLive && (status?.awaitsCast ?? false) }
 
     private func finishRun() async {
         await fetchNewPosts()

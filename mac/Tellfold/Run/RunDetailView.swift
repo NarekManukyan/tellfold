@@ -92,6 +92,16 @@ struct RunDetailView: View {
             .pickerStyle(.segmented)
             .accessibilityLabel("Run view")
         }
+        if store.awaitsCast {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    store.showsCastEditor = true
+                } label: {
+                    Label("Check the Cast", systemImage: "person.2.badge.gearshape")
+                }
+                .help("The simulation is waiting for you to check its people")
+            }
+        }
         if store.controls.stop {
             ToolbarItem(placement: .primaryAction) {
                 Button {

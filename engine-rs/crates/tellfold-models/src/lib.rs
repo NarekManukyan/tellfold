@@ -79,6 +79,14 @@ pub struct Persona {
     pub influence: f64,
     #[serde(default)]
     pub entity_id: Option<String>,
+    /// The opinion group the cast was planned around (see `tellfold_engine::personas::CAMPS`), when known. Runs
+    /// made before camps were planned have none. Rust-only: the Python engine has no camps, cast review or groups.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub camp: Option<String>,
+    /// Where the persona came from: "cast" (planned and written by the engine), "group" (a group the user
+    /// described), "edited" (changed by the user before the run). None for older runs. Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
 }
 
 impl Persona {
@@ -95,6 +103,8 @@ impl Persona {
             activity: 0.6,
             influence: 0.5,
             entity_id: None,
+            camp: None,
+            source: None,
         }
     }
 }
@@ -308,6 +318,22 @@ pub struct SimConfig {
     pub branched_from: Option<String>,
     #[serde(default, deserialize_with = "lax::opt_int")]
     pub branch_round: Option<i64>,
+    /// Pause once the cast is ready (status `pause: "personas_ready"`) until a client confirms or edits it.
+    /// Rust-only, like `fair_turns` and `audience`: the Python engine has no cast review.
+    #[serde(default, skip_serializing_if = "is_false", deserialize_with = "lax::boolean")]
+    pub review_cast: bool,
+    /// Make sure every camp gets a turn to post and strongly held views are not starved. Off for older runs, which
+    /// keep reproducing exactly.
+    #[serde(default, skip_serializing_if = "is_false", deserialize_with = "lax::boolean")]
+    pub fair_turns: bool,
+    /// The saved audience this run's cast came from (its name). Its people and topic map are written into the run
+    /// folder before the run starts, so the graph and persona stages are skipped.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audience: Option<String>,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 impl SimConfig {
@@ -335,6 +361,9 @@ impl SimConfig {
             variant: None,
             branched_from: None,
             branch_round: None,
+            review_cast: false,
+            fair_turns: false,
+            audience: None,
         }
     }
 }
@@ -868,6 +897,10 @@ pub struct RunStatus {
     pub updated_at: String,
     #[serde(default)]
     pub failed_batches: Vec<FailedBatch>,
+    /// Why a running run is waiting for a client: "personas_ready" while the cast is up for review. Only a running
+    /// run has one. Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pause: Option<String>,
 }
 
 // ---------- routing ----------

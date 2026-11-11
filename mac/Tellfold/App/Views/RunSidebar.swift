@@ -281,6 +281,7 @@ private struct RunRow: View {
 
     /// "r3 of 6" for a run that did not finish, the size of the crowd for one that did.
     private var detail: String {
+        if run.awaitsCast { return "waiting for you to check the cast" }
         if run.state.isActive { return "\(run.stage.title.lowercased()), round \(run.round) of \(run.totalRounds)" }
         if run.state == .stopped || run.state == .failed { return "r\(roundsDone) of \(run.totalRounds)" }
         return "\(run.agents) agents, \(run.totalRounds) rounds"

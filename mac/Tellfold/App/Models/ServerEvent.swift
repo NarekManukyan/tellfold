@@ -11,6 +11,8 @@ enum ServerEvent: Hashable, Sendable {
     case postsAdded(PostsAddedEvent)
     case batchFailed(BatchFailedEvent)
     case eventInjected(GodEvent)
+    /// The cast is ready and the run waits for it to be checked (`review_cast` runs).
+    case personasReady([Persona])
     case runDone
     case runFailed(error: String)
     case runStopped
@@ -25,6 +27,7 @@ enum ServerEvent: Hashable, Sendable {
         case .postsAdded: "posts_added"
         case .batchFailed: "batch_failed"
         case .eventInjected: "event_injected"
+        case .personasReady: "personas_ready"
         case .runDone: "run_done"
         case .runFailed: "run_failed"
         case .runStopped: "run_stopped"
@@ -60,6 +63,9 @@ enum ServerEvent: Hashable, Sendable {
             if let v = parse(BatchFailedEvent.self) { return .batchFailed(v) }
         case "event_injected":
             if let v = parse(GodEvent.self) { return .eventInjected(v) }
+        case "personas_ready":
+            struct Ready: Decodable { var personas: [Persona] }
+            if let v = parse(Ready.self) { return .personasReady(v.personas) }
         case "run_done":
             return .runDone
         case "run_failed":

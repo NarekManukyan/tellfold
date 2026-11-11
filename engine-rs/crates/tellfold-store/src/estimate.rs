@@ -18,10 +18,11 @@ fn ceil_div(a: i64, b: i64) -> i64 {
     (a as f64 / b as f64).ceil() as i64
 }
 
-/// (agent, planner) model calls. A run that reuses a cast (`cast_from`) makes no graph or persona calls.
+/// (agent, planner) model calls. A run that reuses a cast (`cast_from`, a saved `audience`) makes no graph or
+/// persona calls.
 pub fn estimate_call_split(config: &SimConfig, chunks: i64) -> (i64, i64) {
     let batch = config.batch_size.max(1); // the server and CLI refuse batch sizes below 1
-    let reused = config.cast_from.is_some() || config.branched_from.is_some();
+    let reused = config.cast_from.is_some() || config.branched_from.is_some() || config.audience.is_some();
     let branched = config.branched_from.is_some() && config.branch_round.is_some();
     let graph = if reused { 0 } else { ceil_div(chunks.min(MAX_EXTRACT_CHUNKS), CHUNKS_PER_CALL) };
     let personas = if reused { 0 } else { ceil_div(config.num_agents, 10) };

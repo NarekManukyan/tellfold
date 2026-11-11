@@ -200,6 +200,20 @@ fn call_estimates_match_python() {
     }
 }
 
+/// Not in the Python fixture: only the Rust engine starts runs from a saved audience. The same rows are in
+/// tests/test_server.py and EstimateTests in the Mac app.
+#[test]
+fn audience_runs_skip_graph_and_persona_calls() {
+    for (agents, rounds, batch, chunks, split) in
+        [(20, 6, 6, 3, (20, 1)), (25, 10, 4, 9, (43, 1)), (5, 4, 2, 7, (10, 1))]
+    {
+        let mut config = SimConfig::new("q", vec![]);
+        (config.num_agents, config.rounds, config.batch_size) = (agents, rounds, batch);
+        config.audience = Some("Saved".into());
+        assert_eq!(estimate_call_split(&config, chunks), split);
+    }
+}
+
 #[test]
 fn study_letters_match_python() {
     let want = fixture("letters.json");

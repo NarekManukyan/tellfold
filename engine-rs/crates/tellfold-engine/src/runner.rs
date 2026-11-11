@@ -19,7 +19,9 @@ use tellfold_llm::ingest::{chunk_text_default, load_documents};
 use tellfold_llm::{Llm, LlmError};
 use tellfold_models::log;
 use tellfold_models::text::py_prefix;
-use tellfold_models::{BatchRef, FailedBatch, KnowledgeGraph, Report, RunStage, RunState, RunStatus, SimConfig};
+use tellfold_models::{
+    BatchRef, FailedBatch, KnowledgeGraph, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
+};
 use tellfold_store::estimate::estimate_calls;
 use tellfold_store::files::{
     load_cast, now_iso, read_status, write_json, write_json_list, write_status, RunError, CONFIG_FILE, GRAPH_FILE,
@@ -29,7 +31,10 @@ use tellfold_store::world::{World, WorldError};
 
 use crate::engine::{Engine, EngineError};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
-use crate::personas::generate_personas;
+use crate::personas::generate_cast;
+
+/// `status.pause` while a `review_cast` run waits for its cast to be confirmed.
+pub const PAUSE_PERSONAS: &str = "personas_ready";
 
 /// characters of a failed batch's error kept in status.json
 const FAILED_BATCH_ERROR_MAX: usize = 500;
@@ -76,6 +81,15 @@ pub struct RunOptions<'a> {
     pub stop: Option<&'a AtomicBool>,
     /// default: the sibling run folder named `config.cast_from`
     pub cast_dir: Option<&'a Path>,
+    /// Where a `review_cast` run waits for its cast. Without one the run does not pause.
+    pub cast_gate: Option<&'a dyn CastGate>,
+}
+
+/// Holds a `review_cast` run once its cast is ready, until a client confirms (possibly edited) people.
+#[async_trait(?Send)]
+pub trait CastGate {
+    /// Called with the cast as written to `personas.json`. Returns the cast to run with, or None to stop the run.
+    async fn review(&self, personas: Vec<Persona>) -> Option<Vec<Persona>>;
 }
 
 /// Writes the report of a finished (or stopped) run: `build_report` then `write_report` in Python.
@@ -137,6 +151,7 @@ impl<'a> Tracker<'a> {
                 started_at: now.clone(),
                 updated_at: now,
                 failed_batches: Vec::new(),
+                pause: None,
             }),
             deferred: RefCell::new(None),
         }
@@ -241,6 +256,7 @@ impl<'a> Tracker<'a> {
         self.update(|s| {
             s.state = RunState::Stopped;
             s.detail = format!("stopped after round {round}");
+            s.pause = None;
         })?;
         self.emit("run_stopped", json!({}));
         Ok(())
@@ -251,6 +267,7 @@ impl<'a> Tracker<'a> {
             s.state = RunState::Failed;
             s.error = Some(message.to_string());
             s.detail = "failed".into();
+            s.pause = None;
         }) {
             log::error(LOGGER, &format!("could not update run status: {e}"));
         }
@@ -320,7 +337,7 @@ async fn pipeline(
     options: RunOptions<'_>,
     track: &Tracker<'_>,
 ) -> Result<Option<Report>, PipelineError> {
-    let RunOptions { stop, cast_dir, .. } = options;
+    let RunOptions { stop, cast_dir, cast_gate, .. } = options;
     let stopping = || stop.is_some_and(|s| s.load(Ordering::SeqCst));
     let plural = if seeds.len() != 1 { "s" } else { "" };
     track.stage(RunStage::Reading, &format!("reading {} seed file{plural}", seeds.len()), json!({}))?;
@@ -358,11 +375,19 @@ async fn pipeline(
         track.update(|s| s.round = branch_round)?;
     } else {
         first_round = 1;
-        let personas;
-        if let Some(cast_from) = config.cast_from.clone() {
-            let source = cast_dir.map(Path::to_path_buf).unwrap_or_else(|| {
-                run_dir.parent().map(|p| p.join(&cast_from)).unwrap_or_else(|| PathBuf::from(&cast_from))
-            });
+        let mut personas;
+        // a saved audience's people and topic map were written into the run folder before it started
+        let reused = match (&config.cast_from, &config.audience) {
+            (Some(cast_from), _) => Some((
+                cast_from.clone(),
+                cast_dir.map(Path::to_path_buf).unwrap_or_else(|| {
+                    run_dir.parent().map(|p| p.join(cast_from)).unwrap_or_else(|| PathBuf::from(cast_from))
+                }),
+            )),
+            (None, Some(audience)) => Some((format!("the audience {audience}"), run_dir.to_path_buf())),
+            (None, None) => None,
+        };
+        if let Some((cast_from, source)) = reused {
             let cast = load_cast(&source)?;
             graph = cast.graph;
             personas = cast.personas;
@@ -412,13 +437,14 @@ async fn pipeline(
                 &format!("creating {} personas", config.num_agents),
                 json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
             )?;
-            personas = generate_personas(
+            personas = generate_cast(
                 llm,
                 &graph,
                 &config.question,
                 config.num_agents.max(0) as usize,
                 &config.planner_model,
                 &config.language,
+                config.fair_turns,
             )
             .await?;
             write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
@@ -426,6 +452,30 @@ async fn pipeline(
         if stopping() {
             track.finish_stopped()?;
             return Ok(None);
+        }
+        if let Some(gate) = cast_gate.filter(|_| config.review_cast) {
+            track.update(|s| {
+                s.pause = Some(PAUSE_PERSONAS.into());
+                s.detail = format!("{} people ready: waiting for you to check them", personas.len());
+            })?;
+            track.emit("personas_ready", json!({"personas": personas}));
+            let Some(reviewed) = gate.review(personas).await.filter(|_| !stopping()) else {
+                track.finish_stopped()?;
+                return Ok(None);
+            };
+            if reviewed.is_empty() {
+                return Err(PipelineError::Other("the cast is empty: add at least one person".into()));
+            }
+            personas = reviewed;
+            write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
+            if config.num_agents != personas.len() as i64 {
+                config.num_agents = personas.len() as i64;
+                write_json(&run_dir.join(CONFIG_FILE), &config)?;
+            }
+            track.update(|s| {
+                s.pause = None;
+                s.detail = format!("cast confirmed: {} people", personas.len());
+            })?;
         }
         world = World::open(&run_dir.join(WORLD_FILE), config.seed)?;
         world.add_personas(&personas)?;
@@ -489,6 +539,7 @@ pub fn mark_stopped(run_dir: &Path) -> std::io::Result<()> {
         if matches!(status.state, RunState::Running | RunState::Queued) {
             status.state = RunState::Stopped;
             status.detail = format!("stopped after round {}", status.round);
+            status.pause = None;
             status.updated_at = now_iso();
             write_status(run_dir, &status)?;
         }

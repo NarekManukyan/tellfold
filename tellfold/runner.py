@@ -103,8 +103,8 @@ ESTIMATED_ACTIVE_SHARE = 0.4
 def estimate_call_split(config: SimConfig, chunks: int) -> tuple[int, int]:
     """(agent, planner) model calls for a run when nothing needs a retry. Mirrored in the Mac app
     (`NewRunRequest.estimatedCallSplit`); the reference table in tests/test_server.py pins both.
-    A run that reuses a cast (`cast_from`) makes no graph or persona calls."""
-    reused = config.cast_from is not None or config.branched_from is not None
+    A run that reuses a cast (`cast_from`, or a saved `audience` in the Rust engine) makes no graph or persona calls."""
+    reused = config.cast_from is not None or config.branched_from is not None or config.audience is not None
     branched = config.branched_from is not None and config.branch_round is not None
     graph = 0 if reused else math.ceil(min(chunks, MAX_EXTRACT_CHUNKS) / CHUNKS_PER_CALL)
     personas = 0 if reused else math.ceil(config.num_agents / 10)

@@ -163,6 +163,15 @@ struct EstimateTests {
         #expect(NewRunRequest.estimatedCalls(agents: agents, rounds: rounds, batch: batch, chunks: chunks)
                 == agentCalls + plannerCalls)
     }
+
+    /// A saved audience brings its people; the same rows are in tests/test_server.py and the engine's golden tests.
+    @Test(arguments: [(20, 6, 6, 3, 20, 1), (25, 10, 4, 9, 43, 1), (5, 4, 2, 7, 10, 1)])
+    func savedAudienceSkipsCasting(agents: Int, rounds: Int, batch: Int, chunks: Int, agentCalls: Int,
+                                   plannerCalls: Int) {
+        let split = NewRunRequest.estimatedCallSplit(agents: agents, rounds: rounds, batch: batch, chunks: chunks,
+                                                     reusesCast: true)
+        #expect(split.agent == agentCalls && split.planner == plannerCalls)
+    }
 }
 
 struct LineSplitterTests {

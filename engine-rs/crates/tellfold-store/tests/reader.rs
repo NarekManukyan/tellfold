@@ -40,6 +40,7 @@ fn running_status(pid: Option<i64>) -> RunStatus {
         started_at: now_iso(),
         updated_at: now_iso(),
         failed_batches: vec![],
+        pause: None,
     }
 }
 
@@ -113,6 +114,22 @@ fn older_and_stale_runs_get_a_derived_state() {
     // a live run of this server is running whatever its status file says
     assert_eq!(cases[4].0.status(true).unwrap().state, RunState::Running);
     assert!(RunReader::new(&runs.join("not-a-run"), None, false).summary(false).is_none());
+}
+
+#[test]
+fn only_a_running_run_is_paused() {
+    let tmp = tempfile::tempdir().unwrap();
+    let paused = |pid| RunStatus { pause: Some("personas_ready".into()), ..running_status(pid) };
+    let parent = std::os::unix::process::parent_id() as i64;
+    let alive = make_external_run(tmp.path(), "20260101-000001-waiting", false, Some(paused(Some(parent))));
+    assert_eq!(alive.status(false).unwrap().pause.as_deref(), Some("personas_ready"));
+    // the server that held the cast is gone: the run is stopped, and nothing waits for a client any more
+    let orphan = make_external_run(tmp.path(), "20260101-000002-orphan", false, Some(paused(Some(dead_pid()))));
+    let status = orphan.status(false).unwrap();
+    assert_eq!((status.state, status.pause), (RunState::Stopped, None));
+    let failed = RunStatus { state: RunState::Failed, ..paused(None) };
+    let failed = make_external_run(tmp.path(), "20260101-000003-failed", false, Some(failed));
+    assert_eq!(failed.status(false).unwrap().pause, None);
 }
 
 #[test]

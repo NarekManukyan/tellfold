@@ -164,6 +164,9 @@ pub fn repeat_config(
     config.variant = Some(format!("Run {}", i + 1));
     config.branched_from = None;
     config.branch_round = None;
+    // a repeat reuses the source cast as it is: no pause, and cast_from names where it comes from
+    config.review_cast = false;
+    config.audience = None;
     if let Some(model) = agent_model.filter(|m| !m.is_empty()) {
         config.agent_model = model.into();
     }

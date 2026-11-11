@@ -5,6 +5,7 @@
 //! open the other's `world.db`.
 
 use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 use std::time::Duration;
 
@@ -417,7 +418,29 @@ impl World {
         Ok(out)
     }
 
+    /// Agent id -> the last round that agent acted in, for every agent that has acted.
+    pub fn last_active_rounds(&self) -> Result<HashMap<String, i64>> {
+        let mut stmt = self
+            .db
+            .prepare("SELECT json_extract(data, '$.agent_id') AS agent, MAX(round) FROM actions GROUP BY agent")?;
+        let rows = stmt.query_map([], |r| Ok((r.get::<_, Option<String>>(0)?, r.get::<_, i64>(1)?)))?;
+        let mut out = HashMap::new();
+        for row in rows {
+            if let (Some(agent), round) = row? {
+                out.insert(agent, round);
+            }
+        }
+        Ok(out)
+    }
+
     // ---------- posts & feeds ----------
+
+    /// Everyone who has written a post, reply or repost.
+    pub fn authors(&self) -> Result<HashSet<String>> {
+        let mut stmt = self.db.prepare("SELECT DISTINCT author_id FROM posts")?;
+        let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
 
     pub fn post(&self, post_id: i64) -> Result<Post> {
         self.db

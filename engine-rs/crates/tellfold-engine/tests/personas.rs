@@ -188,3 +188,78 @@ async fn planner_picks_which_entities_get_a_voice() {
     let voices: Vec<&str> = personas.iter().filter_map(|p| p.entity_id.as_deref()).collect();
     assert_eq!(voices, [chosen.as_str()]);
 }
+
+fn run<F: std::future::Future>(future: F) -> F::Output {
+    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(future)
+}
+
+#[test]
+fn fair_cast_records_camps_and_source() {
+    use tellfold_engine::personas::{generate_cast, CAMPS, SOURCE_CAST};
+    let llm = FakeLlm::new(tellfold_llm::canned::fake_responder);
+    let fair = run(generate_cast(&llm, &graph(), QUESTION, 10, "sonnet", "English", true)).unwrap();
+    assert_eq!(fair.len(), 10);
+    for p in &fair {
+        assert_eq!(p.source.as_deref(), Some(SOURCE_CAST));
+        // entity voices have no planned camp; everyone else does
+        assert_eq!(p.camp.is_some(), p.entity_id.is_none(), "{p:?}");
+        assert!(p.camp.as_deref().is_none_or(|c| CAMPS.contains(&c)));
+    }
+    let legacy = run(generate_personas(&llm, &graph(), QUESTION, 10, "sonnet", "English")).unwrap();
+    assert!(legacy.iter().all(|p| p.camp.is_none() && p.source.is_none()));
+    let text = tellfold_models::json::to_string(&legacy);
+    assert!(!text.contains("\"camp\"") && !text.contains("\"source\""));
+}
+
+#[test]
+fn a_described_group_becomes_that_many_personas() {
+    use tellfold_engine::personas::{generate_group, tidy_cast, CAMPS, SOURCE_GROUP};
+    let llm = FakeLlm::new(tellfold_llm::canned::fake_responder);
+    let existing = run(generate_personas(&llm, &graph(), QUESTION, 4, "sonnet", "English")).unwrap();
+    let description = "three parents of Year 7 children who take the bus";
+    let config = tellfold_models::SimConfig::new(QUESTION, vec![]);
+    let group = run(generate_group(&llm, &graph(), &config, description, 3, &existing)).unwrap();
+    assert_eq!(group.len(), 3);
+    let taken: HashSet<&str> = existing.iter().map(|p| p.handle.as_str()).collect();
+    for p in &group {
+        assert_eq!(p.source.as_deref(), Some(SOURCE_GROUP));
+        assert!(CAMPS.contains(&p.camp.as_deref().unwrap()), "{:?}", p.camp);
+        assert!(!taken.contains(p.handle.as_str()));
+        assert!((0.05..=0.95).contains(&p.activity));
+    }
+    let calls = llm.calls.lock().unwrap();
+    let (purpose, model, prompt) = calls.last().unwrap();
+    assert_eq!((purpose.as_str(), model.as_str()), ("personas.group", "sonnet"));
+    assert!(prompt.contains(description) && prompt.contains("\"camp\": str"));
+    drop(calls);
+    let mut cast = existing.clone();
+    cast.extend(group);
+    let ids: Vec<String> = tidy_cast(cast).into_iter().map(|p| p.id).collect();
+    assert_eq!(ids, ["a01", "a02", "a03", "a04", "a05", "a06", "a07"]);
+    assert!(run(generate_group(&llm, &graph(), &config, "  ", 3, &existing)).is_err());
+}
+
+#[test]
+fn tidy_cast_cleans_what_a_client_sends() {
+    use tellfold_engine::personas::tidy_cast;
+    use tellfold_models::Persona;
+    let mut a = Persona::new("zz", "@Same Handle", "  Ana  ", " bio ", "bg", " for it ");
+    a.activity = 7.0;
+    a.influence = f64::NAN;
+    a.camp = Some("strong_support".into());
+    a.source = Some("pasted from a forum".into());
+    a.traits = vec![" kind ".into(), "".into(), "a".into(), "b".into(), "c".into(), "d".into(), "e".into()];
+    let mut b = Persona::new("a01", "same_handle", "", "", "", "");
+    b.camp = Some("made_up".into());
+    b.source = Some(" edited ".into());
+    let tidy = tidy_cast(vec![a, b]);
+    assert_eq!(tidy.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(), ["a01", "a02"]);
+    assert_eq!((tidy[0].handle.as_str(), tidy[1].handle.as_str()), ("same_handle", "same_handle_2"));
+    assert_eq!((tidy[0].name.as_str(), tidy[0].bio.as_str(), tidy[0].stance.as_str()), ("Ana", "bio", "for it"));
+    assert_eq!((tidy[0].activity, tidy[0].influence), (1.0, 0.5));
+    assert_eq!(tidy[0].traits, ["kind", "a", "b", "c", "d"]);
+    assert_eq!(tidy[1].name, "same_handle_2", "a nameless persona is named after its handle");
+    assert_eq!((tidy[1].camp.as_deref(), tidy[1].source.as_deref()), (None, Some("edited")));
+    assert_eq!(tidy[0].source, None, "only the known sources are kept");
+    assert_eq!(tidy_cast(vec![Persona::new("a", "b", "c", "d", "e", "f"); 250]).len(), 200);
+}

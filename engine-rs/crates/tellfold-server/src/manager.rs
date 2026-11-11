@@ -31,12 +31,13 @@ use std::panic::AssertUnwindSafe;
 use tokio::sync::{mpsc, oneshot, watch, Notify};
 use tokio::task::JoinHandle;
 
-use tellfold_engine::runner::{run_pipeline, RunOptions};
+use tellfold_engine::personas::{generate_group, tidy_cast, MAX_CAST};
+use tellfold_engine::runner::{run_pipeline, CastGate, RunOptions};
 use tellfold_llm::{Llm, LlmError};
 use tellfold_models::json::{py_dumps_compact, to_string as model_json};
 use tellfold_models::{
-    Agreement, CompareResult, GodEvent, KnowledgeGraph, RewriteSuggestion, RunStage, RunState, RunStatus, SimConfig,
-    Study, StudyKind, StudyRun,
+    Agreement, CompareResult, GodEvent, KnowledgeGraph, Persona, RewriteSuggestion, RunStage, RunState, RunStatus,
+    SimConfig, Study, StudyKind, StudyRun,
 };
 use tellfold_report::chat::{ask_report, interview};
 use tellfold_report::report::build_report;
@@ -44,7 +45,9 @@ use tellfold_report::rewrite::{build_rewrite, REWRITE_FILE};
 use tellfold_report::{write_report, ReportError, ReportWriter};
 use tellfold_runtimes::load_settings;
 use tellfold_store::api::ReportRebuild;
-use tellfold_store::files::{copy_seeds, create_run_dir, now_iso, read_model, read_status, write_json, write_status};
+use tellfold_store::files::{
+    copy_seeds, create_run_dir, now_iso, read_model, read_status, write_json, write_status, GRAPH_FILE,
+};
 use tellfold_store::study::{
     join_study, letter, load_study, new_study_id, plan_variant, repeat_config, save_study, study_dir, AGREEMENT_FILE,
     COMPARE_FILE,
@@ -264,10 +267,59 @@ pub fn spawn_manager(options: ManagerOptions) -> ManagerThread {
 
 // ---------- state ----------
 
+/// A `review_cast` run's cast while it waits at `personas_ready`.
+#[derive(Default)]
+struct CastHold {
+    /// Some while the run waits
+    personas: RefCell<Option<Vec<Persona>>>,
+    /// set when a client confirms the cast
+    go: Cell<bool>,
+    wake: Notify,
+    /// places held for groups the model is still writing, so an edit meanwhile cannot fill them
+    reserved: Cell<usize>,
+}
+
+/// Room held in a [`CastHold`] while a group is written; given back when dropped, also when the request is cancelled.
+struct Reservation {
+    hold: Rc<CastHold>,
+    count: usize,
+}
+
+impl Drop for Reservation {
+    fn drop(&mut self) {
+        self.hold.reserved.set(self.hold.reserved.get() - self.count);
+    }
+}
+
+/// The run's side of a [`CastHold`]: waits until the cast is confirmed or the run is stopped.
+struct HoldGate {
+    hold: Rc<CastHold>,
+    stop: Arc<AtomicBool>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl CastGate for HoldGate {
+    async fn review(&self, personas: Vec<Persona>) -> Option<Vec<Persona>> {
+        *self.hold.personas.borrow_mut() = Some(personas);
+        loop {
+            if self.stop.load(Ordering::SeqCst) {
+                self.hold.personas.borrow_mut().take();
+                return None;
+            }
+            if self.hold.go.get() {
+                return self.hold.personas.borrow_mut().take();
+            }
+            // a notify_one() before this await leaves a permit, so no wake-up is lost
+            self.hold.wake.notified().await;
+        }
+    }
+}
+
 struct LiveRun {
     run_dir: PathBuf,
     config: SimConfig,
     stop: Arc<AtomicBool>,
+    hold: Rc<CastHold>,
     /// highest round that has started
     current_round: Rc<Cell<i64>>,
     task: Option<JoinHandle<()>>,
@@ -494,6 +546,7 @@ impl Manager {
             started_at: now_iso(),
             updated_at: now_iso(),
             failed_batches: Vec::new(),
+            pause: None,
         })
     }
 
@@ -515,12 +568,14 @@ impl Manager {
         let current_round = Rc::new(Cell::new(0));
         let (done_tx, done_rx) = watch::channel(false);
         let cast_dir = config.cast_from.as_deref().map(|c| self.run_path(c));
+        let hold = Rc::new(CastHold::default());
         self.st.borrow_mut().live.insert(
             run_id.clone(),
             LiveRun {
                 run_dir: run_dir.to_path_buf(),
                 config: config.clone(),
                 stop: stop.clone(),
+                hold: hold.clone(),
                 current_round: current_round.clone(),
                 task: None,
                 done: done_rx,
@@ -535,6 +590,7 @@ impl Manager {
             cast_dir,
             llm,
             stop,
+            hold,
             current_round,
             guard,
         ));
@@ -554,9 +610,11 @@ impl Manager {
         cast_dir: Option<PathBuf>,
         llm: Arc<dyn Llm>,
         stop: Arc<AtomicBool>,
+        hold: Rc<CastHold>,
         current_round: Rc<Cell<i64>>,
         guard: LiveGuard,
     ) {
+        let gate = HoldGate { hold, stop: stop.clone() };
         let me = Rc::downgrade(&self);
         let id = run_id.clone();
         let on_event = move |name: &str, data: &Value| {
@@ -575,7 +633,12 @@ impl Manager {
             &config,
             &seeds,
             &ReportWriter,
-            RunOptions { on_event: Some(&on_event), stop: Some(&stop), cast_dir: cast_dir.as_deref() },
+            RunOptions {
+                on_event: Some(&on_event),
+                stop: Some(&stop),
+                cast_dir: cast_dir.as_deref(),
+                cast_gate: Some(&gate),
+            },
         )
         .await;
         if let Err(e) = result {
@@ -632,7 +695,103 @@ impl Manager {
             return Err(conflict("only a run that is live in this server can be stopped"));
         };
         live.stop.store(true, Ordering::SeqCst);
+        live.hold.wake.notify_one();
         Ok(())
+    }
+
+    // ---------- the cast of a run waiting at personas_ready ----------
+
+    /// The hold of a run that waits for its cast to be checked; 409 otherwise.
+    fn waiting(&self, run_id: &str) -> Result<(Rc<CastHold>, PathBuf, SimConfig), ManagerError> {
+        self.writable(run_id)?;
+        let st = self.st.borrow();
+        match st.live.get(run_id) {
+            Some(live) if self.awaits_cast(run_id) => {
+                Ok((live.hold.clone(), live.run_dir.clone(), live.config.clone()))
+            }
+            _ => Err(conflict("this run is not waiting for its cast to be checked")),
+        }
+    }
+
+    /// Whether the run is live here and waiting for its cast to be checked.
+    pub fn awaits_cast(&self, run_id: &str) -> bool {
+        self.st
+            .borrow()
+            .live
+            .get(run_id)
+            .is_some_and(|live| live.hold.personas.borrow().is_some() && !live.hold.go.get())
+    }
+
+    /// `{waiting, personas}`: the cast under review while the run waits, else the run's people as written.
+    pub fn cast(&self, run_id: &str) -> Value {
+        if let Ok((hold, _, _)) = self.waiting(run_id) {
+            let personas = hold.personas.borrow().clone().unwrap_or_default();
+            return json!({"waiting": true, "personas": personas});
+        }
+        json!({"waiting": false, "personas": self.reader(run_id).personas()})
+    }
+
+    /// Replaces the cast of a waiting run (tidied: ids renumbered, handles made unique) and returns it.
+    ///
+    /// The edit stays in the hold: the runner writes personas.json once the cast is confirmed, so the file has one
+    /// writer. An empty cast is fine while the run waits (a group can still be added); only the confirm needs
+    /// people. A cast over [`MAX_CAST`], counting the places held for groups being written, is refused, not cut.
+    pub fn replace_cast(&self, run_id: &str, personas: Vec<Persona>) -> Result<Vec<Persona>, ManagerError> {
+        let (hold, _, _) = self.waiting(run_id)?;
+        if personas.len() > MAX_CAST {
+            return Err(ManagerError::BadRequest(format!("a cast holds at most {MAX_CAST} people")));
+        }
+        let reserved = hold.reserved.get();
+        if personas.len() + reserved > MAX_CAST {
+            return Err(conflict(format!(
+                "a group of {reserved} is being written: the cast has room for {} more people now",
+                MAX_CAST - reserved
+            )));
+        }
+        let personas = tidy_cast(personas);
+        *hold.personas.borrow_mut() = Some(personas.clone());
+        Ok(personas)
+    }
+
+    /// Lets a waiting run go on with its (possibly edited) cast.
+    pub fn confirm_cast(&self, run_id: &str) -> Result<(), ManagerError> {
+        let (hold, _, _) = self.waiting(run_id)?;
+        if hold.reserved.get() > 0 {
+            return Err(conflict("a group is still being written: wait for it before starting the run"));
+        }
+        if hold.personas.borrow().as_ref().is_none_or(Vec::is_empty) {
+            return Err(ManagerError::BadRequest("the cast needs at least one person".into()));
+        }
+        hold.go.set(true);
+        hold.wake.notify_one();
+        Ok(())
+    }
+
+    /// Writes `count` people for a group described in words, adds them to the waiting cast, and returns the cast.
+    ///
+    /// A group that would take the cast past [`MAX_CAST`] is refused before the model is called. Its places are held
+    /// while the model writes, so an edit meanwhile cannot take them and the paid-for group always fits.
+    pub async fn add_group(&self, run_id: &str, description: &str, count: usize) -> Result<Vec<Persona>, ManagerError> {
+        let (hold, run_dir, config) = self.waiting(run_id)?;
+        let existing = hold.personas.borrow().clone().unwrap_or_default();
+        let room = MAX_CAST.saturating_sub(existing.len() + hold.reserved.get());
+        if count > room {
+            return Err(ManagerError::BadRequest(format!(
+                "a cast holds at most {MAX_CAST} people: this one has room for {room} more"
+            )));
+        }
+        hold.reserved.set(hold.reserved.get() + count);
+        let reservation = Reservation { hold: hold.clone(), count };
+        let graph: KnowledgeGraph = read_model(&run_dir.join(GRAPH_FILE)).unwrap_or_default();
+        let llm = self.llm(Some(&run_dir), config.concurrency, config.think)?;
+        let group = generate_group(llm.as_ref(), &graph, &config, description, count, &existing)
+            .await
+            .map_err(|e| ManagerError::Llm(e.0))?;
+        // the cast may have been edited while the model wrote, within the room left for this group
+        drop(reservation);
+        let mut personas = hold.personas.borrow().clone().unwrap_or_default();
+        personas.extend(group);
+        self.replace_cast(run_id, personas)
     }
 
     // ---------- chat, ask, report ----------
@@ -1119,6 +1278,11 @@ impl Manager {
             queue.put(Some(("status".into(), text.clone())));
             self.st.borrow_mut().sent.entry(run_id.into()).or_insert(text);
         }
+        if let Ok((hold, _, _)) = self.waiting(run_id) {
+            // a client that connects during the pause still learns the cast is up for review
+            let personas = hold.personas.borrow().clone().unwrap_or_default();
+            queue.put(Some(("personas_ready".into(), py_dumps_compact(&json!({"personas": personas})))));
+        }
         if !self.st.borrow().watches.contains_key(run_id) {
             let task = tokio::task::spawn_local(self.rc().watch(run_id.to_string()));
             let mut watch = Watch { task, last_post_id: None, last_db: None, last_round: None, last_state: None };
@@ -1243,6 +1407,7 @@ impl Manager {
             let mut run_dirs = Vec::new();
             for live in st.live.values_mut() {
                 live.stop.store(true, Ordering::SeqCst);
+                live.hold.wake.notify_one();
                 if let Some(task) = live.task.take() {
                     tasks.push(task);
                     dones.push(live.done.clone());
@@ -1292,6 +1457,7 @@ impl Manager {
             if matches!(status.state, RunState::Running | RunState::Queued) {
                 status.state = RunState::Stopped;
                 status.detail = detail.into();
+                status.pause = None;
                 status.updated_at = now_iso();
                 let _ = write_status(run_dir, &status);
             }

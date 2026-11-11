@@ -77,14 +77,18 @@ each of those after checking the citations.
 | `pid` | int or null | the process running it |
 | `started_at`, `updated_at` | string | ISO 8601 |
 | `failed_batches` | list | `{round, batch, agents, error}` for model calls that failed and were skipped |
+| `pause` | string, absent when none | why a running run waits for a client: `"personas_ready"` while its cast is up for review (see [Checking the cast](#checking-the-cast-before-the-run)). Only a running run has one |
 
 **SimConfig** (`config.json`): `question`, `seed_files`, `num_agents`, `rounds`, `batch_size`, `feed_size`,
 `memory_size`, `agent_model`, `planner_model`, `concurrency`, `language`, `events` (list of `{round, content}`),
 `seed`, `think`, `agent_runtime`, `planner_runtime`, `cast_from`, `study_id`, `variant`, `branched_from`,
-`branch_round`.
+`branch_round`, and, only when set, `review_cast` (true), `fair_turns` (true: every opinion camp gets a turn and
+strongly held views are not left idle) and `audience` (the name of the saved audience the people came from).
 
 **Persona**: `id` (`"a03"`), `handle`, `name`, `bio`, `background`, `stance`, `traits`, `activity` (0-1),
-`influence` (0-1), `entity_id`.
+`influence` (0-1), `entity_id`, and, only when known, `camp` (`strong_support`, `lean_support`, `undecided`,
+`indifferent`, `lean_critical` or `strong_critical`) and `source` (`cast`: written by the engine, `group`: from a
+group described in words, `edited`: changed before the run).
 
 **Post**: `id`, `round`, `author_id`, `content`, `parent_id`, `repost_of`, `likes`, `dislikes`, `reposts`,
 `replies`. The API adds `author_handle` and `sentiment` (-1 to 1, or null).
@@ -120,6 +124,8 @@ Every run, newest first, with the built-in examples (when the server has an exam
 }
 ```
 
+A run waiting for its cast to be checked also has `"pause": "personas_ready"`.
+
 ### `POST /api/runs`
 
 Starts a run. The body is `multipart/form-data` (or `application/x-www-form-urlencoded` for the fields, though a
@@ -143,8 +149,13 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 | `cast_from` | a run id | reuse that run's topic map and people (it must have them already); the two runs join a study |
 | `study_id` | needs `cast_from` | the study to join (default: the source's study, else a new one) |
 | `variant` | needs `cast_from` | label of this run in the study (default: the next letter) |
+| `review_cast` | `1`/`true`/`yes`/`on` | pause once the people are written, for the cast to be checked (see [below](#checking-the-cast-before-the-run)) |
+| `fair_turns` | `1`/`true`/`yes`/`on` | every opinion camp gets a turn to post, and strongly held views are never idle more than two rounds in a row |
+| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}}` (1-200 people): the run uses these people and topic map and skips the graph and persona stages |
 
-With `cast_from`, `agents` is taken from the source run.
+With `cast_from`, `agents` and `fair_turns` are taken from the source run, so a new version differs only in the
+text. `cast_from` answers 409 when the source's cast was never checked: a `review_cast` run that is still waiting,
+or was stopped there. With `audience`, `agents` is the number of people in it.
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/api/runs \
@@ -198,6 +209,28 @@ here or the round has started.
 ### `POST /api/runs/{run_id}/stop`
 
 Asks a live run to stop after the current step. Answers `{"ok": true}`; the run ends with state `stopped`.
+
+### Checking the cast before the run
+
+A run started with `review_cast` writes its people, sets `status.pause` to `"personas_ready"`, sends the
+`personas_ready` stream event and waits. Nothing is simulated until the cast is confirmed, so changing it costs only
+the calls that write added groups. Stopping the run (`POST .../stop`) while it waits ends it before any round.
+
+Edits stay with the waiting run; it writes `personas.json` once, when it goes on. Every answer with a cast is
+`{"waiting": bool, "personas": [Persona]}`, tidied by the engine: text trimmed, handles made unique, unknown camps and
+sources dropped, and ids renumbered `a01`..`aNN` in order (so an id can name another person after any change).
+
+- `GET /api/runs/{run_id}/personas`: the cast under review while the run waits (`waiting: true`), else the run's
+  people as written (`waiting: false`).
+- `PUT /api/runs/{run_id}/personas`: replaces the cast. Body `{"personas": [Persona]}`, at most 200; an empty cast is
+  kept while the run waits, so a group can still be added. 422 for a body that is not that shape or holds more than
+  200 people; 409 when the run is not waiting, or when a group being written holds the places it would take.
+- `POST /api/runs/{run_id}/personas/group`: the planner writes people for a group described in words and adds them.
+  Body `{"description": "...", "count": 3}`: `description` 1-500 characters (not only whitespace), `count` 1-20,
+  default 3; 422 otherwise. 400 when the cast has no room for `count` more (the model is not called); the group's
+  places are held while the model writes it. One model call; 502 when it fails.
+- `POST /api/runs/{run_id}/personas/confirm`: the run goes on with the cast. Answers `{"ok": true}`; 400 when the
+  cast is empty, 409 while a group is still being written or when the run is not waiting.
 
 ### `POST /api/runs/{run_id}/chat`
 
@@ -341,6 +374,7 @@ data: {"round":2,"actions":{"post":3,"reply":5,"like":9},"new_posts":8,"active_a
 | `round_done` | RoundStats plus `total_rounds` |
 | `event_injected` | `{round, content}` when an injected or planned event takes effect |
 | `batch_failed` | `{round, batch, agents, error}`; the run goes on without that batch |
+| `personas_ready` | `{personas}`: the cast is written and the run waits for it to be checked; a client that connects during the pause gets it too |
 | `run_done` | `{}` |
 | `run_failed` | `{error}` |
 | `run_stopped` | `{}` |

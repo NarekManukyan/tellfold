@@ -29,6 +29,8 @@ fn make_personas(n: usize) -> Vec<Persona> {
                 2 => Some("gov".into()),
                 _ => None,
             },
+            camp: None,
+            source: None,
         })
         .collect()
 }

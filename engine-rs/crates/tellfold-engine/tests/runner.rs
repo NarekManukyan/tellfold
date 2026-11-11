@@ -12,7 +12,9 @@ use std::task::Poll;
 use async_trait::async_trait;
 use futures::FutureExt;
 use serde_json::{json, Value};
-use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, ReportStage, RunOptions};
+use tellfold_engine::runner::{
+    mark_stopped, run_pipeline, CastGate, PipelineError, ReportStage, RunOptions, PAUSE_PERSONAS,
+};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::{Llm, LlmError, Schema};
@@ -433,11 +435,12 @@ fn mark_stopped_only_touches_live_runs() {
         started_at: "2026-01-01T00:00:00Z".into(),
         updated_at: "2026-01-01T00:00:00Z".into(),
         failed_batches: vec![],
+        pause: Some(PAUSE_PERSONAS.into()),
     };
     write_status(tmp.path(), &live).unwrap();
     mark_stopped(tmp.path()).unwrap();
     let stopped = read_status(tmp.path()).unwrap();
-    assert_eq!(stopped.state, RunState::Stopped);
+    assert_eq!((stopped.state, stopped.pause), (RunState::Stopped, None));
     assert_eq!(stopped.detail, "stopped after round 2");
     write_status(tmp.path(), &RunStatus { state: RunState::Done, ..live }).unwrap();
     mark_stopped(tmp.path()).unwrap();
@@ -522,4 +525,149 @@ fn a_panic_marks_the_run_failed_not_stopped() {
     assert_eq!(status.error.as_deref(), Some("the engine crashed (panic)"));
     assert!(events.borrow().iter().any(|e| e == "run_failed"));
     assert!(!events.borrow().iter().any(|e| e == "run_stopped"));
+}
+
+/// A cast gate that records what it was shown and answers with `edit` applied (None: stop the run).
+struct EditGate {
+    shown: RefCell<Vec<tellfold_models::Persona>>,
+    edit: fn(Vec<tellfold_models::Persona>) -> Option<Vec<tellfold_models::Persona>>,
+}
+
+#[async_trait(?Send)]
+impl CastGate for EditGate {
+    async fn review(&self, personas: Vec<tellfold_models::Persona>) -> Option<Vec<tellfold_models::Persona>> {
+        *self.shown.borrow_mut() = personas.clone();
+        tokio::task::yield_now().await;
+        (self.edit)(personas)
+    }
+}
+
+#[test]
+fn review_cast_pauses_and_runs_with_the_edited_cast() {
+    let (_tmp, run_dir) = run_dir();
+    let rec = Recorder::default();
+    let on_event = |n: &str, p: &Value| rec.record(n, p);
+    let gate = EditGate {
+        shown: RefCell::default(),
+        edit: |mut cast| {
+            cast.remove(0);
+            cast[0].stance = "Changed my mind: now strongly in favour.".into();
+            Some(tellfold_engine::personas::tidy_cast(cast))
+        },
+    };
+    let config = SimConfig { review_cast: true, fair_turns: true, ..make_config() };
+    let report = block_on(run_pipeline(
+        &fake(None),
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { on_event: Some(&on_event), cast_gate: Some(&gate), ..Default::default() },
+    ));
+    assert!(report.unwrap().is_some());
+    assert_eq!(gate.shown.borrow().len(), 6);
+    // the cast was announced while the status said why the run waits
+    let ready = rec.of("personas_ready");
+    assert_eq!(ready.len(), 1);
+    assert_eq!(ready[0]["personas"].as_array().unwrap().len(), 6);
+    let statuses: Vec<RunStatus> = rec.of("status").into_iter().map(|s| serde_json::from_value(s).unwrap()).collect();
+    let paused = statuses.iter().position(|s| s.pause.as_deref() == Some(PAUSE_PERSONAS)).expect("a paused status");
+    assert_eq!(statuses[paused].stage, RunStage::Personas);
+    assert!(statuses[paused + 1..].iter().all(|s| s.pause.is_none()));
+    // and it ran with the edited five
+    let world = World::open(&run_dir.join("world.db"), 7).unwrap();
+    let people = world.personas().unwrap();
+    assert_eq!(people.len(), 5);
+    assert_eq!(people[0].id, "a01");
+    assert_eq!(people[0].stance, "Changed my mind: now strongly in favour.");
+    let written: Vec<tellfold_models::Persona> =
+        serde_json::from_str(&std::fs::read_to_string(run_dir.join("personas.json")).unwrap()).unwrap();
+    assert_eq!(written, people);
+    let saved: SimConfig =
+        serde_json::from_str(&std::fs::read_to_string(run_dir.join("config.json")).unwrap()).unwrap();
+    assert_eq!(saved.num_agents, 5);
+    assert!(read_status(&run_dir).unwrap().pause.is_none());
+}
+
+#[test]
+fn review_cast_stopped_at_the_pause() {
+    let (_tmp, run_dir) = run_dir();
+    let gate = EditGate { shown: RefCell::default(), edit: |_| None };
+    let config = SimConfig { review_cast: true, ..make_config() };
+    let llm = fake(None);
+    let report = block_on(run_pipeline(
+        &llm,
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { cast_gate: Some(&gate), ..Default::default() },
+    ));
+    assert!(report.unwrap().is_none());
+    let status = read_status(&run_dir).unwrap();
+    assert_eq!((status.state, status.stage, status.pause), (RunState::Stopped, RunStage::Personas, None));
+    assert!(!run_dir.join("world.db").exists(), "nothing is seeded after a stop at the pause");
+    assert!(llm.calls.lock().unwrap().iter().all(|(p, _, _)| !p.starts_with("engine.")));
+}
+
+#[test]
+fn review_cast_emptied_at_the_pause_fails_unpaused() {
+    let (_tmp, run_dir) = run_dir();
+    let gate = EditGate { shown: RefCell::default(), edit: |_| Some(vec![]) };
+    let config = SimConfig { review_cast: true, ..make_config() };
+    let report = block_on(run_pipeline(
+        &fake(None),
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { cast_gate: Some(&gate), ..Default::default() },
+    ));
+    assert!(report.is_err());
+    let status = read_status(&run_dir).unwrap();
+    assert_eq!((status.state, status.pause), (RunState::Failed, None));
+}
+
+#[test]
+fn runs_without_review_or_gate_never_pause() {
+    for (review, gated) in [(false, true), (true, false)] {
+        let (_tmp, run_dir) = run_dir();
+        let rec = Recorder::default();
+        let on_event = |n: &str, p: &Value| rec.record(n, p);
+        let gate = EditGate { shown: RefCell::default(), edit: |_| panic!("the gate must not be asked") };
+        let config = SimConfig { review_cast: review, ..make_config() };
+        let options = RunOptions {
+            on_event: Some(&on_event),
+            cast_gate: if gated { Some(&gate as &dyn CastGate) } else { None },
+            ..Default::default()
+        };
+        block_on(run_pipeline(&fake(None), &run_dir, &config, &[example()], &REPORT, options)).unwrap();
+        assert!(rec.of("personas_ready").is_empty());
+        let config_text = std::fs::read_to_string(run_dir.join("config.json")).unwrap();
+        assert_eq!(config_text.contains("review_cast"), review, "the flag is only written when set");
+        assert!(!std::fs::read_to_string(run_dir.join("status.json")).unwrap().contains("pause"));
+    }
+}
+
+#[test]
+fn audience_cast_skips_the_graph_and_persona_calls() {
+    let (_tmp, run_dir) = run_dir();
+    let mut people: Vec<tellfold_models::Persona> = (1..=3)
+        .map(|i| {
+            tellfold_models::Persona::new(&format!("a0{i}"), &format!("bus_parent_{i}"), "Parent", "bio", "bg", "s")
+        })
+        .collect();
+    people[0].camp = Some("strong_support".into());
+    tellfold_store::files::write_json_list(&run_dir.join("personas.json"), &people).unwrap();
+    tellfold_store::files::write_json(&run_dir.join("graph.json"), &KnowledgeGraph::default()).unwrap();
+    let config = SimConfig { audience: Some("Bus parents".into()), num_agents: 20, ..make_config() };
+    let llm = fake(None);
+    block_on(run_pipeline(&llm, &run_dir, &config, &[example()], &REPORT, RunOptions::default())).unwrap();
+    let purposes: Vec<String> = llm.calls.lock().unwrap().iter().map(|(p, _, _)| p.clone()).collect();
+    assert!(purposes.iter().all(|p| !p.starts_with("graph.") && !p.starts_with("personas.")), "{purposes:?}");
+    let world = World::open(&run_dir.join("world.db"), 7).unwrap();
+    assert_eq!(world.personas().unwrap(), people);
+    let saved: SimConfig =
+        serde_json::from_str(&std::fs::read_to_string(run_dir.join("config.json")).unwrap()).unwrap();
+    assert_eq!((saved.num_agents, saved.audience.as_deref()), (3, Some("Bus parents")));
 }

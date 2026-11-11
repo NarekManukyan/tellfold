@@ -186,9 +186,13 @@ struct Persona: Codable, Hashable, Sendable, Identifiable {
     var activity: Double = 0.6
     var influence: Double = 0.5
     var entityID: String?
+    /// The opinion group the engine planned this person into (`CastCamp`), nil for older runs and entity accounts.
+    var camp: String?
+    /// Where the person came from (`PersonaSource`), nil for older runs.
+    var source: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, handle, name, bio, background, stance, traits, activity, influence
+        case id, handle, name, bio, background, stance, traits, activity, influence, camp, source
         case entityID = "entity_id"
     }
 }
@@ -206,6 +210,8 @@ extension Persona {
         activity = c.value(.activity, default: 0.6)
         influence = c.value(.influence, default: 0.5)
         entityID = c.optional(.entityID)
+        camp = c.optional(.camp)
+        source = c.optional(.source)
     }
 }
 
@@ -392,9 +398,17 @@ struct SimConfig: Codable, Hashable, Sendable {
     /// The run this one continues from ("Branch from here…"): rounds 0...branchRound are copied from it.
     var branchedFrom: String?
     var branchRound: Int?
+    /// The run paused once its people were ready so they could be checked ("Review the cast before the run").
+    var reviewCast = false
+    /// Every camp got a turn to post and strongly held views were not starved.
+    var fairTurns = false
+    /// The saved audience this run's people came from (its name).
+    var audience: String?
 
     enum CodingKeys: String, CodingKey {
-        case question, rounds, concurrency, language, events, seed, think, variant
+        case question, rounds, concurrency, language, events, seed, think, variant, audience
+        case reviewCast = "review_cast"
+        case fairTurns = "fair_turns"
         case castFrom = "cast_from"
         case studyID = "study_id"
         case branchedFrom = "branched_from"
@@ -444,6 +458,9 @@ extension SimConfig {
         variant = c.optional(.variant)
         branchedFrom = c.optional(.branchedFrom)
         branchRound = c.optional(.branchRound)
+        reviewCast = c.value(.reviewCast, default: false)
+        fairTurns = c.value(.fairTurns, default: false)
+        audience = c.optional(.audience)
     }
 }
 
@@ -700,12 +717,19 @@ struct RunStatus: Codable, Hashable, Sendable {
     var startedAt: String
     /// ISO 8601 UTC.
     var updatedAt: String
+    /// Why a running run waits for the app: `RunStatus.personasReady` while its cast is up for review.
+    var pause: String?
+
+    static let personasReady = "personas_ready"
+
+    /// The run waits for its people to be checked before seeding the world.
+    var awaitsCast: Bool { pause == Self.personasReady && state.isActive }
 
     var startedDate: Date? { TellfoldDates.parse(startedAt) }
     var updatedDate: Date? { TellfoldDates.parse(updatedAt) }
 
     enum CodingKeys: String, CodingKey {
-        case state, stage, round, detail, error, pid
+        case state, stage, round, detail, error, pid, pause
         case totalRounds = "total_rounds"
         case failedBatches = "failed_batches"
         case startedAt = "started_at"
@@ -726,6 +750,7 @@ extension RunStatus {
         failedBatches = c.value(.failedBatches, default: [])
         startedAt = c.value(.startedAt, default: "")
         updatedAt = c.value(.updatedAt, default: startedAt)
+        pause = c.optional(.pause)
     }
 }
 
@@ -759,13 +784,17 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     var studyID: String?
     /// Its label in that study.
     var variant: String?
+    /// `RunStatus.pause`: why a running run waits for the app.
+    var pause: String?
 
     var createdDate: Date? { TellfoldDates.parse(createdAt) }
+    /// Waiting at `personas_ready` for someone to check its cast.
+    var awaitsCast: Bool { pause == RunStatus.personasReady && state.isActive }
     /// 0...1 progress through the rounds.
     var progress: Double { totalRounds > 0 ? min(1, Double(round) / Double(totalRounds)) : 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, question, state, stage, round, agents, example, variant
+        case id, question, state, stage, round, agents, example, variant, pause
         case studyID = "study_id"
         case totalRounds = "total_rounds"
         case createdAt = "created_at"
@@ -788,6 +817,7 @@ extension RunSummary {
         example = c.value(.example, default: false)
         studyID = c.optional(.studyID)
         variant = c.optional(.variant)
+        pause = c.optional(.pause)
     }
 }
 

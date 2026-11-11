@@ -17,6 +17,7 @@ use axum::response::{IntoResponse, Response};
 use regex::Regex;
 use serde_json::{json, Value};
 
+use tellfold_engine::personas::MAX_CAST;
 use tellfold_models::text::py_strip;
 use tellfold_models::{GodEvent, Study, StudyKind};
 use tellfold_runtimes::{detect_all, known_ids, load_settings, save_settings, test_runtime, Role, Settings};
@@ -250,6 +251,97 @@ pub async fn stop_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<Stri
         run_dir_of(&m, &run_id)?;
         m.stop(&run_id)?;
         Ok(ok_json(&json!({"ok": true})))
+    })
+    .await
+}
+
+// ---------- the cast of a run waiting at personas_ready ----------
+
+/// `{waiting, personas}`: the cast under review, or the run's people once it is past that point.
+pub async fn get_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        Ok(ok_json(&m.cast(&run_id)))
+    })
+    .await
+}
+
+/// Replaces the cast of a waiting run with `{personas: [Persona] (0-200)}`; returns `{waiting, personas}` as tidied.
+/// An empty cast is kept while the run waits, so a group can still be added; the confirm needs at least one person.
+pub async fn put_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
+    let value = parse_body(&body, true)?.unwrap_or(Value::Null);
+    let mut checker = Checker::new();
+    let loc = [json!("body")];
+    let personas = checker.object(&value, &loc, None).and_then(|obj| {
+        if !obj.contains_key("personas") {
+            checker.error("missing", vec![loc[0].clone(), json!("personas")], "Field required".into(), &value, None);
+            return None;
+        }
+        let items = checker.list(obj, "personas", &loc, Some(MAX_CAST))?;
+        let mut personas = Vec::with_capacity(items.len());
+        for (i, item) in items.iter().enumerate() {
+            match serde_json::from_value::<tellfold_models::Persona>(item.clone()) {
+                Ok(p) => personas.push(p),
+                Err(e) => {
+                    let at = vec![loc[0].clone(), json!("personas"), json!(i)];
+                    checker.error("model_type", at, format!("Input should be a valid Persona: {e}"), item, None);
+                }
+            }
+        }
+        Some(personas)
+    });
+    checker.finish()?;
+    let Some(personas) = personas else { unreachable!("validated") };
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        let personas = m.replace_cast(&run_id, personas)?;
+        Ok(ok_json(&json!({"waiting": true, "personas": personas})))
+    })
+    .await
+}
+
+/// Lets a waiting run go on with its cast.
+pub async fn confirm_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        m.confirm_cast(&run_id)?;
+        Ok(ok_json(&json!({"ok": true})))
+    })
+    .await
+}
+
+/// `{description: str (1-500), count: int (1-20, default 3)}`: the engine writes that group and adds it to the
+/// waiting cast; returns `{waiting, personas}`.
+pub async fn add_group(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
+    let value = parse_body(&body, true)?.unwrap_or(Value::Null);
+    let mut checker = Checker::new();
+    let loc = [json!("body")];
+    let fields = checker.object(&value, &loc, None).map(|obj| {
+        (
+            checker.string(obj, "description", &loc, true, Some(1), Some(500), None),
+            checker.int(obj, "count", &loc, Some(3), Some(1), Some(tellfold_engine::personas::MAX_GROUP as i64)),
+        )
+    });
+    if let Some((Some(description), _)) = &fields {
+        // only whitespace is as empty as nothing; generate_group trims what it uses
+        if py_strip(description).is_empty() {
+            let at = vec![loc[0].clone(), json!("description")];
+            let input = json!(description);
+            checker.error(
+                "string_too_short",
+                at,
+                "String should have at least 1 character".into(),
+                &input,
+                Some(json!({"min_length": 1})),
+            );
+        }
+    }
+    checker.finish()?;
+    let Some((Some(description), Some(count))) = fields else { unreachable!("validated") };
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        let personas = m.add_group(&run_id, &description, count as usize).await?;
+        Ok(ok_json(&json!({"waiting": true, "personas": personas})))
     })
     .await
 }
