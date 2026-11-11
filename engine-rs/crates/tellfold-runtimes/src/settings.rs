@@ -72,19 +72,44 @@ pub fn renamed_key_env(name: &str) -> String {
     name.to_string()
 }
 
-/// `Path.home()`.
+/// `Path.home()`: `$HOME`, else the current user's home in the password database.
 pub fn home_dir() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("/"))
+    std::env::var_os("HOME").map(PathBuf::from).or_else(|| passwd_home(None)).unwrap_or_else(|| PathBuf::from("/"))
 }
 
-fn expand_user(raw: &str) -> PathBuf {
-    if raw == "~" {
-        return home_dir();
+/// The home folder of `name` (None: the current user) in the password database, as `pwd.getpw*` give it.
+fn passwd_home(name: Option<&str>) -> Option<PathBuf> {
+    use std::ffi::{CStr, CString};
+    let mut entry: libc::passwd = unsafe { std::mem::zeroed() };
+    let mut found: *mut libc::passwd = std::ptr::null_mut();
+    let mut buf = vec![0 as libc::c_char; 16 * 1024];
+    let rc = match name {
+        Some(name) => {
+            let name = CString::new(name).ok()?;
+            // SAFETY: every pointer is valid for the call and `buf` outlives the use of `entry` below
+            unsafe { libc::getpwnam_r(name.as_ptr(), &mut entry, buf.as_mut_ptr(), buf.len(), &mut found) }
+        }
+        // SAFETY: as above
+        None => unsafe { libc::getpwuid_r(libc::getuid(), &mut entry, buf.as_mut_ptr(), buf.len(), &mut found) },
+    };
+    if rc != 0 || found.is_null() || entry.pw_dir.is_null() {
+        return None;
     }
-    match raw.strip_prefix("~/") {
-        Some(rest) => home_dir().join(rest),
-        None => PathBuf::from(raw),
-    }
+    // SAFETY: getpw*_r succeeded, so pw_dir points at a NUL-terminated string inside `buf`
+    let dir = unsafe { CStr::from_ptr(entry.pw_dir) };
+    Some(PathBuf::from(<std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(dir.to_bytes())))
+}
+
+/// `os.path.expanduser`: `~` and `~/...` use [`home_dir`], `~name/...` that user's home; an unknown user or
+/// anything else is returned unchanged.
+pub fn expand_user(raw: &str) -> PathBuf {
+    let Some(rest) = raw.strip_prefix('~') else { return PathBuf::from(raw) };
+    let (name, tail) = rest.split_once('/').map_or((rest, ""), |(n, t)| (n, t));
+    let home = if name.is_empty() { Some(home_dir()) } else { passwd_home(Some(name)) };
+    let Some(home) = home else { return PathBuf::from(raw) };
+    let home = home.to_string_lossy().trim_end_matches('/').to_string();
+    let joined = if raw.len() > 1 + name.len() { format!("{home}/{tail}") } else { home };
+    PathBuf::from(if joined.is_empty() { "/".to_string() } else { joined })
 }
 
 /// `$TELLFOLD_HOME`, else `~/Library/Application Support/Tellfold`.

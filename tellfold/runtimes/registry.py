@@ -145,8 +145,8 @@ CLI_SPECS: tuple[CLISpec, ...] = (
     CLISpec(
         "opencode", "OpenCode", ("opencode",), cli_tools.OpenCodeLLM,
         _file_or_env_auth("Run `opencode auth login`.", files=((".local", "share", "opencode", "auth.json"),)),
-        notes="opencode run --format json --dir <tmp>, with OPENCODE_CONFIG_CONTENT denying bash, edit and "
-              "webfetch; models are provider/model. JSON event shape is parsed defensively.",
+        notes="opencode run --format json [--standalone] in an empty scratch folder, with OPENCODE_CONFIG_CONTENT "
+              "denying bash, edit and webfetch; models are provider/model. JSON event shape is parsed defensively.",
     ),
     CLISpec(
         "qwen-code", "Qwen Code", ("qwen",), cli_tools.QwenLLM,

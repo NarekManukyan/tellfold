@@ -213,14 +213,18 @@ class OpenAICompatLLM(HTTPAdapterLLM):
         messages = [{"role": "system", "content": request.system}, {"role": "user", "content": request.prompt}]
         while True:
             body: dict[str, Any] = {"model": model, "messages": messages}
+            mode = self._json_mode
             response_format = self._response_format(request)
             if response_format is not None:
                 body["response_format"] = response_format
             try:
                 data = await self.request("POST", "/chat/completions", body)
             except BadRequest:
-                if request.json_schema is not None and self._json_mode < len(self.JSON_MODES) - 1:
-                    self._json_mode += 1
+                if request.json_schema is not None and mode < len(self.JSON_MODES) - 1:
+                    # only the first of several requests refused in this mode moves on; the others retry with the
+                    # current mode, so concurrent 400s never skip json_object
+                    if self._json_mode == mode:
+                        self._json_mode = mode + 1
                     continue
                 raise
             return self._reply(data)

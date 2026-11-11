@@ -257,8 +257,8 @@ pub static CLI_SPECS: &[CliSpec] = &[
         models: TOOL_DEFAULT_MODELS,
         default_models: TOOL_DEFAULTS,
         tested: false,
-        notes: "opencode run --format json --dir <tmp>, with OPENCODE_CONFIG_CONTENT denying bash, edit and \
-                webfetch; models are provider/model. JSON event shape is parsed defensively.",
+        notes: "opencode run --format json [--standalone] in an empty scratch folder, with OPENCODE_CONFIG_CONTENT \
+                denying bash, edit and webfetch; models are provider/model. JSON event shape is parsed defensively.",
         accepts_claude_aliases: false,
     },
     CliSpec {

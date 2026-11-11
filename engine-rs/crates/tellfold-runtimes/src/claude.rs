@@ -171,7 +171,7 @@ impl ClaudeTransport for CliTransport {
         let mut output = QueryOutput::default();
         let mut finished = false;
         loop {
-            match child.stdout.next_line().await {
+            match child.next_line().await {
                 Ok(Some(line)) => {
                     let Ok(message) = serde_json::from_str::<Value>(&line) else { continue };
                     output.first_message.get_or_insert_with(Instant::now);
@@ -335,8 +335,12 @@ impl Drop for Pending<'_> {
 }
 
 impl ClaudeCode {
-    /// `ClaudeLocal(concurrency=..., log_path=..., cli_path=...)` with the CLI transport.
+    /// `ClaudeLocal(concurrency=..., log_path=..., cli_path=...)` with the CLI transport. Without a path it uses the
+    /// `claude` on PATH, like `cli_path or shutil.which("claude")`.
     pub fn new(concurrency: usize, log_path: Option<PathBuf>, cli_path: Option<String>) -> ClaudeCode {
+        let cli_path = cli_path
+            .filter(|p| !p.is_empty())
+            .or_else(|| crate::detect::which_in("claude", &std::env::var("PATH").unwrap_or_default()));
         ClaudeCode {
             semaphore: Semaphore::new(concurrency.max(1)),
             log: CallLog::new(log_path),

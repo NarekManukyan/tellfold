@@ -152,20 +152,17 @@ impl HttpClient {
         if let Some(body) = body {
             builder = builder.json(body);
         }
-        let response = match builder.send().await {
-            Ok(response) => response,
-            Err(e) if e.is_timeout() => return Err(transient(format!("{id}: request timed out (ReadTimeout)"))),
-            Err(e) => {
-                let kind = if e.is_connect() { "ConnectError" } else { "ReadError" };
-                return Err(transient(format!("{id}: cannot reach {} ({kind})", self.base_url)));
+        let failed = |e: reqwest::Error, reading: bool| {
+            let kind = httpx_error_name(&e, reading);
+            if e.is_timeout() {
+                transient(format!("{id}: request timed out ({kind})"))
+            } else {
+                transient(format!("{id}: cannot reach {} ({kind})", self.base_url))
             }
         };
+        let response = builder.send().await.map_err(|e| failed(e, false))?;
         let status = response.status().as_u16();
-        let text = match response.text().await {
-            Ok(text) => text,
-            Err(e) if e.is_timeout() => return Err(transient(format!("{id}: request timed out (ReadTimeout)"))),
-            Err(_) => return Err(transient(format!("{id}: cannot reach {} (ReadError)", self.base_url))),
-        };
+        let text = response.text().await.map_err(|e| failed(e, true))?;
         let fatal = |m: String| RequestError::Adapter(AdapterError::Fatal(m));
         match status {
             401 | 403 => return Err(fatal(format!("{} (HTTP {status}: {})", self.auth_hint, excerpt(&text)))),
@@ -337,10 +334,10 @@ impl OpenAiCompat {
         Ok(first)
     }
 
-    fn response_format(&self, request: &AdapterRequest) -> Option<Value> {
+    fn response_format(&self, request: &AdapterRequest, mode: usize) -> Option<Value> {
         static NAME: OnceLock<Regex> = OnceLock::new();
         let schema = request.json_schema.as_ref()?;
-        match JSON_MODES[self.json_mode.load(Ordering::SeqCst).min(JSON_MODES.len() - 1)] {
+        match JSON_MODES[mode.min(JSON_MODES.len() - 1)] {
             "json_schema" => {
                 let cleaned = NAME
                     .get_or_init(|| Regex::new(r"[^A-Za-z0-9_-]+").expect("valid pattern"))
@@ -362,7 +359,8 @@ impl OpenAiCompat {
             let mut body = Map::new();
             body.insert("model".into(), json!(model));
             body.insert("messages".into(), messages(request));
-            if let Some(format) = self.response_format(request) {
+            let mode = self.json_mode.load(Ordering::SeqCst);
+            if let Some(format) = self.response_format(request, mode) {
                 body.insert("response_format".into(), format);
             }
             let path = "/chat/completions";
@@ -373,9 +371,10 @@ impl OpenAiCompat {
             {
                 Ok(data) => return reply(&data),
                 Err(RequestError::BadRequest(m)) => {
-                    let mode = self.json_mode.load(Ordering::SeqCst);
                     if request.json_schema.is_some() && mode < JSON_MODES.len() - 1 {
-                        self.json_mode.store(mode + 1, Ordering::SeqCst);
+                        // Only the first of several requests refused in this mode moves on; the others retry with
+                        // whatever mode is current, so concurrent 400s never skip json_object.
+                        let _ = self.json_mode.compare_exchange(mode, mode + 1, Ordering::SeqCst, Ordering::SeqCst);
                         continue;
                     }
                     return Err(AdapterError::Fatal(m));
@@ -522,5 +521,17 @@ impl Adapter for AnthropicApi {
             model: obj.get("model").and_then(Value::as_str).map(str::to_string),
             output_tokens: count(data.pointer("/usage/output_tokens")),
         })
+    }
+}
+
+/// The httpx exception class Python names in the same failure: a timeout while connecting or while waiting for
+/// the response, a refused or unresolvable host, or a server that hung up mid-exchange.
+fn httpx_error_name(e: &reqwest::Error, reading: bool) -> &'static str {
+    match (e.is_timeout(), e.is_connect()) {
+        (true, true) => "ConnectTimeout",
+        (true, false) => "ReadTimeout",
+        (false, true) => "ConnectError",
+        (false, false) if reading || e.is_body() || e.is_decode() => "ReadError",
+        (false, false) => "RemoteProtocolError",
     }
 }

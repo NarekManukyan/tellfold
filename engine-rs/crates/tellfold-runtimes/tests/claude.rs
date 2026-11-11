@@ -454,8 +454,10 @@ fn cli_transport_failures_are_retried_then_reported() {
     let missing = ClaudeCode::isolated(1, None, Some(dir.join("nope").to_string_lossy().into_owned()));
     let err = block_on(missing.text("x", "s", "haiku", "r.missing")).unwrap_err();
     assert!(err.0.starts_with("Claude Code CLI not found"), "{err}");
-    let unset = ClaudeCode::isolated(1, None, None);
-    assert!(block_on(unset.text("x", "s", "haiku", "r.unset")).unwrap_err().0.contains("not found"));
+    // without a path, the `claude` on PATH (or none, which every call then reports as not found)
+    let on_path = tellfold_runtimes::detect::which_in("claude", &std::env::var("PATH").unwrap_or_default());
+    assert_eq!(ClaudeCode::isolated(1, None, None).cli_path, on_path);
+    assert_eq!(ClaudeCode::new(1, None, Some(String::new())).cli_path, on_path);
 }
 
 #[test]

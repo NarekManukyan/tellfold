@@ -29,14 +29,12 @@ fn llm_factory() -> LlmFactory {
     Arc::new(|run_dir: Option<&Path>, concurrency: i64, think: bool| make_llm(run_dir, concurrency, think, None))
 }
 
-/// `Path.expanduser()` for a leading `~`.
+/// `Path.expanduser()`, `~name/...` included.
 fn expanduser(path: &Path) -> PathBuf {
-    let text = path.to_string_lossy();
-    if text == "~" || text.starts_with("~/") {
-        let home = tellfold_runtimes::settings::home_dir();
-        return home.join(text.trim_start_matches('~').trim_start_matches('/'));
+    match path.to_str() {
+        Some(text) => tellfold_runtimes::settings::expand_user(text),
+        None => path.to_path_buf(),
     }
-    path.to_path_buf()
 }
 
 /// Kills live agent CLIs and ends the process unless it has exited on its own after `after`.

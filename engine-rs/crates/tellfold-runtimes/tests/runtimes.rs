@@ -678,7 +678,19 @@ fn ollama_missing_model_and_unreachable() {
         assert!(err.0.contains("ollama pull zzz"), "{err}");
         let llm = AdapterLlm::new(http::Ollama::new(&closed_url()), 4, None).with_retries(1).without_backoff();
         let err = llm.text("p", "s", "m", "x").await.unwrap_err();
-        assert!(err.0.contains("cannot reach"), "{err}");
+        assert!(err.0.contains("cannot reach") && err.0.ends_with("(ConnectError)"), "{err}");
+
+        // a server that hangs up without answering: httpx's RemoteProtocolError
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        tokio::spawn(async move {
+            while let Ok((socket, _)) = listener.accept().await {
+                drop(socket);
+            }
+        });
+        let llm = AdapterLlm::new(http::Ollama::new(&url), 4, None).with_retries(0);
+        let err = llm.text("p", "s", "m", "x").await.unwrap_err();
+        assert!(err.0.ends_with("(RemoteProtocolError)"), "{err}");
     });
 }
 
@@ -909,4 +921,16 @@ fn runtime_infos_serialize_like_python() {
     assert_eq!(value["kind"], "cli");
     assert_eq!(value["auth"], "unknown");
     assert_eq!(value["auth_hint"], "Install Codex CLI (`codex` was not found).");
+}
+
+#[test]
+fn expand_user_matches_os_path_expanduser() {
+    use tellfold_runtimes::settings::{expand_user, home_dir};
+    let home = home_dir();
+    assert_eq!(expand_user("~"), home);
+    assert_eq!(expand_user("~/a/b"), home.join("a/b"));
+    assert_eq!(expand_user("a/~/b"), std::path::PathBuf::from("a/~/b"));
+    assert_eq!(expand_user("~no-such-user-tf/a"), std::path::PathBuf::from("~no-such-user-tf/a"));
+    let root = expand_user("~root/x");
+    assert!(root.is_absolute() && root.ends_with("x") && !root.starts_with("~"), "{root:?}");
 }

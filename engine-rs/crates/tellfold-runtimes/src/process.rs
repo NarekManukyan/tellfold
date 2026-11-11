@@ -17,6 +17,10 @@ use tokio::process::{Child, ChildStderr, ChildStdout, Command};
 
 pub const MAX_OUTPUT_BYTES: usize = 8 * 1024 * 1024;
 
+/// The longest stdout line a streaming child may write: claude-agent-sdk's default `max_buffer_size` for one
+/// stream-json message.
+pub const MAX_STREAM_LINE_BYTES: usize = 1024 * 1024;
+
 /// Process groups of agent CLIs that are running right now (each child leads its own group).
 static LIVE_GROUPS: Mutex<Option<HashSet<i32>>> = Mutex::new(None);
 
@@ -187,7 +191,7 @@ pub async fn run_process(
 pub struct StreamingChild {
     child: Child,
     guard: GroupGuard,
-    pub stdout: tokio::io::Lines<tokio::io::BufReader<ChildStdout>>,
+    stdout: tokio::io::BufReader<ChildStdout>,
     stderr: Option<tokio::task::JoinHandle<Vec<u8>>>,
 }
 
@@ -198,14 +202,51 @@ impl StreamingChild {
         cwd: &Path,
         env: &BTreeMap<String, String>,
     ) -> io::Result<StreamingChild> {
-        use tokio::io::AsyncBufReadExt;
         let mut child = command(argv, cwd, env, true)?.spawn()?;
         let guard = GroupGuard::new(child.id().map_or(0, |id| id as i32));
         let stdout = child.stdout.take().ok_or_else(|| io::Error::other("no stdout pipe"))?;
         let stderr: Option<ChildStderr> = child.stderr.take();
         let stderr = Some(tokio::spawn(read_capped(stderr)));
         write_stdin(&mut child, Some(stdin)).await;
-        Ok(StreamingChild { child, guard, stdout: tokio::io::BufReader::new(stdout).lines(), stderr })
+        Ok(StreamingChild { child, guard, stdout: tokio::io::BufReader::new(stdout), stderr })
+    }
+
+    /// The next stdout line without its `\n` (or `\r\n`), None at the end. A line longer than
+    /// [`MAX_STREAM_LINE_BYTES`] is an `InvalidData` error, like the SDK's buffer limit.
+    pub async fn next_line(&mut self) -> io::Result<Option<String>> {
+        use tokio::io::AsyncBufReadExt;
+        let mut line = Vec::new();
+        loop {
+            let available = self.stdout.fill_buf().await?;
+            if available.is_empty() {
+                if line.is_empty() {
+                    return Ok(None);
+                }
+                break;
+            }
+            let (taken, done) = match available.iter().position(|&b| b == b'\n') {
+                Some(i) => (i + 1, true),
+                None => (available.len(), false),
+            };
+            line.extend_from_slice(&available[..taken]);
+            self.stdout.consume(taken);
+            if line.len() > MAX_STREAM_LINE_BYTES + 1 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("JSON message exceeded maximum buffer size of {MAX_STREAM_LINE_BYTES} bytes"),
+                ));
+            }
+            if done {
+                break;
+            }
+        }
+        if line.last() == Some(&b'\n') {
+            line.pop();
+            if line.last() == Some(&b'\r') {
+                line.pop();
+            }
+        }
+        String::from_utf8(line).map(Some).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Waits for the exit and ends the group; returns the exit code and what the tool wrote to stderr.
