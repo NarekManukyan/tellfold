@@ -568,3 +568,10 @@ def test_estimate_reference_values_match_the_mac_app():
         config = SimConfig(question="q", seed_files=[], num_agents=agents, rounds=rounds, batch_size=batch)
         assert estimate_call_split(config, chunks) == (agent_calls, planner_calls)
         assert estimate_calls(config, chunks) == agent_calls + planner_calls
+    # a saved audience (Rust engine) brings its people: no graph or persona calls
+    for agents, rounds, batch, chunks, agent_calls, planner_calls in [
+        (20, 6, 6, 3, 20, 1), (25, 10, 4, 9, 43, 1), (5, 4, 2, 7, 10, 1),
+    ]:
+        config = SimConfig(question="q", seed_files=[], num_agents=agents, rounds=rounds, batch_size=batch,
+                           audience="Saved")
+        assert estimate_call_split(config, chunks) == (agent_calls, planner_calls)

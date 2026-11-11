@@ -186,6 +186,8 @@ nonisolated enum StudyLogic {
         request.think = config.think
         request.events = config.events
         request.seed = config.seed
+        // the same turn rule as the source, so the comparison is about the text alone
+        request.fairTurns = config.fairTurns
         request.inlineDocuments = [InlineDocument(filename: editedName, data: Data(editedText.utf8))]
         request.castFrom = runID
         request.studyID = studyID

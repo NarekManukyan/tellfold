@@ -117,6 +117,22 @@ fn older_and_stale_runs_get_a_derived_state() {
 }
 
 #[test]
+fn only_a_running_run_is_paused() {
+    let tmp = tempfile::tempdir().unwrap();
+    let paused = |pid| RunStatus { pause: Some("personas_ready".into()), ..running_status(pid) };
+    let parent = std::os::unix::process::parent_id() as i64;
+    let alive = make_external_run(tmp.path(), "20260101-000001-waiting", false, Some(paused(Some(parent))));
+    assert_eq!(alive.status(false).unwrap().pause.as_deref(), Some("personas_ready"));
+    // the server that held the cast is gone: the run is stopped, and nothing waits for a client any more
+    let orphan = make_external_run(tmp.path(), "20260101-000002-orphan", false, Some(paused(Some(dead_pid()))));
+    let status = orphan.status(false).unwrap();
+    assert_eq!((status.state, status.pause), (RunState::Stopped, None));
+    let failed = RunStatus { state: RunState::Failed, ..paused(None) };
+    let failed = make_external_run(tmp.path(), "20260101-000003-failed", false, Some(failed));
+    assert_eq!(failed.status(false).unwrap().pause, None);
+}
+
+#[test]
 fn half_written_runs_read_as_empty() {
     let tmp = tempfile::tempdir().unwrap();
     let dir = tmp.path().join("r");

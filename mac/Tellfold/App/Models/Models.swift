@@ -188,13 +188,11 @@ struct Persona: Codable, Hashable, Sendable, Identifiable {
     var entityID: String?
     /// The opinion group the engine planned this person into (`CastCamp`), nil for older runs and entity accounts.
     var camp: String?
-    /// Where the person came from: "cast" (the engine), "group" (a group described in words), "edited".
+    /// Where the person came from (`PersonaSource`), nil for older runs.
     var source: String?
-    /// Reserved for crowd tiers; nil is a fully simulated agent.
-    var tier: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, handle, name, bio, background, stance, traits, activity, influence, camp, source, tier
+        case id, handle, name, bio, background, stance, traits, activity, influence, camp, source
         case entityID = "entity_id"
     }
 }
@@ -214,7 +212,6 @@ extension Persona {
         entityID = c.optional(.entityID)
         camp = c.optional(.camp)
         source = c.optional(.source)
-        tier = c.optional(.tier)
     }
 }
 
@@ -787,13 +784,17 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     var studyID: String?
     /// Its label in that study.
     var variant: String?
+    /// `RunStatus.pause`: why a running run waits for the app.
+    var pause: String?
 
     var createdDate: Date? { TellfoldDates.parse(createdAt) }
+    /// Waiting at `personas_ready` for someone to check its cast.
+    var awaitsCast: Bool { pause == RunStatus.personasReady && state.isActive }
     /// 0...1 progress through the rounds.
     var progress: Double { totalRounds > 0 ? min(1, Double(round) / Double(totalRounds)) : 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, question, state, stage, round, agents, example, variant
+        case id, question, state, stage, round, agents, example, variant, pause
         case studyID = "study_id"
         case totalRounds = "total_rounds"
         case createdAt = "created_at"
@@ -816,6 +817,7 @@ extension RunSummary {
         example = c.value(.example, default: false)
         studyID = c.optional(.studyID)
         variant = c.optional(.variant)
+        pause = c.optional(.pause)
     }
 }
 

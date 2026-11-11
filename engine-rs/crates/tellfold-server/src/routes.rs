@@ -17,6 +17,7 @@ use axum::response::{IntoResponse, Response};
 use regex::Regex;
 use serde_json::{json, Value};
 
+use tellfold_engine::personas::MAX_CAST;
 use tellfold_models::text::py_strip;
 use tellfold_models::{GodEvent, Study, StudyKind};
 use tellfold_runtimes::{detect_all, known_ids, load_settings, save_settings, test_runtime, Role, Settings};
@@ -265,16 +266,31 @@ pub async fn get_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<Stri
     .await
 }
 
-/// Replaces the cast of a waiting run with `{personas: [Persona]}`; returns `{waiting, personas}` as tidied.
+/// Replaces the cast of a waiting run with `{personas: [Persona] (1-200)}`; returns `{waiting, personas}` as tidied.
 pub async fn put_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
     let value = parse_body(&body, true)?.unwrap_or(Value::Null);
-    let personas =
-        value.get("personas").cloned().ok_or_else(|| ApiError::new(400, "send {\"personas\": [...]}")).and_then(
-            |v| {
-                serde_json::from_value::<Vec<tellfold_models::Persona>>(v)
-                    .map_err(|e| ApiError::new(400, format!("personas: {e}")))
-            },
-        )?;
+    let mut checker = Checker::new();
+    let loc = [json!("body")];
+    let personas = checker.object(&value, &loc, None).and_then(|obj| {
+        if !obj.contains_key("personas") {
+            checker.error("missing", vec![loc[0].clone(), json!("personas")], "Field required".into(), &value, None);
+            return None;
+        }
+        let items = checker.list(obj, "personas", &loc, Some(MAX_CAST))?;
+        let mut personas = Vec::with_capacity(items.len());
+        for (i, item) in items.iter().enumerate() {
+            match serde_json::from_value::<tellfold_models::Persona>(item.clone()) {
+                Ok(p) => personas.push(p),
+                Err(e) => {
+                    let at = vec![loc[0].clone(), json!("personas"), json!(i)];
+                    checker.error("model_type", at, format!("Input should be a valid Persona: {e}"), item, None);
+                }
+            }
+        }
+        Some(personas)
+    });
+    checker.finish()?;
+    let Some(personas) = personas else { unreachable!("validated") };
     on_manager(&app.handle, move |m| async move {
         run_dir_of(&m, &run_id)?;
         let personas = m.replace_cast(&run_id, personas)?;
@@ -305,11 +321,25 @@ pub async fn add_group(State(app): State<AppState>, UrlPath(run_id): UrlPath<Str
             checker.int(obj, "count", &loc, Some(3), Some(1), Some(tellfold_engine::personas::MAX_GROUP as i64)),
         )
     });
+    if let Some((Some(description), _)) = &fields {
+        // only whitespace is as empty as nothing; generate_group trims what it uses
+        if py_strip(description).is_empty() {
+            let at = vec![loc[0].clone(), json!("description")];
+            let input = json!(description);
+            checker.error(
+                "string_too_short",
+                at,
+                "String should have at least 1 character".into(),
+                &input,
+                Some(json!({"min_length": 1})),
+            );
+        }
+    }
     checker.finish()?;
     let Some((Some(description), Some(count))) = fields else { unreachable!("validated") };
     on_manager(&app.handle, move |m| async move {
         run_dir_of(&m, &run_id)?;
-        let personas = m.add_group(&run_id, py_strip(&description), count as usize).await?;
+        let personas = m.add_group(&run_id, &description, count as usize).await?;
         Ok(ok_json(&json!({"waiting": true, "personas": personas})))
     })
     .await

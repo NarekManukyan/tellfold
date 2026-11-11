@@ -53,6 +53,7 @@ class Persona(BaseModel):
     activity: float = 0.6  # 0..1, probability of acting in a given round
     influence: float = 0.5  # 0..1, initial follower weight
     entity_id: str | None = None  # set when the persona *is* a graph entity (a company, a public figure)
+    # Rust-only: the Rust engine also writes `camp` and `source` (cast review and described groups); ignored here.
 
 
 class AgentMemory(BaseModel):
@@ -137,6 +138,9 @@ class SimConfig(BaseModel):
     variant: str | None = None  # short label inside the study, e.g. "Draft B"
     branched_from: str | None = None  # run id this run continues from (rounds 0..branch_round are copied)
     branch_round: int | None = None  # the last round copied from `branched_from`
+    # Rust-only: `review_cast` and `fair_turns` are not modelled here. `audience` (the saved audience a run's people
+    # came from) is read so the estimate matches, and never written: this engine starts no audience runs.
+    audience: str | None = Field(default=None, exclude=True)
 
 
 class ReportSection(BaseModel):
@@ -444,3 +448,4 @@ class RunStatus(BaseModel):
     started_at: str  # ISO 8601 UTC
     updated_at: str  # ISO 8601 UTC
     failed_batches: list[FailedBatch] = Field(default_factory=list)  # kept so a reload still shows them
+    # Rust-only: `pause` ("personas_ready" while a running run waits for its cast to be checked).

@@ -387,12 +387,7 @@ impl<'a> Engine<'a> {
         let mut active = sample_active(&personas, r, self.config.seed, news)?;
         let mut turns: HashMap<String, &'static str> = HashMap::new();
         if self.config.fair_turns {
-            let posted: HashSet<String> = self.world.posts(None)?.into_iter().map(|p| p.author_id).collect();
-            let mut last_active: HashMap<String, i64> = HashMap::new();
-            for (round, action) in self.world.actions(None)? {
-                let last = last_active.entry(action.agent_id).or_insert(round);
-                *last = (*last).max(round);
-            }
+            let (posted, last_active) = (self.world.authors()?, self.world.last_active_rounds()?);
             let (extra, given) = fair_turns(&personas, &active, &posted, &last_active, r);
             active.extend(extra);
             turns = given;
@@ -548,9 +543,12 @@ impl<'a> Engine<'a> {
             let engaged = self.world.engagement_by(&p.id)?;
             blocks.push(
                 [
-                    match v.turn {
-                        Some(note) => format!("{}\n{note}", persona_block(p, &self.world.memory(&p.id)?)),
-                        None => persona_block(p, &self.world.memory(&p.id)?),
+                    {
+                        let block = persona_block(p, &self.world.memory(&p.id)?);
+                        match v.turn {
+                            Some(note) => format!("{block}\n{note}"),
+                            None => block,
+                        }
                     },
                     format!(
                         "Follows {} accounts, followed by {}.",
@@ -781,7 +779,7 @@ pub fn fair_turns(
     let last = |p: &Persona| last_active.get(&p.id).copied().unwrap_or(0);
     let mut unheard: HashSet<&str> = HashSet::new();
     for camp in crate::personas::CAMPS {
-        let members: Vec<&Persona> = ordered.iter().filter(|p| p.camp.as_deref() == Some(camp)).collect();
+        let members = camp_members(&ordered, camp);
         if members.is_empty() || members.iter().any(|p| posted.contains(&p.id)) {
             continue;
         }
@@ -790,13 +788,9 @@ pub fn fair_turns(
             continue;
         }
         // most active first, then idle longest, then id
-        let pick = members
-            .iter()
-            .copied()
-            .min_by(|a, b| {
-                b.activity.partial_cmp(&a.activity).unwrap_or(std::cmp::Ordering::Equal).then(last(a).cmp(&last(b)))
-            })
-            .expect("members is not empty");
+        let pick = first_of(&members, |a, b| {
+            b.activity.partial_cmp(&a.activity).unwrap_or(std::cmp::Ordering::Equal).then(last(a).cmp(&last(b)))
+        });
         chosen.insert(pick.id.clone());
         extra.push(pick.clone());
     }
@@ -826,20 +820,27 @@ pub fn pick_opening_authors_fair(personas: &[Persona], seed: i64) -> Vec<Persona
     let mut chosen = pick_opening_authors(personas, seed);
     let ordered = by_id(personas);
     for camp in crate::personas::CAMPS {
-        let members: Vec<&Persona> = ordered.iter().filter(|p| p.camp.as_deref() == Some(camp)).collect();
+        let members = camp_members(&ordered, camp);
         if members.is_empty() || chosen.iter().any(|p| p.camp.as_deref() == Some(camp)) {
             continue;
         }
-        let pick = members
-            .iter()
-            .min_by(|a, b| {
-                (b.activity + b.influence).partial_cmp(&(a.activity + a.influence)).unwrap_or(std::cmp::Ordering::Equal)
-            })
-            .expect("members is not empty");
-        chosen.push((*pick).clone());
+        let pick = first_of(&members, |a, b| {
+            (b.activity + b.influence).partial_cmp(&(a.activity + a.influence)).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        chosen.push(pick.clone());
     }
     chosen.sort_by(|a, b| a.id.cmp(&b.id));
     chosen
+}
+
+/// The members of `camp` in id order (`ordered` is already sorted by id).
+fn camp_members<'a>(ordered: &'a [Persona], camp: &str) -> Vec<&'a Persona> {
+    ordered.iter().filter(|p| p.camp.as_deref() == Some(camp)).collect()
+}
+
+/// The first of `members` under `order`; ties keep id order. `members` is never empty.
+fn first_of<'a>(members: &[&'a Persona], order: impl Fn(&Persona, &Persona) -> std::cmp::Ordering) -> &'a Persona {
+    members.iter().copied().min_by(|a, b| order(a, b)).expect("a camp with members")
 }
 
 /// Opening posts come mostly from entity accounts and the most active, influential people.

@@ -80,16 +80,13 @@ pub struct Persona {
     #[serde(default)]
     pub entity_id: Option<String>,
     /// The opinion group the cast was planned around (see `tellfold_engine::personas::CAMPS`), when known. Runs
-    /// made before camps were planned have none.
+    /// made before camps were planned have none. Rust-only: the Python engine has no camps, cast review or groups.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub camp: Option<String>,
     /// Where the persona came from: "cast" (planned and written by the engine), "group" (a group the user
-    /// described), "edited" (changed by the user before the run). None for older runs.
+    /// described), "edited" (changed by the user before the run). None for older runs. Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    /// Reserved for crowd tiers (a fully simulated agent versus a lighter background voice). None: a full agent.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub tier: Option<String>,
 }
 
 impl Persona {
@@ -108,7 +105,6 @@ impl Persona {
             entity_id: None,
             camp: None,
             source: None,
-            tier: None,
         }
     }
 }
@@ -323,6 +319,7 @@ pub struct SimConfig {
     #[serde(default, deserialize_with = "lax::opt_int")]
     pub branch_round: Option<i64>,
     /// Pause once the cast is ready (status `pause: "personas_ready"`) until a client confirms or edits it.
+    /// Rust-only, like `fair_turns` and `audience`: the Python engine has no cast review.
     #[serde(default, skip_serializing_if = "is_false", deserialize_with = "lax::boolean")]
     pub review_cast: bool,
     /// Make sure every camp gets a turn to post and strongly held views are not starved. Off for older runs, which
@@ -900,7 +897,8 @@ pub struct RunStatus {
     pub updated_at: String,
     #[serde(default)]
     pub failed_batches: Vec<FailedBatch>,
-    /// Why a running run is waiting for a client: "personas_ready" while the cast is up for review.
+    /// Why a running run is waiting for a client: "personas_ready" while the cast is up for review. Only a running
+    /// run has one. Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pause: Option<String>,
 }

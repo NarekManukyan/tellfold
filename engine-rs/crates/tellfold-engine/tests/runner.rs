@@ -435,12 +435,12 @@ fn mark_stopped_only_touches_live_runs() {
         started_at: "2026-01-01T00:00:00Z".into(),
         updated_at: "2026-01-01T00:00:00Z".into(),
         failed_batches: vec![],
-        pause: None,
+        pause: Some(PAUSE_PERSONAS.into()),
     };
     write_status(tmp.path(), &live).unwrap();
     mark_stopped(tmp.path()).unwrap();
     let stopped = read_status(tmp.path()).unwrap();
-    assert_eq!(stopped.state, RunState::Stopped);
+    assert_eq!((stopped.state, stopped.pause), (RunState::Stopped, None));
     assert_eq!(stopped.detail, "stopped after round 2");
     write_status(tmp.path(), &RunStatus { state: RunState::Done, ..live }).unwrap();
     mark_stopped(tmp.path()).unwrap();
@@ -608,6 +608,24 @@ fn review_cast_stopped_at_the_pause() {
     assert_eq!((status.state, status.stage, status.pause), (RunState::Stopped, RunStage::Personas, None));
     assert!(!run_dir.join("world.db").exists(), "nothing is seeded after a stop at the pause");
     assert!(llm.calls.lock().unwrap().iter().all(|(p, _, _)| !p.starts_with("engine.")));
+}
+
+#[test]
+fn review_cast_emptied_at_the_pause_fails_unpaused() {
+    let (_tmp, run_dir) = run_dir();
+    let gate = EditGate { shown: RefCell::default(), edit: |_| Some(vec![]) };
+    let config = SimConfig { review_cast: true, ..make_config() };
+    let report = block_on(run_pipeline(
+        &fake(None),
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { cast_gate: Some(&gate), ..Default::default() },
+    ));
+    assert!(report.is_err());
+    let status = read_status(&run_dir).unwrap();
+    assert_eq!((status.state, status.pause), (RunState::Failed, None));
 }
 
 #[test]

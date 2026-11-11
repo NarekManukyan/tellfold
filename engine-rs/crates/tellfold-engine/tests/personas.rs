@@ -206,9 +206,9 @@ fn fair_cast_records_camps_and_source() {
         assert!(p.camp.as_deref().is_none_or(|c| CAMPS.contains(&c)));
     }
     let legacy = run(generate_personas(&llm, &graph(), QUESTION, 10, "sonnet", "English")).unwrap();
-    assert!(legacy.iter().all(|p| p.camp.is_none() && p.source.is_none() && p.tier.is_none()));
+    assert!(legacy.iter().all(|p| p.camp.is_none() && p.source.is_none()));
     let text = tellfold_models::json::to_string(&legacy);
-    assert!(!text.contains("\"camp\"") && !text.contains("\"source\"") && !text.contains("\"tier\""));
+    assert!(!text.contains("\"camp\"") && !text.contains("\"source\""));
 }
 
 #[test]
@@ -247,6 +247,7 @@ fn tidy_cast_cleans_what_a_client_sends() {
     a.activity = 7.0;
     a.influence = f64::NAN;
     a.camp = Some("strong_support".into());
+    a.source = Some("pasted from a forum".into());
     a.traits = vec![" kind ".into(), "".into(), "a".into(), "b".into(), "c".into(), "d".into(), "e".into()];
     let mut b = Persona::new("a01", "same_handle", "", "", "", "");
     b.camp = Some("made_up".into());
@@ -259,5 +260,6 @@ fn tidy_cast_cleans_what_a_client_sends() {
     assert_eq!(tidy[0].traits, ["kind", "a", "b", "c", "d"]);
     assert_eq!(tidy[1].name, "same_handle_2", "a nameless persona is named after its handle");
     assert_eq!((tidy[1].camp.as_deref(), tidy[1].source.as_deref()), (None, Some("edited")));
+    assert_eq!(tidy[0].source, None, "only the known sources are kept");
     assert_eq!(tidy_cast(vec![Persona::new("a", "b", "c", "d", "e", "f"); 250]).len(), 200);
 }

@@ -1,7 +1,7 @@
 import Foundation
 @preconcurrency import UserNotifications
 
-/// Local notifications when a run finishes or fails. Clicking one selects the run.
+/// Local notifications when a run finishes or fails, or waits for its cast to be checked. Clicking one selects the run.
 @MainActor
 final class Notifier: NSObject {
     /// Called with the run id when the user clicks a notification.
@@ -41,6 +41,17 @@ final class Notifier: NSObject {
         content.threadIdentifier = "runs"
         let request = UNNotificationRequest(identifier: "run-\(run.id)-\(run.state.rawValue)", content: content, trigger: nil)
         center.add(request) { _ in }
+    }
+
+    /// A "Review the cast before the run" simulation has its people and waits.
+    func notifyCastReady(run: RunSummary) {
+        let content = UNMutableNotificationContent()
+        content.title = "The cast is ready to check"
+        content.body = run.question
+        content.sound = .default
+        content.userInfo = ["runID": run.id]
+        content.threadIdentifier = "runs"
+        center.add(UNNotificationRequest(identifier: "run-\(run.id)-cast", content: content, trigger: nil)) { _ in }
     }
 }
 

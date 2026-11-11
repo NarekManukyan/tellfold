@@ -18,6 +18,9 @@ pub struct RunSummary {
     pub example: bool,
     pub study_id: Option<String>,
     pub variant: Option<String>,
+    /// `RunStatus.pause`: why a running run waits for a client. Rust-only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pause: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]

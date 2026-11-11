@@ -124,6 +124,12 @@ struct StudyTests {
         let unlabeled = StudyLogic.versionRequest(source: "src", config: config, studyID: nil, variant: " ",
                                                   editedName: "d.md", editedText: "x", otherFiles: [])
         #expect(unlabeled.variant == nil && unlabeled.studyID == nil)
+        // the version keeps the source's turn rule: an older run had none, so neither does its version
+        #expect(!request.fairTurns, "the source config has fair turns off")
+        config.fairTurns = true
+        let fair = StudyLogic.versionRequest(source: "src", config: config, studyID: nil, variant: "",
+                                             editedName: "d.md", editedText: "x", otherFiles: [])
+        #expect(fair.fairTurns)
     }
 
     @Test func comparisonCitationsLinkIntoTheRightRun() throws {

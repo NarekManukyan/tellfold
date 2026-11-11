@@ -355,6 +355,10 @@ impl RunReader {
                 status.state = RunState::Stopped;
             }
         }
+        // only a running run can be waiting for a client
+        if status.state != RunState::Running {
+            status.pause = None;
+        }
         Some(status)
     }
 
@@ -415,6 +419,7 @@ impl RunReader {
             example: false,
             study_id: config.study_id,
             variant: config.variant,
+            pause: status.pause,
         })
     }
 

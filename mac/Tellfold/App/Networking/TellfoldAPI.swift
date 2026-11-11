@@ -260,7 +260,7 @@ actor TellfoldAPI {
 
     /// Lets the waiting run go on with its cast.
     func confirmCast(runID: String) async throws {
-        let _: OkResponse = try await post(["runs", runID, "personas"], body: Optional<String>.none)
+        let _: OkResponse = try await post(["runs", runID, "personas", "confirm"], body: Optional<String>.none)
     }
 
     /// The engine writes `count` people for a group described in words and adds them; returns the whole cast.

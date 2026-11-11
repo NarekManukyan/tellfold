@@ -31,7 +31,6 @@ fn make_personas(n: usize) -> Vec<Persona> {
             },
             camp: None,
             source: None,
-            tier: None,
         })
         .collect()
 }

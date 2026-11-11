@@ -256,6 +256,7 @@ impl<'a> Tracker<'a> {
         self.update(|s| {
             s.state = RunState::Stopped;
             s.detail = format!("stopped after round {round}");
+            s.pause = None;
         })?;
         self.emit("run_stopped", json!({}));
         Ok(())
@@ -266,6 +267,7 @@ impl<'a> Tracker<'a> {
             s.state = RunState::Failed;
             s.error = Some(message.to_string());
             s.detail = "failed".into();
+            s.pause = None;
         }) {
             log::error(LOGGER, &format!("could not update run status: {e}"));
         }
@@ -458,7 +460,6 @@ async fn pipeline(
             })?;
             track.emit("personas_ready", json!({"personas": personas}));
             let Some(reviewed) = gate.review(personas).await.filter(|_| !stopping()) else {
-                track.update(|s| s.pause = None)?;
                 track.finish_stopped()?;
                 return Ok(None);
             };
@@ -538,6 +539,7 @@ pub fn mark_stopped(run_dir: &Path) -> std::io::Result<()> {
         if matches!(status.state, RunState::Running | RunState::Queued) {
             status.state = RunState::Stopped;
             status.detail = format!("stopped after round {}", status.round);
+            status.pause = None;
             status.updated_at = now_iso();
             write_status(run_dir, &status)?;
         }

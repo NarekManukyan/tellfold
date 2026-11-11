@@ -31,7 +31,7 @@ use std::panic::AssertUnwindSafe;
 use tokio::sync::{mpsc, oneshot, watch, Notify};
 use tokio::task::JoinHandle;
 
-use tellfold_engine::personas::{generate_group, tidy_cast};
+use tellfold_engine::personas::{generate_group, tidy_cast, MAX_CAST};
 use tellfold_engine::runner::{run_pipeline, CastGate, RunOptions};
 use tellfold_llm::{Llm, LlmError};
 use tellfold_models::json::{py_dumps_compact, to_string as model_json};
@@ -45,7 +45,9 @@ use tellfold_report::rewrite::{build_rewrite, REWRITE_FILE};
 use tellfold_report::{write_report, ReportError, ReportWriter};
 use tellfold_runtimes::load_settings;
 use tellfold_store::api::ReportRebuild;
-use tellfold_store::files::{copy_seeds, create_run_dir, now_iso, read_model, read_status, write_json, write_status};
+use tellfold_store::files::{
+    copy_seeds, create_run_dir, now_iso, read_model, read_status, write_json, write_status, GRAPH_FILE,
+};
 use tellfold_store::study::{
     join_study, letter, load_study, new_study_id, plan_variant, repeat_config, save_study, study_dir, AGREEMENT_FILE,
     COMPARE_FILE,
@@ -690,11 +692,20 @@ impl Manager {
         self.writable(run_id)?;
         let st = self.st.borrow();
         match st.live.get(run_id) {
-            Some(live) if live.hold.personas.borrow().is_some() && !live.hold.go.get() => {
+            Some(live) if self.awaits_cast(run_id) => {
                 Ok((live.hold.clone(), live.run_dir.clone(), live.config.clone()))
             }
             _ => Err(conflict("this run is not waiting for its cast to be checked")),
         }
+    }
+
+    /// Whether the run is live here and waiting for its cast to be checked.
+    pub fn awaits_cast(&self, run_id: &str) -> bool {
+        self.st
+            .borrow()
+            .live
+            .get(run_id)
+            .is_some_and(|live| live.hold.personas.borrow().is_some() && !live.hold.go.get())
     }
 
     /// `{waiting, personas}`: the cast under review while the run waits, else the run's people as written.
@@ -707,13 +718,18 @@ impl Manager {
     }
 
     /// Replaces the cast of a waiting run (tidied: ids renumbered, handles made unique) and returns it.
+    ///
+    /// The edit stays in the hold: the runner writes personas.json once the cast is confirmed, so the file has one
+    /// writer. A cast over [`MAX_CAST`] is refused, not cut.
     pub fn replace_cast(&self, run_id: &str, personas: Vec<Persona>) -> Result<Vec<Persona>, ManagerError> {
-        let (hold, run_dir, _) = self.waiting(run_id)?;
+        let (hold, _, _) = self.waiting(run_id)?;
+        if personas.len() > MAX_CAST {
+            return Err(ManagerError::BadRequest(format!("a cast holds at most {MAX_CAST} people")));
+        }
         let personas = tidy_cast(personas);
         if personas.is_empty() {
             return Err(ManagerError::BadRequest("the cast needs at least one person".into()));
         }
-        tellfold_store::files::write_json_list(&run_dir.join("personas.json"), &personas).map_err(internal)?;
         *hold.personas.borrow_mut() = Some(personas.clone());
         Ok(personas)
     }
@@ -727,10 +743,17 @@ impl Manager {
     }
 
     /// Writes `count` people for a group described in words, adds them to the waiting cast, and returns the cast.
+    /// A group that would take the cast past [`MAX_CAST`] is refused before the model is called.
     pub async fn add_group(&self, run_id: &str, description: &str, count: usize) -> Result<Vec<Persona>, ManagerError> {
         let (hold, run_dir, config) = self.waiting(run_id)?;
-        let graph: KnowledgeGraph = read_model(&run_dir.join("graph.json")).unwrap_or_default();
         let existing = hold.personas.borrow().clone().unwrap_or_default();
+        let room = MAX_CAST.saturating_sub(existing.len());
+        if count > room {
+            return Err(ManagerError::BadRequest(format!(
+                "a cast holds at most {MAX_CAST} people: this one has room for {room} more"
+            )));
+        }
+        let graph: KnowledgeGraph = read_model(&run_dir.join(GRAPH_FILE)).unwrap_or_default();
         let llm = self.llm(Some(&run_dir), config.concurrency, config.think)?;
         let group = generate_group(llm.as_ref(), &graph, &config, description, count, &existing)
             .await
@@ -1405,6 +1428,7 @@ impl Manager {
             if matches!(status.state, RunState::Running | RunState::Queued) {
                 status.state = RunState::Stopped;
                 status.detail = detail.into();
+                status.pause = None;
                 status.updated_at = now_iso();
                 let _ = write_status(run_dir, &status);
             }

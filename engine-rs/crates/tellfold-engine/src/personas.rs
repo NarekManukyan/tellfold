@@ -59,6 +59,8 @@ pub fn is_strong(camp: &str) -> bool {
 pub const SOURCE_CAST: &str = "cast";
 pub const SOURCE_GROUP: &str = "group";
 pub const SOURCE_EDITED: &str = "edited";
+/// Every `source` a persona may have; [`tidy_cast`] drops any other.
+pub const SOURCES: [&str; 3] = [SOURCE_CAST, SOURCE_GROUP, SOURCE_EDITED];
 
 /// The most people one described group may add, and the most a cast may hold.
 pub const MAX_GROUP: usize = 20;
@@ -334,8 +336,7 @@ fn group_prompt(
     language: &str,
     existing: &[&Persona],
 ) -> String {
-    let base = batch_prompt(batch, digest, question, language, existing);
-    let (body, _) = base.rsplit_once("Return a JSON object:").unwrap_or((&base, ""));
+    let body = batch_prompt_body(batch, digest, question, language, existing);
     format!(
         "{body}The user described this group in their own words: \"{description}\". Follow the description \
 exactly (who they are, how many, what they do); where it says nothing about their views, let them differ as a real \
@@ -348,8 +349,8 @@ Return a JSON object:\n\
 }
 
 /// Cleans a cast a client sent (edited, extended or loaded from a saved audience): text trimmed, at most
-/// [`MAX_CAST`] people, unique valid handles, activity and influence in 0..1, known camps only, and ids renumbered
-/// a01..aNN in order.
+/// [`MAX_CAST`] people, unique valid handles, activity and influence in 0..1, known camps and sources only, and ids
+/// renumbered a01..aNN in order. Callers refuse a cast over [`MAX_CAST`] before they get here.
 pub fn tidy_cast(personas: Vec<Persona>) -> Vec<Persona> {
     let mut taken: HashSet<String> = HashSet::new();
     let tidy: Vec<Persona> = personas
@@ -379,8 +380,7 @@ pub fn tidy_cast(personas: Vec<Persona>) -> Vec<Persona> {
                 influence: unit(p.influence, 0.5),
                 entity_id: keep(p.entity_id),
                 camp: keep(p.camp).filter(|c| CAMPS.contains(&c.as_str())),
-                source: keep(p.source),
-                tier: keep(p.tier),
+                source: keep(p.source).filter(|s| SOURCES.contains(&s.as_str())),
                 ..p
             }
         })
@@ -574,6 +574,16 @@ fn allocate<V: Copy>(mix: &[(V, f64)], count: usize, rng: &mut PyRandom) -> Vec<
 }
 
 fn batch_prompt(batch: &[Slot], digest: &str, question: &str, language: &str, existing: &[&Persona]) -> String {
+    format!(
+        "{}Return a JSON object:\n\
+{{\"personas\": [{{\"slot\": slot id, \"handle\": str, \"name\": str, \"bio\": str, \"background\": str,\n  \
+\"stance\": str, \"traits\": [str], \"activity\": float, \"influence\": float}}]}}",
+        batch_prompt_body(batch, digest, question, language, existing)
+    )
+}
+
+/// Everything in a persona batch prompt before its reply format, which [`group_prompt`] replaces.
+fn batch_prompt_body(batch: &[Slot], digest: &str, question: &str, language: &str, existing: &[&Persona]) -> String {
     let slot_lines = batch.iter().map(|s| format!("- slot {}: {}", s.label, s.brief)).collect::<Vec<_>>().join("\n");
     let taken = if existing.is_empty() {
         "- (none yet)".to_string()
@@ -590,10 +600,7 @@ Background material (from the seed documents):\n{digest}\n\n\
 Accounts already created (do not reuse these handles or near-duplicate these people):\n{taken}\n\n\
 Write exactly one persona for each slot below, in the same order, honouring every slot's brief:\n{slot_lines}\n\n\
 Write `name`, `bio`, `background`, `stance` and `traits` in {language}; pick names that fit the setting \
-of the material. Handles stay lowercase ASCII.\n\n\
-Return a JSON object:\n\
-{{\"personas\": [{{\"slot\": slot id, \"handle\": str, \"name\": str, \"bio\": str, \"background\": str,\n  \
-\"stance\": str, \"traits\": [str], \"activity\": float, \"influence\": float}}]}}"
+of the material. Handles stay lowercase ASCII.\n\n"
     )
 }
 
@@ -640,7 +647,6 @@ fn to_persona(slot: &Slot, draft: &PersonaDraft, taken: &mut HashSet<String>) ->
         entity_id: slot.entity_id.clone(),
         camp: None,
         source: None,
-        tier: None,
     }
 }
 

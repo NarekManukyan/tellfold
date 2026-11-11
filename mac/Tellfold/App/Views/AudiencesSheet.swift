@@ -56,7 +56,7 @@ struct AudiencesSheet: View {
         }
         .background(Theme.ground)
         .frame(minWidth: 520, idealWidth: 560, minHeight: 360, idealHeight: 440)
-        .onAppear { store.reload() }
+        .task { await store.reload() }
         .confirmationDialog("Delete \u{201C}\(deleting?.name ?? "")\u{201D}?", isPresented: Binding(
             get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button("Move to Trash", role: .destructive) {

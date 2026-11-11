@@ -9,15 +9,22 @@ final class AudienceStore {
     let directory: URL
     private(set) var audiences: [SavedAudience] = []
 
-    private static let log = Logger(subsystem: "dev.tellfold.mac", category: "audiences")
+    nonisolated private static let log = Logger(subsystem: "dev.tellfold.mac", category: "audiences")
 
     nonisolated static var defaultDirectory: URL {
         URL.applicationSupportDirectory.appending(path: "Tellfold/audiences", directoryHint: .isDirectory)
     }
 
+    /// The file each audience was read from or written to: rename and delete act on that file, never on a path built
+    /// from the id inside it.
+    @ObservationIgnored private var files: [String: URL] = [:]
+
+    /// The longest name kept; longer names are cut.
+    static let maxNameLength = 80
+
+    /// Starts empty; `reload()` reads the folder.
     init(directory: URL = AudienceStore.defaultDirectory) {
         self.directory = directory
-        reload()
     }
 
     private static let encoder: JSONEncoder = {
@@ -27,24 +34,31 @@ final class AudienceStore {
         return e
     }()
 
-    private static let decoder: JSONDecoder = {
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return d
-    }()
+    /// Reads every audience file off the main actor, newest first. Unreadable files are skipped (and logged), never
+    /// deleted.
+    func reload() async {
+        let directory = directory
+        let found = await Task.detached(priority: .utility) { Self.read(directory) }.value
+        files = Dictionary(found.map { ($0.audience.id, $0.file) }, uniquingKeysWith: { _, last in last })
+        audiences = Self.sorted(found.map(\.audience))
+    }
 
-    /// Reads every audience file, newest first. Unreadable files are skipped (and logged), never deleted.
-    func reload() {
-        let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
-        audiences = files.filter { $0.pathExtension == "json" }.compactMap { url in
+    nonisolated private static func read(_ directory: URL) -> [(audience: SavedAudience, file: URL)] {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let urls = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+        return urls.filter { $0.pathExtension == "json" }.compactMap { url in
             do {
-                return try Self.decoder.decode(SavedAudience.self, from: Data(contentsOf: url))
+                return (try decoder.decode(SavedAudience.self, from: Data(contentsOf: url)), url)
             } catch {
-                Self.log.error("Skipping \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                log.error("Skipping \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 return nil
             }
         }
-        .sorted { ($0.createdAt, $0.id) > ($1.createdAt, $1.id) }
+    }
+
+    nonisolated private static func sorted(_ list: [SavedAudience]) -> [SavedAudience] {
+        list.sorted { ($0.createdAt, $0.id) > ($1.createdAt, $1.id) }
     }
 
     func audience(_ id: String) -> SavedAudience? { audiences.first { $0.id == id } }
@@ -55,34 +69,37 @@ final class AudienceStore {
               now: Date = .now) throws -> SavedAudience {
         let audience = SavedAudience(id: UUID().uuidString.lowercased(), name: Self.cleanName(name), createdAt: now,
                                      question: question, personas: personas, graph: graph)
-        try write(audience)
-        reload()
+        let file = directory.appending(path: "\(audience.id).json")
+        try write(audience, to: file)
+        files[audience.id] = file
+        audiences = Self.sorted(audiences + [audience])
         return audience
     }
 
     func rename(_ id: String, to name: String) throws {
-        guard var audience = audience(id) else { return }
+        guard let i = audiences.firstIndex(where: { $0.id == id }), let file = files[id] else { return }
+        var audience = audiences[i]
         audience.name = Self.cleanName(name)
-        try write(audience)
-        reload()
+        try write(audience, to: file)
+        audiences[i] = audience
     }
 
     /// Moves the audience's file to the Trash.
     func delete(_ id: String) throws {
-        try FileManager.default.trashItem(at: fileURL(id), resultingItemURL: nil)
-        reload()
+        guard let file = files[id] else { return }
+        try FileManager.default.trashItem(at: file, resultingItemURL: nil)
+        files[id] = nil
+        audiences.removeAll { $0.id == id }
     }
 
     /// A trimmed, single-line name; "Saved audience" when empty.
     static func cleanName(_ name: String) -> String {
         let words = name.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-        return words.isEmpty ? "Saved audience" : String(words.prefix(80))
+        return words.isEmpty ? "Saved audience" : String(words.prefix(maxNameLength))
     }
 
-    private func fileURL(_ id: String) -> URL { directory.appending(path: "\(id).json") }
-
-    private func write(_ audience: SavedAudience) throws {
+    private func write(_ audience: SavedAudience, to file: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try Self.encoder.encode(audience).write(to: fileURL(audience.id), options: .atomic)
+        try Self.encoder.encode(audience).write(to: file, options: .atomic)
     }
 }

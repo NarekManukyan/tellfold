@@ -10,7 +10,6 @@ struct CastEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: CastEditorModel
-    @State private var editingID: String?
     @State private var groupText = ""
     @State private var groupCount = 3
     @State private var savingAudience = false
@@ -111,16 +110,10 @@ struct CastEditorSheet: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(model.people) { person in
-                        CastRow(person: person, isEditing: editingID == person.id,
-                                edit: { editingID = editingID == person.id ? nil : person.id },
-                                remove: {
-                                    if editingID == person.id { editingID = nil }
-                                    model.remove(person.id)
-                                },
-                                save: { edited in
-                                    model.update(edited)
-                                    editingID = nil
-                                })
+                        CastRow(person: person, isEditing: model.editingID == person.id,
+                                edit: { model.toggleEditing(person.id) },
+                                remove: { model.remove(person.id) },
+                                save: { edited, original in model.update(edited, from: original) })
                         if person.id != model.people.last?.id { Seam().padding(.leading, 60) }
                     }
                 }
@@ -161,6 +154,7 @@ struct CastEditorSheet: View {
                         Text("Add")
                     }
                 }
+                .accessibilityLabel(model.isAddingGroup ? "Adding the group" : "Add")
                 .buttonStyle(.console(.secondary, compact: true))
                 .disabled(groupText.trimmingCharacters(in: .whitespaces).isEmpty || model.isBusy
                           || model.people.count >= CastEditorModel.maxPeople)
@@ -199,10 +193,16 @@ struct CastEditorSheet: View {
             Button("Stop", role: .destructive) { confirmStop = true }
                 .buttonStyle(.consoleGhost)
                 .disabled(model.isContinuing)
-            Button("Later") { store.showsCastEditor = false; dismiss() }
-                .buttonStyle(.console)
-                .keyboardShortcut(.cancelAction)
-                .help("Close this; the simulation keeps waiting. Check the Cast in the toolbar opens it again.")
+            Button("Later") {
+                // the edits go to the waiting run first, so they are there when the editor opens again
+                Task {
+                    if await model.saveForLater() { store.showsCastEditor = false; dismiss() }
+                }
+            }
+            .buttonStyle(.console)
+            .keyboardShortcut(.cancelAction)
+            .disabled(model.isBusy)
+            .help("Close this; the simulation keeps waiting. Check the Cast in the toolbar opens it again.")
             Button {
                 Task {
                     if await model.confirm() { store.showsCastEditor = false; dismiss() }
@@ -214,6 +214,7 @@ struct CastEditorSheet: View {
                     Text("Start Simulation")
                 }
             }
+            .accessibilityLabel(model.isContinuing ? "Starting the simulation" : "Start Simulation")
             .buttonStyle(.consolePrimary)
             .keyboardShortcut(.return, modifiers: .command)
             .disabled(!model.canContinue)
@@ -237,18 +238,23 @@ private struct CastRow: View {
     let isEditing: Bool
     let edit: () -> Void
     let remove: () -> Void
-    let save: (Persona) -> Void
+    /// The edited person and the person the edit started from.
+    let save: (Persona, Persona) -> Void
 
+    /// The edit, and the person it started from. A row is reused for whoever has its id next (the engine renumbers),
+    /// so both are taken again whenever the row's person changes.
     @State private var draft: Persona
+    @State private var original: Persona
 
     init(person: Persona, isEditing: Bool, edit: @escaping () -> Void, remove: @escaping () -> Void,
-         save: @escaping (Persona) -> Void) {
+         save: @escaping (Persona, Persona) -> Void) {
         self.person = person
         self.isEditing = isEditing
         self.edit = edit
         self.remove = remove
         self.save = save
         _draft = State(initialValue: person)
+        _original = State(initialValue: person)
     }
 
     var body: some View {
@@ -259,10 +265,10 @@ private struct CastRow: View {
                     HStack(spacing: 6) {
                         Text(person.name).font(Theme.bodyStrong).foregroundStyle(Theme.text).lineLimit(1)
                         Text("@\(person.handle)").font(Theme.mono(11)).foregroundStyle(Theme.muted).lineLimit(1)
-                        if person.source == "group" || person.source == "edited" {
-                            Text(person.source == "group" ? "Added" : "Edited")
-                                .font(Theme.caption)
-                                .foregroundStyle(Theme.accent)
+                        switch PersonaSource(person) {
+                        case .group: Text("Added").font(Theme.caption).foregroundStyle(Theme.accent)
+                        case .edited: Text("Edited").font(Theme.caption).foregroundStyle(Theme.accent)
+                        case .cast, nil: EmptyView()
                         }
                     }
                     Text(role).font(Theme.small).foregroundStyle(Theme.secondary).lineLimit(2)
@@ -305,8 +311,14 @@ private struct CastRow: View {
         }
         .padding(.horizontal, Theme.space3)
         .padding(.vertical, 10)
-        .onChange(of: isEditing) { _, open in if open { draft = person } }
+        .onChange(of: isEditing) { _, open in if open { start() } }
+        .onChange(of: person) { _, _ in start() }
         .accessibilityElement(children: .contain)
+    }
+
+    private func start() {
+        draft = person
+        original = person
     }
 
     /// The bio is the person's public role line; organisations and public figures are marked as such.
@@ -338,7 +350,7 @@ private struct CastRow: View {
             }
             HStack {
                 Spacer()
-                Button("Save") { save(draft) }
+                Button("Save") { save(draft, original) }
                     .buttonStyle(.console(.primary, compact: true))
                     .disabled(draft.stance.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }

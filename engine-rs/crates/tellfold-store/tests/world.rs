@@ -346,3 +346,19 @@ fn older_runs_branch_only_from_round_zero_or_their_last_round() {
     assert!(w.memory("a01").unwrap().notes.is_empty());
     assert_eq!(w.posts(None).unwrap().iter().map(|p| p.round).max(), Some(0));
 }
+
+#[test]
+fn authors_and_last_active_rounds_aggregate_the_log() {
+    let tmp = tempfile::tempdir().unwrap();
+    let world = world(tmp.path());
+    let first = world.apply(1, &act("a01", ActionType::Post).content("hi")).unwrap().unwrap();
+    world.apply(2, &act("a02", ActionType::Like).post(first)).unwrap();
+    world.apply(3, &act("a03", ActionType::Reply).post(first).content("no")).unwrap();
+    world.apply(4, &act("a01", ActionType::Nothing)).unwrap();
+    let mut authors: Vec<String> = world.authors().unwrap().into_iter().collect();
+    authors.sort();
+    assert_eq!(authors, ["a01", "a03"]);
+    let last = world.last_active_rounds().unwrap();
+    assert_eq!((last["a01"], last["a02"], last["a03"]), (4, 2, 3));
+    assert!(!last.contains_key("a04"));
+}

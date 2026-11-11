@@ -2,7 +2,11 @@ import Foundation
 import Observation
 
 /// The cast of a run waiting at `personas_ready`, as the cast editor edits it. Removing and editing people change
-/// the local copy only; adding a group, saving an audience and starting the run send the edits first.
+/// the local copy only; adding a group, closing the editor and starting the run send the edits first.
+///
+/// The engine renumbers ids (a01..aNN) whenever it takes the cast back, so an id names a different person afterwards:
+/// every time the cast comes back from the engine the open row editor closes, and `update(_:from:)` applies an edit
+/// only to the person it was started on.
 @MainActor @Observable
 final class CastEditorModel {
     let runID: String
@@ -12,6 +16,9 @@ final class CastEditorModel {
     private(set) var isLoading = false
     private(set) var isAddingGroup = false
     private(set) var isContinuing = false
+    private(set) var isSaving = false
+    /// The person whose row editor is open.
+    private(set) var editingID: String?
     /// Edits not sent to the engine yet.
     private(set) var hasLocalEdits = false
     var errorMessage: String?
@@ -26,7 +33,7 @@ final class CastEditorModel {
         self.people = people
     }
 
-    var isBusy: Bool { isLoading || isAddingGroup || isContinuing }
+    var isBusy: Bool { isLoading || isAddingGroup || isContinuing || isSaving }
     var canContinue: Bool { !people.isEmpty && !isBusy }
 
     /// How many people each camp has, in `CastCamp` order; people without a planned camp are left out.
@@ -42,37 +49,68 @@ final class CastEditorModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            people = try await api.cast(runID: runID).personas
-            hasLocalEdits = false
+            replace(with: try await api.cast(runID: runID).personas)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
+    /// Opens the row editor for `id`, or closes it when it is already open.
+    func toggleEditing(_ id: String) {
+        editingID = editingID == id ? nil : id
+    }
+
     func remove(_ id: String) {
+        if editingID == id { editingID = nil }
         people.removeAll { $0.id == id }
         hasLocalEdits = true
     }
 
-    /// Replaces the person with `edited`'s id; a change to what they say or think marks them "edited".
-    func update(_ edited: Persona) {
-        guard let i = people.firstIndex(where: { $0.id == edited.id }) else { return }
+    /// Applies an edit started on `original`. Refused (false) when the person with that id is no longer `original`,
+    /// for example after the engine renumbered the cast; a change to what they say or think marks them edited.
+    @discardableResult
+    func update(_ edited: Persona, from original: Persona) -> Bool {
+        defer { if editingID == original.id { editingID = nil } }
+        guard edited.id == original.id, let i = people.firstIndex(where: { $0.id == edited.id }),
+              people[i] == original else { return false }
         var person = edited
-        let old = people[i]
-        if (old.bio, old.stance, old.background, old.camp, old.name) !=
+        if (original.bio, original.stance, original.background, original.camp, original.name) !=
             (person.bio, person.stance, person.background, person.camp, person.name) {
-            person.source = "edited"
+            person.source = PersonaSource.edited.rawValue
         }
-        guard person != old else { return }
+        guard person != original else { return true }
         people[i] = person
         hasLocalEdits = true
+        return true
+    }
+
+    /// The cast as the engine has it now: ids may name other people, so no row editor stays open.
+    private func replace(with cast: [Persona]) {
+        people = cast
+        hasLocalEdits = false
+        editingID = nil
     }
 
     /// Sends local edits so the engine's cast matches what the editor shows.
     private func push() async throws {
         guard hasLocalEdits, let api else { return }
-        people = try await api.replaceCast(runID: runID, personas: people)
-        hasLocalEdits = false
+        replace(with: try await api.replaceCast(runID: runID, personas: people))
+    }
+
+    /// Sends the edits so they are still there when the editor opens again ("Later"). Returns false when it failed.
+    @discardableResult
+    func saveForLater() async -> Bool {
+        guard !isBusy else { return false }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            try await push()
+            errorMessage = nil
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
     }
 
     /// The engine writes `count` people for `description` and adds them. Returns false when it failed.
@@ -84,8 +122,8 @@ final class CastEditorModel {
         defer { isAddingGroup = false }
         do {
             try await push()
-            people = try await api.addGroup(runID: runID, description: text,
-                                            count: min(max(count, 1), Self.maxGroup))
+            replace(with: try await api.addGroup(runID: runID, description: text,
+                                                 count: min(max(count, 1), Self.maxGroup)))
             errorMessage = nil
             return true
         } catch {
@@ -102,6 +140,7 @@ final class CastEditorModel {
         defer { isContinuing = false }
         do {
             try await push()
+            editingID = nil
             try await api.confirmCast(runID: runID)
             return true
         } catch {

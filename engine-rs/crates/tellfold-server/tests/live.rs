@@ -281,7 +281,6 @@ fn make_external_run(runs_dir: &Path, run_id: &str, with_report: bool, status: O
             entity_id: None,
             camp: None,
             source: None,
-            tier: None,
         })
         .collect();
     write_json(&run_dir.join("personas.json"), &people).unwrap();
@@ -727,10 +726,19 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     assert_eq!(edited.len(), 3);
     assert_eq!((edited[0]["id"].clone(), edited[0]["source"].clone()), (json!("a01"), json!("edited")));
     assert_eq!(server.put(&cast_url, json!({"personas": []})).await.0, 400);
-    assert_eq!(server.put(&cast_url, json!({"people": []})).await.0, 400);
+    assert_eq!(server.put(&cast_url, json!({"people": []})).await.0, 422);
+    assert_eq!(server.put(&cast_url, json!({"personas": [{"id": 1}]})).await.0, 422);
+    assert_eq!(server.put(&cast_url, json!({"personas": vec![edited[0].clone(); 201]})).await.0, 422, "over MAX_CAST");
+    assert_eq!(server.put("/api/runs/20990101-000000-nope/personas", json!({"personas": edited})).await.0, 404);
+    // edits stay with the waiting run: personas.json is written once, by the run, after the confirm
+    assert_eq!(server.detail(&run_id).await["personas"].as_array().unwrap().len(), 4);
+    // a run whose cast is still under review cannot lend it to another run
+    let (status, refused) = server.start_run_with(&[("cast_from", run_id.clone())]).await;
+    assert_eq!(status, 409, "{refused}");
 
     let group_url = format!("{cast_url}/group");
     assert_eq!(server.post(&group_url, json!({"description": ""})).await.0, 422);
+    assert_eq!(server.post(&group_url, json!({"description": " \n\t "})).await.0, 422);
     assert_eq!(server.post(&group_url, json!({"description": "x", "count": 21})).await.0, 422);
     let (status, grown) = server
         .post(&group_url, json!({"description": "three parents of Year 7 children who take the bus", "count": 3}))
@@ -741,8 +749,14 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     assert!(grown[3..].iter().all(|p| p["source"] == "group" && p["camp"].is_string()));
     assert_eq!(server.factory.count("personas.group"), 1);
     assert_eq!(server.factory.count("engine.round"), 0, "nothing runs while the cast is under review");
+    // a full cast refuses another group before the model is asked
+    assert_eq!(server.put(&cast_url, json!({"personas": vec![grown[0].clone(); 200]})).await.0, 200);
+    let (status, full) = server.post(&group_url, json!({"description": "one more parent", "count": 1})).await;
+    assert_eq!(status, 400, "{full}");
+    assert_eq!(server.factory.count("personas.group"), 1);
+    assert_eq!(server.put(&cast_url, json!({"personas": grown})).await.0, 200);
 
-    assert_eq!(server.post_empty(&cast_url).await, (200, json!({"ok": true})));
+    assert_eq!(server.post_empty(&format!("{cast_url}/confirm")).await, (200, json!({"ok": true})));
     let done = server.wait_state(&run_id, &["done"]).await;
     assert_eq!(done["personas"].as_array().unwrap().len(), 6);
     assert_eq!(done["config"]["num_agents"], 6);
@@ -752,8 +766,13 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     // past the pause, the cast can be read but not changed
     let (status, cast) = server.get(&cast_url).await;
     assert_eq!((status, cast["waiting"].clone(), cast["personas"].as_array().unwrap().len()), (200, json!(false), 6));
-    assert_eq!(server.post_empty(&cast_url).await.0, 409);
+    assert_eq!(server.post_empty(&format!("{cast_url}/confirm")).await.0, 409);
     assert_eq!(server.put(&cast_url, json!({"personas": grown})).await.0, 409);
+    // a new version keeps the source's turn rule, whatever the form says
+    let (status, version) = server.start_run_with(&[("cast_from", run_id.clone())]).await;
+    assert_eq!(status, 200, "{version}");
+    let version = server.wait_state(version["id"].as_str().unwrap(), &["done"]).await;
+    assert_eq!(version["config"]["fair_turns"], true);
     sse.close();
     server.shutdown().await;
 }
@@ -769,6 +788,12 @@ async fn stop_while_the_cast_is_under_review() {
     assert!(d["report"].is_null());
     assert!(d["status"].get("pause").is_none());
     assert_eq!(server.factory.count("engine.round"), 0);
+    // its source ran without fair turns, so a version of it does too
+    let form = [("cast_from", run_id.clone()), ("fair_turns", "true".into())];
+    let (status, version) = server.start_run_with(&form).await;
+    assert_eq!(status, 200, "{version}");
+    let version = server.wait_state(version["id"].as_str().unwrap(), &["done"]).await;
+    assert!(version["config"].get("fair_turns").is_none(), "{}", version["config"]);
     server.shutdown().await;
 }
 

@@ -13,7 +13,7 @@ use regex::Regex;
 use serde_json::{json, Value};
 use unicode_normalization::UnicodeNormalization;
 
-use tellfold_engine::personas::tidy_cast;
+use tellfold_engine::personas::{tidy_cast, MAX_CAST};
 use tellfold_models::text::{py_split, py_strip};
 use tellfold_models::{GodEvent, KnowledgeGraph, Persona, SimConfig};
 use tellfold_runtimes::load_settings;
@@ -314,6 +314,9 @@ fn audience_field(form: &Form) -> Result<Option<Audience>, ApiError> {
     let name = py_split(&audience.name).collect::<Vec<_>>().join(" ");
     audience.name =
         if name.is_empty() { "Saved audience".into() } else { name.chars().take(AUDIENCE_NAME_MAX).collect() };
+    if audience.personas.len() > MAX_CAST {
+        return Err(ApiError::new(400, format!("an audience holds at most {MAX_CAST} people")));
+    }
     audience.personas = tidy_cast(audience.personas);
     if audience.personas.is_empty() {
         return Err(ApiError::new(400, "the audience has no people"));
@@ -405,8 +408,12 @@ fn cast_source(m: &Manager, run_id: &str) -> Result<SimConfig, ApiError> {
     let Some(config) = m.reader(run_id).config() else {
         return Err(ApiError::new(400, format!("cast_from: there is no run {run_id}")));
     };
-    if !path.join("personas.json").is_file() || !path.join("graph.json").is_file() {
+    if !path.join(PERSONAS_FILE).is_file() || !path.join(GRAPH_FILE).is_file() {
         return Err(ApiError::new(400, format!("cast_from: {run_id} has no people yet")));
+    }
+    if m.awaits_cast(run_id) {
+        // its personas.json is the cast before the check, not the one it will run with
+        return Err(ApiError::new(409, format!("cast_from: {run_id} is waiting for its cast to be checked")));
     }
     Ok(config)
 }
@@ -467,6 +474,8 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 config.study_id = Some(planned_study.id.clone());
                 config.variant = Some(label);
                 config.num_agents = source.num_agents;
+                // a version changes the text only: it keeps the source's turn rule, whatever the form says
+                config.fair_turns = source.fair_turns;
                 study = Some(planned_study);
             } else if study_id.is_some() || variant.is_some() {
                 return Err(ApiError::new(

@@ -328,6 +328,7 @@ struct NewSimulationSheet: View {
             .toggleStyle(.checkbox)
         }
         .padding(.top, Theme.space2)
+        .task { await model.audiences.reload() }
         .onChange(of: model.audiences.audiences) { _, list in
             if let id = audienceID, !list.contains(where: { $0.id == id }) { audienceID = nil }
         }
