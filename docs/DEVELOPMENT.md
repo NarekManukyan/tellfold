@@ -130,8 +130,8 @@ Tips:
 
 ## How it works
 
-1. **Ingest.** Text is pulled out of the seed files (PDFs via PyMuPDF) and cut into overlapping chunks on paragraph boundaries.
-2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results in plain Python.
+1. **Ingest.** Text is pulled out of the seed files and cut into overlapping chunks on paragraph boundaries. The Python package reads PDFs with PyMuPDF and the Rust engine (the one in the app) with `pdf-extract`, so a PDF's chunks can differ in whitespace and reading order between the two (see "Risks" in `docs/rust-port.md`).
+2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results itself, without a model call.
 3. **Personas.** The planner turns the most important actors into official accounts and public figures, then fills the rest of the cast with ordinary members of the affected public: different ages, jobs, incentives and starting views, including people who simply do not care.
 4. **World.** A small social platform lives in SQLite: posts, replies, reposts, likes, dislikes and follows. Each agent's feed ranks posts from people it follows and replies to its own posts first, then by engagement, author influence and recency.
 5. **Rounds.** Each round some agents become active (weighted by their activity level). They are decided in batches: the model sees each agent's private background, its memory notes and its own feed, and picks one to three actions. Invalid actions, such as liking a post that does not exist, are turned into "do nothing" instead of crashing the run. Breaking-news events are shown to everyone in their round. A short pass then scores the round's sentiment.

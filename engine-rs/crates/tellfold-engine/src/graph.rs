@@ -94,7 +94,7 @@ pub struct Extraction {
     pub relations: Vec<ExtractedRelation>,
 }
 
-crate::engine_model!(Extraction);
+tellfold_llm::json_model!(Extraction, "../../../schemas/Extraction.json");
 
 pub const SYSTEM_PROMPT: &str = "\
 You are an analyst preparing the cast for a social-reaction simulation. You read source documents and \

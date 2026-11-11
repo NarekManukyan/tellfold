@@ -79,6 +79,26 @@ fn new_names(folder: &Path, known: &[String]) -> Vec<String> {
     names
 }
 
+/// The run's id without what depends on the clock (its timestamp, and the `-2` suffix a run started in the same second
+/// gets), so the slug made from the question is still compared. Same as `masked_run` in make_api.py.
+fn masked_run(index: usize, name: &str) -> String {
+    let shape = Regex::new(r"^\d{8}-\d{6}-(.+?)(?:-\d+)?$").unwrap();
+    match shape.captures(name) {
+        Some(c) => format!("{{run:{index}}}-{}", &c[1]),
+        None => name.to_string(),
+    }
+}
+
+/// The study id, when it has the timestamp-and-random-hex shape: an id of any other shape is left to differ.
+fn masked_study(index: usize, name: &str) -> String {
+    let shape = Regex::new(r"^\d{8}-\d{6}-[0-9a-f]{4}$").unwrap();
+    if shape.is_match(name) {
+        format!("{{study:{index}}}")
+    } else {
+        name.to_string()
+    }
+}
+
 fn normalise(text: &str, root: &Path, runs: &[String], studies: &[String]) -> String {
     let mut folders = vec![root.to_string_lossy().into_owned()];
     if let Ok(real) = root.canonicalize() {
@@ -90,9 +110,8 @@ fn normalise(text: &str, root: &Path, runs: &[String], studies: &[String]) -> St
     for folder in &folders {
         text = text.replace(folder.as_str(), "<root>");
     }
-    let mut names: Vec<(&str, String)> =
-        runs.iter().enumerate().map(|(i, n)| (n.as_str(), format!("{{run:{i}}}"))).collect();
-    names.extend(studies.iter().enumerate().map(|(i, n)| (n.as_str(), format!("{{study:{i}}}"))));
+    let mut names: Vec<(&str, String)> = runs.iter().enumerate().map(|(i, n)| (n.as_str(), masked_run(i, n))).collect();
+    names.extend(studies.iter().enumerate().map(|(i, n)| (n.as_str(), masked_study(i, n))));
     names.sort_by_key(|(n, _)| std::cmp::Reverse(n.len()));
     for (name, placeholder) in names {
         text = text.replace(name, &placeholder);

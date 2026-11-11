@@ -11,22 +11,3 @@ pub mod pytext;
 pub mod rng;
 pub mod runner;
 mod unicode_tables;
-
-/// Implements [`tellfold_llm::JsonModel`] with the schema pydantic generated for the type of the same name
-/// (`engine-rs/schemas/<Name>.json`).
-#[macro_export]
-#[doc(hidden)]
-macro_rules! engine_model {
-    ($ty:ident) => {
-        impl ::tellfold_llm::JsonModel for $ty {
-            fn schema() -> &'static ::tellfold_llm::Schema {
-                static SCHEMA: ::std::sync::OnceLock<::tellfold_llm::Schema> = ::std::sync::OnceLock::new();
-                SCHEMA.get_or_init(|| {
-                    ::tellfold_llm::Schema::new::<$ty>(
-                        ::tellfold_llm::embedded_schema(stringify!($ty)).expect("schema is embedded"),
-                    )
-                })
-            }
-        }
-    };
-}

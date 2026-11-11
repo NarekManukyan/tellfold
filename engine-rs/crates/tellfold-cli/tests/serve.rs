@@ -74,7 +74,7 @@ fn serve_prints_port_requires_token_and_exits_on_stdin_eof() {
     assert_eq!(request(port, "GET", "/api/health", None, "").0, 401);
     assert_eq!(request(port, "GET", "/api/health", Some("nope"), "").0, 401);
     let (status, body) = request(port, "GET", "/api/health", Some(TOKEN), "");
-    assert_eq!((status, body.as_str()), (200, r#"{"ok":true,"fake_llm":true,"version":"0.1.0"}"#));
+    assert_eq!((status, body.as_str()), (200, r#"{"ok":true,"fake_llm":true,"version":"0.3.1"}"#));
     assert_eq!(request(port, "GET", "/api/settings", Some(TOKEN), "").0, 200);
     drop(child.stdin.take());
     assert_eq!(wait_exit(&mut child, Duration::from_secs(15)), Some(0));

@@ -143,9 +143,9 @@ pub struct SentimentScores {
     pub scores: Vec<PostScore>,
 }
 
-crate::engine_model!(RoundDecisions);
-crate::engine_model!(OpeningPosts);
-crate::engine_model!(SentimentScores);
+tellfold_llm::json_model!(RoundDecisions, "../../../schemas/RoundDecisions.json");
+tellfold_llm::json_model!(OpeningPosts, "../../../schemas/OpeningPosts.json");
+tellfold_llm::json_model!(SentimentScores, "../../../schemas/SentimentScores.json");
 
 // ---------- prompts ----------
 

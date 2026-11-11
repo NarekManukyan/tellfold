@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use serde_json::{json, Value};
 use tellfold_llm::adapter::{classify_failure, json_system, repair_prompt, AdapterError};
+use tellfold_llm::extract_json;
 use tellfold_llm::ingest::{chunk_text, decode_text, load_documents, normalize};
-use tellfold_llm::{embedded_schema, extract_json};
 use tellfold_models::json::{py_dumps, py_dumps_ascii};
 
 fn fixtures() -> PathBuf {
@@ -21,7 +21,7 @@ fn fixture(name: &str) -> Value {
 #[test]
 fn json_system_prompts_match_python_for_every_schema() {
     for (name, want) in fixture("prompts/json_system.json").as_object().unwrap() {
-        let schema: Value = serde_json::from_str(embedded_schema(name).unwrap()).unwrap();
+        let schema: Value = serde_json::from_str(&schema_file(name)).unwrap();
         assert_eq!(json_system("You are a careful analyst.  \n", &schema), want.as_str().unwrap(), "{name}");
     }
 }
@@ -138,7 +138,7 @@ fn every_embedded_schema_is_present() {
         "SentimentScores",
         "VoicePick",
     ] {
-        let schema: Value = serde_json::from_str(embedded_schema(name).unwrap()).unwrap();
+        let schema: Value = serde_json::from_str(&schema_file(name)).unwrap();
         assert_eq!(schema["title"], json!(name));
     }
 }
@@ -166,4 +166,10 @@ fn model_types_agree_with_their_schemas() {
     }
     assert_eq!(schema.name, "Report");
     assert_eq!(schema.root_opener(), '{');
+}
+
+/// The schema pydantic generated for `name`, as embedded by `json_model!`.
+fn schema_file(name: &str) -> String {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../schemas").join(format!("{name}.json"));
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }

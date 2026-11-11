@@ -14,7 +14,6 @@ pub mod fake;
 pub mod ingest;
 
 use std::fmt;
-use std::sync::OnceLock;
 
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
@@ -81,7 +80,8 @@ pub trait JsonModel: DeserializeOwned + Send {
     fn schema() -> &'static Schema;
 }
 
-/// Implements [`JsonModel`] for a type, embedding `engine-rs/schemas/<Name>.json`.
+/// Implements [`JsonModel`] for a type, embedding the schema pydantic generated for it (`engine-rs/schemas/<Name>.json`,
+/// given relative to the file that invokes the macro). Every crate with reply types uses this one macro.
 #[macro_export]
 macro_rules! json_model {
     ($ty:ty, $path:expr) => {
@@ -99,31 +99,6 @@ json_model!(tellfold_models::CompareReport, "../../../schemas/CompareReport.json
 json_model!(tellfold_models::RewriteSuggestion, "../../../schemas/RewriteSuggestion.json");
 json_model!(tellfold_models::CampMatches, "../../../schemas/CampMatches.json");
 json_model!(tellfold_models::AgreementCall, "../../../schemas/AgreementCall.json");
-
-/// The schemas pydantic generated for the engine's own reply types, by class name. Types defined in later crates
-/// (graph extraction, personas, round decisions) embed theirs from the same folder.
-pub fn embedded_schema(name: &str) -> Option<&'static str> {
-    static FILES: OnceLock<Vec<(&'static str, &'static str)>> = OnceLock::new();
-    FILES
-        .get_or_init(|| {
-            vec![
-                ("AgreementCall", include_str!("../../../schemas/AgreementCall.json")),
-                ("CampMatches", include_str!("../../../schemas/CampMatches.json")),
-                ("CompareReport", include_str!("../../../schemas/CompareReport.json")),
-                ("Extraction", include_str!("../../../schemas/Extraction.json")),
-                ("OpeningPosts", include_str!("../../../schemas/OpeningPosts.json")),
-                ("PersonaBatch", include_str!("../../../schemas/PersonaBatch.json")),
-                ("Report", include_str!("../../../schemas/Report.json")),
-                ("RewriteSuggestion", include_str!("../../../schemas/RewriteSuggestion.json")),
-                ("RoundDecisions", include_str!("../../../schemas/RoundDecisions.json")),
-                ("SentimentScores", include_str!("../../../schemas/SentimentScores.json")),
-                ("VoicePick", include_str!("../../../schemas/VoicePick.json")),
-            ]
-        })
-        .iter()
-        .find(|(n, _)| *n == name)
-        .map(|(_, text)| *text)
-}
 
 /// The `LLM` protocol: one text or JSON answer per call.
 #[async_trait]

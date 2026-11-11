@@ -15,7 +15,8 @@ final class AppPreferences {
 
     /// Where runs are stored; passed to the engine as `--runs`.
     var runsFolder: String { didSet { defaults.set(runsFolder, forKey: Keys.runsFolder) } }
-    /// The Python project the engine runs from (`uv run --project`). Empty means the built-in default.
+    /// A Python engine project to run with `uv run --project` instead of the engine built into the app. Empty means
+    /// the built-in engine (and, in a Debug build without one, the repository the app was compiled from).
     var enginePath: String { didSet { defaults.set(enginePath, forKey: Keys.enginePath) } }
     /// Explicit `uv` binary. Empty means auto-detect.
     var uvPath: String { didSet { defaults.set(uvPath, forKey: Keys.uvPath) } }
@@ -71,8 +72,8 @@ final class AppPreferences {
         return engine
     }
 
-    /// The Python project `uv run` uses when the app has no bundled engine: the repository this file was compiled
-    /// from (four folders up from `mac/Tellfold/App/Engine`).
+    /// The Python project `uv run` uses when a Debug build has no bundled engine: the repository this file was
+    /// compiled from (four folders up from `mac/Tellfold/App/Engine`). Release builds never fall back to it.
     nonisolated static let developmentEnginePath: String = {
         var url = URL(filePath: #filePath)
         for _ in 0..<5 { url.deleteLastPathComponent() }

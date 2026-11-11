@@ -13,4 +13,4 @@ pub mod ui;
 pub mod view;
 
 /// `tellfold.__version__`.
-pub const VERSION: &str = tellfold_server::VERSION;
+pub use tellfold_models::VERSION;

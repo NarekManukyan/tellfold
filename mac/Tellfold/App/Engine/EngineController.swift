@@ -72,7 +72,11 @@ final class EngineController {
     @ObservationIgnored private var readyAt: Date?
 
     static let maxLogLines = 5_000
-    static let readyTimeout: Duration = .seconds(180) // the first `uv run` may install dependencies
+    /// How long a `uv run` engine gets to print its port: the first run may install dependencies.
+    static let readyTimeout: Duration = .seconds(180)
+    /// The same for the engine built into the app, which prints its port within milliseconds. The slack is for a
+    /// macOS privacy prompt about the runs folder, which blocks the engine until it is answered.
+    static let bundledReadyTimeout: Duration = .seconds(60)
     static let maxAttempts = 8
     /// An engine that stayed up this long counts as healthy: its next crash starts the backoff over.
     nonisolated static let stableRunSeconds: TimeInterval = 60
@@ -115,7 +119,7 @@ final class EngineController {
     }
 
     /// Ends an engine that is hung (no port, failed health check): close stdin, SIGTERM, then SIGKILL its process
-    /// group after `killGrace`. A uvicorn blocked in a system call (e.g. an open() waiting on a privacy prompt)
+    /// group after `killGrace`. An engine blocked in a system call (e.g. an open() waiting on a privacy prompt)
     /// never acts on SIGTERM, and without the SIGKILL `processExited` would never run.
     private func terminateHungEngine(_ reason: String) {
         appendApp(reason)
@@ -131,8 +135,8 @@ final class EngineController {
         }
     }
 
-    /// SIGKILL the engine's process group (uv and the Python server under it), or just the process when it does
-    /// not lead its own group.
+    /// SIGKILL the engine's process group, or just the process when it does not lead its own group. The bundled
+    /// engine is the direct child; through `uv run` the group is uv and the Python server under it.
     nonisolated static func forceKill(pid: pid_t) {
         if getpgid(pid) == pid {
             kill(-pid, SIGKILL)
@@ -184,14 +188,26 @@ final class EngineController {
         let base = ProcessInfo.processInfo.environment
         let runs = prefs.resolvedRunsFolder
         let examples = EngineCommand.bundledExamples()?.path
-        let executable: URL, args: [String], workingDirectory: URL
+        let executable: URL, args: [String], workingDirectory: URL, readyTimeout: Duration, slowStartNote: String
         if let engine = prefs.bundledEngineFolder {
             // The engine built into the app: one binary, nothing to install.
             executable = EngineCommand.bundledBinary(in: engine)
             args = EngineCommand.bundledArguments(runsFolder: runs.path, examplesFolder: examples,
                                                   logLevel: prefs.logLevel.rawValue)
             workingDirectory = runs
+            readyTimeout = Self.bundledReadyTimeout
+            slowStartNote = ""
         } else {
+            #if !DEBUG
+            // Without an engine path, a release build has nothing to fall back to: the repository it was built from
+            // is not on this Mac.
+            if prefs.enginePath.trimmingCharacters(in: .whitespaces).isEmpty {
+                state = .failed("The engine built into Tellfold is missing (Contents/Resources/engine/tellfold). "
+                                + "Reinstall Tellfold, or set an engine path in Settings > Advanced.")
+                appendApp("No executable engine in the app bundle.")
+                return
+            }
+            #endif
             let path = EngineCommand.searchPath(existing: base["PATH"], home: home)
             let preferredUV = prefs.uvPath.trimmingCharacters(in: .whitespaces)
             guard let uv = EngineCommand.findUV(preferred: preferredUV.isEmpty ? nil : preferredUV, path: path) else {
@@ -209,6 +225,8 @@ final class EngineController {
             args = EngineCommand.arguments(enginePath: enginePath, runsFolder: runs.path, examplesFolder: examples,
                                            logLevel: prefs.logLevel.rawValue)
             workingDirectory = URL(filePath: enginePath, directoryHint: .isDirectory)
+            readyTimeout = Self.readyTimeout
+            slowStartNote = " The first start can also take a while when uv installs the engine's dependencies."
         }
         do {
             try FileManager.default.createDirectory(at: runs, withIntermediateDirectories: true)
@@ -263,12 +281,11 @@ final class EngineController {
             try? await Task.sleep(for: .seconds(15))
             if let self, self.generation == gen, self.state == .starting, !Task.isCancelled {
                 self.appendApp("Still waiting for the engine. If macOS asked whether Tellfold may access files on a "
-                               + "removable volume or in a protected folder, allow it. The first start can also take a "
-                               + "while when uv installs the engine's dependencies.")
+                               + "removable volume or in a protected folder, allow it." + slowStartNote)
             }
-            try? await Task.sleep(for: Self.readyTimeout - .seconds(15))
+            try? await Task.sleep(for: readyTimeout - .seconds(15))
             guard !Task.isCancelled, let self, self.generation == gen, self.state == .starting else { return }
-            self.terminateHungEngine("The engine did not report a port within \(Self.readyTimeout); stopping it.")
+            self.terminateHungEngine("The engine did not report a port within \(readyTimeout); stopping it.")
         }
     }
 

@@ -77,8 +77,8 @@ pub struct VoicePick {
     pub entity_ids: Vec<String>,
 }
 
-crate::engine_model!(PersonaBatch);
-crate::engine_model!(VoicePick);
+tellfold_llm::json_model!(PersonaBatch, "../../../schemas/PersonaBatch.json");
+tellfold_llm::json_model!(VoicePick, "../../../schemas/VoicePick.json");
 
 pub const VOICES_SYSTEM: &str = "\
 You choose which organisations and public figures get their own account in a social-media simulation \

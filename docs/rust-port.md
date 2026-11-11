@@ -1,6 +1,6 @@
 # Porting the Tellfold engine to Rust
 
-Status: November 2026. Python 0.3.0 is the reference. Milestones 1 to 9 left what ships unchanged; milestone 10
+Status: November 2026. Python 0.3.1 is the reference. Milestones 1 to 9 left what ships unchanged; milestone 10
 switches the Mac app to the Rust engine (see "The switch").
 
 ## Why
@@ -20,7 +20,7 @@ almost all of its time waiting for the AI tool, so speed of the engine itself is
    Reference: `tellfold/server/`, `mac/Tellfold/App/Networking/TellfoldAPI.swift`.
 2. **The CLI.** `run`, `compare`, `check`, `branch`, `rewrite`, `report`, `chat`, `ask`, `agents`, `doctor`,
    `runtimes`, `serve`, `ui`, with the same options, and the deprecated `shoal` alias.
-3. **Run folders.** A Rust engine reads and writes the folders 0.3.0 writes, and 0.3.0 can still read what Rust
+3. **Run folders.** A Rust engine reads and writes the folders 0.3.1 writes, and 0.3.1 can still read what Rust
    writes: `config.json`, `graph.json`, `personas.json`, `report.json`/`.md`/`.html`, `status.json`,
    `calls.jsonl`, `rewrite.json`, `seeds/`, `world.db` (schema below, including `memory_history`), and
    `studies/<id>/{study.json,compare.json,agreement.json,config.json,calls.jsonl}`.
@@ -112,6 +112,11 @@ servers and the Anthropic and OpenAI APIs. Each adapter is ported with the same 
   schemas are checked in: `golden/make.py` writes `engine-rs/schemas/<Class>.json` from `model_json_schema()`, the
   crates embed them, and a test checks each Rust type writes exactly the schema's properties. When a Python model
   changes, its schema file is regenerated in the same pull request.
+- **`NaN` and `Infinity`.** Python's decoder reads `NaN`, `Infinity` and `-Infinity` in a reply as floats, and
+  pydantic accepts them in float fields. `serde_json` has no such values, so `extract_json` reads them as `null`. A
+  reply that puts one in a required number (a sentiment score, a confidence) then fails validation and costs a
+  repair call where Python takes it as it is (and clamps it). Models do not write these tokens in practice; it
+  would show up as an extra attempt in `calls.jsonl`.
 - **Validation messages** differ. Python's repair prompt quotes pydantic's `ValidationError` text after
   `Problem:`; Rust quotes serde's message (`missing field \`n\``). The rest of the repair prompt is identical. Only
   the second attempt of an already failing call sees this text.
@@ -244,7 +249,7 @@ Known differences, none visible in a normal run:
   errors, a run with events, every read route, chat, ask, rewrite, report rebuild, an example copied in and refused
   writes, a study made with `cast_from` and compared, a branch, Check it, a branch of the example, settings, the
   runtime test, the frontend routes and the guards. `tests/api.rs` sends the same requests to the Rust server and
-  compares status codes, content types, headers and bodies after masking ids, timestamps, pids and timings.
+  compares status codes, content types, headers and bodies after the normalisation listed under "Golden tests".
   `tests/live.rs` and `tests/studies.rs` port the tests that need a run held mid-round, an SSE client or a run
   written by another process (`test_server.py`, `test_check.py`, `test_examples.py`, `test_runtimes_server.py`), and
   `tellfold-cli/tests/serve.rs` starts the binary the way the Mac app does.
@@ -292,7 +297,11 @@ session of HTTP requests. The Rust tests read the fixtures, so `cargo test` need
 which makes every parity change visible in review.
 
 Normalised before comparing: `started_at`, `updated_at`, `created_at`, `pid`, `seconds`/`llm_seconds`, and absolute
-paths of temporary folders. Nothing else.
+paths of temporary folders. The HTTP session (`tests/api.rs`, `golden/make_api.py`) also masks ISO timestamps
+anywhere in a body or header, and the parts of run and study ids that depend on the clock: a run id keeps its slug
+(`{run:0}-will-existing-buyers-...`) and loses its timestamp and any `-2` suffix, and a study id of the
+timestamp-and-hex shape becomes `{study:0}`. Bodies that list runs or studies are compared in id order. Nothing
+else.
 
 ## Parity soak (milestone 9)
 
@@ -328,7 +337,7 @@ agent CLI processes were left behind after the servers exited.
 | | Python engine (bundled) | Rust binary |
 |---|---|---|
 | on disk in the app | 186 MB, 5,070 files | 13 MB, 1 file (6.3 MB gzipped) |
-| app bundle total | 195 MB | about 22 MB |
+| app bundle total | 195 MB | 28 MB (Release build, see "The switch") |
 | to the `{"port": N}` line | 411 ms (383 to 579) | 6 ms (5 to 7) |
 | resident memory when idle | 93 MB | 9 MB |
 | exit after stdin closes | 294 ms | 1 ms |

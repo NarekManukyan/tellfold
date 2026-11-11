@@ -38,7 +38,7 @@ use tellfold_engine::runner::{run_pipeline, PipelineError, ReportStage, RunOptio
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::ingest::{chunk_text_default, load_documents};
-use tellfold_llm::{embedded_schema, Llm, Schema};
+use tellfold_llm::{Llm, Schema};
 use tellfold_models::{AgentMemory, KnowledgeGraph, Persona, Report, SimConfig};
 use tellfold_store::world::World;
 
@@ -176,7 +176,7 @@ fn canned_responder_matches_python() {
             assert_eq!(fake_responder("chat.interview", "x", None), FakeReply::Text(s(want).into()));
             continue;
         }
-        let schema = Schema::from_value::<Value>(serde_json::from_str(embedded_schema(name).unwrap()).unwrap());
+        let schema = Schema::from_value::<Value>(serde_json::from_str(&schema_file(name)).unwrap());
         assert_eq!(
             fake_responder("engine.round", probe, Some(&schema)),
             FakeReply::Json(want["agents"].clone()),
@@ -330,4 +330,10 @@ fn a_whole_run_matches_python() {
     status["started_at"] = json!("T");
     status["updated_at"] = json!("T");
     assert_eq!(status, expected["status"]);
+}
+
+/// The schema pydantic generated for `name`, as embedded by `json_model!`.
+fn schema_file(name: &str) -> String {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../schemas").join(format!("{name}.json"));
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }

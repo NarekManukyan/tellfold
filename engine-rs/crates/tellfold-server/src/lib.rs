@@ -28,8 +28,8 @@ use tellfold_runtimes::{get_runtime, load_settings};
 
 pub use manager::{spawn_manager, Handle, LlmFactory, Manager, ManagerOptions, ManagerThread, RuntimeReady};
 
-/// The version `/api/health` reports: the Python package's `__version__`.
-pub const VERSION: &str = "0.1.0";
+/// The version `/api/health` reports.
+pub use tellfold_models::VERSION;
 pub const DEFAULT_HOSTS: [&str; 4] = ["127.0.0.1", "localhost", "::1", "testserver"];
 
 /// What every route can reach.

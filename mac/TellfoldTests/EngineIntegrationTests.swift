@@ -119,6 +119,7 @@ struct EngineIntegrationTests {
         for _ in 0..<1200 where api == nil {
             api = engine.api
             if case .failed(let message) = engine.state { Issue.record("engine failed: \(message)\n\(engine.logText)"); return }
+            if engine.state == .uvMissing { Issue.record("uv missing"); return }
             try await Task.sleep(for: .milliseconds(100))
         }
         let client = try #require(api, "engine never became ready:\n\(engine.logText)")

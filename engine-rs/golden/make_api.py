@@ -176,11 +176,27 @@ def steps() -> list[dict[str, Any]]:
     ]
 
 
+RUN_NAME = re.compile(r"\d{8}-\d{6}-(.+?)(?:-\d+)?")
+STUDY_NAME = re.compile(r"\d{8}-\d{6}-[0-9a-f]{4}")
+
+
+def masked_run(index: int, name: str) -> str:
+    """The run's id without what depends on the clock (its timestamp, and the `-2` suffix a run started in the same
+    second gets), so the slug made from the question is still compared."""
+    match = RUN_NAME.fullmatch(name)
+    return f"{{run:{index}}}-{match.group(1)}" if match else name
+
+
+def masked_study(index: int, name: str) -> str:
+    """The study id, when it has the timestamp-and-random-hex shape: an id of any other shape is left to differ."""
+    return f"{{study:{index}}}" if STUDY_NAME.fullmatch(name) else name
+
+
 def normalise(text: str, root: Path, runs: list[str], studies: list[str]) -> str:
     for folder in sorted({str(root.resolve()), str(root)}, key=len, reverse=True):
         text = text.replace(folder, "<root>")
-    names = [(name, f"{{run:{i}}}") for i, name in enumerate(runs)]
-    names += [(name, f"{{study:{i}}}") for i, name in enumerate(studies)]
+    names = [(name, masked_run(i, name)) for i, name in enumerate(runs)]
+    names += [(name, masked_study(i, name)) for i, name in enumerate(studies)]
     for name, placeholder in sorted(names, key=lambda n: -len(n[0])):
         text = text.replace(name, placeholder)
     return TIMING.sub('"seconds":0', PID.sub('"pid":0', STAMP.sub("<time>", text)))

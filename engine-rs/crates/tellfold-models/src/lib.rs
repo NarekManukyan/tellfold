@@ -9,6 +9,10 @@ pub mod lax;
 pub mod log;
 pub mod text;
 
+/// The engine's version: `tellfold.__version__` and the version in pyproject.toml, kept equal to the workspace
+/// version in engine-rs/Cargo.toml (tellfold-cli's tests check all three).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use indexmap::IndexMap;
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize, Serializer};

@@ -100,7 +100,8 @@ enum EngineCommand {
     static func environment(base: [String: String], token: String, secrets: [String: String], offline: Bool,
                             home: String) -> [String: String] {
         // Debugger and test-runner injection (DYLD_INSERT_LIBRARIES, XCTest bundle paths) must not leak into
-        // uv and Python: an injected XCTest loader makes the child wait for a test session forever.
+        // the engine (or uv and Python under it): an injected XCTest loader makes the child wait for a test session
+        // forever.
         var env = base.filter { key, _ in !inheritedPrefixesToDrop.contains { key.hasPrefix($0) } }
         env["PATH"] = searchPath(existing: base["PATH"], home: home)
         env["PYTHONUNBUFFERED"] = "1"
