@@ -360,6 +360,25 @@ pub async fn report_html(State(app): State<AppState>, method: Method, UrlPath(ru
     web::file_response(&path, &method, "text/html; charset=utf-8", None, &[("cache-control", "no-cache")]).await
 }
 
+/// `report.md`, the report as Markdown (for scripts and the MCP server; the app reads the JSON in the run detail).
+pub async fn report_markdown(
+    State(app): State<AppState>,
+    method: Method,
+    UrlPath(run_id): UrlPath<String>,
+) -> ApiResult {
+    let path = app
+        .handle
+        .call(move |m| async move {
+            let path = run_dir_of(&m, &run_id)?.join("report.md");
+            if !path.is_file() {
+                return Err(ApiError::new(404, "this run has no report yet"));
+            }
+            Ok(path)
+        })
+        .await??;
+    web::file_response(&path, &method, "text/markdown; charset=utf-8", None, &[("cache-control", "no-cache")]).await
+}
+
 /// Unsubscribes its client when the response stream is dropped (the client went away, or the stream ended).
 struct Subscription {
     handle: Handle,

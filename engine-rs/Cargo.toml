@@ -30,6 +30,8 @@ serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tempfile = "3"
 thiserror = "1"
 rand = "0.8"
+rmcp = { version = "3.9", default-features = false, features = ["server", "macros", "transport-io"] }
+schemars = "1"
 fancy-regex = "0.14"
 minijinja = { version = "2", default-features = false, features = ["builtins", "macros", "multi_template", "serde", "std_collections", "adjacent_loop_items"] }
 minijinja-contrib = { version = "2", features = ["pycompat"] }

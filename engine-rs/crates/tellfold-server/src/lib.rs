@@ -145,6 +145,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/runs/{run_id}/seeds", get(list_seeds))
         .route("/api/runs/{run_id}/seeds/{name}", get(get_seed))
         .route("/api/runs/{run_id}/report.html", get(report_html))
+        .route("/api/runs/{run_id}/report.md", get(report_markdown))
         .route("/api/runs/{run_id}/stream", get(stream))
         .route("/api/runtimes", get(list_runtimes))
         .route("/api/settings", get(get_settings).put(put_settings))

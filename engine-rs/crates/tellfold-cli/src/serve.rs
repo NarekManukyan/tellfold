@@ -21,16 +21,16 @@ use crate::ui::Console;
 /// alive. Longer than the worst graceful shutdown (3 s for connections + the manager's 5 s grace + 2 s to reap
 /// children), so the force-exit only fires when something is actually stuck.
 const SERVE_EOF_EXIT: Duration = Duration::from_secs(15);
-const SERVE_SHUTDOWN_EXIT: Duration = Duration::from_secs(5);
+pub(crate) const SERVE_SHUTDOWN_EXIT: Duration = Duration::from_secs(5);
 /// how long open connections (SSE streams) get to finish before the run manager shuts down
 const GRACEFUL: Duration = Duration::from_secs(3);
 
-fn llm_factory() -> LlmFactory {
+pub(crate) fn llm_factory() -> LlmFactory {
     Arc::new(|run_dir: Option<&Path>, concurrency: i64, think: bool| make_llm(run_dir, concurrency, think, None))
 }
 
 /// `Path.expanduser()`, `~name/...` included.
-fn expanduser(path: &Path) -> PathBuf {
+pub(crate) fn expanduser(path: &Path) -> PathBuf {
     match path.to_str() {
         Some(text) => tellfold_runtimes::settings::expand_user(text),
         None => path.to_path_buf(),
@@ -38,7 +38,7 @@ fn expanduser(path: &Path) -> PathBuf {
 }
 
 /// Kills live agent CLIs and ends the process unless it has exited on its own after `after`.
-fn exit_later(after: Duration) {
+pub(crate) fn exit_later(after: Duration) {
     std::thread::spawn(move || {
         std::thread::sleep(after);
         kill_live_process_groups();
@@ -48,7 +48,7 @@ fn exit_later(after: Duration) {
 }
 
 /// Python's `str(OSError)`: `[Errno N] message`.
-fn os_error_text(e: &std::io::Error) -> String {
+pub(crate) fn os_error_text(e: &std::io::Error) -> String {
     match e.raw_os_error() {
         Some(code) => format!("[Errno {code}] {}", tellfold_server::upload::strerror(e)),
         None => e.to_string(),
@@ -56,7 +56,7 @@ fn os_error_text(e: &std::io::Error) -> String {
 }
 
 /// A listening socket on 127.0.0.1 (SO_REUSEADDR, backlog 128).
-fn bind(port: u16) -> std::io::Result<std::net::TcpListener> {
+pub(crate) fn bind(port: u16) -> std::io::Result<std::net::TcpListener> {
     let socket = tokio::net::TcpSocket::new_v4()?;
     socket.set_reuseaddr(true)?;
     socket.bind(SocketAddr::from(([127, 0, 0, 1], port)))?;
@@ -86,7 +86,7 @@ async fn stop_signal(mut stdin_closed: tokio::sync::mpsc::UnboundedReceiver<()>)
 
 /// Serves `router` until a stop signal, then lets connections finish, shuts the run manager down (which ends the
 /// SSE streams) and waits for the server.
-async fn run_server(
+pub(crate) async fn run_server(
     listener: std::net::TcpListener,
     router: axum::Router,
     manager: tellfold_server::ManagerThread,
