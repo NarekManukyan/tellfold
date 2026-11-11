@@ -1,0 +1,19 @@
+{
+  "slug": "dublin-7-bin-bag-ban-2026",
+  "title": "Dublin City Council extends its ban on street bin bags to residential Dublin 7",
+  "category": "local-government",
+  "announced_on": "2026-05-07",
+  "known_to_model": true,
+  "model_cutoff": "2026-06",
+  "question": "How will Dublin 7 residents react to this over the first two weeks, which groups will push back and why, and is Dublin City Council likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Small terraced houses have no room for wheelie bins, which would sit on the street all week.", "source": "https://dublininquirer.com/revolt-continues-in-dublin-7-over-proposed-shift-from-bags-to-bins/"},
+    {"id": "o2", "text": "Switching to bin plans will raise household costs.", "source": "https://dublinpeople.com/news/northsidewest/articles/2026/07/07/residents-rally-against-proposed-dublin-bin-bag-ban/"},
+    {"id": "o3", "text": "Residents were not consulted before the decision.", "source": "https://dublinpeople.com/news/northsidewest/articles/2026/07/07/residents-rally-against-proposed-dublin-bin-bag-ban/"},
+    {"id": "o4", "text": "Private collectors control the options; a single area-wide collector is needed first.", "source": "https://irishtimes.com/ireland/dublin/2026/09/30/bin-bag-ban-dumped-by-dublin-city-council"}
+  ],
+  "backdown": {"happened": true, "kind": "partial", "date": "2026-09-30", "summary": "Start pushed from July to August, then to October with a consultation, then suspended with no date on 30 Sep 2026 after most consultation respondents opposed it. The council still intends to remove the derogation eventually.", "source": "https://irishtimes.com/ireland/dublin/2026/09/30/bin-bag-ban-dumped-by-dublin-city-council"},
+  "pushback_groups": ["Dublin 7 residents (Stoneybatter, Smithfield, Phibsborough)", "local Labour TD and Labour councillors", "Green Party councillors"],
+  "notes": "CONTROL CASE (known_to_model: true): announced 7 May 2026, before the June 2026 cutoff, though the first press-documented pushback (15 June public meeting) is close to the cutoff and the suspension is after it. Backdown is partial: an indefinite suspension, not a formal repeal. Note the two-week window is weak here because organised protest started about five weeks after the first report."
+}

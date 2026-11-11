@@ -1,0 +1,18 @@
+{
+  "slug": "corner-cafe-prices",
+  "title": "Linden & Rye raises its prices (fictional fixture)",
+  "category": "pricing",
+  "announced_on": "2026-08-01",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will regular customers react to this over the first two weeks, which groups will push back and why, and is the café likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "The coffee price rise is too steep", "source": "https://example.com/a"},
+    {"id": "o2", "text": "Closing on Tuesdays is inconvenient for regulars", "source": "https://example.com/a"},
+    {"id": "o3", "text": "The neighbour card only helps daily customers", "source": "https://example.com/b"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "", "source": null},
+  "pushback_groups": ["regular customers", "students"],
+  "notes": "Fixture for the harness tests only."
+}

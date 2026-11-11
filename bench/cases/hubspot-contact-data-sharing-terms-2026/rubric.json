@@ -1,0 +1,19 @@
+{
+  "slug": "hubspot-contact-data-sharing-terms-2026",
+  "title": "HubSpot terms let enrichment data be shared across customers by default",
+  "category": "policy",
+  "announced_on": "2026-07-01",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will HubSpot's business customers react to this over the first two weeks, which groups will push back and why, and is HubSpot likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Customers were opted in by default instead of being asked", "source": "https://www.cmswire.com/customer-experience/hubspot-reverses-customer-data-enrichment-plan-after-customer-backlash/"},
+    {"id": "o2", "text": "The CRM data belongs to the customer, not to HubSpot to share", "source": "https://www.salesforceben.com/hubspot-backtracks-after-ai-data-sharing-controversy/"},
+    {"id": "o3", "text": "Customers' contact data could be handed to other businesses, including competitors", "source": "https://ppc.land/hubspot-kills-contact-discovery-terms-after-customer-backlash/"},
+    {"id": "o4", "text": "If HubSpot wants customers' data it should pay for it", "source": "https://www.cmswire.com/customer-experience/hubspot-reverses-customer-data-enrichment-plan-after-customer-backlash/"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-07-05", "summary": "Dropped the 1 July terms changes, apologised, and promised any future data sharing will be fully opt-in", "source": "https://www.cmswire.com/customer-experience/hubspot-reverses-customer-data-enrichment-plan-after-customer-backlash/"},
+  "pushback_groups": ["B2B sales leaders and fractional CROs", "RevOps and HubSpot admins", "customers threatening to switch CRM"],
+  "notes": "A business-to-business case; the reaction happened mainly on LinkedIn. Full reversal within about four days, with public C-level apologies. A minority supported the idea but criticised the communication."
+}

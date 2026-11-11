@@ -1,0 +1,19 @@
+{
+  "slug": "natwest-office-attendance-2026",
+  "title": "NatWest ends remote-first working and requires two office days a week from February 2027",
+  "category": "workplace",
+  "announced_on": "2026-10-20",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will NatWest and Ulster Bank employees react to this over the first two weeks, which groups will push back and why, and is NatWest likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "It breaches the consultation process agreed in the 2025 pay deal.", "source": "https://www.933thedrive.com/2026/10/20/natwest-faces-union-backlash-after-asking-staff-to-spend-at-least-two-days-a-week-in-office/"},
+    {"id": "o2", "text": "It raises travel and childcare costs for many lower-paid staff after real-terms pay cuts.", "source": "https://fstech.co.uk/fst/Unite_Criticises_NatWest_Over_Tougher_Office_Attendance_Policy.php"},
+    {"id": "o3", "text": "Homeworking lets staff manage caring duties and health conditions; this disrupts that.", "source": "https://www.933thedrive.com/2026/10/20/natwest-faces-union-backlash-after-asking-staff-to-spend-at-least-two-days-a-week-in-office/"},
+    {"id": "o4", "text": "Employers that promoted remote work are breaking an understanding with staff.", "source": "https://remoteworkeurope.eu/news/2026/natwest-abolishes-remote-first-category-uk-staff/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No change as of 21 Oct 2026; Unite asked for a pause and launched a member survey.", "source": "https://fstech.co.uk/fst/Unite_Criticises_NatWest_Over_Tougher_Office_Attendance_Policy.php"},
+  "pushback_groups": ["Unite union", "Financial Services Union (Ulster Bank)", "remote-first staff", "carers and disabled workers"],
+  "notes": "Recent case: announced 20 Oct 2026, so only about three weeks of follow-up existed when written; treat backdown as provisional ('none so far'). Useful paired with the Barclays case: similar policy, different stage."
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "hillsborough-leggings-dress-code-2026",
+  "title": "Hillsborough County schools restrict leggings and spandex in 2026-27 dress code",
+  "category": "school",
+  "announced_on": "2026-07-14",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will parents and students in Hillsborough County react to this over the first two weeks, which groups will push back and why, and is the Hillsborough County School Board likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "The leggings rule unfairly targets female students and breaks the district promise to apply dress rules equally.", "source": "https://www.change.org/p/reverse-hillsborough-county-schools-dress-code-decision"},
+    {"id": "o2", "text": "It was adopted just before the school year without input from parents or the wider student body.", "source": "https://www.change.org/p/reverse-hillsborough-county-schools-dress-code-decision"},
+    {"id": "o3", "text": "It is unrealistic in Florida's heat and impractical for athletes.", "source": "https://www.tampabaybeacons.com/2026/08/13/hillsborough-schools-reverse-dress-code-changes-after-leggings-outcry/"},
+    {"id": "o4", "text": "It would make the district among the most restrictive of its neighbours.", "source": "https://www.fox13news.com/news/hillsborough-dress-code-school-board-reverses-ban-leggings.amp"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-08-04", "summary": "Board voted 5-1 to drop the leggings and spandex restriction and restore the previous rule before school started; the rest of the new code, including the pajama ban, stayed. Board said it may revisit the dress code at a 29 Sept workshop.", "source": "https://www.fox13news.com/news/hillsborough-dress-code-school-board-reverses-ban-leggings.amp"},
+  "pushback_groups": ["parents (Change.org petition)", "female middle and high school students", "board members including the chair and vice chair"],
+  "notes": "Reversal is full for the leggings rule, which was the only part that drew sustained objection. Board approval was 14 Jul; families learned of it around 20 Jul, so the effective reaction window starts then. One outlet dates the reversal 11 Aug; three others say 4 Aug."
+}

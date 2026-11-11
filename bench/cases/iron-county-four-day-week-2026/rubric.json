@@ -1,0 +1,19 @@
+{
+  "slug": "iron-county-four-day-week-2026",
+  "title": "Iron County School District (Utah) votes 4-3 to adopt a four-day school week from 2027-28",
+  "category": "school",
+  "announced_on": "2026-08-25",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will parents, students and staff in Iron County react to this over the first two weeks, which groups will push back and why, and is the Iron County Board of Education likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "Working parents face Friday childcare costs or must stay home.", "source": "https://kutv.com/news/education/iron-county-schools-approve-move-to-four-day-school-week-starting-in-2027"},
+    {"id": "o2", "text": "Losing a school day will hurt learning and test scores.", "source": "https://kutv.com/news/education/iron-county-schools-approve-move-to-four-day-school-week-starting-in-2027"},
+    {"id": "o3", "text": "It helps some families and harms others, especially students without adult support on Fridays.", "source": "https://ironcountytoday.com/?p=13626"},
+    {"id": "o4", "text": "Savings may be small and longer days add teacher workload.", "source": "https://kutv.com/news/education/iron-county-schools-approve-move-to-four-day-school-week-starting-in-2027"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Decision stands for 2027-28 with an option to delay to 2028-29; no reversal reported.", "source": "https://ironcountytoday.com/?p=13626"},
+  "pushback_groups": ["working and dual-income parents", "some parent-educators", "three dissenting board members"],
+  "notes": "Majority support in surveys (61-67% of parents, 71% of staff) alongside vocal minority opposition: a good mixed-reaction case. The vote followed a year of consultation, so much of the debate happened before the decision day."
+}

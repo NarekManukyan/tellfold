@@ -1,0 +1,19 @@
+{
+  "slug": "ireland-nta-fare-increase-2026",
+  "title": "Ireland's National Transport Authority raises adult bus and rail fares 15% on average from January 2027",
+  "category": "public-service",
+  "announced_on": "2026-09-03",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will public transport users in Ireland react to this over the first two weeks, which groups will push back and why, and is the National Transport Authority (and the government) likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "It adds to cost-of-living pressure and hits workers, students and lower-income commuters hardest.", "source": "https://dublinpeople.com/news/northsidewest/articles/2026/09/10/fury-over-15-fare-hike/"},
+    {"id": "o2", "text": "It is unfair while the government keeps cutting fuel excise for drivers.", "source": "https://www.rte.ie/news/ireland/2026/0903/1590193-transport-fares/"},
+    {"id": "o3", "text": "Dearer fares push people back into cars and undercut climate goals and passenger growth.", "source": "https://www.irishtimes.com/transport/2026/09/03/bus-and-rail-fares-to-increase-15-on-average/"},
+    {"id": "o4", "text": "Higher commuting costs will feed into wage claims; the government should fund a halt.", "source": "https://www.siptu.ie/siptu-calls-on-government-to-prevent-15-public-transport-fare-increase/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Government and NTA kept the January 2027 rise through Budget 2027 (6 Oct 2026), raising PSO subsidy instead to fund new services; another fares review is expected for 2028.", "source": "https://www.irishtimes.com/your-money/2026/10/06/more-than-1-billion-set-aside-for-bus-and-rail-but-passengers-face-another-fare-review/"},
+  "pushback_groups": ["commuter groups (Dublin Commuter Coalition)", "SIPTU trade union", "opposition parties (Labour, Greens, People Before Profit)", "local councillors", "climate advisory bodies"],
+  "notes": "Child fares fall and free-travel groups are protected, so the pain is concentrated on adult fare payers. Pressure focused on getting the Budget to fund a halt; it did not."
+}
