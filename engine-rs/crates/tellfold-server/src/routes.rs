@@ -254,6 +254,67 @@ pub async fn stop_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<Stri
     .await
 }
 
+// ---------- the cast of a run waiting at personas_ready ----------
+
+/// `{waiting, personas}`: the cast under review, or the run's people once it is past that point.
+pub async fn get_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        Ok(ok_json(&m.cast(&run_id)))
+    })
+    .await
+}
+
+/// Replaces the cast of a waiting run with `{personas: [Persona]}`; returns `{waiting, personas}` as tidied.
+pub async fn put_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
+    let value = parse_body(&body, true)?.unwrap_or(Value::Null);
+    let personas =
+        value.get("personas").cloned().ok_or_else(|| ApiError::new(400, "send {\"personas\": [...]}")).and_then(
+            |v| {
+                serde_json::from_value::<Vec<tellfold_models::Persona>>(v)
+                    .map_err(|e| ApiError::new(400, format!("personas: {e}")))
+            },
+        )?;
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        let personas = m.replace_cast(&run_id, personas)?;
+        Ok(ok_json(&json!({"waiting": true, "personas": personas})))
+    })
+    .await
+}
+
+/// Lets a waiting run go on with its cast.
+pub async fn confirm_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        m.confirm_cast(&run_id)?;
+        Ok(ok_json(&json!({"ok": true})))
+    })
+    .await
+}
+
+/// `{description: str (1-500), count: int (1-20, default 3)}`: the engine writes that group and adds it to the
+/// waiting cast; returns `{waiting, personas}`.
+pub async fn add_group(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
+    let value = parse_body(&body, true)?.unwrap_or(Value::Null);
+    let mut checker = Checker::new();
+    let loc = [json!("body")];
+    let fields = checker.object(&value, &loc, None).map(|obj| {
+        (
+            checker.string(obj, "description", &loc, true, Some(1), Some(500), None),
+            checker.int(obj, "count", &loc, Some(3), Some(1), Some(tellfold_engine::personas::MAX_GROUP as i64)),
+        )
+    });
+    checker.finish()?;
+    let Some((Some(description), Some(count))) = fields else { unreachable!("validated") };
+    on_manager(&app.handle, move |m| async move {
+        run_dir_of(&m, &run_id)?;
+        let personas = m.add_group(&run_id, py_strip(&description), count as usize).await?;
+        Ok(ok_json(&json!({"waiting": true, "personas": personas})))
+    })
+    .await
+}
+
 pub async fn chat(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
     let value = parse_body(&body, true)?.unwrap_or(Value::Null);
     let mut checker = Checker::new();

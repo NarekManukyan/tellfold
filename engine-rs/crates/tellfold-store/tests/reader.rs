@@ -40,6 +40,7 @@ fn running_status(pid: Option<i64>) -> RunStatus {
         started_at: now_iso(),
         updated_at: now_iso(),
         failed_batches: vec![],
+        pause: None,
     }
 }
 

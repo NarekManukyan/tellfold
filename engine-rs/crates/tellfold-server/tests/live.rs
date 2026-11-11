@@ -279,6 +279,9 @@ fn make_external_run(runs_dir: &Path, run_id: &str, with_report: bool, status: O
             activity: 0.6,
             influence: 0.5,
             entity_id: None,
+            camp: None,
+            source: None,
+            tier: None,
         })
         .collect();
     write_json(&run_dir.join("personas.json"), &people).unwrap();
@@ -312,6 +315,7 @@ fn running_status(pid: Option<i64>, round: i64) -> RunStatus {
         started_at: now_iso(),
         updated_at: now_iso(),
         failed_batches: Vec::new(),
+        pause: None,
     }
 }
 
@@ -660,4 +664,137 @@ fn an_empty_token_is_refused() {
     let tmp = tempfile::tempdir().unwrap();
     let options = ManagerOptions::new(&tmp.path().join("runs"), Factory::new().llm_factory());
     let _ = create_app(options, AppOptions { fake_llm: true, token: Some(String::new()), ..Default::default() });
+}
+
+impl Server {
+    /// A 4-person, 1-round run with extra form fields.
+    async fn start_run_with(&self, fields: &[(&str, String)]) -> (u16, Value) {
+        let mut form = reqwest::multipart::Form::new()
+            .text("question", "Will Harbour Town accept the ferry fare rise?")
+            .text("agents", "4")
+            .text("rounds", "1")
+            .text("batch", "2")
+            .part("files[]", reqwest::multipart::Part::bytes(SEED_TEXT.as_bytes()).file_name("harbour.md"));
+        for (key, value) in fields {
+            form = form.text(key.to_string(), value.clone());
+        }
+        let res = self.http.post(self.url("/api/runs")).multipart(form).send().await.unwrap();
+        (res.status().as_u16(), res.json().await.unwrap_or(Value::Null))
+    }
+
+    async fn put(&self, path: &str, body: Value) -> (u16, Value) {
+        let res = self.http.put(self.url(path)).json(&body).send().await.unwrap();
+        (res.status().as_u16(), res.json().await.unwrap_or(Value::Null))
+    }
+
+    async fn wait_paused(&self, run_id: &str) -> Value {
+        let deadline = Instant::now() + TIMEOUT;
+        loop {
+            let d = self.detail(run_id).await;
+            if d["status"]["pause"] == "personas_ready" {
+                return d;
+            }
+            assert!(Instant::now() < deadline, "timed out waiting for {run_id} to pause: {}", d["status"]);
+            tokio::time::sleep(Duration::from_millis(30)).await;
+        }
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn review_the_cast_edit_it_add_a_group_and_continue() {
+    let server = Server::start().await;
+    let (status, created) = server.start_run_with(&[("review_cast", "1".into()), ("fair_turns", "true".into())]).await;
+    assert_eq!(status, 200, "{created}");
+    let run_id = created["id"].as_str().unwrap().to_string();
+    let cast_url = format!("/api/runs/{run_id}/personas");
+    let sse = SseReader::open(&server, &run_id).await;
+    let ready = sse.wait("personas_ready").await;
+    assert_eq!(ready["personas"].as_array().unwrap().len(), 4);
+    let detail = server.wait_paused(&run_id).await;
+    assert_eq!((detail["live"].clone(), detail["status"]["stage"].clone()), (json!(true), json!("personas")));
+
+    let (status, cast) = server.get(&cast_url).await;
+    assert_eq!((status, cast["waiting"].clone()), (200, json!(true)));
+    let mut people = cast["personas"].as_array().unwrap().clone();
+    assert!(people.iter().all(|p| p["camp"].is_string() || p["entity_id"].is_string()), "fair casts plan camps");
+    // remove the first person, rewrite the next one's stance
+    people.remove(0);
+    people[0]["stance"] = json!("Now firmly in favour of the electric ferry.");
+    people[0]["source"] = json!("edited");
+    let (status, edited) = server.put(&cast_url, json!({"personas": people})).await;
+    assert_eq!(status, 200, "{edited}");
+    let edited = edited["personas"].as_array().unwrap().clone();
+    assert_eq!(edited.len(), 3);
+    assert_eq!((edited[0]["id"].clone(), edited[0]["source"].clone()), (json!("a01"), json!("edited")));
+    assert_eq!(server.put(&cast_url, json!({"personas": []})).await.0, 400);
+    assert_eq!(server.put(&cast_url, json!({"people": []})).await.0, 400);
+
+    let group_url = format!("{cast_url}/group");
+    assert_eq!(server.post(&group_url, json!({"description": ""})).await.0, 422);
+    assert_eq!(server.post(&group_url, json!({"description": "x", "count": 21})).await.0, 422);
+    let (status, grown) = server
+        .post(&group_url, json!({"description": "three parents of Year 7 children who take the bus", "count": 3}))
+        .await;
+    assert_eq!(status, 200, "{grown}");
+    let grown = grown["personas"].as_array().unwrap().clone();
+    assert_eq!(grown.len(), 6);
+    assert!(grown[3..].iter().all(|p| p["source"] == "group" && p["camp"].is_string()));
+    assert_eq!(server.factory.count("personas.group"), 1);
+    assert_eq!(server.factory.count("engine.round"), 0, "nothing runs while the cast is under review");
+
+    assert_eq!(server.post_empty(&cast_url).await, (200, json!({"ok": true})));
+    let done = server.wait_state(&run_id, &["done"]).await;
+    assert_eq!(done["personas"].as_array().unwrap().len(), 6);
+    assert_eq!(done["config"]["num_agents"], 6);
+    assert_eq!(done["config"]["review_cast"], true);
+    assert!(done["status"].get("pause").is_none());
+    assert_eq!(done["personas"][0]["stance"], "Now firmly in favour of the electric ferry.");
+    // past the pause, the cast can be read but not changed
+    let (status, cast) = server.get(&cast_url).await;
+    assert_eq!((status, cast["waiting"].clone(), cast["personas"].as_array().unwrap().len()), (200, json!(false), 6));
+    assert_eq!(server.post_empty(&cast_url).await.0, 409);
+    assert_eq!(server.put(&cast_url, json!({"personas": grown})).await.0, 409);
+    sse.close();
+    server.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn stop_while_the_cast_is_under_review() {
+    let server = Server::start().await;
+    let (_, created) = server.start_run_with(&[("review_cast", "on".into())]).await;
+    let run_id = created["id"].as_str().unwrap().to_string();
+    server.wait_paused(&run_id).await;
+    assert_eq!(server.post_empty(&format!("/api/runs/{run_id}/stop")).await, (200, json!({"ok": true})));
+    let d = server.wait_state(&run_id, &["stopped"]).await;
+    assert!(d["report"].is_null());
+    assert!(d["status"].get("pause").is_none());
+    assert_eq!(server.factory.count("engine.round"), 0);
+    server.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_saved_audience_skips_casting() {
+    let server = Server::start().await;
+    let audience = json!({
+        "name": "  Bus   parents ",
+        "personas": [
+            {"id": "x", "handle": "parent_one", "name": "Parent One", "bio": "b", "background": "bg",
+             "stance": "worried about the fare", "camp": "lean_critical"},
+            {"id": "y", "handle": "parent_one", "name": "Parent Two", "bio": "b", "background": "bg",
+             "stance": "keen on the ferry", "camp": "strong_support"},
+        ],
+        "graph": {"entities": [], "relations": []},
+    });
+    assert_eq!(server.start_run_with(&[("audience", "{not json".into())]).await.0, 400);
+    assert_eq!(server.start_run_with(&[("audience", json!({"name": "x", "personas": []}).to_string())]).await.0, 400);
+    let (status, created) = server.start_run_with(&[("audience", audience.to_string())]).await;
+    assert_eq!(status, 200, "{created}");
+    let run_id = created["id"].as_str().unwrap().to_string();
+    let d = server.wait_state(&run_id, &["done"]).await;
+    assert_eq!(d["config"]["audience"], "Bus parents");
+    assert_eq!(d["config"]["num_agents"], 2);
+    let handles: Vec<&str> = d["personas"].as_array().unwrap().iter().map(|p| p["handle"].as_str().unwrap()).collect();
+    assert_eq!(handles, ["parent_one", "parent_one_2"]);
+    assert_eq!(server.factory.count("personas.batch") + server.factory.count("graph.extract"), 0);
+    server.shutdown().await;
 }

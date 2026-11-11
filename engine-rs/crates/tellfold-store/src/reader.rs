@@ -393,6 +393,7 @@ impl RunReader {
             started_at: iso_from_timestamp(started),
             updated_at: iso_from_timestamp(updated),
             failed_batches: Vec::new(),
+            pause: None,
         }
     }
 

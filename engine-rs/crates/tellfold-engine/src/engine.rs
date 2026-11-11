@@ -34,6 +34,14 @@ pub const MAX_NOTE_CHARS: usize = 280;
 pub const OPENING_SHARE: f64 = 0.3;
 /// breaking news pulls lurkers in
 pub const EVENT_ACTIVITY_BOOST: f64 = 0.15;
+/// With `fair_turns`, someone who holds a view strongly is never idle for more than this many rounds in a row.
+pub const STRONG_GAP: i64 = 2;
+
+/// Prompt notes for a `fair_turns` run, by why the user is given the floor this round.
+pub const TURN_UNHEARD: &str = "Not heard yet: nobody with this user's outlook has posted so far. This round they \
+write one post or reply in their own voice saying where they stand, even if that is unsure or unbothered.";
+pub const TURN_STRONG: &str = "This user feels strongly about the topic and has not posted yet: this round they \
+write one post or reply saying what they think.";
 
 fn action_alias(kind: &str) -> &str {
     match kind {
@@ -223,11 +231,13 @@ pub struct AgentView {
     pub feed: Vec<Post>,
     pub allowed_posts: HashSet<i64>,
     pub visible_authors: HashSet<String>,
+    /// a `fair_turns` note giving this user the floor this round ([`TURN_UNHEARD`] or [`TURN_STRONG`])
+    pub turn: Option<&'static str>,
 }
 
 impl AgentView {
     pub fn new(persona: Persona, feed: Vec<Post>) -> Self {
-        AgentView { persona, feed, allowed_posts: HashSet::new(), visible_authors: HashSet::new() }
+        AgentView { persona, feed, allowed_posts: HashSet::new(), visible_authors: HashSet::new(), turn: None }
     }
 }
 
@@ -265,7 +275,11 @@ impl<'a> Engine<'a> {
         self.emit("stage", json!({"stage": "follow_graph_done", "edges": edges.len()}));
 
         let events = self.inject_events(0)?;
-        let authors = pick_opening_authors(&personas, self.config.seed);
+        let authors = if self.config.fair_turns {
+            pick_opening_authors_fair(&personas, self.config.seed)
+        } else {
+            pick_opening_authors(&personas, self.config.seed)
+        };
         self.emit("stage", json!({"stage": "opening_posts", "authors": authors.len()}));
         let ledger = Ledger::default();
         let batches = chunks(&authors, self.config.batch_size);
@@ -370,7 +384,19 @@ impl<'a> Engine<'a> {
         let events = self.inject_events(r)?;
         let personas = self.world.personas()?;
         let news = events.iter().any(|e| e.round == r);
-        let active = sample_active(&personas, r, self.config.seed, news)?;
+        let mut active = sample_active(&personas, r, self.config.seed, news)?;
+        let mut turns: HashMap<String, &'static str> = HashMap::new();
+        if self.config.fair_turns {
+            let posted: HashSet<String> = self.world.posts(None)?.into_iter().map(|p| p.author_id).collect();
+            let mut last_active: HashMap<String, i64> = HashMap::new();
+            for (round, action) in self.world.actions(None)? {
+                let last = last_active.entry(action.agent_id).or_insert(round);
+                *last = (*last).max(round);
+            }
+            let (extra, given) = fair_turns(&personas, &active, &posted, &last_active, r);
+            active.extend(extra);
+            turns = given;
+        }
         let batches = chunks(&active, self.config.batch_size);
         let current: Vec<&str> = events.iter().filter(|e| e.round == r).map(|e| e.content.as_str()).collect();
         let ids: Vec<&str> = active.iter().map(|p| p.id.as_str()).collect();
@@ -388,7 +414,9 @@ impl<'a> Engine<'a> {
         let ledger = Ledger::default();
         let mut views: HashMap<String, AgentView> = HashMap::new();
         for p in &active {
-            views.insert(p.id.clone(), self.view(p, r)?);
+            let mut view = self.view(p, r)?;
+            view.turn = turns.get(&p.id).copied();
+            views.insert(p.id.clone(), view);
         }
         // Every prompt is written before any batch is applied: in Python the batch tasks all start (and build
         // their prompts) before the first one is awaited.
@@ -520,7 +548,10 @@ impl<'a> Engine<'a> {
             let engaged = self.world.engagement_by(&p.id)?;
             blocks.push(
                 [
-                    persona_block(p, &self.world.memory(&p.id)?),
+                    match v.turn {
+                        Some(note) => format!("{}\n{note}", persona_block(p, &self.world.memory(&p.id)?)),
+                        None => persona_block(p, &self.world.memory(&p.id)?),
+                    },
                     format!(
                         "Follows {} accounts, followed by {}.",
                         following.len(),
@@ -724,6 +755,91 @@ pub fn sample_active(personas: &[Persona], r: i64, seed: i64, news: bool) -> Res
     }
     rng.shuffle(&mut active); // mix batch composition so the same agents are not always decided together
     Ok(active)
+}
+
+/// Who else acts this round in a `fair_turns` run, and who is given the floor.
+///
+/// `active` is this round's [`sample_active`] draw, `posted` the authors of every post so far, `last_active` the
+/// last round each agent acted in. Two rules add people (in id order, after the draw):
+/// - a camp nobody in it has posted for yet always has someone in the round: its most active member, the one idle
+///   longest on a tie;
+/// - someone whose camp holds its view strongly is never idle for more than [`STRONG_GAP`] rounds in a row.
+///
+/// Returns the added personas and the floor notes: [`TURN_UNHEARD`] for every active member of an unheard camp,
+/// [`TURN_STRONG`] for every other active strong voice who has not posted yet. People without a camp (entity
+/// accounts, older casts) are left to the draw.
+pub fn fair_turns(
+    personas: &[Persona],
+    active: &[Persona],
+    posted: &HashSet<String>,
+    last_active: &HashMap<String, i64>,
+    r: i64,
+) -> (Vec<Persona>, HashMap<String, &'static str>) {
+    let ordered = by_id(personas);
+    let mut chosen: HashSet<String> = active.iter().map(|p| p.id.clone()).collect();
+    let mut extra: Vec<Persona> = Vec::new();
+    let last = |p: &Persona| last_active.get(&p.id).copied().unwrap_or(0);
+    let mut unheard: HashSet<&str> = HashSet::new();
+    for camp in crate::personas::CAMPS {
+        let members: Vec<&Persona> = ordered.iter().filter(|p| p.camp.as_deref() == Some(camp)).collect();
+        if members.is_empty() || members.iter().any(|p| posted.contains(&p.id)) {
+            continue;
+        }
+        unheard.insert(camp);
+        if members.iter().any(|p| chosen.contains(&p.id)) {
+            continue;
+        }
+        // most active first, then idle longest, then id
+        let pick = members
+            .iter()
+            .copied()
+            .min_by(|a, b| {
+                b.activity.partial_cmp(&a.activity).unwrap_or(std::cmp::Ordering::Equal).then(last(a).cmp(&last(b)))
+            })
+            .expect("members is not empty");
+        chosen.insert(pick.id.clone());
+        extra.push(pick.clone());
+    }
+    for p in &ordered {
+        let strong = p.camp.as_deref().is_some_and(crate::personas::is_strong);
+        if strong && !chosen.contains(&p.id) && r - last(p) > STRONG_GAP {
+            chosen.insert(p.id.clone());
+            extra.push(p.clone());
+        }
+    }
+    extra.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut turns = HashMap::new();
+    for p in ordered.iter().filter(|p| chosen.contains(&p.id)) {
+        let Some(camp) = p.camp.as_deref() else { continue };
+        if unheard.contains(camp) {
+            turns.insert(p.id.clone(), TURN_UNHEARD);
+        } else if crate::personas::is_strong(camp) && !posted.contains(&p.id) {
+            turns.insert(p.id.clone(), TURN_STRONG);
+        }
+    }
+    (extra, turns)
+}
+
+/// [`pick_opening_authors`], plus in a `fair_turns` run the most active and influential member of every camp the
+/// draw left out, so each camp opens the conversation.
+pub fn pick_opening_authors_fair(personas: &[Persona], seed: i64) -> Vec<Persona> {
+    let mut chosen = pick_opening_authors(personas, seed);
+    let ordered = by_id(personas);
+    for camp in crate::personas::CAMPS {
+        let members: Vec<&Persona> = ordered.iter().filter(|p| p.camp.as_deref() == Some(camp)).collect();
+        if members.is_empty() || chosen.iter().any(|p| p.camp.as_deref() == Some(camp)) {
+            continue;
+        }
+        let pick = members
+            .iter()
+            .min_by(|a, b| {
+                (b.activity + b.influence).partial_cmp(&(a.activity + a.influence)).unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .expect("members is not empty");
+        chosen.push((*pick).clone());
+    }
+    chosen.sort_by(|a, b| a.id.cmp(&b.id));
+    chosen
 }
 
 /// Opening posts come mostly from entity accounts and the most active, influential people.

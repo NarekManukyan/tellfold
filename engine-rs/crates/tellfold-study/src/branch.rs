@@ -113,6 +113,9 @@ pub fn prepare_branch(
     config.cast_from = Some(source_id);
     config.study_id = options.study_id.map(str::to_string);
     config.variant = options.variant.map(str::to_string);
+    // a branch continues a world that already has its people
+    config.review_cast = false;
+    config.audience = None;
     write_json(&run_dir.join("config.json"), &config)?;
     Ok(config)
 }

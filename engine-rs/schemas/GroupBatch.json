@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "GroupDraft": {
+      "properties": {
+        "slot": {
+          "title": "Slot",
+          "type": "string"
+        },
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "bio": {
+          "title": "Bio",
+          "type": "string"
+        },
+        "background": {
+          "title": "Background",
+          "type": "string"
+        },
+        "stance": {
+          "title": "Stance",
+          "type": "string"
+        },
+        "traits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Traits",
+          "type": "array"
+        },
+        "activity": {
+          "default": 0.5,
+          "title": "Activity",
+          "type": "number"
+        },
+        "influence": {
+          "default": 0.3,
+          "title": "Influence",
+          "type": "number"
+        },
+        "camp": {
+          "description": "starting leaning toward the question's subject, one of: lean_support, lean_critical, undecided, indifferent, strong_support, strong_critical",
+          "enum": [
+            "lean_support",
+            "lean_critical",
+            "undecided",
+            "indifferent",
+            "strong_support",
+            "strong_critical"
+          ],
+          "title": "Camp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot",
+        "handle",
+        "name",
+        "bio",
+        "background",
+        "stance",
+        "camp"
+      ],
+      "title": "GroupDraft",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "personas": {
+      "items": {
+        "$ref": "#/$defs/GroupDraft"
+      },
+      "title": "Personas",
+      "type": "array"
+    }
+  },
+  "title": "GroupBatch",
+  "type": "object"
+}

@@ -8,7 +8,7 @@ use tellfold_llm::{json, Llm, LlmError};
 use tellfold_models::json::{py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
-use tellfold_models::{Entity, KnowledgeGraph, Persona};
+use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::rng::PyRandom;
@@ -40,6 +40,29 @@ pub const ENGAGEMENT_MIX: [(Engagement, f64); 3] = [
     (("very active: posts and argues often", (0.6, 0.95)), 0.2),
 ];
 pub const AGE_BANDS: [&str; 6] = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
+/// The camp key of each [`STANCE_MIX`] leaning, in the same order. A persona's `camp` is one of these.
+pub const CAMPS: [&str; 6] =
+    ["lean_support", "lean_critical", "undecided", "indifferent", "strong_support", "strong_critical"];
+
+/// The camp of a [`STANCE_MIX`] leaning.
+pub fn camp_of(stance: &str) -> Option<&'static str> {
+    STANCE_MIX.iter().position(|(s, _)| *s == stance).map(|i| CAMPS[i])
+}
+
+/// Whether a camp holds its view strongly (in either direction).
+pub fn is_strong(camp: &str) -> bool {
+    camp.starts_with("strong_")
+}
+
+/// Persona `source` values.
+pub const SOURCE_CAST: &str = "cast";
+pub const SOURCE_GROUP: &str = "group";
+pub const SOURCE_EDITED: &str = "edited";
+
+/// The most people one described group may add, and the most a cast may hold.
+pub const MAX_GROUP: usize = 20;
+pub const MAX_CAST: usize = 200;
 
 fn d_05() -> f64 {
     0.5
@@ -77,7 +100,33 @@ pub struct VoicePick {
     pub entity_ids: Vec<String>,
 }
 
+/// One person of a group the user described, with the camp the model placed them in.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GroupDraft {
+    pub slot: String,
+    pub handle: String,
+    pub name: String,
+    pub bio: String,
+    pub background: String,
+    pub stance: String,
+    #[serde(default)]
+    pub traits: Vec<String>,
+    #[serde(default = "d_05", deserialize_with = "lax::float")]
+    pub activity: f64,
+    #[serde(default = "d_03", deserialize_with = "lax::float")]
+    pub influence: f64,
+    #[serde(default)]
+    pub camp: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct GroupBatch {
+    #[serde(default)]
+    pub personas: Vec<GroupDraft>,
+}
+
 tellfold_llm::json_model!(PersonaBatch, "../../../schemas/PersonaBatch.json");
+tellfold_llm::json_model!(GroupBatch, "../../../schemas/GroupBatch.json");
 tellfold_llm::json_model!(VoicePick, "../../../schemas/VoicePick.json");
 
 pub const VOICES_SYSTEM: &str = "\
@@ -96,6 +145,8 @@ pub struct Slot {
     pub brief: String,
     pub entity_id: Option<String>,
     pub activity_band: (f64, f64),
+    /// the planned camp (public slots only)
+    pub camp: Option<String>,
 }
 
 pub const SYSTEM_PROMPT: &str = "\
@@ -132,11 +183,25 @@ pub async fn generate_personas(
     model: &str,
     language: &str,
 ) -> Result<Vec<Persona>, LlmError> {
+    generate_cast(llm, graph, question, n, model, language, false).await
+}
+
+/// [`generate_personas`], and with `fair` the cast of a `fair_turns` run: vocal stances never get a lurker's
+/// activity, and every persona records its camp and source.
+pub async fn generate_cast(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    question: &str,
+    n: usize,
+    model: &str,
+    language: &str,
+    fair: bool,
+) -> Result<Vec<Persona>, LlmError> {
     if n == 0 {
         return Ok(Vec::new());
     }
     let voices = select_voices(llm, graph, question, n, model).await;
-    let slots = plan_slots(graph, question, n, voices.as_deref());
+    let slots = plan_cast(graph, question, n, voices.as_deref(), fair);
     let digest = graph_digest(graph);
     let mut filled: HashMap<String, Persona> = HashMap::new();
     let mut filled_order: Vec<String> = Vec::new();
@@ -158,7 +223,11 @@ pub async fn generate_personas(
             }
         };
         for (slot, draft) in match_drafts(&batch, result.personas) {
-            let persona = to_persona(slot, &draft, &mut taken);
+            let mut persona = to_persona(slot, &draft, &mut taken);
+            if fair {
+                persona.camp = slot.camp.clone();
+                persona.source = Some(SOURCE_CAST.into());
+            }
             if filled.insert(slot.label.clone(), persona).is_none() {
                 filled_order.push(slot.label.clone());
             }
@@ -169,6 +238,153 @@ pub async fn generate_personas(
         return Err(LlmError(format!("persona generation produced no personas{last_error}")));
     }
     Ok(renumber(slots.iter().filter_map(|s| filled.remove(&s.label)).collect()))
+}
+
+/// Writes `count` people for a group the user described in words ("three parents of Year 7 children who take the
+/// bus"), for adding to the cast of the run `config` describes, with its planner model and language. `existing` is
+/// the cast so far, so handles and people do not repeat.
+///
+/// Ids are placeholders ("g1"..): [`tidy_cast`] numbers the whole cast once the group is added.
+pub async fn generate_group(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    config: &SimConfig,
+    description: &str,
+    count: usize,
+    existing: &[Persona],
+) -> Result<Vec<Persona>, LlmError> {
+    let (question, model, language) =
+        (config.question.as_str(), config.planner_model.as_str(), config.language.as_str());
+    let description = py_strip(description);
+    if description.is_empty() {
+        return Err(LlmError("describe the group to add".into()));
+    }
+    let count = count.clamp(1, MAX_GROUP);
+    let slots: Vec<Slot> = (0..count)
+        .map(|i| Slot {
+            label: format!("g{}", i + 1),
+            brief: format!(
+                "one member of the group the user asked for ({description}); a distinct individual with their own \
+age, situation and voice"
+            ),
+            entity_id: None,
+            activity_band: (0.05, 0.95),
+            camp: None,
+        })
+        .collect();
+    let digest = graph_digest(graph);
+    let mut taken: HashSet<String> = existing.iter().map(|p| p.handle.clone()).collect();
+    let mut made: Vec<Persona> = Vec::new();
+    let mut pending: Vec<Slot> = slots.clone();
+    let mut last_error = String::new();
+    let mut calls_left = 2 * slots.len().div_ceil(BATCH_SIZE) + 1;
+    while !pending.is_empty() && calls_left > 0 {
+        calls_left -= 1;
+        let batch: Vec<Slot> = pending.iter().take(BATCH_SIZE).cloned().collect();
+        let mut shown: Vec<&Persona> = existing.iter().collect();
+        shown.extend(made.iter());
+        let prompt = group_prompt(&batch, &digest, question, description, language, &shown);
+        let result = match json::<GroupBatch>(llm, &prompt, SYSTEM_PROMPT, model, "personas.group").await {
+            Ok(result) => result,
+            Err(e) => {
+                last_error = format!(": {e}");
+                continue;
+            }
+        };
+        let camps: HashMap<String, String> =
+            result.personas.iter().map(|d| (py_strip(&d.slot).to_string(), d.camp.clone())).collect();
+        let drafts: Vec<PersonaDraft> = result
+            .personas
+            .into_iter()
+            .map(|d| PersonaDraft {
+                slot: d.slot,
+                handle: d.handle,
+                name: d.name,
+                bio: d.bio,
+                background: d.background,
+                stance: d.stance,
+                traits: d.traits,
+                activity: d.activity,
+                influence: d.influence,
+            })
+            .collect();
+        let mut filled: HashSet<String> = HashSet::new();
+        for (slot, draft) in match_drafts(&batch, drafts) {
+            let mut persona = to_persona(slot, &draft, &mut taken);
+            let camp = camps.get(py_strip(&draft.slot)).map(|c| py_strip(c).to_lowercase());
+            persona.camp = camp.filter(|c| CAMPS.contains(&c.as_str()));
+            persona.source = Some(SOURCE_GROUP.into());
+            filled.insert(slot.label.clone());
+            made.push(persona);
+        }
+        pending.retain(|s| !filled.contains(&s.label));
+    }
+    if made.is_empty() {
+        return Err(LlmError(format!("could not write the group{last_error}")));
+    }
+    Ok(made)
+}
+
+fn group_prompt(
+    batch: &[Slot],
+    digest: &str,
+    question: &str,
+    description: &str,
+    language: &str,
+    existing: &[&Persona],
+) -> String {
+    let base = batch_prompt(batch, digest, question, language, existing);
+    let (body, _) = base.rsplit_once("Return a JSON object:").unwrap_or((&base, ""));
+    format!(
+        "{body}The user described this group in their own words: \"{description}\". Follow the description \
+exactly (who they are, how many, what they do); where it says nothing about their views, let them differ as a real \
+group would. `camp` is each person's starting leaning toward the question's subject, one of: {}.\n\n\
+Return a JSON object:\n\
+{{\"personas\": [{{\"slot\": slot id, \"handle\": str, \"name\": str, \"bio\": str, \"background\": str,\n  \
+\"stance\": str, \"traits\": [str], \"activity\": float, \"influence\": float, \"camp\": str}}]}}",
+        CAMPS.join(", ")
+    )
+}
+
+/// Cleans a cast a client sent (edited, extended or loaded from a saved audience): text trimmed, at most
+/// [`MAX_CAST`] people, unique valid handles, activity and influence in 0..1, known camps only, and ids renumbered
+/// a01..aNN in order.
+pub fn tidy_cast(personas: Vec<Persona>) -> Vec<Persona> {
+    let mut taken: HashSet<String> = HashSet::new();
+    let tidy: Vec<Persona> = personas
+        .into_iter()
+        .take(MAX_CAST)
+        .map(|p| {
+            let handle = unique_handle(&p.handle, &p.name, &taken);
+            taken.insert(handle.clone());
+            let name = py_strip(&p.name);
+            let unit = |x: f64, default: f64| if x.is_finite() { py_round(clamp(x, 0.0, 1.0), 3) } else { default };
+            let keep = |v: Option<String>| v.map(|s| py_strip(&s).to_string()).filter(|s| !s.is_empty());
+            Persona {
+                name: if name.is_empty() { handle.clone() } else { name.to_string() },
+                handle,
+                bio: py_strip(&p.bio).into(),
+                background: py_strip(&p.background).into(),
+                stance: py_strip(&p.stance).into(),
+                traits: p
+                    .traits
+                    .iter()
+                    .map(|t| py_strip(t))
+                    .filter(|t| !t.is_empty())
+                    .take(MAX_TRAITS)
+                    .map(String::from)
+                    .collect(),
+                activity: unit(p.activity, 0.6),
+                influence: unit(p.influence, 0.5),
+                entity_id: keep(p.entity_id),
+                camp: keep(p.camp).filter(|c| CAMPS.contains(&c.as_str())),
+                source: keep(p.source),
+                tier: keep(p.tier),
+                ..p
+            }
+        })
+        .collect();
+    renumber(tidy)
 }
 
 /// Asks the planner which entities would really speak up about the question.
@@ -222,6 +438,13 @@ fn entity_limit(n: usize) -> usize {
 ///
 /// `voices` is the planner's pick from [`select_voices`]; None ranks by graph prominence instead.
 pub fn plan_slots(graph: &KnowledgeGraph, question: &str, n: usize, voices: Option<&[Entity]>) -> Vec<Slot> {
+    plan_cast(graph, question, n, voices, false)
+}
+
+/// [`plan_slots`]; with `fair`, a strongly held stance that drew a lurker's engagement swaps it with the first
+/// moderate or neutral slot that drew more, so the people most likely to speak up are not planned to stay silent.
+/// The random draws are the same either way.
+pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Option<&[Entity]>, fair: bool) -> Vec<Slot> {
     let candidates: Vec<Entity> = match voices {
         Some(v) => v.to_vec(),
         None => embodiable(graph),
@@ -241,12 +464,24 @@ pub fn plan_slots(graph: &KnowledgeGraph, question: &str, n: usize, voices: Opti
                 if e.summary.is_empty() { "see material" } else { &e.summary }
             ),
             activity_band: (0.0, 1.0),
+            camp: None,
         })
         .collect();
     let n_public = n - n_entity;
     let mut rng = PyRandom::from_str_seed(&format!("{question}|{n}"));
     let stances = allocate(&STANCE_MIX, n_public, &mut rng);
-    let engagement = allocate(&ENGAGEMENT_MIX, n_public, &mut rng);
+    let mut engagement = allocate(&ENGAGEMENT_MIX, n_public, &mut rng);
+    if fair {
+        let strong = |j: usize| camp_of(stances[j]).is_some_and(is_strong);
+        let lurker = ENGAGEMENT_MIX[0].0;
+        for j in 0..n_public {
+            if strong(j) && engagement[j] == lurker {
+                if let Some(k) = (0..n_public).find(|&k| !strong(k) && engagement[k] != lurker) {
+                    engagement.swap(j, k);
+                }
+            }
+        }
+    }
     let mut ages: Vec<&str> = (0..n_public).map(|i| AGE_BANDS[i % AGE_BANDS.len()]).collect();
     rng.shuffle(&mut ages);
     let groups: Vec<&str> = graph.entities.iter().filter(|e| e.kind == "group").map(|e| e.name.as_str()).collect();
@@ -262,7 +497,13 @@ pub fn plan_slots(graph: &KnowledgeGraph, question: &str, n: usize, voices: Opti
 (activity {:.2}-{:.2})",
             ages[j], stances[j], band.0, band.1
         );
-        slots.push(Slot { label: agent_id(n_entity + j, n), brief, entity_id: None, activity_band: band });
+        slots.push(Slot {
+            label: agent_id(n_entity + j, n),
+            brief,
+            entity_id: None,
+            activity_band: band,
+            camp: camp_of(stances[j]).map(String::from),
+        });
     }
     slots
 }
@@ -396,6 +637,9 @@ fn to_persona(slot: &Slot, draft: &PersonaDraft, taken: &mut HashSet<String>) ->
         activity: py_round(clamp(draft.activity, low, high), 3),
         influence: py_round(clamp(draft.influence, 0.0, 1.0), 3),
         entity_id: slot.entity_id.clone(),
+        camp: None,
+        source: None,
+        tier: None,
     }
 }
 

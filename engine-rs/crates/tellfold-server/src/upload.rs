@@ -13,10 +13,11 @@ use regex::Regex;
 use serde_json::{json, Value};
 use unicode_normalization::UnicodeNormalization;
 
+use tellfold_engine::personas::tidy_cast;
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{GodEvent, SimConfig};
+use tellfold_models::{GodEvent, KnowledgeGraph, Persona, SimConfig};
 use tellfold_runtimes::load_settings;
-use tellfold_store::files::now_iso;
+use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE};
 use tellfold_store::study::{join_study, plan_variant};
 
 use crate::error::{ok_json, ApiError, ApiResult};
@@ -291,6 +292,33 @@ struct Planned {
     cast_from: String,
     study_id: Option<String>,
     variant: Option<String>,
+    audience: Option<Audience>,
+}
+
+/// The `audience` field: a saved cast the app sends to skip the graph and persona stages.
+#[derive(serde::Deserialize)]
+struct Audience {
+    name: String,
+    personas: Vec<Persona>,
+    #[serde(default)]
+    graph: KnowledgeGraph,
+}
+
+/// Longest audience name kept in `config.audience`.
+const AUDIENCE_NAME_MAX: usize = 80;
+
+fn audience_field(form: &Form) -> Result<Option<Audience>, ApiError> {
+    let Some(text) = form.text("audience").filter(|t| !py_strip(t).is_empty()) else { return Ok(None) };
+    let mut audience: Audience =
+        serde_json::from_str(text).map_err(|e| ApiError::new(400, format!("audience is not a valid cast: {e}")))?;
+    let name = py_split(&audience.name).collect::<Vec<_>>().join(" ");
+    audience.name =
+        if name.is_empty() { "Saved audience".into() } else { name.chars().take(AUDIENCE_NAME_MAX).collect() };
+    audience.personas = tidy_cast(audience.personas);
+    if audience.personas.is_empty() {
+        return Err(ApiError::new(400, "the audience has no people"));
+    }
+    Ok(Some(audience))
 }
 
 fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
@@ -355,7 +383,13 @@ fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
     let cast_from = str_field(form, "cast_from", "", 200, Some(run_id_pattern()))?;
     let study_id = Some(str_field(form, "study_id", "", 100, Some(study_id_pattern()))?).filter(|s| !s.is_empty());
     let variant = Some(str_field(form, "variant", "", 60, None)?).filter(|s| !s.is_empty());
-    Ok(Planned { config, uploads, cast_from, study_id, variant })
+    config.review_cast = bool_field(form, "review_cast");
+    config.fair_turns = bool_field(form, "fair_turns");
+    let audience = audience_field(form)?;
+    if audience.is_some() && !cast_from.is_empty() {
+        return Err(ApiError::new(400, "use either cast_from or audience, not both"));
+    }
+    Ok(Planned { config, uploads, cast_from, study_id, variant, audience })
 }
 
 /// The config of the run whose people a new run reuses; 400 unless it got as far as having people.
@@ -415,7 +449,7 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
     drop(form);
     app.handle
         .call(move |m| async move {
-            let Planned { mut config, uploads, cast_from, study_id, variant } = planned;
+            let Planned { mut config, uploads, cast_from, study_id, variant, audience } = planned;
             let mut study = None;
             if !cast_from.is_empty() {
                 let source = cast_source(&m, &cast_from)?;
@@ -449,6 +483,17 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 }
             };
             config.seed_files = seeds.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+            if let Some(audience) = audience {
+                // the runner reads these back as the cast, so the graph and persona stages cost nothing
+                let written = write_json(&run_dir.join(GRAPH_FILE), &audience.graph)
+                    .and_then(|_| write_json_list(&run_dir.join(PERSONAS_FILE), &audience.personas));
+                if let Err(e) = written {
+                    let _ = std::fs::remove_dir_all(&run_dir);
+                    return Err(ApiError::internal(e));
+                }
+                config.num_agents = audience.personas.len() as i64;
+                config.audience = Some(audience.name);
+            }
             let run_name = run_dir.file_name().unwrap_or_default().to_string_lossy().into_owned();
             if let Some(study) = &study {
                 join_study(&m.runs_dir, study, &run_name, config.variant.as_deref().unwrap_or(""))
