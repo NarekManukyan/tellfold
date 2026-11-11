@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import shutil
 import sqlite3
+import sys
 import tempfile
 from pathlib import Path
 
@@ -372,7 +373,9 @@ def pdf() -> None:
         page.insert_text((72, 140), "Café owners on Pier Street worry about fewer stops.")
         page = doc.new_page()
         page.insert_text((72, 72), "Page two: the council votes on Monday.")
-        doc.save(out)
+        # no dates and no random file id, so regenerating writes the same bytes
+        doc.set_metadata({})
+        doc.save(out, no_new_id=True)
     [(name, text)] = load_documents([out])
     dump("ingest/pdf.json", {"name": name, "text": text})
 
@@ -1352,6 +1355,10 @@ def study_fixtures() -> None:
 
 
 def main() -> None:
+    # sum() is compensated (Neumaier) only from 3.12; numbers.json and the engine's averages depend on it.
+    if sys.version_info < (3, 12):
+        sys.exit("regenerate the fixtures with Python 3.12 or newer (uv run --python 3.13 ...)")
+    freeze_engine_clock()
     if OUT.exists():
         shutil.rmtree(OUT)
     for run_dir in sorted(p for p in EXAMPLES.iterdir() if p.is_dir()):
@@ -1377,6 +1384,21 @@ def main() -> None:
     dump("letters.json", {"letters": [letter(i) for i in range(30)],
                           "variants": [default_variant(i) for i in range(30)]})
     print(f"wrote {sum(1 for _ in OUT.rglob('*.json'))} fixtures to {OUT} and {len(schema_classes())} schemas")
+
+
+def freeze_engine_clock() -> None:
+    """Make the engine time every model call as 0 s, so `llm_seconds` is 0.0 on any machine.
+
+    Only `tellfold.engine`'s own reference to `time` is replaced; asyncio keeps the real clock.
+    """
+    import time
+    import types
+
+    import tellfold.engine as engine
+
+    clock = types.SimpleNamespace(**{name: getattr(time, name) for name in dir(time) if not name.startswith("_")})
+    clock.monotonic = lambda: 0.0
+    engine.time = clock
 
 
 if __name__ == "__main__":

@@ -195,6 +195,10 @@ def new_names(folder: Path, known: list[str]) -> list[str]:
 def main() -> None:
     from fastapi.testclient import TestClient
 
+    from make import freeze_engine_clock  # this folder is on sys.path when the script runs
+
+    freeze_engine_clock()
+
     from tellfold.cli import fake_responder
     from tellfold.llm import FakeLLM
     from tellfold.server import create_app
@@ -231,12 +235,20 @@ def main() -> None:
         for s in out:
             if "body" in s and isinstance(s["body"], str):
                 s["body"] = normalise(s["body"], root, runs, studies)
+                if s["name"] in LISTS:
+                    # ids are random, so the server's id order is too; stored in placeholder order (api.rs sorts both)
+                    items = sorted(json.loads(s["body"]), key=lambda item: item.get("id", ""))
+                    s["body"] = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
             if "headers_out" in s:
                 s["headers_out"] = {k: normalise(v, root, runs, studies) for k, v in s["headers_out"].items()}
     OUT.mkdir(parents=True, exist_ok=True)
     session = {"runs": len(runs), "studies": len(studies), "headers": HEADERS, "steps": out}
     (OUT / "session.json").write_text(json.dumps(session, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {OUT / 'session.json'}: {len(out)} steps, {len(runs)} runs, {len(studies)} studies")
+
+
+# Steps whose body is a list of runs or studies (LISTS in crates/tellfold-server/tests/api.rs).
+LISTS = {"runs", "runs with example", "all runs", "studies", "all studies", "no runs yet"}
 
 
 def send(client: Any, s: dict[str, Any], resolve: Any) -> dict[str, Any]:
