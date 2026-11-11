@@ -2,7 +2,7 @@
 
 This page is for people who want to build Tellfold from source, use the command-line engine, or cut a release. If you just want to use the app, see the [README](../README.md).
 
-The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. The logo and brand files live in `brand/` (see `brand/README.md`).
+The engine is a Python package (`tellfold/`) with a Rust port in `engine-rs/` that behaves the same. The Mac app (`mac/`) bundles the Rust build. The logo and brand files live in `brand/` (see `brand/README.md`).
 
 > **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
@@ -10,6 +10,7 @@ The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. T
 
 - **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
 - **[uv](https://docs.astral.sh/uv/)** for Python and dependencies. Python 3.11 or newer; uv installs it for you if needed.
+- **[Rust](https://rustup.rs)** (stable) to build the Mac app, which bundles the Rust engine, or to work on `engine-rs/`.
 - macOS or Linux. Windows should work under WSL, but nobody has tested it.
 
 ## Install
@@ -129,8 +130,8 @@ Tips:
 
 ## How it works
 
-1. **Ingest.** Text is pulled out of the seed files (PDFs via PyMuPDF) and cut into overlapping chunks on paragraph boundaries.
-2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results in plain Python.
+1. **Ingest.** Text is pulled out of the seed files and cut into overlapping chunks on paragraph boundaries. The Python package reads PDFs with PyMuPDF and the Rust engine (the one in the app) with `pdf-extract`, so a PDF's chunks can differ in whitespace and reading order between the two (see "Risks" in `docs/rust-port.md`).
+2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results itself, without a model call.
 3. **Personas.** The planner turns the most important actors into official accounts and public figures, then fills the rest of the cast with ordinary members of the affected public: different ages, jobs, incentives and starting views, including people who simply do not care.
 4. **World.** A small social platform lives in SQLite: posts, replies, reposts, likes, dislikes and follows. Each agent's feed ranks posts from people it follows and replies to its own posts first, then by engagement, author influence and recency.
 5. **Rounds.** Each round some agents become active (weighted by their activity level). They are decided in batches: the model sees each agent's private background, its memory notes and its own feed, and picks one to three actions. Invalid actions, such as liking a post that does not exist, are turned into "do nothing" instead of crashing the run. Breaking-news events are shown to everyone in their round. A short pass then scores the round's sentiment.
@@ -159,14 +160,16 @@ TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" -
 
 ### Mac app
 
-The Mac app lives in `mac/` (XcodeGen). Debug builds run the engine from this repository through `uv`. Release builds are self-contained: `mac/scripts/bundle-engine.sh` puts a relocatable CPython, the locked dependencies and the `tellfold` package into `Tellfold.app/Contents/Resources/engine`, so the app needs neither `uv` nor Python on the user's Mac. It still needs Claude Code installed and signed in, because every model call goes through the user's own `claude`.
+The Mac app lives in `mac/` (XcodeGen). Every build is self-contained: `mac/scripts/bundle-engine.sh` builds the Rust engine (`engine-rs/`) for macOS 15 on Apple silicon and puts the one binary in `Tellfold.app/Contents/Resources/engine/tellfold`, so the app needs neither `uv` nor Python on the user's Mac. Building the app needs a Rust toolchain ([rustup](https://rustup.rs)). The app still needs an AI tool such as Claude Code installed and signed in, because every model call goes through the user's own CLI.
+
+To run the app on the Python package instead, set Settings > Advanced > Engine path to this repository. The app then starts it with `uv run --project <path> tellfold serve`.
 
 ```sh
 cd mac && xcodegen generate
 xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/dd
 ```
 
-The first Release build downloads Python and the dependencies (a few minutes). Later builds reuse `mac/build/engine-cache` until `uv.lock` changes. The bundled engine is about 190 MB and Apple silicon only. A Developer ID signing identity signs everything inside with the hardened runtime, ready for notarization.
+The first build compiles the engine (a few minutes). Later builds reuse `engine-rs/target` and recompile only the crates that changed. Release builds then redo the link-time optimisation, which takes a minute or two; Debug builds use the `app-debug` profile without it. The app builds and runs on Apple silicon only. The bundled engine is about 13 MB. A Developer ID signing identity signs it with the hardened runtime, ready for notarization.
 
 ### Releasing
 

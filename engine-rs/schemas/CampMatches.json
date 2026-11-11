@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "CampGroupOut": {
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "CampGroupOut",
+      "type": "object"
+    }
+  },
+  "description": "What `study.match_camps` returns.",
+  "properties": {
+    "groups": {
+      "items": {
+        "$ref": "#/$defs/CampGroupOut"
+      },
+      "title": "Groups",
+      "type": "array"
+    }
+  },
+  "title": "CampMatches",
+  "type": "object"
+}

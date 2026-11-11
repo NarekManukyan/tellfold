@@ -1,0 +1,1476 @@
+{
+ "runs": 5,
+ "studies": 4,
+ "headers": [
+  "cache-control",
+  "content-disposition",
+  "www-authenticate",
+  "x-accel-buffering"
+ ],
+ "steps": [
+  {
+   "name": "health",
+   "method": "GET",
+   "path": "/api/health",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.3.1\"}"
+  },
+  {
+   "name": "no runs yet",
+   "method": "GET",
+   "path": "/api/runs",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[]"
+  },
+  {
+   "name": "no studies yet",
+   "method": "GET",
+   "path": "/api/studies",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[]"
+  },
+  {
+   "name": "no seed file",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ]
+    ],
+    "files": []
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"add at least one seed file (.pdf, .md, .markdown or .txt)\"}"
+  },
+  {
+   "name": "not multipart",
+   "method": "POST",
+   "path": "/api/runs",
+   "raw": "question=x",
+   "content_type": "application/json",
+   "status": 400,
+   "headers_out": {},
+   "body": "{\"detail\":\"add at least one seed file (.pdf, .md, .markdown or .txt)\"}"
+  },
+  {
+   "name": "wrong suffix",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "notes.png",
+      "x"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"'notes.png': only .pdf, .md, .markdown and .txt are supported\"}"
+  },
+  {
+   "name": "no question",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "  "
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"question is required\"}"
+  },
+  {
+   "name": "rounds not a number",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "rounds",
+      "abc"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"rounds must be a whole number\"}"
+  },
+  {
+   "name": "rounds too many",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "rounds",
+      "99"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"rounds must be between 1 and 50\"}"
+  },
+  {
+   "name": "bad model",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "agent_model",
+      "bad model"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid agent_model\"}"
+  },
+  {
+   "name": "bad events",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "events",
+      "{nope"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"events must be a JSON list of {round, content}\"}"
+  },
+  {
+   "name": "event out of range",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "rounds",
+      "2"
+     ],
+     [
+      "events",
+      "[{\"round\": 3, \"content\": \"late\"}]"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"event round 3 is outside 1..2\"}"
+  },
+  {
+   "name": "unknown runtime",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "agent_runtime",
+      "nope"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"unknown agent_runtime 'nope'; see GET /api/runtimes\"}"
+  },
+  {
+   "name": "study without cast",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "variant",
+      "B"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"study_id and variant need cast_from: a study compares runs of one crowd\"}"
+  },
+  {
+   "name": "cast from nothing",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "cast_from",
+      "missing"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"cast_from: there is no run missing\"}"
+  },
+  {
+   "name": "empty seed",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "empty.md",
+      ""
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"empty.md is empty\"}"
+  },
+  {
+   "name": "create run",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "agents",
+      "4"
+     ],
+     [
+      "rounds",
+      "2"
+     ],
+     [
+      "batch",
+      "2"
+     ],
+     [
+      "seed",
+      "7"
+     ],
+     [
+      "events",
+      "[{\"round\": 2, \"content\": \"A rival app says it will stay a one-time purchase\"}]"
+     ]
+    ],
+    "files": [
+     [
+      "files[]",
+      "Mossbook Pricing.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ],
+     [
+      "files",
+      "notes.txt",
+      "Buyers liked it.\n"
+     ]
+    ]
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\"}"
+  },
+  {
+   "name": "wait for run",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "run": "{run:0}"
+   }
+  },
+  {
+   "name": "runs",
+   "method": "GET",
+   "path": "/api/runs",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":null,\"variant\":null}]"
+  },
+  {
+   "name": "run detail",
+   "method": "GET",
+   "path": "/api/runs/{run:0}",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"config\":{\"question\":\"Will existing buyers accept the subscription?\",\"seed_files\":[\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/Mossbook Pricing.md\",\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/notes.txt\"],\"num_agents\":4,\"rounds\":2,\"batch_size\":2,\"feed_size\":12,\"memory_size\":8,\"agent_model\":\"haiku\",\"planner_model\":\"sonnet\",\"concurrency\":4,\"language\":\"English\",\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"seed\":7,\"think\":false,\"agent_runtime\":\"claude-code\",\"planner_runtime\":\"claude-code\",\"cast_from\":null,\"study_id\":null,\"variant\":null,\"branched_from\":null,\"branch_round\":null},\"status\":{\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"detail\":\"report ready\",\"error\":null,\"pid\":0,\"started_at\":\"<time>\",\"updated_at\":\"<time>\",\"failed_batches\":[]},\"live\":false,\"personas\":[{\"id\":\"a01\",\"handle\":\"fake_user_2\",\"name\":\"Placeholder name 3\",\"bio\":\"Canned bio #4 from the offline test model (personas.batch).\",\"background\":\"Canned background #5 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #6 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #7 from the offline test model (personas.batch).\",\"Canned traits #8 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a02\",\"handle\":\"fake_user_12\",\"name\":\"Placeholder name 13\",\"bio\":\"Canned bio #14 from the offline test model (personas.batch).\",\"background\":\"Canned background #15 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #16 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #17 from the offline test model (personas.batch).\",\"Canned traits #18 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a03\",\"handle\":\"fake_user_22\",\"name\":\"Placeholder name 23\",\"bio\":\"Canned bio #24 from the offline test model (personas.batch).\",\"background\":\"Canned background #25 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #26 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #27 from the offline test model (personas.batch).\",\"Canned traits #28 from the offline test model (personas.batch).\"],\"activity\":0.5,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a04\",\"handle\":\"fake_user_32\",\"name\":\"Placeholder name 33\",\"bio\":\"Canned bio #34 from the offline test model (personas.batch).\",\"background\":\"Canned background #35 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #36 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #37 from the offline test model (personas.batch).\",\"Canned traits #38 from the offline test model (personas.batch).\"],\"activity\":0.6,\"influence\":0.5,\"entity_id\":null}],\"graph\":{\"entities\":[{\"id\":\"placeholder-name-1\",\"name\":\"Placeholder name 1\",\"kind\":\"concept\",\"summary\":\"Canned summary #3 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-8\",\"name\":\"Placeholder name 8\",\"kind\":\"concept\",\"summary\":\"Canned summary #10 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-15\",\"name\":\"Placeholder name 15\",\"kind\":\"concept\",\"summary\":\"Canned summary #17 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]}],\"relations\":[{\"source\":\"placeholder-name-8\",\"target\":\"placeholder-name-15\",\"label\":\"canned label #24 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #25 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-15\",\"target\":\"placeholder-name-1\",\"label\":\"canned label #28 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #29 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-1\",\"target\":\"placeholder-name-8\",\"label\":\"canned label #32 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #33 from the offline test model (graph.extract).\"}]},\"stats\":[{\"round\":0,\"actions\":{\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":1,\"actions\":{\"nothing\":1,\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":2,\"actions\":{\"nothing\":5,\"post\":3},\"new_posts\":3,\"active_agents\":4,\"sentiment\":0.5,\"llm_calls\":3,\"llm_seconds\":0.0}],\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"follows\":[[\"a01\",\"a02\"],[\"a01\",\"a03\"],[\"a01\",\"a04\"],[\"a02\",\"a01\"],[\"a02\",\"a03\"],[\"a02\",\"a04\"],[\"a03\",\"a01\"],[\"a03\",\"a02\"],[\"a03\",\"a04\"],[\"a04\",\"a01\"],[\"a04\",\"a02\"],[\"a04\",\"a03\"]],\"report\":{\"title\":\"Placeholder title 1\",\"summary\":\"Canned summary #2 from the offline test model (report.repair).\",\"prediction\":\"Canned prediction #3 from the offline test model (report.repair).\",\"confidence\":\"medium\",\"sections\":[{\"title\":\"Placeholder title 5\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 7\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 9\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 11\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"}],\"key_voices\":[\"a02\",\"a03\"],\"reasons\":[\"Canned reasons [unverified] from the offline test model (report.repair).\",\"Canned reasons [unverified] from the offline test model (report.repair).\"],\"camps\":[],\"risks\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"caveats\":[\"Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\"Sentiment could not be scored for round(s) 0, 1.\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"26 citations could not be matched to posts and were marked [unverified].\"],\"recommendations\":[],\"citation_audit\":{\"checked\":28,\"unknown_posts\":[15,16,6,8,10,12,37,38,39,40,43,48,46,47,52,57,55,56,61,66,64,65,70,75,73,74],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":true,\"marked\":26}},\"calls\":{\"count\":0,\"failed\":0,\"seconds\":0,\"agent\":{\"count\":0,\"failed\":0,\"seconds\":0},\"planner\":{\"count\":0,\"failed\":0,\"seconds\":0}},\"report_rebuild\":{\"running\":false,\"error\":null},\"example\":false}"
+  },
+  {
+   "name": "posts",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/posts",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":1,\"round\":0,\"author_id\":\"a04\",\"content\":\"Canned content #2 from the offline test model (engine.seed).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_32\",\"sentiment\":null},{\"id\":2,\"round\":1,\"author_id\":\"a03\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_22\",\"sentiment\":null},{\"id\":3,\"round\":2,\"author_id\":\"a02\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_12\",\"sentiment\":0.5},{\"id\":4,\"round\":2,\"author_id\":\"a03\",\"content\":\"Canned content #15 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_22\",\"sentiment\":null},{\"id\":5,\"round\":2,\"author_id\":\"a04\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_32\",\"sentiment\":null}]"
+  },
+  {
+   "name": "posts since 3",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/posts?since_id=3",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":4,\"round\":2,\"author_id\":\"a03\",\"content\":\"Canned content #15 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_22\",\"sentiment\":null},{\"id\":5,\"round\":2,\"author_id\":\"a04\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_32\",\"sentiment\":null}]"
+  },
+  {
+   "name": "posts since -1",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/posts?since_id=-1",
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"greater_than_equal\",\"loc\":[\"query\",\"since_id\"],\"msg\":\"Input should be greater than or equal to 0\",\"input\":\"-1\",\"ctx\":{\"ge\":0}}]}"
+  },
+  {
+   "name": "posts since abc",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/posts?since_id=abc",
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"int_parsing\",\"loc\":[\"query\",\"since_id\"],\"msg\":\"Input should be a valid integer, unable to parse string as an integer\",\"input\":\"abc\"}]}"
+  },
+  {
+   "name": "actions",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/actions",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"round\":0,\"agent_id\":\"a04\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #2 from the offline test model (engine.seed).\",\"reasoning\":\"\"},{\"round\":1,\"agent_id\":\"a03\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"},{\"round\":1,\"agent_id\":\"a03\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a01\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid like: post 18 not in own feed] Canned reasoning #42 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a01\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid reply: post 5 not in own feed] Canned reasoning #47 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a02\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid repost: post 18 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a02\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a03\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #15 from the offline test model (engine.round).\",\"reasoning\":\"Canned reasoning #18 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a03\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid follow: already following] Canned reasoning #23 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a04\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid repost: post 38 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"},{\"round\":2,\"agent_id\":\"a04\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}]"
+  },
+  {
+   "name": "actions round 1",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/actions?round=1",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"round\":1,\"agent_id\":\"a03\",\"type\":\"nothing\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"\",\"reasoning\":\"[invalid repost: post 28 not in own feed] Canned reasoning #6 from the offline test model (engine.round).\"},{\"round\":1,\"agent_id\":\"a03\",\"type\":\"post\",\"target_post_id\":null,\"target_agent_id\":null,\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"reasoning\":\"Canned reasoning #11 from the offline test model (engine.round).\"}]"
+  },
+  {
+   "name": "agent",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/agents/a01",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"persona\":{\"id\":\"a01\",\"handle\":\"fake_user_2\",\"name\":\"Placeholder name 3\",\"bio\":\"Canned bio #4 from the offline test model (personas.batch).\",\"background\":\"Canned background #5 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #6 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #7 from the offline test model (personas.batch).\",\"Canned traits #8 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},\"memory\":[\"R2: Canned memory_note #48 from the offline test model (engine.round).\"],\"posts\":[],\"followers\":[\"a02\",\"a03\",\"a04\"],\"following\":[\"a02\",\"a03\",\"a04\"],\"sentiment_by_round\":[]}"
+  },
+  {
+   "name": "agent by handle",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/agents/@FAKE_USER_12",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"persona\":{\"id\":\"a02\",\"handle\":\"fake_user_12\",\"name\":\"Placeholder name 13\",\"bio\":\"Canned bio #14 from the offline test model (personas.batch).\",\"background\":\"Canned background #15 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #16 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #17 from the offline test model (personas.batch).\",\"Canned traits #18 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},\"memory\":[\"R2: Canned memory_note #12 from the offline test model (engine.round).\"],\"posts\":[{\"id\":3,\"round\":2,\"author_id\":\"a02\",\"content\":\"Canned content #8 from the offline test model (engine.round).\",\"parent_id\":null,\"repost_of\":null,\"likes\":0,\"dislikes\":0,\"reposts\":0,\"replies\":0,\"author_handle\":\"fake_user_12\",\"sentiment\":0.5}],\"followers\":[\"a01\",\"a03\",\"a04\"],\"following\":[\"a01\",\"a03\",\"a04\"],\"sentiment_by_round\":[[2,0.5]]}"
+  },
+  {
+   "name": "agent unknown",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/agents/nobody",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"agent not found\"}"
+  },
+  {
+   "name": "agent bad id",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/agents/bad!id",
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid agent id\"}"
+  },
+  {
+   "name": "seeds",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/seeds",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"name\":\"Mossbook Pricing.md\",\"size\":4779},{\"name\":\"notes.txt\",\"size\":17}]"
+  },
+  {
+   "name": "seed file",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/seeds/Mossbook%20Pricing.md",
+   "status": 200,
+   "content_type": "text/markdown; charset=utf-8",
+   "headers_out": {
+    "content-disposition": "attachment; filename*=utf-8''Mossbook%20Pricing.md"
+   },
+   "body": "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+  },
+  {
+   "name": "seed text",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/seeds/notes.txt",
+   "status": 200,
+   "content_type": "text/plain; charset=utf-8",
+   "headers_out": {
+    "content-disposition": "attachment; filename=\"notes.txt\""
+   },
+   "body": "Buyers liked it.\n"
+  },
+  {
+   "name": "seed hidden",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/seeds/.hidden",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"no such seed document\"}"
+  },
+  {
+   "name": "seed missing",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/seeds/nope.md",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"no such seed document\"}"
+  },
+  {
+   "name": "report html",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/report.html",
+   "status": 200,
+   "content_type": "text/html; charset=utf-8",
+   "headers_out": {
+    "cache-control": "no-cache"
+   },
+   "body": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"color-scheme\" content=\"light dark\">\n<title>Placeholder title 1</title>\n<style>\n:root {\n  color-scheme: light;\n  --page: #f9f9f7;\n  --surface: #fcfcfb;\n  --surface-2: #f2f1ed;\n  --ink: #0b0b0b;\n  --ink-2: #52514e;\n  --muted: #898781;\n  --grid: #e1e0d9;\n  --axis: #c3c2b7;\n  --border: rgba(11, 11, 11, 0.10);\n  --accent: #2a78d6;\n  --accent-soft: rgba(42, 120, 214, 0.10);\n  --c-post: #2a78d6;\n  --c-reply: #eb6834;\n  --c-repost: #1baf7a;\n  --c-like: #eda100;\n  --c-dislike: #e87ba4;\n  --c-follow: #008300;\n  --conf-low: #d03b3b;\n  --conf-medium: #c98500;\n  --conf-high: #0ca30c;\n}\n@media (prefers-color-scheme: dark) {\n  :root:not([data-theme=\"light\"]) {\n    color-scheme: dark;\n    --page: #0d0d0d;\n    --surface: #1a1a19;\n    --surface-2: #242422;\n    --ink: #f0efec;\n    --ink-2: #c3c2b7;\n    --muted: #898781;\n    --grid: #2c2c2a;\n    --axis: #383835;\n    --border: rgba(255, 255, 255, 0.10);\n    --accent: #3987e5;\n    --accent-soft: rgba(57, 135, 229, 0.16);\n    --c-post: #3987e5;\n    --c-reply: #d95926;\n    --c-repost: #199e70;\n    --c-like: #c98500;\n    --c-dislike: #d55181;\n    --c-follow: #008300;\n  }\n}\n:root[data-theme=\"dark\"] {\n  color-scheme: dark;\n  --page: #0d0d0d;\n  --surface: #1a1a19;\n  --surface-2: #242422;\n  --ink: #f0efec;\n  --ink-2: #c3c2b7;\n  --muted: #898781;\n  --grid: #2c2c2a;\n  --axis: #383835;\n  --border: rgba(255, 255, 255, 0.10);\n  --accent: #3987e5;\n  --accent-soft: rgba(57, 135, 229, 0.16);\n  --c-post: #3987e5;\n  --c-reply: #d95926;\n  --c-repost: #199e70;\n  --c-like: #c98500;\n  --c-dislike: #d55181;\n  --c-follow: #008300;\n}\n\n* { box-sizing: border-box; }\nhtml { -webkit-text-size-adjust: 100%; }\nbody {\n  margin: 0;\n  background: var(--page);\n  color: var(--ink);\n  font: 16px/1.6 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n  overflow-wrap: anywhere;\n}\nmain { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }\n.prose { max-width: 70ch; }\nh1, h2, h3, h4 { line-height: 1.25; margin: 0; text-wrap: balance; }\nh1 { font-size: clamp(1.6rem, 4vw, 2.3rem); letter-spacing: -0.01em; }\nh2 { font-size: 1.3rem; margin-bottom: 12px; }\nh3 { font-size: 1.05rem; }\nh4 { font-size: 1rem; margin: 16px 0 4px; }\np { margin: 0 0 12px; }\nsection { margin-top: 48px; }\na { color: var(--accent); }\na.ref { text-decoration: none; font-weight: 600; }\na.ref:hover { text-decoration: underline; }\ncode { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }\nblockquote { margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--axis); color: var(--ink-2); }\nul, ol { padding-left: 1.3em; margin: 0 0 12px; }\nli { margin-bottom: 4px; }\n.eyebrow { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }\n.muted { color: var(--muted); }\n.small { font-size: 0.875rem; }\n.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }\n\nheader .question { color: var(--ink-2); font-size: 1.05rem; margin: 8px 0 20px; }\nheader .summary { font-size: 1.1rem; }\n\n.prediction { margin-top: 24px; border-left: 4px solid var(--accent); }\n.prediction-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }\n.audit { margin: -4px 0 10px; }\n.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); white-space: nowrap; }\n.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }\n.conf-low .dot { background: var(--conf-low); }\n.conf-medium .dot { background: var(--conf-medium); }\n.conf-high .dot { background: var(--conf-high); }\n\n.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 24px; }\n.tile { padding: 14px 16px; }\n.tile .value { font-size: 1.7rem; font-weight: 650; line-height: 1.1; }\n.tile .label { color: var(--ink-2); font-size: 0.85rem; }\n\n.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }\n.chart-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; margin-bottom: 8px; }\nsvg.chart { width: 100%; height: auto; display: block; }\nsvg.chart text { fill: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }\nsvg.chart line, svg.chart path { vector-effect: non-scaling-stroke; }\nsvg.chart .grid { stroke: var(--grid); stroke-width: 1; }\nsvg.chart .zero { stroke: var(--axis); stroke-width: 1.5; }\nsvg.chart .line { fill: none; stroke: var(--c-post); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }\nsvg.chart .pt { fill: var(--c-post); stroke: var(--surface); stroke-width: 2; }\nsvg.chart .hit { fill: transparent; }\nsvg.chart .hit:hover + .pt, svg.chart .pt:hover { r: 6; }\nsvg.chart .event { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }\nsvg.chart .event-label { fill: var(--ink-2); font-weight: 600; }\n\n.mix { display: grid; gap: 8px; }\n.mix-row { display: grid; grid-template-columns: 34px 1fr 40px; align-items: center; gap: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }\n.mix-row .r { color: var(--muted); }\n.mix-row .n { color: var(--ink-2); text-align: right; }\n.mix-track { height: 14px; }\n.mix-bar { display: flex; gap: 2px; height: 100%; min-width: 2px; }\n.mix-bar span { display: block; height: 100%; min-width: 3px; }\n.mix-bar span:first-child { border-radius: 4px 0 0 4px; }\n.mix-bar span:last-child { border-radius: 0 4px 4px 0; }\n.mix-bar span:only-child { border-radius: 4px; }\n.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 0.8rem; color: var(--ink-2); }\n.legend span { display: inline-flex; align-items: center; gap: 6px; }\n.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }\n.t-post { background: var(--c-post); }\n.t-reply { background: var(--c-reply); }\n.t-repost { background: var(--c-repost); }\n.t-like { background: var(--c-like); }\n.t-dislike { background: var(--c-dislike); }\n.t-follow { background: var(--c-follow); }\n\ndetails { margin-top: 12px; }\nsummary { cursor: pointer; color: var(--ink-2); font-size: 0.85rem; }\n.table-wrap { overflow-x: auto; }\ntable { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin-top: 8px; }\nth, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }\nth:first-child, td:first-child { text-align: left; }\nth { color: var(--ink-2); font-weight: 600; }\n\n.report-section { margin-top: 32px; }\n.report-section h3 { margin-bottom: 8px; }\n\n.recs { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }\n.rec { display: grid; gap: 6px; }\n.rec-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }\n.rec-head h3 { flex: 1 1 16ch; }\n/* The label is drawn in ink for contrast; the action's colour is on the dot and the border. */\n.act { --act: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--act); color: var(--ink); white-space: nowrap; }\n.act-keep { --act: var(--conf-high); }\n.act-change { --act: var(--conf-medium); }\n.act-add { --act: var(--accent); }\n.act-drop { --act: var(--conf-low); }\n.act-test { --act: var(--ink-2); }\n.act .dot { background: var(--act); }\n.rec p { margin: 0; }\n.rec .effect { color: var(--ink-2); }\n.rec-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); }\n\n.voices { display: flex; flex-wrap: wrap; gap: 8px; }\n.voice { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 0.9rem; }\n.avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; flex: none; }\n\n.events { list-style: none; padding: 0; display: grid; gap: 10px; }\n.event-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }\n.event-item .tag { font-weight: 700; color: var(--ink-2); }\n.delta { font-size: 0.85rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }\n\n.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }\n.two-col ul { margin: 0; }\n\n.feed { display: grid; gap: 10px; }\n.post { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr; gap: 0 12px; }\n.post:target { outline: 2px solid var(--accent); outline-offset: 2px; }\n.post .avatar { width: 36px; height: 36px; }\n.post-head { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }\n.post-head .name { font-weight: 650; }\n.post-head .meta { color: var(--muted); font-size: 0.85rem; }\n.post-context { color: var(--muted); font-size: 0.85rem; }\n.post-body { margin: 4px 0 6px; white-space: pre-wrap; }\n.post-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }\n.thread { display: grid; gap: 10px; }\n.thread + .thread { margin-top: 28px; }\n.thread-replies { display: grid; gap: 10px; margin-left: 22px; padding-left: 16px; border-left: 2px solid var(--grid); }\n\n.directory { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }\n.persona { display: grid; gap: 8px; align-content: start; }\n.persona:target { outline: 2px solid var(--accent); outline-offset: 2px; }\n.persona-head { display: flex; gap: 10px; align-items: center; }\n.persona-head .name { font-weight: 650; line-height: 1.2; }\n.chips { display: flex; flex-wrap: wrap; gap: 6px; }\n.chip { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }\n.persona-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }\n.persona .stance { font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--grid); padding-top: 8px; margin: 0; }\n.key { color: var(--accent); border-color: var(--accent); }\n\nfooter { margin-top: 64px; color: var(--muted); font-size: 0.8rem; }\n@media (max-width: 560px) {\n  main { padding-top: 20px; }\n  section { margin-top: 36px; }\n  .card { padding: 16px; }\n  .thread-replies { margin-left: 8px; padding-left: 10px; }\n}\n/* Paper (Print, Save as PDF, and the Mac app's Export PDF): always light, the page size the printer asks for (A4 or\n   Letter) with the same margins, a new page for each long part, and no card split across pages. */\n@page { size: auto; margin: 16mm 15mm 18mm; }\n@media print {\n  :root, :root:not([data-theme=\"light\"]), :root[data-theme=\"dark\"] {\n    color-scheme: light;\n    --page: #fff;\n    --surface: #fff;\n    --surface-2: #f2f1ed;\n    --ink: #0b0b0b;\n    --ink-2: #52514e;\n    --muted: #6f6d68;\n    --grid: #e1e0d9;\n    --axis: #c3c2b7;\n    --border: rgba(11, 11, 11, 0.16);\n    --accent: #2a78d6;\n    --accent-soft: rgba(42, 120, 214, 0.10);\n    --c-post: #2a78d6;\n    --c-reply: #eb6834;\n    --c-repost: #1baf7a;\n    --c-like: #eda100;\n    --c-dislike: #e87ba4;\n    --c-follow: #008300;\n  }\n  /* Keep chart lines, action bars, legend swatches and avatars in colour instead of letting the printer drop them. */\n  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n  body { background: #fff; font-size: 10.5pt; line-height: 1.5; }\n  main { max-width: none; padding: 0; }\n  h1 { font-size: 21pt; }\n  h2 { font-size: 14pt; }\n  section { margin-top: 28px; }\n  section[aria-labelledby=\"analysis\"], section[aria-labelledby=\"cited\"],\n  section[aria-labelledby=\"threads\"], section[aria-labelledby=\"people\"] { break-before: page; margin-top: 0; }\n  h2, h3, h4, .chart-title, .post-head { break-after: avoid; }\n  /* WebKit does not honour break-after: avoid, so a heading carries invisible room for the lines after it and moves\n     to the next page with them instead of ending a page on its own. */\n  h2, h3 { break-inside: avoid; }\n  h2::after, h3::after { content: \"\"; display: block; height: 90px; margin-bottom: -90px; }\n  p, li { orphans: 3; widows: 3; }\n  /* WebKit ignores break-inside on grid items, so the lists of cards lay out as plain blocks on paper (and each chart\n     gets the full width, which keeps its labels a readable size). */\n  .charts, .feed, .thread, .thread-replies, .events, .two-col, .recs { display: block; }\n  .charts > *, .feed > *, .thread-replies > *, .events > *, .two-col > *, .recs > * { margin-bottom: 10px; }\n  .thread-replies { margin-top: 10px; }\n  /* Two persona cards a row as inline blocks: a whole card moves to the next page instead of splitting. */\n  .directory { display: block; font-size: 0; }\n  .persona { display: inline-grid; vertical-align: top; width: calc(50% - 6px); margin: 0 0 12px; font-size: 10.5pt; }\n  .persona:nth-child(odd) { margin-right: 12px; }\n  .post, .card, .tile, .event-item, .persona, .mix-row, .voice, .rec { break-inside: avoid; }\n  .prediction { break-inside: auto; }\n  .thread > .post:first-child { break-after: avoid; }\n  .post:target, .persona:target { outline: none; }\n  /* Interactive only: the collapsed round table, hover targets. Citations stay coloured so they read as references. */\n  details, svg.chart .hit { display: none; }\n  a { color: var(--accent); text-decoration: none; }\n  a.voice { color: var(--ink); }\n  footer { margin-top: 32px; }\n}\n</style>\n</head>\n<body>\n\n\n<main>\n  <header>\n    <div class=\"eyebrow\">Tellfold simulation report</div>\n    <h1>Placeholder title 1</h1>\n    <p class=\"question\"><strong>Question:</strong> Will existing buyers accept the subscription?</p>\n    <div class=\"prose summary\"><p>Canned summary <a class=\"ref\" href=\"#p-2\">#2</a> from the offline test model (report.repair).</p></div>\n\n    <div class=\"card prediction\">\n      <div class=\"prediction-head\">\n        <h2 style=\"margin:0\">Prediction</h2>\n        <span class=\"badge conf-medium\"><span class=\"dot\"></span>Medium confidence</span>\n      </div>\n<p class=\"audit muted small\">2 of 28 citations checked against the posts, 26 marked</p>      <div class=\"prose\"><p>Canned prediction <a class=\"ref\" href=\"#p-3\">#3</a> from the offline test model (report.repair).</p></div>\n    </div>\n\n    <div class=\"tiles\">\n      <div class=\"card tile\"><div class=\"value\">4</div><div class=\"label\">Agents</div></div>\n      <div class=\"card tile\"><div class=\"value\">2</div><div class=\"label\">Rounds</div></div>\n      <div class=\"card tile\"><div class=\"value\">5</div><div class=\"label\">Posts</div></div>\n      <div class=\"card tile\"><div class=\"value\">5</div><div class=\"label\">Actions</div></div>\n    </div>\n  </header>\n\n  <section aria-labelledby=\"dynamics\">\n    <h2 id=\"dynamics\">How the crowd moved</h2>\n    <div class=\"charts\">\n      <div class=\"card\">\n        <div class=\"chart-title\"><h3>Sentiment by round</h3><span class=\"muted small\">−1 hostile · +1 favourable</span></div>\n        <svg class=\"chart\" viewBox=\"0 0 480 260\" role=\"img\" aria-label=\"Mean sentiment toward the subject for each round\">\n          <line class=\"grid\" x1=\"40\" x2=\"468\" y1=\"18.0\" y2=\"18.0\"/>\n          <text x=\"32\" y=\"22.0\" text-anchor=\"end\">+1</text>\n          <line class=\"grid\" x1=\"40\" x2=\"468\" y1=\"70.0\" y2=\"70.0\"/>\n          <text x=\"32\" y=\"74.0\" text-anchor=\"end\">+0.5</text>\n          <line class=\"zero\" x1=\"40\" x2=\"468\" y1=\"122.0\" y2=\"122.0\"/>\n          <text x=\"32\" y=\"126.0\" text-anchor=\"end\">0</text>\n          <line class=\"grid\" x1=\"40\" x2=\"468\" y1=\"174.0\" y2=\"174.0\"/>\n          <text x=\"32\" y=\"178.0\" text-anchor=\"end\">−0.5</text>\n          <line class=\"grid\" x1=\"40\" x2=\"468\" y1=\"226.0\" y2=\"226.0\"/>\n          <text x=\"32\" y=\"230.0\" text-anchor=\"end\">−1</text>\n          <text x=\"40.0\" y=\"244\" text-anchor=\"middle\">R0</text>\n          <text x=\"254.0\" y=\"244\" text-anchor=\"middle\">R1</text>\n          <text x=\"468.0\" y=\"244\" text-anchor=\"middle\">R2</text>\n          <g>\n            <title>E1: A rival app says it will stay a one-time purchase</title>\n            <line class=\"event\" x1=\"468.0\" x2=\"468.0\" y1=\"18\" y2=\"226\"/>\n            <text class=\"event-label\" x=\"472.0\" y=\"28\">E1</text>\n          </g>\n          <g>\n            <title>Round 2: sentiment +0.50</title>\n            <circle class=\"hit\" cx=\"468.0\" cy=\"70.0\" r=\"12\"/>\n            <circle class=\"pt\" cx=\"468.0\" cy=\"70.0\" r=\"4.5\"/>\n          </g>\n        </svg>\n      </div>\n\n      <div class=\"card\">\n        <div class=\"chart-title\"><h3>Action mix per round</h3><span class=\"muted small\">bar length = activity</span></div>\n        <div class=\"mix\" role=\"img\" aria-label=\"Count of each action type per round\">\n          <div class=\"mix-row\">\n            <span class=\"r\">R0</span>\n            <div class=\"mix-track\">\n              <div class=\"mix-bar\" style=\"width: 33.3%\">\n                <span class=\"t-post\" style=\"flex: 100.0 1 0\" title=\"Round 0: 1 post\"></span>\n              </div>\n            </div>\n            <span class=\"n\">1</span>\n          </div>\n          <div class=\"mix-row\">\n            <span class=\"r\">R1</span>\n            <div class=\"mix-track\">\n              <div class=\"mix-bar\" style=\"width: 33.3%\">\n                <span class=\"t-post\" style=\"flex: 100.0 1 0\" title=\"Round 1: 1 post\"></span>\n              </div>\n            </div>\n            <span class=\"n\">1</span>\n          </div>\n          <div class=\"mix-row\">\n            <span class=\"r\">R2</span>\n            <div class=\"mix-track\">\n              <div class=\"mix-bar\" style=\"width: 100.0%\">\n                <span class=\"t-post\" style=\"flex: 100.0 1 0\" title=\"Round 2: 3 post\"></span>\n              </div>\n            </div>\n            <span class=\"n\">3</span>\n          </div>\n        </div>\n        <div class=\"legend\">\n<span><i class=\"sw t-post\"></i>post</span><span><i class=\"sw t-reply\"></i>reply</span><span><i class=\"sw t-repost\"></i>repost</span><span><i class=\"sw t-like\"></i>like</span><span><i class=\"sw t-dislike\"></i>dislike</span><span><i class=\"sw t-follow\"></i>follow</span>        </div>\n      </div>\n    </div>\n\n    <details>\n      <summary>Show round data as a table</summary>\n      <div class=\"table-wrap\">\n        <table>\n          <thead><tr><th>Round</th><th>Active</th><th>New posts</th><th>Sentiment</th><th>post</th><th>reply</th><th>repost</th><th>like</th><th>dislike</th><th>follow</th><th>idle</th></tr></thead>\n          <tbody>\n          <tr><td>R0</td><td>1</td><td>1</td><td>n/a</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>\n          <tr><td>R1</td><td>1</td><td>1</td><td>n/a</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>\n          <tr><td>R2</td><td>4</td><td>3</td><td>+0.50</td><td>3</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>5</td></tr>\n          </tbody>\n        </table>\n      </div>\n    </details>\n  </section>\n\n  <section aria-labelledby=\"events\">\n    <h2 id=\"events\">Injected events</h2>\n    <ul class=\"events\">\n      <li class=\"card event-item\">\n        <span class=\"tag\">E1</span>\n        <div>\n          <div><strong>Round 2.</strong> A rival app says it will stay a one-time purchase</div>\n          <div class=\"delta\">Sentiment n/a before → +0.50 after · posts per round 1.0 → 3.0</div>\n        </div>\n      </li>\n    </ul>\n  </section>\n\n  <section aria-labelledby=\"analysis\">\n    <h2 id=\"analysis\">Analysis</h2>\n    <div class=\"report-section prose\">\n      <h3>Placeholder title 5</h3>\n      <p>Canned body_markdown [unverified] from the offline test model (report.repair).</p>\n    </div>\n    <div class=\"report-section prose\">\n      <h3>Placeholder title 7</h3>\n      <p>Canned body_markdown [unverified] from the offline test model (report.repair).</p>\n    </div>\n    <div class=\"report-section prose\">\n      <h3>Placeholder title 9</h3>\n      <p>Canned body_markdown [unverified] from the offline test model (report.repair).</p>\n    </div>\n    <div class=\"report-section prose\">\n      <h3>Placeholder title 11</h3>\n      <p>Canned body_markdown [unverified] from the offline test model (report.repair).</p>\n    </div>\n  </section>\n\n\n  <section aria-labelledby=\"voices\">\n    <h2 id=\"voices\">Key voices</h2>\n    <div class=\"voices\">\n      <a class=\"voice\" href=\"#agent-fake_user_12\"><span class=\"avatar\" aria-hidden=\"true\">P</span><span><strong>Placeholder name 13</strong> <span class=\"muted\">@fake_user_12</span></span></a>\n      <a class=\"voice\" href=\"#agent-fake_user_22\"><span class=\"avatar\" aria-hidden=\"true\">P</span><span><strong>Placeholder name 23</strong> <span class=\"muted\">@fake_user_22</span></span></a>\n    </div>\n  </section>\n\n  <section aria-labelledby=\"limits\">\n    <h2 id=\"limits\">Risks and caveats</h2>\n    <div class=\"two-col\">\n      <div class=\"card\"><h3>What could prove this wrong</h3><ul><li>Canned risks [unverified] from the offline test model (report.repair).</li><li>Canned risks [unverified] from the offline test model (report.repair).</li></ul></div>\n      <div class=\"card\"><h3>Limits of this simulation</h3><ul><li>Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the &#39;haiku&#39; model. Treat this as a scenario exploration, not a poll or a measurement of real people.</li><li>Sentiment could not be scored for round(s) 0, 1.</li><li>Canned caveats [unverified] from the offline test model (report.repair).</li><li>Canned caveats [unverified] from the offline test model (report.repair).</li><li>26 citations could not be matched to posts and were marked [unverified].</li></ul></div>\n    </div>\n  </section>\n\n  <section aria-labelledby=\"cited\">\n    <h2 id=\"cited\">Posts cited in the report</h2>\n    <div class=\"feed\">\n<article class=\"post\" id=\"p-2\">\n  <span class=\"avatar\" aria-hidden=\"true\">P</span>\n  <div>\n    <div class=\"post-head\">\n      <span class=\"name\">Placeholder name 23</span>\n<a class=\"meta ref\" href=\"#agent-fake_user_22\">@fake_user_22</a>      <span class=\"meta\">#2 · round 1</span>\n    </div>\n<p class=\"post-body\">Canned content #8 from the offline test model (engine.round).</p>    <div class=\"post-stats\">\n      <span>0 likes</span>\n      <span>0 dislikes</span>\n      <span>0 reposts</span>\n      <span>0 replies</span>\n    </div>\n  </div>\n</article><article class=\"post\" id=\"p-3\">\n  <span class=\"avatar\" aria-hidden=\"true\">P</span>\n  <div>\n    <div class=\"post-head\">\n      <span class=\"name\">Placeholder name 13</span>\n<a class=\"meta ref\" href=\"#agent-fake_user_12\">@fake_user_12</a>      <span class=\"meta\">#3 · round 2</span>\n    </div>\n<p class=\"post-body\">Canned content #8 from the offline test model (engine.round).</p>    <div class=\"post-stats\">\n      <span>0 likes</span>\n      <span>0 dislikes</span>\n      <span>0 reposts</span>\n      <span>0 replies</span>\n    </div>\n  </div>\n</article>    </div>\n  </section>\n\n\n  <section aria-labelledby=\"people\">\n    <h2 id=\"people\">Persona directory</h2>\n    <p class=\"muted small\">Ordered by followers at the end of the run. Starting stances are private to each agent and were never shown on the platform.</p>\n    <div class=\"directory\">\n      <article class=\"card persona\" id=\"agent-fake_user_2\">\n        <div class=\"persona-head\">\n          <span class=\"avatar\" aria-hidden=\"true\">P</span>\n          <div>\n            <div class=\"name\">Placeholder name 3</div>\n            <div class=\"muted small\">@fake_user_2 · a01</div>\n          </div>\n        </div>\n        <div class=\"chips\">\n<span class=\"chip\">Canned traits #7 from the offline test model (personas.batch).</span><span class=\"chip\">Canned traits #8 from the offline test model (personas.batch).</span>        </div>\n        <p class=\"small\" style=\"margin:0\">Canned bio #4 from the offline test model (personas.batch).</p>\n        <div class=\"persona-stats\">\n          <span>3 followers</span>\n          <span>0 posts</span>\n          <span>engagement 0</span>\n          <span>influence 0.50</span>\n        </div>\n        <p class=\"stance\"><strong>Starting stance:</strong> Canned stance #6 from the offline test model (personas.batch).</p>\n      </article>\n      <article class=\"card persona\" id=\"agent-fake_user_12\">\n        <div class=\"persona-head\">\n          <span class=\"avatar\" aria-hidden=\"true\">P</span>\n          <div>\n            <div class=\"name\">Placeholder name 13</div>\n            <div class=\"muted small\">@fake_user_12 · a02</div>\n          </div>\n        </div>\n        <div class=\"chips\">\n<span class=\"chip key\">key voice</span><span class=\"chip\">Canned traits #17 from the offline test model (personas.batch).</span><span class=\"chip\">Canned traits #18 from the offline test model (personas.batch).</span>        </div>\n        <p class=\"small\" style=\"margin:0\">Canned bio #14 from the offline test model (personas.batch).</p>\n        <div class=\"persona-stats\">\n          <span>3 followers</span>\n          <span>1 post</span>\n          <span>engagement 0</span>\n          <span>influence 0.50</span>\n        </div>\n        <p class=\"stance\"><strong>Starting stance:</strong> Canned stance #16 from the offline test model (personas.batch).</p>\n      </article>\n      <article class=\"card persona\" id=\"agent-fake_user_22\">\n        <div class=\"persona-head\">\n          <span class=\"avatar\" aria-hidden=\"true\">P</span>\n          <div>\n            <div class=\"name\">Placeholder name 23</div>\n            <div class=\"muted small\">@fake_user_22 · a03</div>\n          </div>\n        </div>\n        <div class=\"chips\">\n<span class=\"chip key\">key voice</span><span class=\"chip\">Canned traits #27 from the offline test model (personas.batch).</span><span class=\"chip\">Canned traits #28 from the offline test model (personas.batch).</span>        </div>\n        <p class=\"small\" style=\"margin:0\">Canned bio #24 from the offline test model (personas.batch).</p>\n        <div class=\"persona-stats\">\n          <span>3 followers</span>\n          <span>2 posts</span>\n          <span>engagement 0</span>\n          <span>influence 0.50</span>\n        </div>\n        <p class=\"stance\"><strong>Starting stance:</strong> Canned stance #26 from the offline test model (personas.batch).</p>\n      </article>\n      <article class=\"card persona\" id=\"agent-fake_user_32\">\n        <div class=\"persona-head\">\n          <span class=\"avatar\" aria-hidden=\"true\">P</span>\n          <div>\n            <div class=\"name\">Placeholder name 33</div>\n            <div class=\"muted small\">@fake_user_32 · a04</div>\n          </div>\n        </div>\n        <div class=\"chips\">\n<span class=\"chip\">Canned traits #37 from the offline test model (personas.batch).</span><span class=\"chip\">Canned traits #38 from the offline test model (personas.batch).</span>        </div>\n        <p class=\"small\" style=\"margin:0\">Canned bio #34 from the offline test model (personas.batch).</p>\n        <div class=\"persona-stats\">\n          <span>3 followers</span>\n          <span>2 posts</span>\n          <span>engagement 0</span>\n          <span>influence 0.50</span>\n        </div>\n        <p class=\"stance\"><strong>Starting stance:</strong> Canned stance #36 from the offline test model (personas.batch).</p>\n      </article>\n    </div>\n  </section>\n\n  <footer>\n    Generated by Tellfold from a simulation of 4 language-model agents. Seed files: <root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/Mossbook Pricing.md, <root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/notes.txt. Agent model: haiku; report model: sonnet. This is an exploratory scenario, not a survey of real people.\n  </footer>\n</main>\n</body>\n</html>"
+  },
+  {
+   "name": "stream",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/stream",
+   "stream": true,
+   "status": 200,
+   "content_type": "text/event-stream; charset=utf-8",
+   "headers_out": {
+    "cache-control": "no-cache",
+    "x-accel-buffering": "no"
+   },
+   "body": ": connected\n\nevent: status\ndata: {\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"detail\":\"report ready\",\"error\":null,\"pid\":0,\"started_at\":\"<time>\",\"updated_at\":\"<time>\",\"failed_batches\":[]}\n\n"
+  },
+  {
+   "name": "event into finished run",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/events",
+   "json": {
+    "round": 2,
+    "content": "x"
+   },
+   "status": 409,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"events can only be injected into a run that is live in this server\"}"
+  },
+  {
+   "name": "event body invalid",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/events",
+   "json": {
+    "round": "x",
+    "content": ""
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"int_parsing\",\"loc\":[\"body\",\"round\"],\"msg\":\"Input should be a valid integer, unable to parse string as an integer\",\"input\":\"x\"},{\"type\":\"string_too_short\",\"loc\":[\"body\",\"content\"],\"msg\":\"String should have at least 1 character\",\"input\":\"\",\"ctx\":{\"min_length\":1}}]}"
+  },
+  {
+   "name": "event body missing",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/events",
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\"],\"msg\":\"Field required\",\"input\":null}]}"
+  },
+  {
+   "name": "event body not json",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/events",
+   "raw": "nope",
+   "content_type": "application/json",
+   "status": 422,
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"json_invalid\",\"loc\":[\"body\",0],\"msg\":\"JSON decode error\",\"input\":{},\"ctx\":{\"error\":\"Expecting value\"}}]}"
+  },
+  {
+   "name": "event body a list",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/events",
+   "json": [],
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"model_attributes_type\",\"loc\":[\"body\"],\"msg\":\"Input should be a valid dictionary or object to extract fields from\",\"input\":[]}]}"
+  },
+  {
+   "name": "stop finished run",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/stop",
+   "status": 409,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"only a run that is live in this server can be stopped\"}"
+  },
+  {
+   "name": "chat",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/chat",
+   "json": {
+    "agent_id": "a01",
+    "message": " Why? ",
+    "history": [
+     [
+      "Hi",
+      "Hello"
+     ]
+    ]
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"reply\":\"(offline test reply for chat.interview) I would keep an eye on how people react.\"}"
+  },
+  {
+   "name": "chat bad history",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/chat",
+   "json": {
+    "agent_id": "a01",
+    "message": "x",
+    "history": [
+     [
+      "only one"
+     ]
+    ]
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"history must be a list of [question, answer] string pairs\"}"
+  },
+  {
+   "name": "chat unknown agent",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/chat",
+   "json": {
+    "agent_id": "nobody",
+    "message": "x"
+   },
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"agent not found\"}"
+  },
+  {
+   "name": "chat bad agent id",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/chat",
+   "json": {
+    "agent_id": "a b",
+    "message": "x"
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid agent id\"}"
+  },
+  {
+   "name": "chat invalid body",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/chat",
+   "json": {
+    "agent_id": "",
+    "message": "",
+    "history": "x"
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"agent_id\"],\"msg\":\"String should have at least 1 character\",\"input\":\"\",\"ctx\":{\"min_length\":1}},{\"type\":\"string_too_short\",\"loc\":[\"body\",\"message\"],\"msg\":\"String should have at least 1 character\",\"input\":\"\",\"ctx\":{\"min_length\":1}},{\"type\":\"list_type\",\"loc\":[\"body\",\"history\"],\"msg\":\"Input should be a valid list\",\"input\":\"x\"}]}"
+  },
+  {
+   "name": "ask",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/ask",
+   "json": {
+    "question": "Who changed their mind?"
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"reply\":\"(offline test reply for chat.ask) I would keep an eye on how people react.\"}"
+  },
+  {
+   "name": "ask empty",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/ask",
+   "json": {
+    "question": ""
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"question\"],\"msg\":\"String should have at least 1 character\",\"input\":\"\",\"ctx\":{\"min_length\":1}}]}"
+  },
+  {
+   "name": "no rewrite yet",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/rewrite",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"no suggestion for this run yet\"}"
+  },
+  {
+   "name": "rewrite",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/rewrite",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"revised_text\":\"Canned revised_text #1 from the offline test model (report.rewrite).\",\"changes\":[{\"what\":\"Canned what #2 from the offline test model (report.rewrite).\",\"why\":\"Canned why #3 from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #6 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #10 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]}],\"kept_on_purpose\":[\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\",\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\"],\"source_name\":\"Mossbook Pricing.md\",\"created_at\":\"<time>\",\"citation_audit\":{\"checked\":11,\"unknown_posts\":[7,11,14,15,0],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":false,\"marked\":10}}"
+  },
+  {
+   "name": "saved rewrite",
+   "method": "GET",
+   "path": "/api/runs/{run:0}/rewrite",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"revised_text\":\"Canned revised_text #1 from the offline test model (report.rewrite).\",\"changes\":[{\"what\":\"Canned what #2 from the offline test model (report.rewrite).\",\"why\":\"Canned why #3 from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #6 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #10 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]}],\"kept_on_purpose\":[\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\",\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\"],\"source_name\":\"Mossbook Pricing.md\",\"created_at\":\"<time>\",\"citation_audit\":{\"checked\":11,\"unknown_posts\":[7,11,14,15,0],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":false,\"marked\":10}}"
+  },
+  {
+   "name": "rebuild report",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/report",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true}"
+  },
+  {
+   "name": "wait for rebuild",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "rebuild": "{run:0}"
+   }
+  },
+  {
+   "name": "run after rebuild",
+   "method": "GET",
+   "path": "/api/runs/{run:0}",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"config\":{\"question\":\"Will existing buyers accept the subscription?\",\"seed_files\":[\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/Mossbook Pricing.md\",\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/notes.txt\"],\"num_agents\":4,\"rounds\":2,\"batch_size\":2,\"feed_size\":12,\"memory_size\":8,\"agent_model\":\"haiku\",\"planner_model\":\"sonnet\",\"concurrency\":4,\"language\":\"English\",\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"seed\":7,\"think\":false,\"agent_runtime\":\"claude-code\",\"planner_runtime\":\"claude-code\",\"cast_from\":null,\"study_id\":null,\"variant\":null,\"branched_from\":null,\"branch_round\":null},\"status\":{\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"detail\":\"report ready\",\"error\":null,\"pid\":0,\"started_at\":\"<time>\",\"updated_at\":\"<time>\",\"failed_batches\":[]},\"live\":false,\"personas\":[{\"id\":\"a01\",\"handle\":\"fake_user_2\",\"name\":\"Placeholder name 3\",\"bio\":\"Canned bio #4 from the offline test model (personas.batch).\",\"background\":\"Canned background #5 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #6 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #7 from the offline test model (personas.batch).\",\"Canned traits #8 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a02\",\"handle\":\"fake_user_12\",\"name\":\"Placeholder name 13\",\"bio\":\"Canned bio #14 from the offline test model (personas.batch).\",\"background\":\"Canned background #15 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #16 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #17 from the offline test model (personas.batch).\",\"Canned traits #18 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a03\",\"handle\":\"fake_user_22\",\"name\":\"Placeholder name 23\",\"bio\":\"Canned bio #24 from the offline test model (personas.batch).\",\"background\":\"Canned background #25 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #26 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #27 from the offline test model (personas.batch).\",\"Canned traits #28 from the offline test model (personas.batch).\"],\"activity\":0.5,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a04\",\"handle\":\"fake_user_32\",\"name\":\"Placeholder name 33\",\"bio\":\"Canned bio #34 from the offline test model (personas.batch).\",\"background\":\"Canned background #35 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #36 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #37 from the offline test model (personas.batch).\",\"Canned traits #38 from the offline test model (personas.batch).\"],\"activity\":0.6,\"influence\":0.5,\"entity_id\":null}],\"graph\":{\"entities\":[{\"id\":\"placeholder-name-1\",\"name\":\"Placeholder name 1\",\"kind\":\"concept\",\"summary\":\"Canned summary #3 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-8\",\"name\":\"Placeholder name 8\",\"kind\":\"concept\",\"summary\":\"Canned summary #10 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-15\",\"name\":\"Placeholder name 15\",\"kind\":\"concept\",\"summary\":\"Canned summary #17 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]}],\"relations\":[{\"source\":\"placeholder-name-8\",\"target\":\"placeholder-name-15\",\"label\":\"canned label #24 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #25 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-15\",\"target\":\"placeholder-name-1\",\"label\":\"canned label #28 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #29 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-1\",\"target\":\"placeholder-name-8\",\"label\":\"canned label #32 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #33 from the offline test model (graph.extract).\"}]},\"stats\":[{\"round\":0,\"actions\":{\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":1,\"actions\":{\"nothing\":1,\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":2,\"actions\":{\"nothing\":5,\"post\":3},\"new_posts\":3,\"active_agents\":4,\"sentiment\":0.5,\"llm_calls\":3,\"llm_seconds\":0.0}],\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"follows\":[[\"a01\",\"a02\"],[\"a01\",\"a03\"],[\"a01\",\"a04\"],[\"a02\",\"a01\"],[\"a02\",\"a03\"],[\"a02\",\"a04\"],[\"a03\",\"a01\"],[\"a03\",\"a02\"],[\"a03\",\"a04\"],[\"a04\",\"a01\"],[\"a04\",\"a02\"],[\"a04\",\"a03\"]],\"report\":{\"title\":\"Placeholder title 1\",\"summary\":\"Canned summary #2 from the offline test model (report.repair).\",\"prediction\":\"Canned prediction #3 from the offline test model (report.repair).\",\"confidence\":\"medium\",\"sections\":[{\"title\":\"Placeholder title 5\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 7\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 9\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 11\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"}],\"key_voices\":[\"a02\",\"a03\"],\"reasons\":[\"Canned reasons [unverified] from the offline test model (report.repair).\",\"Canned reasons [unverified] from the offline test model (report.repair).\"],\"camps\":[],\"risks\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"caveats\":[\"Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\"Sentiment could not be scored for round(s) 0, 1.\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"26 citations could not be matched to posts and were marked [unverified].\"],\"recommendations\":[],\"citation_audit\":{\"checked\":28,\"unknown_posts\":[15,16,6,8,10,12,37,38,39,40,43,48,46,47,52,57,55,56,61,66,64,65,70,75,73,74],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":true,\"marked\":26}},\"calls\":{\"count\":0,\"failed\":0,\"seconds\":0,\"agent\":{\"count\":0,\"failed\":0,\"seconds\":0},\"planner\":{\"count\":0,\"failed\":0,\"seconds\":0}},\"report_rebuild\":{\"running\":false,\"error\":null},\"example\":false}"
+  },
+  {
+   "name": "bad run id",
+   "method": "GET",
+   "path": "/api/runs/..x",
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid run id\"}"
+  },
+  {
+   "name": "bad run id chars",
+   "method": "GET",
+   "path": "/api/runs/a%20b",
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid run id\"}"
+  },
+  {
+   "name": "unknown run",
+   "method": "GET",
+   "path": "/api/runs/nope",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"run not found\"}"
+  },
+  {
+   "name": "copy example",
+   "method": "COPY",
+   "path": "",
+   "copy": {
+    "from": "{run:0}",
+    "to": "demo"
+   }
+  },
+  {
+   "name": "runs with example",
+   "method": "GET",
+   "path": "/api/runs",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":\"example-demo\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":true,\"study_id\":null,\"variant\":null},{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":null,\"variant\":null}]"
+  },
+  {
+   "name": "example detail",
+   "method": "GET",
+   "path": "/api/runs/example-demo",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"example-demo\",\"config\":{\"question\":\"Will existing buyers accept the subscription?\",\"seed_files\":[\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/Mossbook Pricing.md\",\"<root>/runs/{run:0}-will-existing-buyers-accept-the-subscrip/seeds/notes.txt\"],\"num_agents\":4,\"rounds\":2,\"batch_size\":2,\"feed_size\":12,\"memory_size\":8,\"agent_model\":\"haiku\",\"planner_model\":\"sonnet\",\"concurrency\":4,\"language\":\"English\",\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"seed\":7,\"think\":false,\"agent_runtime\":\"claude-code\",\"planner_runtime\":\"claude-code\",\"cast_from\":null,\"study_id\":null,\"variant\":null,\"branched_from\":null,\"branch_round\":null},\"status\":{\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"detail\":\"report ready\",\"error\":null,\"pid\":0,\"started_at\":\"<time>\",\"updated_at\":\"<time>\",\"failed_batches\":[]},\"live\":false,\"personas\":[{\"id\":\"a01\",\"handle\":\"fake_user_2\",\"name\":\"Placeholder name 3\",\"bio\":\"Canned bio #4 from the offline test model (personas.batch).\",\"background\":\"Canned background #5 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #6 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #7 from the offline test model (personas.batch).\",\"Canned traits #8 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a02\",\"handle\":\"fake_user_12\",\"name\":\"Placeholder name 13\",\"bio\":\"Canned bio #14 from the offline test model (personas.batch).\",\"background\":\"Canned background #15 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #16 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #17 from the offline test model (personas.batch).\",\"Canned traits #18 from the offline test model (personas.batch).\"],\"activity\":0.3,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a03\",\"handle\":\"fake_user_22\",\"name\":\"Placeholder name 23\",\"bio\":\"Canned bio #24 from the offline test model (personas.batch).\",\"background\":\"Canned background #25 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #26 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #27 from the offline test model (personas.batch).\",\"Canned traits #28 from the offline test model (personas.batch).\"],\"activity\":0.5,\"influence\":0.5,\"entity_id\":null},{\"id\":\"a04\",\"handle\":\"fake_user_32\",\"name\":\"Placeholder name 33\",\"bio\":\"Canned bio #34 from the offline test model (personas.batch).\",\"background\":\"Canned background #35 from the offline test model (personas.batch).\",\"stance\":\"Canned stance #36 from the offline test model (personas.batch).\",\"traits\":[\"Canned traits #37 from the offline test model (personas.batch).\",\"Canned traits #38 from the offline test model (personas.batch).\"],\"activity\":0.6,\"influence\":0.5,\"entity_id\":null}],\"graph\":{\"entities\":[{\"id\":\"placeholder-name-1\",\"name\":\"Placeholder name 1\",\"kind\":\"concept\",\"summary\":\"Canned summary #3 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-8\",\"name\":\"Placeholder name 8\",\"kind\":\"concept\",\"summary\":\"Canned summary #10 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]},{\"id\":\"placeholder-name-15\",\"name\":\"Placeholder name 15\",\"kind\":\"concept\",\"summary\":\"Canned summary #17 from the offline test model (graph.extract).\",\"source_chunk_ids\":[0]}],\"relations\":[{\"source\":\"placeholder-name-8\",\"target\":\"placeholder-name-15\",\"label\":\"canned label #24 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #25 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-15\",\"target\":\"placeholder-name-1\",\"label\":\"canned label #28 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #29 from the offline test model (graph.extract).\"},{\"source\":\"placeholder-name-1\",\"target\":\"placeholder-name-8\",\"label\":\"canned label #32 from the offline test model (graph.extract).\",\"evidence\":\"Canned evidence #33 from the offline test model (graph.extract).\"}]},\"stats\":[{\"round\":0,\"actions\":{\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":1,\"actions\":{\"nothing\":1,\"post\":1},\"new_posts\":1,\"active_agents\":1,\"sentiment\":null,\"llm_calls\":2,\"llm_seconds\":0.0},{\"round\":2,\"actions\":{\"nothing\":5,\"post\":3},\"new_posts\":3,\"active_agents\":4,\"sentiment\":0.5,\"llm_calls\":3,\"llm_seconds\":0.0}],\"events\":[{\"round\":2,\"content\":\"A rival app says it will stay a one-time purchase\"}],\"follows\":[[\"a01\",\"a02\"],[\"a01\",\"a03\"],[\"a01\",\"a04\"],[\"a02\",\"a01\"],[\"a02\",\"a03\"],[\"a02\",\"a04\"],[\"a03\",\"a01\"],[\"a03\",\"a02\"],[\"a03\",\"a04\"],[\"a04\",\"a01\"],[\"a04\",\"a02\"],[\"a04\",\"a03\"]],\"report\":{\"title\":\"Placeholder title 1\",\"summary\":\"Canned summary #2 from the offline test model (report.repair).\",\"prediction\":\"Canned prediction #3 from the offline test model (report.repair).\",\"confidence\":\"medium\",\"sections\":[{\"title\":\"Placeholder title 5\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 7\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 9\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"},{\"title\":\"Placeholder title 11\",\"body_markdown\":\"Canned body_markdown [unverified] from the offline test model (report.repair).\"}],\"key_voices\":[\"a02\",\"a03\"],\"reasons\":[\"Canned reasons [unverified] from the offline test model (report.repair).\",\"Canned reasons [unverified] from the offline test model (report.repair).\"],\"camps\":[],\"risks\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"caveats\":[\"Scale: 4 simulated agents over 2 rounds produced 5 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.\",\"Sentiment could not be scored for round(s) 0, 1.\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"Canned caveats [unverified] from the offline test model (report.repair).\",\"26 citations could not be matched to posts and were marked [unverified].\"],\"recommendations\":[],\"citation_audit\":{\"checked\":28,\"unknown_posts\":[15,16,6,8,10,12,37,38,39,40,43,48,46,47,52,57,55,56,61,66,64,65,70,75,73,74],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":true,\"marked\":26}},\"calls\":{\"count\":0,\"failed\":0,\"seconds\":0,\"agent\":{\"count\":0,\"failed\":0,\"seconds\":0},\"planner\":{\"count\":0,\"failed\":0,\"seconds\":0}},\"report_rebuild\":{\"running\":false,\"error\":null},\"example\":true}"
+  },
+  {
+   "name": "example event",
+   "method": "POST",
+   "path": "/api/runs/example-demo/events",
+   "json": {
+    "round": 2,
+    "content": "x"
+   },
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"this is a built-in example run; it cannot be changed. Use Run again to make your own copy\"}"
+  },
+  {
+   "name": "example stop",
+   "method": "POST",
+   "path": "/api/runs/example-demo/stop",
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"this is a built-in example run; it cannot be changed. Use Run again to make your own copy\"}"
+  },
+  {
+   "name": "example rebuild",
+   "method": "POST",
+   "path": "/api/runs/example-demo/report",
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"this is a built-in example run; it cannot be changed. Use Run again to make your own copy\"}"
+  },
+  {
+   "name": "example chat",
+   "method": "POST",
+   "path": "/api/runs/example-demo/chat",
+   "json": {
+    "agent_id": "a02",
+    "message": "And you?"
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"reply\":\"(offline test reply for chat.interview) I would keep an eye on how people react.\"}"
+  },
+  {
+   "name": "example rewrite",
+   "method": "POST",
+   "path": "/api/runs/example-demo/rewrite",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"revised_text\":\"Canned revised_text #1 from the offline test model (report.rewrite).\",\"changes\":[{\"what\":\"Canned what #2 from the offline test model (report.rewrite).\",\"why\":\"Canned why #3 from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #6 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #10 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]}],\"kept_on_purpose\":[\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\",\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\"],\"source_name\":\"Mossbook Pricing.md\",\"created_at\":\"<time>\",\"citation_audit\":{\"checked\":11,\"unknown_posts\":[7,11,14,15,0],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":false,\"marked\":10}}"
+  },
+  {
+   "name": "example saved rewrite",
+   "method": "GET",
+   "path": "/api/runs/example-demo/rewrite",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"revised_text\":\"Canned revised_text #1 from the offline test model (report.rewrite).\",\"changes\":[{\"what\":\"Canned what #2 from the offline test model (report.rewrite).\",\"why\":\"Canned why #3 from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #6 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]},{\"what\":\"Canned what #10 from the offline test model (report.rewrite).\",\"why\":\"Canned why [unverified] from the offline test model (report.rewrite).\",\"cites\":[]}],\"kept_on_purpose\":[\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\",\"Canned kept_on_purpose [unverified] from the offline test model (report.rewrite).\"],\"source_name\":\"Mossbook Pricing.md\",\"created_at\":\"<time>\",\"citation_audit\":{\"checked\":11,\"unknown_posts\":[7,11,14,15,0],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":false,\"marked\":10}}"
+  },
+  {
+   "name": "cast from run",
+   "method": "POST",
+   "path": "/api/runs",
+   "form": {
+    "fields": [
+     [
+      "question",
+      "Will existing buyers accept the subscription?"
+     ],
+     [
+      "agents",
+      "4"
+     ],
+     [
+      "rounds",
+      "2"
+     ],
+     [
+      "batch",
+      "2"
+     ],
+     [
+      "seed",
+      "7"
+     ],
+     [
+      "events",
+      "[{\"round\": 2, \"content\": \"A rival app says it will stay a one-time purchase\"}]"
+     ],
+     [
+      "cast_from",
+      "{run:0}"
+     ],
+     [
+      "variant",
+      "Shorter"
+     ]
+    ],
+    "files": [
+     [
+      "files",
+      "mossbook.md",
+      "# Mossbook is changing how it's priced. Here's what that means for you.\n\n*Posted by Ines Okafor-Brandt, co-founder of Mossbook Labs, on the Mossbook blog. Fictional document written as an example seed for Tellfold.*\n\nSix years ago, two of us built Mossbook in a rented garage because our own houseplants kept dying. The idea was simple: take a photo of a plant, get a care plan, get reminded when it needs water, light or a new pot. We sold it for a one-time price of $24.99, and about 410,000 of you bought it. Thank you. That one purchase has paid for six years of updates, a plant-identification model that now knows more than 9,000 species, and a team that grew from two people to nineteen.\n\nToday we're announcing the biggest change we have ever made to Mossbook, and we want to explain it plainly.\n\n## What is changing\n\nStarting **March 3**, new users will download Mossbook for free and can track up to five plants without paying. To go beyond five plants, or to use the features listed below, they'll need **Mossbook Plus**, which costs **$3.99 a month or $29.99 a year**.\n\nMossbook Plus includes:\n\n- Unlimited plants and rooms\n- Photo diagnosis (\"why are the leaves on my fiddle-leaf fig turning brown?\"), which runs on our servers\n- Weather-aware watering for balcony and garden plants\n- Household sharing for up to six people\n- The new Grow Journal with time-lapse photos\n\n## What happens to people who already paid\n\nThis is the part we argued about the most, so here it is in detail.\n\nIf you bought Mossbook at any point before March 3, you keep everything you have today, forever. Unlimited plants, reminders, the species library, offline mode. None of it will move behind the subscription.\n\nOn top of that, every existing buyer gets **one full year of Mossbook Plus for free**, starting March 3. After that year you can subscribe at a lifetime discount of $17.99 a year, or simply keep using the version you paid for.\n\nTwo features will be Plus-only for everyone after the free year ends: photo diagnosis and weather-aware watering. Both of these cost us real money every time you use them. Photo diagnosis alone runs about 2.1 million image checks a month on rented GPUs, and the weather data comes from a commercial provider that bills us per request. Last year these two features cost more than the app earned from new sales.\n\n## Why we're doing this\n\nThe honest answer is that one-time pricing worked when Mossbook was an app that lived entirely on your phone. It no longer is. The features people tell us they love most are the ones that run on servers, and servers bill us every month whether or not anyone buys the app that month.\n\nWe looked at alternatives. We could have added ads, but nobody wants a banner for fertilizer spikes between them and their monstera. We could have sold your plant data to garden retailers, and we will never do that. We could have kept prices as they are and slowly stopped improving the app, which is what happens to a lot of one-time-purchase apps. We think a small subscription is the most honest of those options.\n\n## What we're committing to\n\nWe know a pricing change asks you to trust us, so here are commitments you can hold us to:\n\n1. **Your data stays yours.** You can export all of your plants, photos and journal entries as a ZIP file at any time, on any plan, including the free one.\n2. **Offline mode stays free.** Reminders and care plans will always work without an internet connection and without a subscription.\n3. **No price increase for current subscribers before 2028.** If we ever raise prices, anyone already subscribed keeps their price.\n4. **Student and community-garden discount.** Verified students and registered community gardens get Plus for $9.99 a year.\n5. **We'll publish our numbers.** Once a quarter we will post how many people pay for Plus and what we spent on servers, so you can see where the money goes.\n\n## What's next\n\nThe update with the new plans goes out on March 3 for iOS and Android. The free year for existing buyers will be applied automatically; you don't need to do anything. If it doesn't show up, write to support and a human will fix it within a day.\n\nWe're also hosting an open Q&A on our community forum on February 24, where the whole team will answer questions for as long as people have them. Bring the hard ones.\n\nWe know some of you will be disappointed. Some of you bought Mossbook precisely because it wasn't a subscription, and we respect that. We've tried to make sure that nobody who already paid loses anything they paid for. If we got something wrong, tell us. We've changed our plans because of your feedback before, and we'll do it again.\n\nThank you for six years of dead-plant rescues, very blurry leaf photos, and kind emails.\n\nInes and the Mossbook team\n"
+     ]
+    ]
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\"}"
+  },
+  {
+   "name": "wait for cast run",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "run": "{run:1}"
+   }
+  },
+  {
+   "name": "wait for comparison",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "study": "{study:0}"
+   }
+  },
+  {
+   "name": "studies",
+   "method": "GET",
+   "path": "/api/studies",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":\"{study:0}\",\"kind\":\"compare\",\"created_at\":\"<time>\",\"question\":\"Will existing buyers accept the subscription?\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Draft A\",\"letter\":\"A\"},{\"id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Shorter\",\"letter\":\"B\"}],\"has_compare\":true,\"comparing\":false,\"planned\":0}]"
+  },
+  {
+   "name": "study",
+   "method": "GET",
+   "path": "/api/studies/{study:0}",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{study:0}\",\"kind\":\"compare\",\"created_at\":\"<time>\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Draft A\",\"letter\":\"A\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"has_report\":true,\"example\":false,\"digest\":{\"letter\":\"A\",\"run_id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Draft A\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":0.5,\"posts\":3}],\"final_sentiment\":0.5,\"camps\":[],\"shifts\":[{\"agent_id\":\"a03\",\"handle\":\"fake_user_22\",\"first_post\":2,\"last_post\":4,\"change\":null},{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":1,\"last_post\":5,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":5}},{\"id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Shorter\",\"letter\":\"B\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"has_report\":true,\"example\":false,\"digest\":{\"letter\":\"B\",\"run_id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Shorter\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":0.5,\"posts\":3}],\"final_sentiment\":0.5,\"camps\":[],\"shifts\":[{\"agent_id\":\"a03\",\"handle\":\"fake_user_22\",\"first_post\":2,\"last_post\":4,\"change\":null},{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":1,\"last_post\":5,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":5}}],\"compare\":{\"study_id\":\"{study:0}\",\"created_at\":\"<time>\",\"runs\":[{\"letter\":\"A\",\"run_id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Draft A\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":0.5,\"posts\":3}],\"final_sentiment\":0.5,\"camps\":[],\"shifts\":[{\"agent_id\":\"a03\",\"handle\":\"fake_user_22\",\"first_post\":2,\"last_post\":4,\"change\":null},{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":1,\"last_post\":5,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":5},{\"letter\":\"B\",\"run_id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Shorter\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":0.5,\"posts\":3}],\"final_sentiment\":0.5,\"camps\":[],\"shifts\":[{\"agent_id\":\"a03\",\"handle\":\"fake_user_22\",\"first_post\":2,\"last_post\":4,\"change\":null},{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":1,\"last_post\":5,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":5}],\"report\":{\"headline\":\"Canned headline [unverified] from the offline test model (compare.write).\",\"better_variant\":null,\"why\":\"Canned why [unverified] from the offline test model (compare.write).\",\"per_variant\":[],\"objections_only_in\":[],\"caveats\":[\"Each version was played once by the same crowd; part of any difference is chance. Use Check it on each version to see what holds.\",\"Canned caveats [unverified] from the offline test model (compare.write).\",\"Canned caveats [unverified] from the offline test model (compare.write).\",\"4 citations could not be matched to posts and were marked [unverified].\"],\"citation_audit\":{\"checked\":4,\"unknown_posts\":[1,3,25,26],\"unknown_handles\":[],\"unknown_refs\":[],\"misquotes\":[],\"repaired\":false,\"marked\":4}}},\"compare_state\":{\"running\":false,\"error\":null},\"planned\":0,\"repeating\":false,\"agreement\":null}"
+  },
+  {
+   "name": "compare again",
+   "method": "POST",
+   "path": "/api/studies/{study:0}/compare",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true}"
+  },
+  {
+   "name": "wait for comparison again",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "study": "{study:0}"
+   }
+  },
+  {
+   "name": "study bad id",
+   "method": "GET",
+   "path": "/api/studies/..x",
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid study id\"}"
+  },
+  {
+   "name": "study unknown",
+   "method": "GET",
+   "path": "/api/studies/nope",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"study not found\"}"
+  },
+  {
+   "name": "compare unknown",
+   "method": "POST",
+   "path": "/api/studies/nope/compare",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"study not found\"}"
+  },
+  {
+   "name": "branch",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/branch",
+   "json": {
+    "round": 1,
+    "events": [
+     {
+      "round": 2,
+      "content": " The owner apologises "
+     },
+     {
+      "round": 2,
+      "content": " "
+     }
+    ]
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:2}-will-existing-buyers-accept-the-subscrip\",\"study_id\":\"{study:1}\"}"
+  },
+  {
+   "name": "wait for branch",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "run": "{run:2}"
+   }
+  },
+  {
+   "name": "branch too late",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/branch",
+   "json": {
+    "round": 2
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"round 2 is the last round; a branch needs at least one round left to run\"}"
+  },
+  {
+   "name": "branch invalid",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/branch",
+   "json": {
+    "round": -1,
+    "events": [
+     1,
+     {
+      "round": "a"
+     }
+    ]
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"greater_than_equal\",\"loc\":[\"body\",\"round\"],\"msg\":\"Input should be greater than or equal to 0\",\"input\":-1,\"ctx\":{\"ge\":0}},{\"type\":\"model_attributes_type\",\"loc\":[\"body\",\"events\",0],\"msg\":\"Input should be a valid dictionary or object to extract fields from\",\"input\":1},{\"type\":\"int_parsing\",\"loc\":[\"body\",\"events\",1,\"round\"],\"msg\":\"Input should be a valid integer, unable to parse string as an integer\",\"input\":\"a\"},{\"type\":\"missing\",\"loc\":[\"body\",\"events\",1,\"content\"],\"msg\":\"Field required\",\"input\":{\"round\":\"a\"}}]}"
+  },
+  {
+   "name": "wait for branch study",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "study": "{study:1}"
+   }
+  },
+  {
+   "name": "check",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/check",
+   "json": {
+    "runs": 2
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"study_id\":\"{study:2}\"}"
+  },
+  {
+   "name": "wait for check",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "study": "{study:2}"
+   }
+  },
+  {
+   "name": "check study",
+   "method": "GET",
+   "path": "/api/studies/{study:2}",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{study:2}\",\"kind\":\"repeat\",\"created_at\":\"<time>\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 1\",\"letter\":\"A\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"has_report\":true,\"example\":false,\"digest\":{\"letter\":\"A\",\"run_id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 1\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":0.5,\"posts\":3}],\"final_sentiment\":0.5,\"camps\":[],\"shifts\":[{\"agent_id\":\"a03\",\"handle\":\"fake_user_22\",\"first_post\":2,\"last_post\":4,\"change\":null},{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":1,\"last_post\":5,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":5}},{\"id\":\"{run:3}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 2\",\"letter\":\"B\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"has_report\":true,\"example\":false,\"digest\":{\"letter\":\"B\",\"run_id\":\"{run:3}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 2\",\"state\":\"done\",\"headline\":\"Placeholder title 1\",\"rounds\":[{\"round\":0,\"sentiment\":null,\"posts\":1},{\"round\":1,\"sentiment\":null,\"posts\":1},{\"round\":2,\"sentiment\":null,\"posts\":1}],\"final_sentiment\":null,\"camps\":[],\"shifts\":[{\"agent_id\":\"a04\",\"handle\":\"fake_user_32\",\"first_post\":2,\"last_post\":3,\"change\":null}],\"objections\":[\"Canned risks [unverified] from the offline test model (report.repair).\",\"Canned risks [unverified] from the offline test model (report.repair).\"],\"posts\":3}}],\"compare\":null,\"compare_state\":{\"running\":false,\"error\":null},\"planned\":2,\"repeating\":false,\"agreement\":{\"study_id\":\"{study:2}\",\"created_at\":\"<time>\",\"runs\":2,\"final_low\":0.5,\"final_high\":0.5,\"spread\":0.0,\"bands\":[{\"round\":0,\"low\":null,\"high\":null,\"runs\":0},{\"round\":1,\"low\":null,\"high\":null,\"runs\":0},{\"round\":2,\"low\":0.5,\"high\":0.5,\"runs\":1}],\"camps\":[],\"held\":[\"Canned held #1 from the offline test model (study.agree).\",\"Canned held #2 from the offline test model (study.agree).\"],\"split\":[\"Canned split #3 from the offline test model (study.agree).\",\"Canned split #4 from the offline test model (study.agree).\"],\"verdict\":\"unstable\",\"summary\":\"Canned summary #6 from the offline test model (study.agree).\"}}"
+  },
+  {
+   "name": "check invalid",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/check",
+   "json": {
+    "runs": 9,
+    "agent_model": "a b"
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"less_than_equal\",\"loc\":[\"body\",\"runs\"],\"msg\":\"Input should be less than or equal to 5\",\"input\":9,\"ctx\":{\"le\":5}},{\"type\":\"string_pattern_mismatch\",\"loc\":[\"body\",\"agent_model\"],\"msg\":\"String should match pattern '^[A-Za-z0-9][A-Za-z0-9._:/@\\\\[\\\\]-]{0,119}$'\",\"input\":\"a b\",\"ctx\":{\"pattern\":\"^[A-Za-z0-9][A-Za-z0-9._:/@\\\\[\\\\]-]{0,119}$\"}}]}"
+  },
+  {
+   "name": "branch an example",
+   "method": "POST",
+   "path": "/api/runs/example-demo/branch",
+   "json": {
+    "round": 1
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"id\":\"{run:4}-will-existing-buyers-accept-the-subscrip\",\"study_id\":\"{study:3}\"}"
+  },
+  {
+   "name": "wait for example branch",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "run": "{run:4}"
+   }
+  },
+  {
+   "name": "wait for example branch study",
+   "method": "WAIT",
+   "path": "",
+   "wait": {
+    "study": "{study:3}"
+   }
+  },
+  {
+   "name": "all runs",
+   "method": "GET",
+   "path": "/api/runs",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":\"example-demo\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":true,\"study_id\":null,\"variant\":null},{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":null,\"variant\":null},{\"id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":\"{study:0}\",\"variant\":\"Shorter\"},{\"id\":\"{run:2}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":\"{study:1}\",\"variant\":\"Branch at round 1\"},{\"id\":\"{run:3}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":\"{study:2}\",\"variant\":\"Run 2\"},{\"id\":\"{run:4}-will-existing-buyers-accept-the-subscrip\",\"question\":\"Will existing buyers accept the subscription?\",\"state\":\"done\",\"stage\":\"finished\",\"round\":2,\"total_rounds\":2,\"agents\":4,\"created_at\":\"<time>\",\"has_report\":true,\"example\":false,\"study_id\":\"{study:3}\",\"variant\":\"Branch at round 1\"}]"
+  },
+  {
+   "name": "all studies",
+   "method": "GET",
+   "path": "/api/studies",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "[{\"id\":\"{study:0}\",\"kind\":\"compare\",\"created_at\":\"<time>\",\"question\":\"Will existing buyers accept the subscription?\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Draft A\",\"letter\":\"A\"},{\"id\":\"{run:1}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Shorter\",\"letter\":\"B\"}],\"has_compare\":true,\"comparing\":false,\"planned\":0},{\"id\":\"{study:1}\",\"kind\":\"compare\",\"created_at\":\"<time>\",\"question\":\"Will existing buyers accept the subscription?\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Original\",\"letter\":\"A\"},{\"id\":\"{run:2}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Branch at round 1\",\"letter\":\"B\"}],\"has_compare\":true,\"comparing\":false,\"planned\":0},{\"id\":\"{study:2}\",\"kind\":\"repeat\",\"created_at\":\"<time>\",\"question\":\"Will existing buyers accept the subscription?\",\"runs\":[{\"id\":\"{run:0}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 1\",\"letter\":\"A\"},{\"id\":\"{run:3}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Run 2\",\"letter\":\"B\"}],\"has_compare\":true,\"comparing\":false,\"planned\":2},{\"id\":\"{study:3}\",\"kind\":\"compare\",\"created_at\":\"<time>\",\"question\":\"Will existing buyers accept the subscription?\",\"runs\":[{\"id\":\"example-demo\",\"variant\":\"Original\",\"letter\":\"A\"},{\"id\":\"{run:4}-will-existing-buyers-accept-the-subscrip\",\"variant\":\"Branch at round 1\",\"letter\":\"B\"}],\"has_compare\":true,\"comparing\":false,\"planned\":0}]"
+  },
+  {
+   "name": "settings",
+   "method": "GET",
+   "path": "/api/settings",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"runs_dir\":null,\"agent_runtime\":\"claude-code\",\"agent_model\":\"haiku\",\"planner_runtime\":\"claude-code\",\"planner_model\":\"sonnet\",\"ollama_base_url\":\"http://127.0.0.1:11434\",\"openai_endpoints\":[],\"concurrency\":4,\"think\":false}"
+  },
+  {
+   "name": "save settings",
+   "method": "PUT",
+   "path": "/api/settings",
+   "json": {
+    "agent_model": " sonnet ",
+    "concurrency": 3
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"runs_dir\":null,\"agent_runtime\":\"claude-code\",\"agent_model\":\"sonnet\",\"planner_runtime\":\"claude-code\",\"planner_model\":\"sonnet\",\"ollama_base_url\":\"http://127.0.0.1:11434\",\"openai_endpoints\":[],\"concurrency\":3,\"think\":false}"
+  },
+  {
+   "name": "settings bad runtime",
+   "method": "PUT",
+   "path": "/api/settings",
+   "json": {
+    "agent_runtime": "Bad Runtime"
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"agent_runtime\"],\"msg\":\"Value error, invalid runtime id\",\"input\":\"Bad Runtime\",\"ctx\":{\"error\":{}}}]}"
+  },
+  {
+   "name": "settings unknown runtime",
+   "method": "PUT",
+   "path": "/api/settings",
+   "json": {
+    "agent_runtime": "nope"
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"unknown agent_runtime 'nope'; see GET /api/runtimes\"}"
+  },
+  {
+   "name": "settings bad concurrency",
+   "method": "PUT",
+   "path": "/api/settings",
+   "json": {
+    "concurrency": 99
+   },
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"less_than_equal\",\"loc\":[\"body\",\"concurrency\"],\"msg\":\"Input should be less than or equal to 16\",\"input\":99,\"ctx\":{\"le\":16}}]}"
+  },
+  {
+   "name": "settings saved",
+   "method": "GET",
+   "path": "/api/settings",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"runs_dir\":null,\"agent_runtime\":\"claude-code\",\"agent_model\":\"sonnet\",\"planner_runtime\":\"claude-code\",\"planner_model\":\"sonnet\",\"ollama_base_url\":\"http://127.0.0.1:11434\",\"openai_endpoints\":[],\"concurrency\":3,\"think\":false}"
+  },
+  {
+   "name": "runtime test",
+   "method": "POST",
+   "path": "/api/runtimes/claude-code/test",
+   "json": {
+    "model": " haiku "
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true,\"seconds\":0,\"reply\":\"ok (fake LLM)\",\"error\":null,\"model\":\"haiku\"}"
+  },
+  {
+   "name": "runtime test no body",
+   "method": "POST",
+   "path": "/api/runtimes/claude-code/test",
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true,\"seconds\":0,\"reply\":\"ok (fake LLM)\",\"error\":null,\"model\":null}"
+  },
+  {
+   "name": "runtime test bad id",
+   "method": "POST",
+   "path": "/api/runtimes/BAD/test",
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid runtime id\"}"
+  },
+  {
+   "name": "runtime test unknown",
+   "method": "POST",
+   "path": "/api/runtimes/nope/test",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"runtime not found\"}"
+  },
+  {
+   "name": "runtime test bad model",
+   "method": "POST",
+   "path": "/api/runtimes/claude-code/test",
+   "json": {
+    "model": "a b"
+   },
+   "status": 400,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"invalid model\"}"
+  },
+  {
+   "name": "runtimes bad query",
+   "method": "GET",
+   "path": "/api/runtimes?check_auth=5",
+   "status": 422,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":[{\"type\":\"less_than_equal\",\"loc\":[\"query\",\"check_auth\"],\"msg\":\"Input should be less than or equal to 1\",\"input\":\"5\",\"ctx\":{\"le\":1}}]}"
+  },
+  {
+   "name": "api unknown",
+   "method": "GET",
+   "path": "/api/nope",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"not found\"}"
+  },
+  {
+   "name": "api wrong method",
+   "method": "PUT",
+   "path": "/api/runs",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"not found\"}"
+  },
+  {
+   "name": "api delete",
+   "method": "DELETE",
+   "path": "/api/runs/{run:0}",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"not found\"}"
+  },
+  {
+   "name": "index",
+   "method": "GET",
+   "path": "/",
+   "body": 4384,
+   "status": 200,
+   "content_type": "text/html; charset=utf-8",
+   "headers_out": {
+    "cache-control": "no-cache"
+   }
+  },
+  {
+   "name": "deep link",
+   "method": "GET",
+   "path": "/runs/whatever",
+   "body": 4384,
+   "status": 200,
+   "content_type": "text/html; charset=utf-8",
+   "headers_out": {
+    "cache-control": "no-cache"
+   }
+  },
+  {
+   "name": "static css",
+   "method": "GET",
+   "path": "/static/css/studio.css",
+   "body": 76978,
+   "status": 200,
+   "content_type": "text/css; charset=utf-8",
+   "headers_out": {}
+  },
+  {
+   "name": "static missing",
+   "method": "GET",
+   "path": "/static/nope.js",
+   "status": 404,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"Not Found\"}"
+  },
+  {
+   "name": "post to page",
+   "method": "POST",
+   "path": "/whatever",
+   "status": 405,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"Method Not Allowed\"}"
+  },
+  {
+   "name": "foreign host",
+   "method": "GET",
+   "path": "/api/health",
+   "headers": {
+    "host": "evil.example"
+   },
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"forbidden host\"}"
+  },
+  {
+   "name": "cross-origin write",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/stop",
+   "headers": {
+    "origin": "http://evil.example"
+   },
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"cross-origin request refused\"}"
+  },
+  {
+   "name": "null origin",
+   "method": "POST",
+   "path": "/api/runs/{run:0}/stop",
+   "headers": {
+    "origin": "null"
+   },
+   "status": 403,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"detail\":\"cross-origin request refused\"}"
+  },
+  {
+   "name": "same-origin read",
+   "method": "GET",
+   "path": "/api/health",
+   "headers": {
+    "origin": "http://evil.example"
+   },
+   "status": 200,
+   "content_type": "application/json",
+   "headers_out": {},
+   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.3.1\"}"
+  }
+ ]
+}

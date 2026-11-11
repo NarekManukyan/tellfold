@@ -1,0 +1,92 @@
+[
+ {
+  "round": 6,
+  "agent_id": "a02",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás has already replied to Gerald in round 5; posting again would feel defensive rather than listening. Better to show up on the 26th with genuine answers, not words."
+ },
+ {
+  "round": 6,
+  "agent_id": "a03",
+  "type": "reply",
+  "target_post_id": 22,
+  "target_agent_id": null,
+  "content": "Gerald, thank you for saying this directly. Come on the 26th—we want to understand what would actually keep you coming. The card helps some, but we're listening for what helps you.",
+  "reasoning": "Gerald's pension-worry is the real challenge; Hanna needs to show she's hearing the gap the card doesn't fully close, not just defending the math"
+ },
+ {
+  "round": 6,
+  "agent_id": "a09",
+  "type": "like",
+  "target_post_id": 29,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Tomás responding directly to Gerald's concerns shows the café isn't hiding—that's the integrity Danilo signed up to support"
+ },
+ {
+  "round": 6,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 27,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Lindenandrye's response to Gerald shows genuine listening, not PR—this is exactly the transparency Ruben has been arguing for"
+ },
+ {
+  "round": 6,
+  "agent_id": "a12",
+  "type": "like",
+  "target_post_id": 28,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's voice carries weight and validates Ruben's position; thirty-year regulars defending integrity matters more than blog noise"
+ },
+ {
+  "round": 6,
+  "agent_id": "a16",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Kiano is low-activity and the €12/month card still doesn't help his tight student budget; the conversation about pensions and fairness doesn't address his actual problem of affording treats"
+ },
+ {
+  "round": 6,
+  "agent_id": "a17",
+  "type": "like",
+  "target_post_id": 28,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Rosalind's voice matters—she's been there thirty years and still trusts them, that's real proof the café isn't changing into something greedy"
+ },
+ {
+  "round": 6,
+  "agent_id": "a01",
+  "type": "post",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "26 Feb is coming. We've listened to every concern—Gerald, Sandra, Henrik, all of you. This isn't a sales pitch. It's us showing our real numbers and asking: what would actually help you stay?",
+  "reasoning": "Final push before the event; acknowledges specific voices and reframes the conversation as genuine listening rather than defense"
+ },
+ {
+  "round": 6,
+  "agent_id": "a15",
+  "type": "like",
+  "target_post_id": 27,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "The café is directly addressing Gerald's concern and asking for dialogue; Sandra values this transparency and genuine listening"
+ },
+ {
+  "round": 6,
+  "agent_id": "a18",
+  "type": "nothing",
+  "target_post_id": null,
+  "target_agent_id": null,
+  "content": "",
+  "reasoning": "Henrik has stated his position clearly and consistently; he's seen enough evidence that the café's costs are real and the card helps, but his core worry about cumulative street-wide effects hasn't changed and won't shift further this round"
+ }
+]

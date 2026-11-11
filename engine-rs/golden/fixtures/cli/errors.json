@@ -1,0 +1,122 @@
+[
+ {
+  "case": "missing option",
+  "data": {
+   "usage": "Usage: tellfold run [OPTIONS] {seeds}...",
+   "command_path": "tellfold run",
+   "message": "Missing option '--question' / '-q'."
+  },
+  "renders": {
+   "40": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────╮\n│ Missing option '--question' / '-q'.  │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ Missing option '--question' / '-q'.                      │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Missing option '--question' / '-q'.                                          │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing option '--question' / '-q'.                                                              │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing option '--question' / '-q'.                                                                                                                │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "out of range",
+  "data": {
+   "usage": "Usage: tellfold run [OPTIONS] {seeds}...",
+   "command_path": "tellfold run",
+   "message": "Invalid value for '--agents': 1 is not in the range 2<=x<=200."
+  },
+  "renders": {
+   "40": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────╮\n│ Invalid value for '--agents': 1 is   │\n│ not in the range 2<=x<=200.          │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 1 is not in the range      │\n│ 2<=x<=200.                                               │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 1 is not in the range 2<=x<=200.               │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 1 is not in the range 2<=x<=200.                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--agents': 1 is not in the range 2<=x<=200.                                                                                     │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "not an int",
+  "data": {
+   "usage": "Usage: tellfold run [OPTIONS] {seeds}...",
+   "command_path": "tellfold run",
+   "message": "Invalid value for '--rounds': 'many' is not a valid int range."
+  },
+  "renders": {
+   "40": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────╮\n│ Invalid value for '--rounds': 'many' │\n│ is not a valid int range.            │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ Invalid value for '--rounds': 'many' is not a valid int  │\n│ range.                                                   │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--rounds': 'many' is not a valid int range.               │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--rounds': 'many' is not a valid int range.                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold run [OPTIONS] {seeds}...\nTry 'tellfold run --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Invalid value for '--rounds': 'many' is not a valid int range.                                                                                     │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "unknown option",
+  "data": {
+   "usage": "Usage: tellfold doctor [OPTIONS]",
+   "command_path": "tellfold doctor",
+   "message": "No such option: --bogus"
+  },
+  "renders": {
+   "40": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────╮\n│ No such option: --bogus              │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ No such option: --bogus                                  │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus                                                      │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus                                                                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such option: --bogus                                                                                                                            │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "extra argument",
+  "data": {
+   "usage": "Usage: tellfold doctor [OPTIONS]",
+   "command_path": "tellfold doctor",
+   "message": "Got unexpected extra argument(s) (extra)"
+  },
+  "renders": {
+   "40": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────╮\n│ Got unexpected extra argument(s)     │\n│ (extra)                              │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (extra)                 │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (extra)                                     │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (extra)                                                         │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold doctor [OPTIONS]\nTry 'tellfold doctor --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Got unexpected extra argument(s) (extra)                                                                                                           │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "no such command",
+  "data": {
+   "usage": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...",
+   "command_path": "tellfold",
+   "message": "No such command 'bogus'."
+  },
+  "renders": {
+   "40": "Usage: tellfold [OPTIONS] COMMAND \n[ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────╮\n│ No such command 'bogus'.             │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ No such command 'bogus'.                                 │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ No such command 'bogus'.                                                     │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such command 'bogus'.                                                                         │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...\nTry 'tellfold --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ No such command 'bogus'.                                                                                                                           │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "missing argument",
+  "data": {
+   "usage": "Usage: tellfold agents [OPTIONS] {run_dir}",
+   "command_path": "tellfold agents",
+   "message": "Missing argument 'run_dir'."
+  },
+  "renders": {
+   "40": "Usage: tellfold agents [OPTIONS] \n{run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────╮\n│ Missing argument 'run_dir'.          │\n╰──────────────────────────────────────╯\n",
+   "60": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────╮\n│ Missing argument 'run_dir'.                              │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'run_dir'.                                                  │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'run_dir'.                                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "Usage: tellfold agents [OPTIONS] {run_dir}\nTry 'tellfold agents --help' for help.\n╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Missing argument 'run_dir'.                                                                                                                        │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ },
+ {
+  "case": "missing option value",
+  "data": {
+   "usage": "",
+   "command_path": "",
+   "message": "Option '--agent' requires an argument."
+  },
+  "renders": {
+   "40": "╭─ Error ──────────────────────────────╮\n│ Option '--agent' requires an         │\n│ argument.                            │\n╰──────────────────────────────────────╯\n",
+   "60": "╭─ Error ──────────────────────────────────────────────────╮\n│ Option '--agent' requires an argument.                   │\n╰──────────────────────────────────────────────────────────╯\n",
+   "80": "╭─ Error ──────────────────────────────────────────────────────────────────────╮\n│ Option '--agent' requires an argument.                                       │\n╰──────────────────────────────────────────────────────────────────────────────╯\n",
+   "100": "╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '--agent' requires an argument.                                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n",
+   "150": "╭─ Error ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ Option '--agent' requires an argument.                                                                                                             │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n"
+  }
+ }
+]

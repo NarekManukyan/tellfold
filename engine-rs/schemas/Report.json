@@ -1,0 +1,207 @@
+{
+  "$defs": {
+    "Camp": {
+      "description": "One opinion group in the simulated crowd, named by the report writer.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "summary": {
+          "default": "",
+          "title": "Summary",
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "sentiment": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sentiment"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Camp",
+      "type": "object"
+    },
+    "Recommendation": {
+      "description": "One evidence-backed next step drawn from how the simulated crowd reacted.",
+      "properties": {
+        "action": {
+          "enum": [
+            "keep",
+            "change",
+            "add",
+            "drop",
+            "test"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "why": {
+          "default": "",
+          "title": "Why",
+          "type": "string"
+        },
+        "addresses": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Addresses",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "expected_effect": {
+          "default": "",
+          "title": "Expected Effect",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "required": [
+        "action",
+        "title"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "ReportSection": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "body_markdown": {
+          "title": "Body Markdown",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "body_markdown"
+      ],
+      "title": "ReportSection",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "prediction": {
+      "title": "Prediction",
+      "type": "string"
+    },
+    "confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/ReportSection"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "key_voices": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Key Voices",
+      "type": "array"
+    },
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "camps": {
+      "items": {
+        "$ref": "#/$defs/Camp"
+      },
+      "title": "Camps",
+      "type": "array"
+    },
+    "risks": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Risks",
+      "type": "array"
+    },
+    "caveats": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Caveats",
+      "type": "array"
+    },
+    "recommendations": {
+      "items": {
+        "$ref": "#/$defs/Recommendation"
+      },
+      "title": "Recommendations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "title",
+    "summary",
+    "prediction",
+    "confidence"
+  ],
+  "title": "Report",
+  "type": "object"
+}

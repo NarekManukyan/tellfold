@@ -1,0 +1,1292 @@
+{
+ "seed": 7,
+ "feed_size": 12,
+ "last_round": 6,
+ "memory_rounds": null,
+ "feeds": {
+  "a01@0": [
+   1,
+   4,
+   3,
+   6,
+   5,
+   2
+  ],
+  "a01@1": [
+   1,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   2,
+   7,
+   10
+  ],
+  "a01@6": [
+   38,
+   41,
+   42,
+   39,
+   30,
+   23,
+   40,
+   1,
+   43,
+   44,
+   19,
+   31
+  ],
+  "a02@0": [
+   4,
+   3,
+   6,
+   5,
+   2
+  ],
+  "a02@1": [
+   11,
+   14,
+   13,
+   4,
+   3,
+   6,
+   5,
+   2,
+   7,
+   9,
+   10,
+   12
+  ],
+  "a02@6": [
+   39,
+   44,
+   42,
+   45,
+   22,
+   43,
+   31,
+   21,
+   25,
+   32,
+   27,
+   28
+  ],
+  "a03@0": [
+   1,
+   3,
+   5,
+   2,
+   6,
+   4
+  ],
+  "a03@1": [
+   14,
+   1,
+   8,
+   3,
+   5,
+   2,
+   7,
+   9,
+   10,
+   12,
+   6,
+   11
+  ],
+  "a03@6": [
+   40,
+   45,
+   44,
+   23,
+   41,
+   1,
+   22,
+   43,
+   19,
+   21,
+   25,
+   32
+  ],
+  "a04@0": [
+   1,
+   4,
+   3,
+   6,
+   5
+  ],
+  "a04@1": [
+   1,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   7,
+   10,
+   9
+  ],
+  "a04@6": [
+   38,
+   45,
+   41,
+   30,
+   40,
+   42,
+   1,
+   22,
+   39,
+   43,
+   44,
+   19
+  ],
+  "a05@0": [
+   6,
+   2,
+   3,
+   5,
+   1,
+   4
+  ],
+  "a05@1": [
+   13,
+   6,
+   14,
+   2,
+   9,
+   3,
+   5,
+   10,
+   12,
+   1,
+   11,
+   4
+  ],
+  "a05@6": [
+   40,
+   45,
+   41,
+   42,
+   39,
+   44,
+   30,
+   22,
+   43,
+   19,
+   31,
+   21
+  ],
+  "a06@0": [
+   1,
+   5,
+   4,
+   3,
+   6,
+   2
+  ],
+  "a06@1": [
+   1,
+   13,
+   5,
+   12,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   2,
+   7
+  ],
+  "a06@6": [
+   38,
+   45,
+   41,
+   42,
+   39,
+   30,
+   23,
+   40,
+   1,
+   22,
+   43,
+   44
+  ],
+  "a07@0": [
+   6,
+   2,
+   3,
+   5,
+   1,
+   4
+  ],
+  "a07@1": [
+   13,
+   6,
+   14,
+   2,
+   11,
+   8,
+   3,
+   5,
+   7,
+   10,
+   12,
+   1
+  ],
+  "a07@6": [
+   38,
+   40,
+   45,
+   41,
+   42,
+   39,
+   44,
+   30,
+   23,
+   22,
+   43,
+   19
+  ],
+  "a08@0": [
+   1,
+   4,
+   5,
+   2,
+   3,
+   6
+  ],
+  "a08@1": [
+   1,
+   13,
+   14,
+   11,
+   4,
+   8,
+   5,
+   2,
+   7,
+   9,
+   12,
+   3
+  ],
+  "a08@6": [
+   38,
+   40,
+   45,
+   41,
+   42,
+   39,
+   43,
+   44,
+   23,
+   1,
+   22,
+   31
+  ],
+  "a09@0": [
+   1,
+   6,
+   2,
+   4,
+   5
+  ],
+  "a09@1": [
+   1,
+   13,
+   6,
+   2,
+   11,
+   4,
+   5,
+   7,
+   10,
+   9,
+   12,
+   14
+  ],
+  "a09@6": [
+   45,
+   41,
+   42,
+   39,
+   44,
+   30,
+   1,
+   22,
+   19,
+   31,
+   32,
+   28
+  ],
+  "a10@0": [
+   2,
+   4,
+   3,
+   6,
+   5,
+   1
+  ],
+  "a10@1": [
+   2,
+   13,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   7,
+   10,
+   9,
+   12
+  ],
+  "a10@6": [
+   38,
+   45,
+   41,
+   30,
+   23,
+   40,
+   42,
+   22,
+   39,
+   43,
+   44,
+   19
+  ],
+  "a11@0": [
+   1,
+   2,
+   3,
+   6,
+   5
+  ],
+  "a11@1": [
+   7,
+   9,
+   12,
+   1,
+   13,
+   2,
+   11,
+   8,
+   3,
+   6,
+   14,
+   5
+  ],
+  "a11@6": [
+   38,
+   45,
+   41,
+   42,
+   39,
+   30,
+   40,
+   1,
+   22,
+   43,
+   44,
+   19
+  ],
+  "a12@0": [
+   1,
+   2,
+   4,
+   3,
+   6,
+   5
+  ],
+  "a12@1": [
+   1,
+   2,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   7,
+   9,
+   10
+  ],
+  "a12@6": [
+   38,
+   45,
+   41,
+   30,
+   23,
+   40,
+   42,
+   1,
+   22,
+   39,
+   43,
+   44
+  ],
+  "a13@0": [
+   3,
+   6,
+   2,
+   1,
+   4
+  ],
+  "a13@1": [
+   13,
+   3,
+   8,
+   6,
+   14,
+   2,
+   7,
+   9,
+   10,
+   1,
+   11,
+   4
+  ],
+  "a13@6": [
+   38,
+   45,
+   41,
+   42,
+   39,
+   43,
+   23,
+   40,
+   44,
+   19,
+   31,
+   21
+  ],
+  "a14@0": [
+   2,
+   3,
+   5,
+   1,
+   4
+  ],
+  "a14@1": [
+   10,
+   11,
+   8,
+   2,
+   7,
+   3,
+   5,
+   9,
+   12,
+   13,
+   1,
+   4
+  ],
+  "a14@6": [
+   41,
+   43,
+   45,
+   42,
+   39,
+   23,
+   22,
+   19,
+   31,
+   21,
+   25,
+   32
+  ],
+  "a15@0": [
+   6,
+   2,
+   1,
+   4,
+   5,
+   3
+  ],
+  "a15@1": [
+   6,
+   14,
+   2,
+   1,
+   13,
+   11,
+   4,
+   8,
+   5,
+   7,
+   10,
+   9
+  ],
+  "a15@6": [
+   43,
+   44,
+   38,
+   30,
+   23,
+   45,
+   41,
+   42,
+   1,
+   22,
+   39,
+   19
+  ],
+  "a16@0": [
+   1,
+   2,
+   4,
+   3,
+   6,
+   5
+  ],
+  "a16@1": [
+   1,
+   2,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   7,
+   10
+  ],
+  "a16@6": [
+   38,
+   45,
+   41,
+   30,
+   23,
+   40,
+   42,
+   1,
+   22,
+   39,
+   43,
+   44
+  ],
+  "a17@0": [
+   4,
+   3,
+   6,
+   5,
+   2,
+   1
+  ],
+  "a17@1": [
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   2,
+   7,
+   9,
+   10
+  ],
+  "a17@6": [
+   38,
+   45,
+   41,
+   42,
+   39,
+   30,
+   23,
+   40,
+   22,
+   43,
+   44,
+   19
+  ],
+  "a18@0": [
+   1,
+   4,
+   3,
+   6,
+   5,
+   2
+  ],
+  "a18@1": [
+   13,
+   10,
+   1,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   2,
+   7
+  ],
+  "a18@6": [
+   45,
+   42,
+   39,
+   38,
+   30,
+   23,
+   40,
+   41,
+   1,
+   22,
+   43,
+   44
+  ],
+  "a19@0": [
+   1,
+   2,
+   4,
+   3,
+   6,
+   5
+  ],
+  "a19@1": [
+   1,
+   2,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   7,
+   10
+  ],
+  "a19@6": [
+   38,
+   45,
+   41,
+   30,
+   23,
+   40,
+   42,
+   1,
+   22,
+   39,
+   43,
+   44
+  ],
+  "a20@0": [
+   1,
+   4,
+   3,
+   6,
+   5,
+   2
+  ],
+  "a20@1": [
+   1,
+   13,
+   11,
+   4,
+   8,
+   3,
+   6,
+   14,
+   5,
+   2,
+   7,
+   10
+  ],
+  "a20@6": [
+   38,
+   45,
+   41,
+   42,
+   39,
+   30,
+   23,
+   40,
+   1,
+   22,
+   43,
+   44
+  ]
+ },
+ "engagement": {
+  "a01": {},
+  "a02": {
+   "8": [
+    "replied"
+   ],
+   "40": [
+    "replied"
+   ]
+  },
+  "a03": {
+   "4": [
+    "liked"
+   ],
+   "38": [
+    "liked"
+   ],
+   "6": [
+    "replied"
+   ],
+   "11": [
+    "replied"
+   ],
+   "28": [
+    "replied"
+   ],
+   "30": [
+    "replied"
+   ]
+  },
+  "a04": {
+   "23": [
+    "replied"
+   ]
+  },
+  "a05": {
+   "38": [
+    "liked"
+   ],
+   "4": [
+    "replied"
+   ],
+   "1": [
+    "replied"
+   ],
+   "11": [
+    "replied"
+   ],
+   "25": [
+    "replied"
+   ],
+   "23": [
+    "replied"
+   ]
+  },
+  "a06": {},
+  "a07": {
+   "1": [
+    "liked"
+   ],
+   "4": [
+    "replied"
+   ]
+  },
+  "a08": {
+   "3": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ],
+   "30": [
+    "liked"
+   ],
+   "6": [
+    "replied"
+   ],
+   "19": [
+    "replied"
+   ]
+  },
+  "a09": {
+   "23": [
+    "liked"
+   ],
+   "38": [
+    "liked"
+   ],
+   "14": [
+    "replied"
+   ],
+   "8": [
+    "replied"
+   ],
+   "27": [
+    "replied"
+   ],
+   "40": [
+    "replied"
+   ]
+  },
+  "a10": {
+   "1": [
+    "replied"
+   ]
+  },
+  "a11": {
+   "23": [
+    "replied"
+   ]
+  },
+  "a12": {
+   "5": [
+    "liked"
+   ]
+  },
+  "a13": {
+   "1": [
+    "liked"
+   ],
+   "30": [
+    "liked"
+   ],
+   "4": [
+    "replied"
+   ],
+   "11": [
+    "replied"
+   ],
+   "22": [
+    "replied"
+   ]
+  },
+  "a14": {
+   "4": [
+    "liked"
+   ],
+   "30": [
+    "liked",
+    "replied"
+   ],
+   "1": [
+    "replied"
+   ],
+   "13": [
+    "replied"
+   ],
+   "38": [
+    "replied"
+   ]
+  },
+  "a15": {
+   "3": [
+    "liked"
+   ],
+   "40": [
+    "liked"
+   ]
+  },
+  "a16": {},
+  "a17": {
+   "1": [
+    "liked"
+   ],
+   "21": [
+    "liked"
+   ]
+  },
+  "a18": {},
+  "a19": {},
+  "a20": {}
+ },
+ "follow_edges": [
+  [
+   "a01",
+   "a02"
+  ],
+  [
+   "a01",
+   "a03"
+  ],
+  [
+   "a02",
+   "a03"
+  ],
+  [
+   "a02",
+   "a10"
+  ],
+  [
+   "a03",
+   "a01"
+  ],
+  [
+   "a03",
+   "a14"
+  ],
+  [
+   "a04",
+   "a01"
+  ],
+  [
+   "a04",
+   "a02"
+  ],
+  [
+   "a05",
+   "a01"
+  ],
+  [
+   "a05",
+   "a02"
+  ],
+  [
+   "a05",
+   "a03"
+  ],
+  [
+   "a05",
+   "a04"
+  ],
+  [
+   "a05",
+   "a07"
+  ],
+  [
+   "a05",
+   "a14"
+  ],
+  [
+   "a06",
+   "a01"
+  ],
+  [
+   "a06",
+   "a02"
+  ],
+  [
+   "a06",
+   "a03"
+  ],
+  [
+   "a06",
+   "a13"
+  ],
+  [
+   "a07",
+   "a01"
+  ],
+  [
+   "a07",
+   "a02"
+  ],
+  [
+   "a07",
+   "a03"
+  ],
+  [
+   "a07",
+   "a04"
+  ],
+  [
+   "a07",
+   "a14"
+  ],
+  [
+   "a08",
+   "a01"
+  ],
+  [
+   "a08",
+   "a02"
+  ],
+  [
+   "a08",
+   "a03"
+  ],
+  [
+   "a08",
+   "a09"
+  ],
+  [
+   "a08",
+   "a14"
+  ],
+  [
+   "a09",
+   "a01"
+  ],
+  [
+   "a09",
+   "a02"
+  ],
+  [
+   "a09",
+   "a03"
+  ],
+  [
+   "a09",
+   "a04"
+  ],
+  [
+   "a09",
+   "a14"
+  ],
+  [
+   "a09",
+   "a17"
+  ],
+  [
+   "a09",
+   "a18"
+  ],
+  [
+   "a10",
+   "a01"
+  ],
+  [
+   "a10",
+   "a02"
+  ],
+  [
+   "a10",
+   "a04"
+  ],
+  [
+   "a11",
+   "a01"
+  ],
+  [
+   "a11",
+   "a02"
+  ],
+  [
+   "a11",
+   "a03"
+  ],
+  [
+   "a11",
+   "a04"
+  ],
+  [
+   "a12",
+   "a01"
+  ],
+  [
+   "a12",
+   "a02"
+  ],
+  [
+   "a12",
+   "a04"
+  ],
+  [
+   "a12",
+   "a20"
+  ],
+  [
+   "a13",
+   "a01"
+  ],
+  [
+   "a13",
+   "a02"
+  ],
+  [
+   "a13",
+   "a03"
+  ],
+  [
+   "a13",
+   "a09"
+  ],
+  [
+   "a13",
+   "a10"
+  ],
+  [
+   "a14",
+   "a01"
+  ],
+  [
+   "a14",
+   "a02"
+  ],
+  [
+   "a14",
+   "a03"
+  ],
+  [
+   "a14",
+   "a04"
+  ],
+  [
+   "a14",
+   "a05"
+  ],
+  [
+   "a14",
+   "a10"
+  ],
+  [
+   "a14",
+   "a12"
+  ],
+  [
+   "a15",
+   "a04"
+  ],
+  [
+   "a15",
+   "a09"
+  ],
+  [
+   "a15",
+   "a14"
+  ],
+  [
+   "a16",
+   "a01"
+  ],
+  [
+   "a16",
+   "a02"
+  ],
+  [
+   "a16",
+   "a04"
+  ],
+  [
+   "a17",
+   "a01"
+  ],
+  [
+   "a17",
+   "a02"
+  ],
+  [
+   "a17",
+   "a03"
+  ],
+  [
+   "a18",
+   "a01"
+  ],
+  [
+   "a18",
+   "a03"
+  ],
+  [
+   "a18",
+   "a08"
+  ],
+  [
+   "a19",
+   "a01"
+  ],
+  [
+   "a19",
+   "a02"
+  ],
+  [
+   "a19",
+   "a04"
+  ],
+  [
+   "a20",
+   "a01"
+  ],
+  [
+   "a20",
+   "a02"
+  ],
+  [
+   "a20",
+   "a03"
+  ]
+ ],
+ "memories": {
+  "a01": [
+   "R3: The bus breakdown is a real-world test of our policy logic. We need to publish emergency procedures immediately to show we're not dismissing legitimate concerns.",
+   "R5: The headteacher has publicly committed to publishing detailed emergency procedures by Friday, which puts the institutional reputation on the line. Now we must deliver to restore parent trust.",
+   "R6: We published the emergency procedures on schedule Friday morning. The bus incident forced us to act faster and more thoroughly than planned, but this has restored parent confidence ahead of the info evening. The policy will proceed but with clear, tested emergency protocols now…"
+  ],
+  "a02": [
+   "R0: I announced this policy with genuine conviction, backed by evidence, but I'm determined to stay approachable and adjust details like emergency contact if real-world issues emerge.",
+   "R2: Emergency contact is the real friction point—not ideology, just logistics. I need to give parents a clearer answer than 'info evening' to maintain trust.",
+   "R3: The bus breakdown is a reality check on our protocols. Parents were right to push for clarity. I need to publish detailed emergency procedures immediately to maintain trust in the policy.",
+   "R4: The bus breakdown forced my hand—I must publish detailed written emergency protocols immediately, not at the info evening. Parents' concerns were legitimate and my vague reassurances damaged trust. Speed and specificity now are essential to save the policy.",
+   "R5: I committed publicly to Friday procedures and I'm feeling the weight of that—the bus incident damaged trust by exposing the gap between my reassurances and reality. I must deliver transparently and on time, and Duarte's help is critical.",
+   "R6: The procedures are with Duarte; publication Friday is now locked in. The Parents' Council will help distribute. But Leon and other critics are right that staff training is the next critical step. I must ensure that execution plan is solid before September—the policy's survival d…"
+  ],
+  "a03": [
+   "R1: Leon raises the self-regulation question again; we support the policy but remain committed to sorting out practical details like emergency contact to make it work well.",
+   "R2: Tyler's right that families with shifting schedules got less airtime in consultation; we need to surface that concern properly at the info evening and show it's not just window-dressing.",
+   "R3: Today's incident proved shift workers and bus commuters weren't being paranoid—real emergencies do happen. We need to get protocols published before the info evening or the policy will lose parent trust.",
+   "R4: The bus incident vindicated our push for written emergency protocols. Parents are losing patience with 'info evening' answers—we need to demand publication this week before trust erodes further.",
+   "R5: The headteacher has finally committed to written procedures by Friday—this is what we've been demanding. Now we need to ensure rapid distribution to parents so they can actually make informed decisions before September.",
+   "R6: We have finally moved the school from promises to a concrete Friday deadline for written procedures. Our council pressure, backed by the bus incident, forced leadership to act. Now we must ensure rapid distribution to parents so they can make truly informed decisions before Sept…"
+  ],
+  "a04": [
+   "R0: I want families with medical concerns to feel reassured, not anxious; I'm here to make the exemption pathway clear and fair, and I'm ready to adjust the process if it's not working for someone.",
+   "R4: The bus incident highlighted that our exemption processes and general emergency protocols operate in different lanes. I need to help create written, testable after-school contact procedures that staff understand—not just parents."
+  ],
+  "a05": [
+   "R1: Still genuinely torn on the policy, but the emergency contact gap is a real sticking point for me—I need specifics, not just reassurance, before I can fully support this.",
+   "R2: Tyler and I share real logistical concerns that got buried in the consultation's bigger picture—I need the school to show the emergency protocols in writing, not just promise to discuss them later.",
+   "R3: Today's bus incident proved my concerns weren't hypothetical—emergency protocols need to be written, tested, and proven to work before this policy continues. This changes everything.",
+   "R4: The bus breakdown proved I was right to demand specifics instead of accepting reassurance. Emergency protocols must be published in writing and tested before this policy continues. I'm no longer torn—the school needs to act now.",
+   "R6: The school is actually publishing written emergency protocols by Friday morning—this is what I've been pushing for since round 1. The bus incident vindicated my concerns and forced leadership to act. I'm no longer opposed to the policy if these procedures are real and transparen…"
+  ],
+  "a06": [],
+  "a07": [
+   "R1: Remain firmly supportive—the medical exemption process works well and the policy addresses real disruption, but I see that emergency contact procedures need to be clearer for all parents."
+  ],
+  "a08": [
+   "R1: Lean toward support because online bullying and peer pressure are real issues I see in my work with young people, but I think the school should stay open to feedback and not treat this as final.",
+   "R3: The bus breakdown today has shaken my cautious support—I still see value in reducing bullying pressure, but the school must prove emergency protocols work in reality, not just promise them at an info evening.",
+   "R5: The headteacher acknowledged the gap between protocols and reality—that matters to me professionally. If these procedures are genuinely tested with staff before September, the policy could still work. But I'll be watching implementation closely."
+  ],
+  "a09": [
+   "R0: I've lived the classroom disruption firsthand, so I'm genuinely hopeful, but I'm realistic about enforcement taking real effort and I want colleagues' workload to be taken seriously.",
+   "R2: Parents keep asking about emergency contact—that's legitimate and needs a concrete answer from leadership, not just reassurance.",
+   "R3: The bus breakdown today proved that emergency contact protocols matter in practice, not just theory—I'm now convinced we need published procedures before September, not vague promises.",
+   "R4: The bus breakdown vindicated my push for published emergency protocols—leadership is finally committing to concrete procedures by end of week, not vague promises. I'm cautiously optimistic but still watching to see if they actually deliver before September.",
+   "R6: The headteacher finally delivered concrete timelines—protocols by Friday, council circulation before info evening. I'm cautiously satisfied that leadership is responding to real pressure, but Leon and I both know the hard part is staff training and consistent execution under str…"
+  ],
+  "a10": [
+   "R1: I'm convinced the school didn't actually listen during consultation—they're treating problems that arise at an info evening as edge cases, not legitimate concerns. My daughter needs to reach me unpredictably."
+  ],
+  "a11": [
+   "R0: I'm genuinely torn—the learning benefits make sense, but I'm a self-employed plumber who needs to reach my daughter if a job runs late, so I need to understand the practical side before I'm sold.",
+   "R4: Today's bus breakdown showed my emergency contact concerns weren't hypothetical—the school needs to publish working protocols now, not later. I'm softening on the policy overall but won't commit until I see actual written procedures."
+  ],
+  "a12": [
+   "R1: Heard from a parent that the exemptions process actually works smoothly—school seems to have its act together on the practical side.",
+   "R3: The bus breakdown today proved the emergency contact worry is real, not theoretical—this will be all anyone talks about at the shop tomorrow.",
+   "R6: The school published the emergency procedures on Friday as promised. This should calm things down, though I expect parents will still be talking about it in the shop for a while. The real test will be whether it actually works in September."
+  ],
+  "a13": [
+   "R0: I'm strongly supportive because the exemption process was handled promptly and properly, and I want other parents to know the system works if they just reach out to Duarte early.",
+   "R1: Still strongly supportive—the exemption process proved they take real concerns seriously, so I'm confident they'll handle emergency contact questions properly too.",
+   "R2: Tyler's shift-work concern is real, but the school's shown they listen when you reach out—I want to give others that confidence while not dismissing practical worries.",
+   "R4: I still trust the school's process because they delivered for my grandson, but I can see why Claire and Tyler need written emergency protocols published before they can fully commit. The bus incident was a wake-up call for the whole system.",
+   "R5: The headteacher's commitment to publish detailed written procedures by Friday gives me confidence, though I understand why Claire and Tyler need to see them in writing before the info evening—the bus incident was a wake-up call for everyone."
+  ],
+  "a14": [
+   "R0: I think the policy is a blunt instrument that doesn't teach self-regulation and feels infantilising, especially for older students; I believe digital self-control matters more than confiscation.",
+   "R1: The headteacher claims consultation and data, but I still think it's a blunt instrument that avoids teaching real self-control; I'm pushing back on the logic of confiscation vs. skill-building.",
+   "R2: The council acknowledged my point about self-regulation but dodged it with 'monitoring'—I need to keep pressing this because it's the real issue, not emergency logistics.",
+   "R3: The bus breakdown made the emergency contact issue real instead of hypothetical. I still think the policy is blunt, but today showed procedures need to be transparent and tested before September.",
+   "R5: The headteacher's shift to publishing actual written procedures is a real response to the bus incident, not just PR. But I'm not backing down on demanding proof that staff can execute them—self-regulation training and testing still matter more than confiscation.",
+   "R6: The school is finally committing to transparent, written procedures by Friday. That's a real shift from vague reassurance. But I'm not convinced the policy itself is less blunt—I still think it avoids teaching self-regulation. However, the procedural transparency and staff readi…"
+  ],
+  "a15": [
+   "R1: The policy likely will help reduce lesson disruptions, which I experience regularly, but I'm watching to see if staff actually enforce it consistently.",
+   "R6: The school is moving to publish detailed procedures by Friday—that's good progress. But Leon's point about actual staff training and testing matters for classroom consistency. I'm watching to see if procedures translate to real implementation when school starts."
+  ],
+  "a16": [
+   "R2: The debate's all about emergency contact and self-regulation, but none of it really touches me since the common room's sorted.",
+   "R6: All the fuss about emergency protocols doesn't really affect me since I have the common room unlock anyway. Seems like the school's got its act together now though, which is fine."
+  ],
+  "a17": [
+   "R2: School consulted for a year and sounds confident—daughter hasn't complained yet, so I'll give it a thumbs up and move on.",
+   "R3: The bus breakdown woke me up—my daughter could've been on that bus. Emergency contact needs to be crystal clear before this policy starts."
+  ],
+  "a18": [],
+  "a19": [],
+  "a20": []
+ }
+}

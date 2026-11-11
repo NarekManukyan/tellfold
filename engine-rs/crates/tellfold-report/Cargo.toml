@@ -1,0 +1,26 @@
+[package]
+name = "tellfold-report"
+description = "The evidence digest, the report call, the citation audit, HTML and Markdown rendering, interviews, report Q&A and the rewrite suggestion (port of report.py, chat.py, rewrite.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+fancy-regex.workspace = true
+indexmap.workspace = true
+minijinja.workspace = true
+minijinja-contrib.workspace = true
+serde_json.workspace = true
+tellfold-engine.workspace = true
+tellfold-llm.workspace = true
+tellfold-models.workspace = true
+tellfold-store.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tellfold-runtimes.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

@@ -94,7 +94,7 @@ targets:
     entitlements:
       path: Tellfold/App/Tellfold.entitlements
       properties:
-        # The app spawns `uv` and local agent CLIs, so it cannot run in the App Sandbox.
+        # The app spawns its engine (or `uv`) and local agent CLIs, so it cannot run in the App Sandbox.
         com.apple.security.app-sandbox: false
     settings:
       base:
@@ -109,16 +109,15 @@ targets:
           ENABLE_HARDENED_RUNTIME: NO
         Release:
           ENABLE_HARDENED_RUNTIME: YES
-          # The bundled engine's Python is built for Apple silicon only.
+          # The bundled engine is built for Apple silicon only.
           ARCHS: arm64
     postBuildScripts:
-      - name: Bundle engine (Release)
+      - name: Bundle engine
         basedOnDependencyAnalysis: false
         shell: /bin/sh
         script: |
-          # Release builds carry the whole engine, with its own Python, in Resources/engine; Debug runs it from
-          # the repo through uv.
-          if [ "${CONFIGURATION}" != "Release" ]; then exit 0; fi
+          # Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path still runs
+          # the Python package through uv instead.
           "${PROJECT_DIR}/scripts/bundle-engine.sh" "${PROJECT_DIR}/.." \
             "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine" "${EXPANDED_CODE_SIGN_IDENTITY:--}"
 

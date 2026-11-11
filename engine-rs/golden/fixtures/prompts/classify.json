@@ -1,0 +1,128 @@
+[
+ {
+  "message": "Error: Rate limit reached",
+  "hint": null,
+  "kind": "Transient",
+  "text": "Error: Rate limit reached",
+  "rate_limited": true
+ },
+ {
+  "message": "Error: Rate limit reached",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "Error: Rate limit reached",
+  "rate_limited": true
+ },
+ {
+  "message": "HTTP 429",
+  "hint": null,
+  "kind": "Transient",
+  "text": "HTTP 429",
+  "rate_limited": true
+ },
+ {
+  "message": "HTTP 429",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "HTTP 429",
+  "rate_limited": true
+ },
+ {
+  "message": "unknown model 'x'",
+  "hint": null,
+  "kind": "Fatal",
+  "text": "unknown model 'x'",
+  "rate_limited": false
+ },
+ {
+  "message": "unknown model 'x'",
+  "hint": "Run `tool login`.",
+  "kind": "Fatal",
+  "text": "unknown model 'x'",
+  "rate_limited": false
+ },
+ {
+  "message": "Not logged in. Run login",
+  "hint": null,
+  "kind": "Fatal",
+  "text": "Not logged in. Run login",
+  "rate_limited": false
+ },
+ {
+  "message": "Not logged in. Run login",
+  "hint": "Run `tool login`.",
+  "kind": "Fatal",
+  "text": "Run `tool login`. (Not logged in. Run login)",
+  "rate_limited": false
+ },
+ {
+  "message": "  segfault\n\n core dumped ",
+  "hint": null,
+  "kind": "Transient",
+  "text": "segfault core dumped",
+  "rate_limited": false
+ },
+ {
+  "message": "  segfault\n\n core dumped ",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "segfault core dumped",
+  "rate_limited": false
+ },
+ {
+  "message": "",
+  "hint": null,
+  "kind": "Transient",
+  "text": "the tool failed without an error message",
+  "rate_limited": false
+ },
+ {
+  "message": "",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "the tool failed without an error message",
+  "rate_limited": false
+ },
+ {
+  "message": "403 Forbidden",
+  "hint": null,
+  "kind": "Fatal",
+  "text": "403 Forbidden",
+  "rate_limited": false
+ },
+ {
+  "message": "403 Forbidden",
+  "hint": "Run `tool login`.",
+  "kind": "Fatal",
+  "text": "Run `tool login`. (403 Forbidden)",
+  "rate_limited": false
+ },
+ {
+  "message": "quota exceeded for model",
+  "hint": null,
+  "kind": "Transient",
+  "text": "quota exceeded for model",
+  "rate_limited": true
+ },
+ {
+  "message": "quota exceeded for model",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "quota exceeded for model",
+  "rate_limited": true
+ },
+ {
+  "message": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+  "hint": null,
+  "kind": "Transient",
+  "text": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+  "rate_limited": false
+ },
+ {
+  "message": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+  "hint": "Run `tool login`.",
+  "kind": "Transient",
+  "text": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+  "rate_limited": false
+ }
+]

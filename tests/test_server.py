@@ -184,7 +184,7 @@ class SSEReader:
 
 
 def test_health_spa_and_unknown_api(client: TestClient) -> None:
-    assert client.get("/api/health").json() == {"ok": True, "fake_llm": True, "version": "0.1.0"}
+    assert client.get("/api/health").json() == {"ok": True, "fake_llm": True, "version": "0.3.1"}
     for path in ("/", "/run/abc", "/new"):
         res = client.get(path)
         assert res.status_code in (200, 503)

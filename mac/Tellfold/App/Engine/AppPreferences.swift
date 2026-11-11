@@ -15,7 +15,8 @@ final class AppPreferences {
 
     /// Where runs are stored; passed to the engine as `--runs`.
     var runsFolder: String { didSet { defaults.set(runsFolder, forKey: Keys.runsFolder) } }
-    /// The Python project the engine runs from (`uv run --project`). Empty means the built-in default.
+    /// A Python engine project to run with `uv run --project` instead of the engine built into the app. Empty means
+    /// the built-in engine (and, in a Debug build without one, the repository the app was compiled from).
     var enginePath: String { didSet { defaults.set(enginePath, forKey: Keys.enginePath) } }
     /// Explicit `uv` binary. Empty means auto-detect.
     var uvPath: String { didSet { defaults.set(uvPath, forKey: Keys.uvPath) } }
@@ -63,16 +64,16 @@ final class AppPreferences {
         URL.applicationSupportDirectory.appending(path: "Tellfold/runs", directoryHint: .isDirectory)
     }
 
-    /// The engine Release builds carry in `Resources/engine`, with its own Python (see `mac/scripts/bundle-engine.sh`).
-    /// Nil when the app has none, as in Debug builds.
+    /// The engine binary every build carries in `Resources/engine` (see `mac/scripts/bundle-engine.sh`). Nil when the
+    /// app has none.
     nonisolated static var bundledEngine: URL? {
         guard let engine = Bundle.main.resourceURL?.appending(path: "engine", directoryHint: .isDirectory),
-              FileManager.default.isExecutableFile(atPath: EngineCommand.bundledPython(in: engine).path) else { return nil }
+              FileManager.default.isExecutableFile(atPath: EngineCommand.bundledBinary(in: engine).path) else { return nil }
         return engine
     }
 
-    /// The Python project `uv run` uses when there is no bundled engine: Debug builds run it from the repository this
-    /// file was compiled from (four folders up from `mac/Tellfold/App/Engine`).
+    /// The Python project `uv run` uses when a Debug build has no bundled engine: the repository this file was
+    /// compiled from (four folders up from `mac/Tellfold/App/Engine`). Release builds never fall back to it.
     nonisolated static let developmentEnginePath: String = {
         var url = URL(filePath: #filePath)
         for _ in 0..<5 { url.deleteLastPathComponent() }

@@ -1,0 +1,22 @@
+{
+ "structured": "Sys\n\n# Output format\nDeliver your final answer through the structured output tool. Every required field must be present, types must match the schema exactly, and no field may be invented.",
+ "plain": "Sys\n\n# Output format\nYour reply is parsed by a program. Respond with exactly one JSON value that validates against the JSON Schema below: no prose before or after it, no markdown code fences, no comments, no trailing commas. Every required field must be present and every type must match.\n\nJSON Schema:\n{\"properties\": {\"color\": {\"title\": \"Color\", \"type\": \"string\"}, \"n\": {\"title\": \"N\", \"type\": \"integer\"}}, \"required\": [\"color\", \"n\"], \"title\": \"Pick\", \"type\": \"object\"}",
+ "schema": {
+  "properties": {
+   "color": {
+    "title": "Color",
+    "type": "string"
+   },
+   "n": {
+    "title": "N",
+    "type": "integer"
+   }
+  },
+  "required": [
+   "color",
+   "n"
+  ],
+  "title": "Pick",
+  "type": "object"
+ }
+}

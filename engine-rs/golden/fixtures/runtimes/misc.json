@@ -1,0 +1,149 @@
+{
+ "ollama_context": [
+  [
+   0,
+   8192
+  ],
+  [
+   5,
+   8192
+  ],
+  [
+   12287,
+   8192
+  ],
+  [
+   12288,
+   8192
+  ],
+  [
+   12289,
+   8192
+  ],
+  [
+   36863,
+   16384
+  ],
+  [
+   36865,
+   16384
+  ],
+  [
+   60000,
+   32768
+  ],
+  [
+   200000,
+   65536
+  ],
+  [
+   10000000,
+   65536
+  ]
+ ],
+ "key_env_for": [
+  [
+   "open-router.ai",
+   "TELLFOLD_KEY_OPEN_ROUTER_AI"
+  ],
+  [
+   "lmstudio",
+   "TELLFOLD_KEY_LMSTUDIO"
+  ],
+  [
+   "LM Studio",
+   "TELLFOLD_KEY_LM_STUDIO"
+  ],
+  [
+   "__x__",
+   "TELLFOLD_KEY_X"
+  ],
+  [
+   "ß-1",
+   "TELLFOLD_KEY_SS_1"
+  ]
+ ],
+ "parse_version": [
+  [
+   "codex-cli 0.9.1\n",
+   "0.9.1"
+  ],
+  [
+   "2026.01.23-916f423",
+   "2026.01.23-916f423"
+  ],
+  [
+   "2.1.283 (Claude Code)",
+   "2.1.283"
+  ],
+  [
+   "no digits here",
+   "no digits here"
+  ],
+  [
+   "",
+   null
+  ],
+  [
+   "  \n",
+   null
+  ],
+  [
+   "v1.2",
+   "1.2"
+  ],
+  [
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  ],
+  [
+   "first\n1.2.3-beta+build",
+   "1.2.3-beta"
+  ],
+  [
+   "1.2.3.4.5",
+   "1.2.3.4.5"
+  ]
+ ],
+ "strip_ansi": [
+  [
+   "\u001b[1mbold\u001b[0m",
+   "bold"
+  ],
+  [
+   "a\r\nb",
+   "a\nb"
+  ],
+  [
+   "\u001b]0;title\u0007x",
+   "x"
+  ]
+ ],
+ "opencode_lockdown": "{\"permission\":{\"edit\":\"deny\",\"bash\":\"deny\",\"webfetch\":\"deny\"},\"tools\":{\"bash\":false,\"edit\":false,\"write\":false,\"patch\":false,\"webfetch\":false}}",
+ "anthropic_model_id": [
+  [
+   null,
+   "claude-haiku-5-5"
+  ],
+  [
+   "",
+   "claude-haiku-5-5"
+  ],
+  [
+   "haiku",
+   "claude-haiku-5-5"
+  ],
+  [
+   "sonnet",
+   "claude-sonnet-5-5"
+  ],
+  [
+   "opus",
+   "claude-opus-5-5"
+  ],
+  [
+   "claude-x",
+   "claude-x"
+  ]
+ ]
+}

@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "VariantObjections": {
+      "properties": {
+        "variant": {
+          "title": "Variant",
+          "type": "string"
+        },
+        "objections": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Objections",
+          "type": "array"
+        }
+      },
+      "required": [
+        "variant"
+      ],
+      "title": "VariantObjections",
+      "type": "object"
+    },
+    "VariantSummary": {
+      "properties": {
+        "variant": {
+          "title": "Variant",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "objections": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Objections",
+          "type": "array"
+        }
+      },
+      "required": [
+        "variant",
+        "summary"
+      ],
+      "title": "VariantSummary",
+      "type": "object"
+    }
+  },
+  "description": "The cited comparison of the runs in a study, written by one `compare.write` call.",
+  "properties": {
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "better_variant": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Better Variant"
+    },
+    "why": {
+      "default": "",
+      "title": "Why",
+      "type": "string"
+    },
+    "per_variant": {
+      "items": {
+        "$ref": "#/$defs/VariantSummary"
+      },
+      "title": "Per Variant",
+      "type": "array"
+    },
+    "objections_only_in": {
+      "items": {
+        "$ref": "#/$defs/VariantObjections"
+      },
+      "title": "Objections Only In",
+      "type": "array"
+    },
+    "caveats": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Caveats",
+      "type": "array"
+    }
+  },
+  "required": [
+    "headline"
+  ],
+  "title": "CompareReport",
+  "type": "object"
+}

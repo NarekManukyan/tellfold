@@ -1,0 +1,22 @@
+[package]
+name = "tellfold-store"
+description = "Run folders, world.db and studies on disk (port of world.py, server/reader.py, study.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+blake2.workspace = true
+chrono.workspace = true
+indexmap.workspace = true
+libc.workspace = true
+rand.workspace = true
+regex.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tellfold-models.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,1042 @@
+[
+ {
+  "command": "",
+  "data": {
+   "usage": "Usage: tellfold [OPTIONS] COMMAND [ARGS]...",
+   "help": "Seed documents in, a simulated social reaction and a prediction report out. Runs on your local Claude Code CLI.",
+   "arguments": [],
+   "options": [
+    {
+     "required": false,
+     "long": "--version",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show the version and exit.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": [
+    [
+     "run",
+     "Run a full simulation: ingest, graph, personas, rounds, report."
+    ],
+    [
+     "compare",
+     "Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json."
+    ],
+    [
+     "check",
+     "Check it: run RUN_DIR again with the same people and text but other seeds, then say what held."
+    ],
+    [
+     "branch",
+     "What if...? Copy a run up to round AT, change what happens next, and continue it as a new run."
+    ],
+    [
+     "rewrite",
+     "Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from RUN_DIR."
+    ],
+    [
+     "report",
+     "Rebuild report.json / .html / .md from an existing (possibly interrupted) run."
+    ],
+    [
+     "chat",
+     "Interview one simulated agent, in character. Type 'exit' to leave."
+    ],
+    [
+     "ask",
+     "Ask the report agent a one-shot question about the simulation."
+    ],
+    [
+     "agents",
+     "Show the simulated personas with their reach and activity."
+    ],
+    [
+     "ui",
+     "Start Tellfold Studio, the local web UI for running, watching and replaying simulations."
+    ],
+    [
+     "doctor",
+     "Check the Claude Code CLI, the SDK, and that a tiny haiku call works."
+    ],
+    [
+     "runtimes",
+     "Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible servers, APIs)."
+    ],
+    [
+     "serve",
+     "Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then logs to stderr."
+    ]
+   ]
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold [OPTIONS] COMMAND      \n [ARGS]...                              \n                                        \n Seed documents in, a simulated social  \n reaction and a prediction report out.  \n Runs on your local Claude Code CLI.    \n                                        \n╭─ Options ────────────────────────────╮\n│ --version          Show the version  │\n│                    and exit.         │\n│ --help             Show this message │\n│                    and exit.         │\n╰──────────────────────────────────────╯\n╭─ Commands ───────────────────────────╮\n│ run       Run a full simulation:     │\n│           ingest, graph, personas,   │\n│           rounds, report.            │\n│ compare   Compare the runs of a      │\n│           study (made with           │\n│           --cast-from) and write     │\n│           studies/<id>/compare.json. │\n│ check     Check it: run RUN_DIR      │\n│           again with the same people │\n│           and text but other seeds,  │\n│           then say what held.        │\n│ branch    What if...? Copy a run up  │\n│           to round AT, change what   │\n│           happens next, and continue │\n│           it as a new run.           │\n│ rewrite   Suggest a better version   │\n│           of the run's text          │\n│           (rewrite.json). Test it    │\n│           with: tellfold run         │\n│           --cast-from RUN_DIR.       │\n│ report    Rebuild report.json /      │\n│           .html / .md from an        │\n│           existing (possibly         │\n│           interrupted) run.          │\n│ chat      Interview one simulated    │\n│           agent, in character. Type  │\n│           'exit' to leave.           │\n│ ask       Ask the report agent a     │\n│           one-shot question about    │\n│           the simulation.            │\n│ agents    Show the simulated         │\n│           personas with their reach  │\n│           and activity.              │\n│ ui        Start Tellfold Studio, the │\n│           local web UI for running,  │\n│           watching and replaying     │\n│           simulations.               │\n│ doctor    Check the Claude Code CLI, │\n│           the SDK, and that a tiny   │\n│           haiku call works.          │\n│ runtimes  Show the LLM runtimes      │\n│           detected on this machine   │\n│           (CLIs, Ollama,             │\n│           OpenAI-compatible servers, │\n│           APIs).                     │\n│ serve     Headless API server for    │\n│           the Mac app: prints        │\n│           {\"port\": N} on stdout once │\n│           listening, then logs to    │\n│           stderr.                    │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold [OPTIONS] COMMAND [ARGS]...                \n                                                            \n Seed documents in, a simulated social reaction and a       \n prediction report out. Runs on your local Claude Code CLI. \n                                                            \n╭─ Options ────────────────────────────────────────────────╮\n│ --version          Show the version and exit.            │\n│ --help             Show this message and exit.           │\n╰──────────────────────────────────────────────────────────╯\n╭─ Commands ───────────────────────────────────────────────╮\n│ run       Run a full simulation: ingest, graph,          │\n│           personas, rounds, report.                      │\n│ compare   Compare the runs of a study (made with         │\n│           --cast-from) and write                         │\n│           studies/<id>/compare.json.                     │\n│ check     Check it: run RUN_DIR again with the same      │\n│           people and text but other seeds, then say what │\n│           held.                                          │\n│ branch    What if...? Copy a run up to round AT, change  │\n│           what happens next, and continue it as a new    │\n│           run.                                           │\n│ rewrite   Suggest a better version of the run's text     │\n│           (rewrite.json). Test it with: tellfold run     │\n│           --cast-from RUN_DIR.                           │\n│ report    Rebuild report.json / .html / .md from an      │\n│           existing (possibly interrupted) run.           │\n│ chat      Interview one simulated agent, in character.   │\n│           Type 'exit' to leave.                          │\n│ ask       Ask the report agent a one-shot question about │\n│           the simulation.                                │\n│ agents    Show the simulated personas with their reach   │\n│           and activity.                                  │\n│ ui        Start Tellfold Studio, the local web UI for    │\n│           running, watching and replaying simulations.   │\n│ doctor    Check the Claude Code CLI, the SDK, and that a │\n│           tiny haiku call works.                         │\n│ runtimes  Show the LLM runtimes detected on this machine │\n│           (CLIs, Ollama, OpenAI-compatible servers,      │\n│           APIs).                                         │\n│ serve     Headless API server for the Mac app: prints    │\n│           {\"port\": N} on stdout once listening, then     │\n│           logs to stderr.                                │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold [OPTIONS] COMMAND [ARGS]...                                    \n                                                                                \n Seed documents in, a simulated social reaction and a prediction report out.    \n Runs on your local Claude Code CLI.                                            \n                                                                                \n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --version          Show the version and exit.                                │\n│ --help             Show this message and exit.                               │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Commands ───────────────────────────────────────────────────────────────────╮\n│ run       Run a full simulation: ingest, graph, personas, rounds, report.    │\n│ compare   Compare the runs of a study (made with --cast-from) and write      │\n│           studies/<id>/compare.json.                                         │\n│ check     Check it: run RUN_DIR again with the same people and text but      │\n│           other seeds, then say what held.                                   │\n│ branch    What if...? Copy a run up to round AT, change what happens next,   │\n│           and continue it as a new run.                                      │\n│ rewrite   Suggest a better version of the run's text (rewrite.json). Test it │\n│           with: tellfold run --cast-from RUN_DIR.                            │\n│ report    Rebuild report.json / .html / .md from an existing (possibly       │\n│           interrupted) run.                                                  │\n│ chat      Interview one simulated agent, in character. Type 'exit' to leave. │\n│ ask       Ask the report agent a one-shot question about the simulation.     │\n│ agents    Show the simulated personas with their reach and activity.         │\n│ ui        Start Tellfold Studio, the local web UI for running, watching and  │\n│           replaying simulations.                                             │\n│ doctor    Check the Claude Code CLI, the SDK, and that a tiny haiku call     │\n│           works.                                                             │\n│ runtimes  Show the LLM runtimes detected on this machine (CLIs, Ollama,      │\n│           OpenAI-compatible servers, APIs).                                  │\n│ serve     Headless API server for the Mac app: prints {\"port\": N} on stdout  │\n│           once listening, then logs to stderr.                               │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold [OPTIONS] COMMAND [ARGS]...                                                        \n                                                                                                    \n Seed documents in, a simulated social reaction and a prediction report out. Runs on your local     \n Claude Code CLI.                                                                                   \n                                                                                                    \n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --version          Show the version and exit.                                                    │\n│ --help             Show this message and exit.                                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮\n│ run       Run a full simulation: ingest, graph, personas, rounds, report.                        │\n│ compare   Compare the runs of a study (made with --cast-from) and write                          │\n│           studies/<id>/compare.json.                                                             │\n│ check     Check it: run RUN_DIR again with the same people and text but other seeds, then say    │\n│           what held.                                                                             │\n│ branch    What if...? Copy a run up to round AT, change what happens next, and continue it as a  │\n│           new run.                                                                               │\n│ rewrite   Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run  │\n│           --cast-from RUN_DIR.                                                                   │\n│ report    Rebuild report.json / .html / .md from an existing (possibly interrupted) run.         │\n│ chat      Interview one simulated agent, in character. Type 'exit' to leave.                     │\n│ ask       Ask the report agent a one-shot question about the simulation.                         │\n│ agents    Show the simulated personas with their reach and activity.                             │\n│ ui        Start Tellfold Studio, the local web UI for running, watching and replaying            │\n│           simulations.                                                                           │\n│ doctor    Check the Claude Code CLI, the SDK, and that a tiny haiku call works.                  │\n│ runtimes  Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible        │\n│           servers, APIs).                                                                        │\n│ serve     Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then │\n│           logs to stderr.                                                                        │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold [OPTIONS] COMMAND [ARGS]...                                                                                                          \n                                                                                                                                                      \n Seed documents in, a simulated social reaction and a prediction report out. Runs on your local Claude Code CLI.                                      \n                                                                                                                                                      \n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --version          Show the version and exit.                                                                                                      │\n│ --help             Show this message and exit.                                                                                                     │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Commands ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ run       Run a full simulation: ingest, graph, personas, rounds, report.                                                                          │\n│ compare   Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json.                                                 │\n│ check     Check it: run RUN_DIR again with the same people and text but other seeds, then say what held.                                           │\n│ branch    What if...? Copy a run up to round AT, change what happens next, and continue it as a new run.                                           │\n│ rewrite   Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from RUN_DIR.                               │\n│ report    Rebuild report.json / .html / .md from an existing (possibly interrupted) run.                                                           │\n│ chat      Interview one simulated agent, in character. Type 'exit' to leave.                                                                       │\n│ ask       Ask the report agent a one-shot question about the simulation.                                                                           │\n│ agents    Show the simulated personas with their reach and activity.                                                                               │\n│ ui        Start Tellfold Studio, the local web UI for running, watching and replaying simulations.                                                 │\n│ doctor    Check the Claude Code CLI, the SDK, and that a tiny haiku call works.                                                                    │\n│ runtimes  Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible servers, APIs).                                          │\n│ serve     Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then logs to stderr.                                   │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "run",
+  "data": {
+   "usage": "Usage: tellfold run [OPTIONS] {seeds}...",
+   "help": "Run a full simulation: ingest, graph, personas, rounds, report.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "seeds",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<path>",
+     "help": "Seed files (.pdf .md .txt) or folders.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": true,
+     "long": "--question",
+     "short": "-q",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "What you want predicted.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--agents",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [2<=x<=200]",
+     "help": "Number of simulated people.",
+     "default": "20",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--rounds",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [1<=x<=50]",
+     "help": "Simulation rounds.",
+     "default": "6",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--batch",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [1<=x<=20]",
+     "help": "Agents decided per model call.",
+     "default": "6",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--agent-model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Model for per-round agent decisions.",
+     "default": "haiku",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--planner-model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Model for graph, personas and report.",
+     "default": "sonnet",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--concurrency",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [1<=x<=16]",
+     "help": "Parallel Claude CLI calls.",
+     "default": "4",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--event",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Breaking news injected at a round, as ROUND:TEXT. Repeatable.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--out",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<path>",
+     "help": "Folder that holds run directories.",
+     "default": "runs",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--language",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Language agents post and the report is written in.",
+     "default": "English",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--seed",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int>",
+     "help": "RNG seed for activity sampling and feed tie-breaks.",
+     "default": "7",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--think",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Extended thinking for graph, personas and report: more thorough, several times slower.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--open",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Open report.html when done.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--agent-runtime",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Runtime for agent decisions and interviews (see `tellfold runtimes`). Default: settings, else claude-code.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--planner-runtime",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Runtime for graph, personas and report (see `tellfold runtimes`). Default: settings, else claude-code.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--cast-from",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "Reuse the topic map and people of this run (in the --out folder) and compare the two: no graph or persona calls. Both runs join a study; see `tellfold compare`.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--variant",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Label of this run in its study, e.g. \"Draft B\". Default: the next letter.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold run [OPTIONS]          \n {seeds}...                             \n                                        \n Run a full simulation: ingest, graph,  \n personas, rounds, report.              \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    seeds      <path>  Seed files   │\n│                         (.pdf .md    │\n│                         .txt) or     │\n│                         folders.     │\n│                         [required]   │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ *  --ques…  -q      <str>    What    │\n│                              you     │\n│                              want    │\n│                              predic… │\n│                              [requi… │\n│    --agen…          <int     Number  │\n│                     range>   of      │\n│                     [2<=x<=  simula… │\n│                     200]     people. │\n│                              [defau… │\n│                              20]     │\n│    --roun…          <int     Simula… │\n│                     range>   rounds. │\n│                     [1<=x<=  [defau… │\n│                     50]      6]      │\n│    --batch          <int     Agents  │\n│                     range>   decided │\n│                     [1<=x<=  per     │\n│                     20]      model   │\n│                              call.   │\n│                              [defau… │\n│                              6]      │\n│    --agen…          <str>    Model   │\n│                              for     │\n│                              per-ro… │\n│                              agent   │\n│                              decisi… │\n│                              [defau… │\n│                              haiku]  │\n│    --plan…          <str>    Model   │\n│                              for     │\n│                              graph,  │\n│                              person… │\n│                              and     │\n│                              report. │\n│                              [defau… │\n│                              sonnet] │\n│    --conc…          <int     Parall… │\n│                     range>   Claude  │\n│                     [1<=x<=  CLI     │\n│                     16]      calls.  │\n│                              [defau… │\n│                              4]      │\n│    --event          <str>    Breaki… │\n│                              news    │\n│                              inject… │\n│                              at a    │\n│                              round,  │\n│                              as      │\n│                              ROUND:… │\n│                              Repeat… │\n│    --out            <path>   Folder  │\n│                              that    │\n│                              holds   │\n│                              run     │\n│                              direct… │\n│                              [defau… │\n│                              runs]   │\n│    --lang…          <str>    Langua… │\n│                              agents  │\n│                              post    │\n│                              and the │\n│                              report  │\n│                              is      │\n│                              written │\n│                              in.     │\n│                              [defau… │\n│                              Englis… │\n│    --seed           <int>    RNG     │\n│                              seed    │\n│                              for     │\n│                              activi… │\n│                              sampli… │\n│                              and     │\n│                              feed    │\n│                              tie-br… │\n│                              [defau… │\n│                              7]      │\n│    --think                   Extend… │\n│                              thinki… │\n│                              for     │\n│                              graph,  │\n│                              person… │\n│                              and     │\n│                              report: │\n│                              more    │\n│                              thorou… │\n│                              several │\n│                              times   │\n│                              slower. │\n│    --open                    Open    │\n│                              report… │\n│                              when    │\n│                              done.   │\n│    --agen…          <str>    Runtime │\n│                              for     │\n│                              agent   │\n│                              decisi… │\n│                              and     │\n│                              interv… │\n│                              (see    │\n│                              `tellf… │\n│                              runtim… │\n│                              Defaul… │\n│                              settin… │\n│                              else    │\n│                              claude… │\n│    --plan…          <str>    Runtime │\n│                              for     │\n│                              graph,  │\n│                              person… │\n│                              and     │\n│                              report  │\n│                              (see    │\n│                              `tellf… │\n│                              runtim… │\n│                              Defaul… │\n│                              settin… │\n│                              else    │\n│                              claude… │\n│    --cast…          <direct  Reuse   │\n│                     ory>     the     │\n│                              topic   │\n│                              map and │\n│                              people  │\n│                              of this │\n│                              run (in │\n│                              the     │\n│                              --out   │\n│                              folder) │\n│                              and     │\n│                              compare │\n│                              the     │\n│                              two: no │\n│                              graph   │\n│                              or      │\n│                              persona │\n│                              calls.  │\n│                              Both    │\n│                              runs    │\n│                              join a  │\n│                              study;  │\n│                              see     │\n│                              `tellf… │\n│                              compar… │\n│    --vari…          <str>    Label   │\n│                              of this │\n│                              run in  │\n│                              its     │\n│                              study,  │\n│                              e.g.    │\n│                              \"Draft  │\n│                              B\".     │\n│                              Defaul… │\n│                              the     │\n│                              next    │\n│                              letter. │\n│    --help                    Show    │\n│                              this    │\n│                              message │\n│                              and     │\n│                              exit.   │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold run [OPTIONS] {seeds}...                   \n                                                            \n Run a full simulation: ingest, graph, personas, rounds,    \n report.                                                    \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    seeds      <path>  Seed files (.pdf .md .txt) or    │\n│                         folders.                         │\n│                         [required]                       │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ *  --question     -q      <str>          What you want   │\n│                                          predicted.      │\n│                                          [required]      │\n│    --agents               <int range>    Number of       │\n│                           [2<=x<=200]    simulated       │\n│                                          people.         │\n│                                          [default: 20]   │\n│    --rounds               <int range>    Simulation      │\n│                           [1<=x<=50]     rounds.         │\n│                                          [default: 6]    │\n│    --batch                <int range>    Agents decided  │\n│                           [1<=x<=20]     per model call. │\n│                                          [default: 6]    │\n│    --agent-model          <str>          Model for       │\n│                                          per-round agent │\n│                                          decisions.      │\n│                                          [default:       │\n│                                          haiku]          │\n│    --planner-mo…          <str>          Model for       │\n│                                          graph, personas │\n│                                          and report.     │\n│                                          [default:       │\n│                                          sonnet]         │\n│    --concurrency          <int range>    Parallel Claude │\n│                           [1<=x<=16]     CLI calls.      │\n│                                          [default: 4]    │\n│    --event                <str>          Breaking news   │\n│                                          injected at a   │\n│                                          round, as       │\n│                                          ROUND:TEXT.     │\n│                                          Repeatable.     │\n│    --out                  <path>         Folder that     │\n│                                          holds run       │\n│                                          directories.    │\n│                                          [default: runs] │\n│    --language             <str>          Language agents │\n│                                          post and the    │\n│                                          report is       │\n│                                          written in.     │\n│                                          [default:       │\n│                                          English]        │\n│    --seed                 <int>          RNG seed for    │\n│                                          activity        │\n│                                          sampling and    │\n│                                          feed            │\n│                                          tie-breaks.     │\n│                                          [default: 7]    │\n│    --think                               Extended        │\n│                                          thinking for    │\n│                                          graph, personas │\n│                                          and report:     │\n│                                          more thorough,  │\n│                                          several times   │\n│                                          slower.         │\n│    --open                                Open            │\n│                                          report.html     │\n│                                          when done.      │\n│    --agent-runt…          <str>          Runtime for     │\n│                                          agent decisions │\n│                                          and interviews  │\n│                                          (see `tellfold  │\n│                                          runtimes`).     │\n│                                          Default:        │\n│                                          settings, else  │\n│                                          claude-code.    │\n│    --planner-ru…          <str>          Runtime for     │\n│                                          graph, personas │\n│                                          and report (see │\n│                                          `tellfold       │\n│                                          runtimes`).     │\n│                                          Default:        │\n│                                          settings, else  │\n│                                          claude-code.    │\n│    --cast-from            <directory>    Reuse the topic │\n│                                          map and people  │\n│                                          of this run (in │\n│                                          the --out       │\n│                                          folder) and     │\n│                                          compare the     │\n│                                          two: no graph   │\n│                                          or persona      │\n│                                          calls. Both     │\n│                                          runs join a     │\n│                                          study; see      │\n│                                          `tellfold       │\n│                                          compare`.       │\n│    --variant              <str>          Label of this   │\n│                                          run in its      │\n│                                          study, e.g.     │\n│                                          \"Draft B\".      │\n│                                          Default: the    │\n│                                          next letter.    │\n│    --help                                Show this       │\n│                                          message and     │\n│                                          exit.           │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold run [OPTIONS] {seeds}...                                       \n                                                                                \n Run a full simulation: ingest, graph, personas, rounds, report.                \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    seeds      <path>  Seed files (.pdf .md .txt) or folders. [required]    │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ *  --question         -q      <str>                  What you want           │\n│                                                      predicted.              │\n│                                                      [required]              │\n│    --agents                   <int range>            Number of simulated     │\n│                               [2<=x<=200]            people.                 │\n│                                                      [default: 20]           │\n│    --rounds                   <int range>            Simulation rounds.      │\n│                               [1<=x<=50]             [default: 6]            │\n│    --batch                    <int range>            Agents decided per      │\n│                               [1<=x<=20]             model call.             │\n│                                                      [default: 6]            │\n│    --agent-model              <str>                  Model for per-round     │\n│                                                      agent decisions.        │\n│                                                      [default: haiku]        │\n│    --planner-model            <str>                  Model for graph,        │\n│                                                      personas and report.    │\n│                                                      [default: sonnet]       │\n│    --concurrency              <int range>            Parallel Claude CLI     │\n│                               [1<=x<=16]             calls.                  │\n│                                                      [default: 4]            │\n│    --event                    <str>                  Breaking news injected  │\n│                                                      at a round, as          │\n│                                                      ROUND:TEXT. Repeatable. │\n│    --out                      <path>                 Folder that holds run   │\n│                                                      directories.            │\n│                                                      [default: runs]         │\n│    --language                 <str>                  Language agents post    │\n│                                                      and the report is       │\n│                                                      written in.             │\n│                                                      [default: English]      │\n│    --seed                     <int>                  RNG seed for activity   │\n│                                                      sampling and feed       │\n│                                                      tie-breaks.             │\n│                                                      [default: 7]            │\n│    --think                                           Extended thinking for   │\n│                                                      graph, personas and     │\n│                                                      report: more thorough,  │\n│                                                      several times slower.   │\n│    --open                                            Open report.html when   │\n│                                                      done.                   │\n│    --agent-runtime            <str>                  Runtime for agent       │\n│                                                      decisions and           │\n│                                                      interviews (see         │\n│                                                      `tellfold runtimes`).   │\n│                                                      Default: settings, else │\n│                                                      claude-code.            │\n│    --planner-runtime          <str>                  Runtime for graph,      │\n│                                                      personas and report     │\n│                                                      (see `tellfold          │\n│                                                      runtimes`). Default:    │\n│                                                      settings, else          │\n│                                                      claude-code.            │\n│    --cast-from                <directory>            Reuse the topic map and │\n│                                                      people of this run (in  │\n│                                                      the --out folder) and   │\n│                                                      compare the two: no     │\n│                                                      graph or persona calls. │\n│                                                      Both runs join a study; │\n│                                                      see `tellfold compare`. │\n│    --variant                  <str>                  Label of this run in    │\n│                                                      its study, e.g. \"Draft  │\n│                                                      B\". Default: the next   │\n│                                                      letter.                 │\n│    --help                                            Show this message and   │\n│                                                      exit.                   │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold run [OPTIONS] {seeds}...                                                           \n                                                                                                    \n Run a full simulation: ingest, graph, personas, rounds, report.                                    \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    seeds      <path>  Seed files (.pdf .md .txt) or folders. [required]                        │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --question         -q      <str>                    What you want predicted. [required]       │\n│    --agents                   <int range> [2<=x<=200]  Number of simulated people. [default: 20] │\n│    --rounds                   <int range> [1<=x<=50]   Simulation rounds. [default: 6]           │\n│    --batch                    <int range> [1<=x<=20]   Agents decided per model call.            │\n│                                                        [default: 6]                              │\n│    --agent-model              <str>                    Model for per-round agent decisions.      │\n│                                                        [default: haiku]                          │\n│    --planner-model            <str>                    Model for graph, personas and report.     │\n│                                                        [default: sonnet]                         │\n│    --concurrency              <int range> [1<=x<=16]   Parallel Claude CLI calls. [default: 4]   │\n│    --event                    <str>                    Breaking news injected at a round, as     │\n│                                                        ROUND:TEXT. Repeatable.                   │\n│    --out                      <path>                   Folder that holds run directories.        │\n│                                                        [default: runs]                           │\n│    --language                 <str>                    Language agents post and the report is    │\n│                                                        written in.                               │\n│                                                        [default: English]                        │\n│    --seed                     <int>                    RNG seed for activity sampling and feed   │\n│                                                        tie-breaks.                               │\n│                                                        [default: 7]                              │\n│    --think                                             Extended thinking for graph, personas and │\n│                                                        report: more thorough, several times      │\n│                                                        slower.                                   │\n│    --open                                              Open report.html when done.               │\n│    --agent-runtime            <str>                    Runtime for agent decisions and           │\n│                                                        interviews (see `tellfold runtimes`).     │\n│                                                        Default: settings, else claude-code.      │\n│    --planner-runtime          <str>                    Runtime for graph, personas and report    │\n│                                                        (see `tellfold runtimes`). Default:       │\n│                                                        settings, else claude-code.               │\n│    --cast-from                <directory>              Reuse the topic map and people of this    │\n│                                                        run (in the --out folder) and compare the │\n│                                                        two: no graph or persona calls. Both runs │\n│                                                        join a study; see `tellfold compare`.     │\n│    --variant                  <str>                    Label of this run in its study, e.g.      │\n│                                                        \"Draft B\". Default: the next letter.      │\n│    --help                                              Show this message and exit.               │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold run [OPTIONS] {seeds}...                                                                                                             \n                                                                                                                                                      \n Run a full simulation: ingest, graph, personas, rounds, report.                                                                                      \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    seeds      <path>  Seed files (.pdf .md .txt) or folders. [required]                                                                          │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --question         -q      <str>                    What you want predicted. [required]                                                         │\n│    --agents                   <int range> [2<=x<=200]  Number of simulated people. [default: 20]                                                   │\n│    --rounds                   <int range> [1<=x<=50]   Simulation rounds. [default: 6]                                                             │\n│    --batch                    <int range> [1<=x<=20]   Agents decided per model call. [default: 6]                                                 │\n│    --agent-model              <str>                    Model for per-round agent decisions. [default: haiku]                                       │\n│    --planner-model            <str>                    Model for graph, personas and report. [default: sonnet]                                     │\n│    --concurrency              <int range> [1<=x<=16]   Parallel Claude CLI calls. [default: 4]                                                     │\n│    --event                    <str>                    Breaking news injected at a round, as ROUND:TEXT. Repeatable.                               │\n│    --out                      <path>                   Folder that holds run directories. [default: runs]                                          │\n│    --language                 <str>                    Language agents post and the report is written in. [default: English]                       │\n│    --seed                     <int>                    RNG seed for activity sampling and feed tie-breaks. [default: 7]                            │\n│    --think                                             Extended thinking for graph, personas and report: more thorough, several times slower.      │\n│    --open                                              Open report.html when done.                                                                 │\n│    --agent-runtime            <str>                    Runtime for agent decisions and interviews (see `tellfold runtimes`). Default: settings,    │\n│                                                        else claude-code.                                                                           │\n│    --planner-runtime          <str>                    Runtime for graph, personas and report (see `tellfold runtimes`). Default: settings, else   │\n│                                                        claude-code.                                                                                │\n│    --cast-from                <directory>              Reuse the topic map and people of this run (in the --out folder) and compare the two: no    │\n│                                                        graph or persona calls. Both runs join a study; see `tellfold compare`.                     │\n│    --variant                  <str>                    Label of this run in its study, e.g. \"Draft B\". Default: the next letter.                   │\n│    --help                                              Show this message and exit.                                                                 │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "compare",
+  "data": {
+   "usage": "Usage: tellfold compare [OPTIONS] {run_dir}",
+   "help": "Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run that belongs to a study.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Override the planner model.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold compare [OPTIONS]      \n {run_dir}                              \n                                        \n Compare the runs of a study (made with \n --cast-from) and write                 \n studies/<id>/compare.json.             \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A run     │\n│                   ory>     that      │\n│                            belongs   │\n│                            to a      │\n│                            study.    │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --model        <str>  Override the   │\n│                       planner model. │\n│ --help                Show this      │\n│                       message and    │\n│                       exit.          │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold compare [OPTIONS] {run_dir}                \n                                                            \n Compare the runs of a study (made with --cast-from) and    \n write studies/<id>/compare.json.                           \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run that belongs to a   │\n│                                study.                    │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.        │\n│ --help                Show this message and exit.        │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold compare [OPTIONS] {run_dir}                                    \n                                                                                \n Compare the runs of a study (made with --cast-from) and write                  \n studies/<id>/compare.json.                                                     \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run that belongs to a study. [required]     │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                            │\n│ --help                Show this message and exit.                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold compare [OPTIONS] {run_dir}                                                        \n                                                                                                    \n Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json.           \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run that belongs to a study. [required]                         │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                │\n│ --help                Show this message and exit.                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold compare [OPTIONS] {run_dir}                                                                                                          \n                                                                                                                                                      \n Compare the runs of a study (made with --cast-from) and write studies/<id>/compare.json.                                                             \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run that belongs to a study. [required]                                                                           │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                                                                  │\n│ --help                Show this message and exit.                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "check",
+  "data": {
+   "usage": "Usage: tellfold check [OPTIONS] {run_dir}",
+   "help": "Check it: run RUN_DIR again with the same people and text but other seeds, then say what held.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A finished run with a report.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--runs",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [2<=x<=5]",
+     "help": "Runs in all, this one included.",
+     "default": "3",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--agent-model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Agent model for the new runs (default: the run's).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold check [OPTIONS]        \n {run_dir}                              \n                                        \n Check it: run RUN_DIR again with the   \n same people and text but other seeds,  \n then say what held.                    \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A         │\n│                   ory>     finished  │\n│                            run with  │\n│                            a report. │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --runs           <int      Runs in   │\n│                  range>    all, this │\n│                  [2<=x<=5  one       │\n│                  ]         included. │\n│                            [default: │\n│                            3]        │\n│ --agent-…        <str>     Agent     │\n│                            model for │\n│                            the new   │\n│                            runs      │\n│                            (default: │\n│                            the       │\n│                            run's).   │\n│ --help                     Show this │\n│                            message   │\n│                            and exit. │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold check [OPTIONS] {run_dir}                  \n                                                            \n Check it: run RUN_DIR again with the same people and text  \n but other seeds, then say what held.                       \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A finished run with a     │\n│                                report.                   │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --runs               <int range>       Runs in all, this │\n│                      [2<=x<=5]         one included.     │\n│                                        [default: 3]      │\n│ --agent-model        <str>             Agent model for   │\n│                                        the new runs      │\n│                                        (default: the     │\n│                                        run's).           │\n│ --help                                 Show this message │\n│                                        and exit.         │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold check [OPTIONS] {run_dir}                                      \n                                                                                \n Check it: run RUN_DIR again with the same people and text but other seeds,     \n then say what held.                                                            \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A finished run with a report. [required]      │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --runs               <int range> [2<=x<=5]  Runs in all, this one included.  │\n│                                             [default: 3]                     │\n│ --agent-model        <str>                  Agent model for the new runs     │\n│                                             (default: the run's).            │\n│ --help                                      Show this message and exit.      │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold check [OPTIONS] {run_dir}                                                          \n                                                                                                    \n Check it: run RUN_DIR again with the same people and text but other seeds, then say what held.     \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A finished run with a report. [required]                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --runs               <int range> [2<=x<=5]  Runs in all, this one included. [default: 3]         │\n│ --agent-model        <str>                  Agent model for the new runs (default: the run's).   │\n│ --help                                      Show this message and exit.                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold check [OPTIONS] {run_dir}                                                                                                            \n                                                                                                                                                      \n Check it: run RUN_DIR again with the same people and text but other seeds, then say what held.                                                       \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A finished run with a report. [required]                                                                            │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --runs               <int range> [2<=x<=5]  Runs in all, this one included. [default: 3]                                                           │\n│ --agent-model        <str>                  Agent model for the new runs (default: the run's).                                                     │\n│ --help                                      Show this message and exit.                                                                            │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "branch",
+  "data": {
+   "usage": "Usage: tellfold branch [OPTIONS] {run_dir}",
+   "help": "What if...? Copy a run up to round AT, change what happens next, and continue it as a new run.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "The run to branch.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": true,
+     "long": "--at",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [x>=0]",
+     "help": "Keep rounds 0 to AT exactly as they happened.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--event",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Something that happens after AT, as ROUND:TEXT. Repeatable.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--drop-events",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Drop the run's own events after AT (by default they still happen).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--open",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Open report.html when done.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold branch [OPTIONS]       \n {run_dir}                              \n                                        \n What if...? Copy a run up to round AT, \n change what happens next, and continue \n it as a new run.                       \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  The run   │\n│                   ory>     to        │\n│                            branch.   │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ *  --at           <int     Keep      │\n│                   range>   rounds 0  │\n│                   [x>=0]   to AT     │\n│                            exactly   │\n│                            as they   │\n│                            happened. │\n│                            [require… │\n│    --event        <str>    Something │\n│                            that      │\n│                            happens   │\n│                            after AT, │\n│                            as        │\n│                            ROUND:TE… │\n│                            Repeatab… │\n│    --drop…                 Drop the  │\n│                            run's own │\n│                            events    │\n│                            after AT  │\n│                            (by       │\n│                            default   │\n│                            they      │\n│                            still     │\n│                            happen).  │\n│    --open                  Open      │\n│                            report.h… │\n│                            when      │\n│                            done.     │\n│    --help                  Show this │\n│                            message   │\n│                            and exit. │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold branch [OPTIONS] {run_dir}                 \n                                                            \n What if...? Copy a run up to round AT, change what happens \n next, and continue it as a new run.                        \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  The run to branch.        │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ *  --at                 <int range>     Keep rounds 0 to │\n│                         [x>=0]          AT exactly as    │\n│                                         they happened.   │\n│                                         [required]       │\n│    --event              <str>           Something that   │\n│                                         happens after    │\n│                                         AT, as           │\n│                                         ROUND:TEXT.      │\n│                                         Repeatable.      │\n│    --drop-events                        Drop the run's   │\n│                                         own events after │\n│                                         AT (by default   │\n│                                         they still       │\n│                                         happen).         │\n│    --open                               Open report.html │\n│                                         when done.       │\n│    --help                               Show this        │\n│                                         message and      │\n│                                         exit.            │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold branch [OPTIONS] {run_dir}                                     \n                                                                                \n What if...? Copy a run up to round AT, change what happens next, and continue  \n it as a new run.                                                               \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  The run to branch. [required]                 │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ *  --at                 <int range> [x>=0]  Keep rounds 0 to AT exactly as   │\n│                                             they happened.                   │\n│                                             [required]                       │\n│    --event              <str>               Something that happens after AT, │\n│                                             as ROUND:TEXT. Repeatable.       │\n│    --drop-events                            Drop the run's own events after  │\n│                                             AT (by default they still        │\n│                                             happen).                         │\n│    --open                                   Open report.html when done.      │\n│    --help                                   Show this message and exit.      │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold branch [OPTIONS] {run_dir}                                                         \n                                                                                                    \n What if...? Copy a run up to round AT, change what happens next, and continue it as a new run.     \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  The run to branch. [required]                                     │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --at                 <int range> [x>=0]  Keep rounds 0 to AT exactly as they happened.        │\n│                                             [required]                                           │\n│    --event              <str>               Something that happens after AT, as ROUND:TEXT.      │\n│                                             Repeatable.                                          │\n│    --drop-events                            Drop the run's own events after AT (by default they  │\n│                                             still happen).                                       │\n│    --open                                   Open report.html when done.                          │\n│    --help                                   Show this message and exit.                          │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold branch [OPTIONS] {run_dir}                                                                                                           \n                                                                                                                                                      \n What if...? Copy a run up to round AT, change what happens next, and continue it as a new run.                                                       \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  The run to branch. [required]                                                                                       │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --at                 <int range> [x>=0]  Keep rounds 0 to AT exactly as they happened. [required]                                               │\n│    --event              <str>               Something that happens after AT, as ROUND:TEXT. Repeatable.                                            │\n│    --drop-events                            Drop the run's own events after AT (by default they still happen).                                     │\n│    --open                                   Open report.html when done.                                                                            │\n│    --help                                   Show this message and exit.                                                                            │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "rewrite",
+  "data": {
+   "usage": "Usage: tellfold rewrite [OPTIONS] {run_dir}",
+   "help": "Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from RUN_DIR.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run with a report.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Override the planner model.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold rewrite [OPTIONS]      \n {run_dir}                              \n                                        \n Suggest a better version of the run's  \n text (rewrite.json). Test it with:     \n tellfold run --cast-from RUN_DIR.      \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A run     │\n│                   ory>     with a    │\n│                            report.   │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --model        <str>  Override the   │\n│                       planner model. │\n│ --help                Show this      │\n│                       message and    │\n│                       exit.          │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold rewrite [OPTIONS] {run_dir}                \n                                                            \n Suggest a better version of the run's text (rewrite.json). \n Test it with: tellfold run --cast-from RUN_DIR.            \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run with a report.      │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.        │\n│ --help                Show this message and exit.        │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold rewrite [OPTIONS] {run_dir}                                    \n                                                                                \n Suggest a better version of the run's text (rewrite.json). Test it with:       \n tellfold run --cast-from RUN_DIR.                                              \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run with a report. [required]               │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                            │\n│ --help                Show this message and exit.                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold rewrite [OPTIONS] {run_dir}                                                        \n                                                                                                    \n Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from  \n RUN_DIR.                                                                                           \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run with a report. [required]                                   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                │\n│ --help                Show this message and exit.                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold rewrite [OPTIONS] {run_dir}                                                                                                          \n                                                                                                                                                      \n Suggest a better version of the run's text (rewrite.json). Test it with: tellfold run --cast-from RUN_DIR.                                           \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run with a report. [required]                                                                                     │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                                                                  │\n│ --help                Show this message and exit.                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "report",
+  "data": {
+   "usage": "Usage: tellfold report [OPTIONS] {run_dir}",
+   "help": "Rebuild report.json / .html / .md from an existing (possibly interrupted) run.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run directory.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Override the planner model.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--open",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Open report.html when done.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold report [OPTIONS]       \n {run_dir}                              \n                                        \n Rebuild report.json / .html / .md from \n an existing (possibly interrupted)     \n run.                                   \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A run     │\n│                   ory>     director… │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --model        <str>  Override the   │\n│                       planner model. │\n│ --open                Open           │\n│                       report.html    │\n│                       when done.     │\n│ --help                Show this      │\n│                       message and    │\n│                       exit.          │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold report [OPTIONS] {run_dir}                 \n                                                            \n Rebuild report.json / .html / .md from an existing         \n (possibly interrupted) run.                                \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory.          │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.        │\n│ --open                Open report.html when done.        │\n│ --help                Show this message and exit.        │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold report [OPTIONS] {run_dir}                                     \n                                                                                \n Rebuild report.json / .html / .md from an existing (possibly interrupted) run. \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                   │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                            │\n│ --open                Open report.html when done.                            │\n│ --help                Show this message and exit.                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold report [OPTIONS] {run_dir}                                                         \n                                                                                                    \n Rebuild report.json / .html / .md from an existing (possibly interrupted) run.                     \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                       │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                │\n│ --open                Open report.html when done.                                                │\n│ --help                Show this message and exit.                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold report [OPTIONS] {run_dir}                                                                                                           \n                                                                                                                                                      \n Rebuild report.json / .html / .md from an existing (possibly interrupted) run.                                                                       \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                                                                         │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                                                                  │\n│ --open                Open report.html when done.                                                                                                  │\n│ --help                Show this message and exit.                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "chat",
+  "data": {
+   "usage": "Usage: tellfold chat [OPTIONS] {run_dir}",
+   "help": "Interview one simulated agent, in character. Type 'exit' to leave.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run directory.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": true,
+     "long": "--agent",
+     "short": "-a",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Agent id (a03) or handle to interview.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Override the model (default: the run's agent model).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold chat [OPTIONS]         \n {run_dir}                              \n                                        \n Interview one simulated agent, in      \n character. Type 'exit' to leave.       \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A run     │\n│                   ory>     director… │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ *  --agent  -a      <str>  Agent id  │\n│                            (a03) or  │\n│                            handle to │\n│                            intervie… │\n│                            [require… │\n│    --model          <str>  Override  │\n│                            the model │\n│                            (default: │\n│                            the run's │\n│                            agent     │\n│                            model).   │\n│    --help                  Show this │\n│                            message   │\n│                            and exit. │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold chat [OPTIONS] {run_dir}                   \n                                                            \n Interview one simulated agent, in character. Type 'exit'   \n to leave.                                                  \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory.          │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ *  --agent  -a      <str>  Agent id (a03) or handle to   │\n│                            interview.                    │\n│                            [required]                    │\n│    --model          <str>  Override the model (default:  │\n│                            the run's agent model).       │\n│    --help                  Show this message and exit.   │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold chat [OPTIONS] {run_dir}                                       \n                                                                                \n Interview one simulated agent, in character. Type 'exit' to leave.             \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                   │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ *  --agent  -a      <str>  Agent id (a03) or handle to interview. [required] │\n│    --model          <str>  Override the model (default: the run's agent      │\n│                            model).                                           │\n│    --help                  Show this message and exit.                       │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold chat [OPTIONS] {run_dir}                                                           \n                                                                                                    \n Interview one simulated agent, in character. Type 'exit' to leave.                                 \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                       │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --agent  -a      <str>  Agent id (a03) or handle to interview. [required]                     │\n│    --model          <str>  Override the model (default: the run's agent model).                  │\n│    --help                  Show this message and exit.                                           │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold chat [OPTIONS] {run_dir}                                                                                                             \n                                                                                                                                                      \n Interview one simulated agent, in character. Type 'exit' to leave.                                                                                   \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                                                                         │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --agent  -a      <str>  Agent id (a03) or handle to interview. [required]                                                                       │\n│    --model          <str>  Override the model (default: the run's agent model).                                                                    │\n│    --help                  Show this message and exit.                                                                                             │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "ask",
+  "data": {
+   "usage": "Usage: tellfold ask [OPTIONS] {run_dir} {question}",
+   "help": "Ask the report agent a one-shot question about the simulation.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run directory.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": true,
+     "long": "",
+     "short": "question",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Your question about the outcome.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--model",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Override the planner model.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold ask [OPTIONS]          \n {run_dir} {question}                   \n                                        \n Ask the report agent a one-shot        \n question about the simulation.         \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <directo  A run    │\n│                   ry>       directo… │\n│                             [requir… │\n│ *    questi…      <str>     Your     │\n│                             question │\n│                             about    │\n│                             the      │\n│                             outcome. │\n│                             [requir… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --model        <str>  Override the   │\n│                       planner model. │\n│ --help                Show this      │\n│                       message and    │\n│                       exit.          │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold ask [OPTIONS] {run_dir} {question}         \n                                                            \n Ask the report agent a one-shot question about the         \n simulation.                                                \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir       <directory>  A run directory.         │\n│                                 [required]               │\n│ *    question      <str>        Your question about the  │\n│                                 outcome.                 │\n│                                 [required]               │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.        │\n│ --help                Show this message and exit.        │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold ask [OPTIONS] {run_dir} {question}                             \n                                                                                \n Ask the report agent a one-shot question about the simulation.                 \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir       <directory>  A run directory. [required]                  │\n│ *    question      <str>        Your question about the outcome. [required]  │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                            │\n│ --help                Show this message and exit.                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold ask [OPTIONS] {run_dir} {question}                                                 \n                                                                                                    \n Ask the report agent a one-shot question about the simulation.                                     \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir       <directory>  A run directory. [required]                                      │\n│ *    question      <str>        Your question about the outcome. [required]                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                │\n│ --help                Show this message and exit.                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold ask [OPTIONS] {run_dir} {question}                                                                                                   \n                                                                                                                                                      \n Ask the report agent a one-shot question about the simulation.                                                                                       \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir       <directory>  A run directory. [required]                                                                                        │\n│ *    question      <str>        Your question about the outcome. [required]                                                                        │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --model        <str>  Override the planner model.                                                                                                  │\n│ --help                Show this message and exit.                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "agents",
+  "data": {
+   "usage": "Usage: tellfold agents [OPTIONS] {run_dir}",
+   "help": "Show the simulated personas with their reach and activity.",
+   "arguments": [
+    {
+     "required": true,
+     "long": "",
+     "short": "run_dir",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<directory>",
+     "help": "A run directory.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "options": [
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold agents [OPTIONS]       \n {run_dir}                              \n                                        \n Show the simulated personas with their \n reach and activity.                    \n                                        \n╭─ Arguments ──────────────────────────╮\n│ *    run_dir      <direct  A run     │\n│                   ory>     director… │\n│                            [require… │\n╰──────────────────────────────────────╯\n╭─ Options ────────────────────────────╮\n│ --help          Show this message    │\n│                 and exit.            │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold agents [OPTIONS] {run_dir}                 \n                                                            \n Show the simulated personas with their reach and activity. \n                                                            \n╭─ Arguments ──────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory.          │\n│                                [required]                │\n╰──────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────╮\n│ --help          Show this message and exit.              │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold agents [OPTIONS] {run_dir}                                     \n                                                                                \n Show the simulated personas with their reach and activity.                     \n                                                                                \n╭─ Arguments ──────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                   │\n╰──────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                  │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold agents [OPTIONS] {run_dir}                                                         \n                                                                                                    \n Show the simulated personas with their reach and activity.                                         \n                                                                                                    \n╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                       │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold agents [OPTIONS] {run_dir}                                                                                                           \n                                                                                                                                                      \n Show the simulated personas with their reach and activity.                                                                                           \n                                                                                                                                                      \n╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *    run_dir      <directory>  A run directory. [required]                                                                                         │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                                                                                        │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "ui",
+  "data": {
+   "usage": "Usage: tellfold ui [OPTIONS]",
+   "help": "Start Tellfold Studio, the local web UI for running, watching and replaying simulations.",
+   "arguments": [],
+   "options": [
+    {
+     "required": false,
+     "long": "--runs",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<path>",
+     "help": "Folder that holds run directories.",
+     "default": "runs",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--port",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [1<=x<=65535]",
+     "help": "Port to serve Tellfold Studio on (127.0.0.1 only).",
+     "default": "8765",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--open",
+     "short": "",
+     "secondary_long": "--no-open",
+     "secondary_short": "",
+     "types": "",
+     "help": "Open Studio in the browser.",
+     "default": "open",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold ui [OPTIONS]           \n                                        \n Start Tellfold Studio, the local web   \n UI for running, watching and replaying \n simulations.                           \n                                        \n╭─ Options ────────────────────────────╮\n│ --runs              <path>   Folder  │\n│                              that    │\n│                              holds   │\n│                              run     │\n│                              direct… │\n│                              [defau… │\n│                              runs]   │\n│ --port              <int     Port to │\n│                     range>   serve   │\n│                     [1<=x<=  Tellfo… │\n│                     65535]   Studio  │\n│                              on      │\n│                              (127.0… │\n│                              only).  │\n│                              [defau… │\n│                              8765]   │\n│ --open    --no-…             Open    │\n│                              Studio  │\n│                              in the  │\n│                              browse… │\n│                              [defau… │\n│                              open]   │\n│ --help                       Show    │\n│                              this    │\n│                              message │\n│                              and     │\n│                              exit.   │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold ui [OPTIONS]                               \n                                                            \n Start Tellfold Studio, the local web UI for running,       \n watching and replaying simulations.                        \n                                                            \n╭─ Options ────────────────────────────────────────────────╮\n│ --runs                 <path>           Folder that      │\n│                                         holds run        │\n│                                         directories.     │\n│                                         [default: runs]  │\n│ --port                 <int range>      Port to serve    │\n│                        [1<=x<=65535]    Tellfold Studio  │\n│                                         on (127.0.0.1    │\n│                                         only).           │\n│                                         [default: 8765]  │\n│ --open    --no-open                     Open Studio in   │\n│                                         the browser.     │\n│                                         [default: open]  │\n│ --help                                  Show this        │\n│                                         message and      │\n│                                         exit.            │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold ui [OPTIONS]                                                   \n                                                                                \n Start Tellfold Studio, the local web UI for running, watching and replaying    \n simulations.                                                                   \n                                                                                \n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --runs                 <path>                     Folder that holds run      │\n│                                                   directories.               │\n│                                                   [default: runs]            │\n│ --port                 <int range> [1<=x<=65535]  Port to serve Tellfold     │\n│                                                   Studio on (127.0.0.1       │\n│                                                   only).                     │\n│                                                   [default: 8765]            │\n│ --open    --no-open                               Open Studio in the         │\n│                                                   browser.                   │\n│                                                   [default: open]            │\n│ --help                                            Show this message and      │\n│                                                   exit.                      │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold ui [OPTIONS]                                                                       \n                                                                                                    \n Start Tellfold Studio, the local web UI for running, watching and replaying simulations.           \n                                                                                                    \n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --runs                 <path>                     Folder that holds run directories.             │\n│                                                   [default: runs]                                │\n│ --port                 <int range> [1<=x<=65535]  Port to serve Tellfold Studio on (127.0.0.1    │\n│                                                   only).                                         │\n│                                                   [default: 8765]                                │\n│ --open    --no-open                               Open Studio in the browser. [default: open]    │\n│ --help                                            Show this message and exit.                    │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold ui [OPTIONS]                                                                                                                         \n                                                                                                                                                      \n Start Tellfold Studio, the local web UI for running, watching and replaying simulations.                                                             \n                                                                                                                                                      \n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --runs                 <path>                     Folder that holds run directories. [default: runs]                                               │\n│ --port                 <int range> [1<=x<=65535]  Port to serve Tellfold Studio on (127.0.0.1 only). [default: 8765]                               │\n│ --open    --no-open                               Open Studio in the browser. [default: open]                                                      │\n│ --help                                            Show this message and exit.                                                                      │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "doctor",
+  "data": {
+   "usage": "Usage: tellfold doctor [OPTIONS]",
+   "help": "Check the Claude Code CLI, the SDK, and that a tiny haiku call works.",
+   "arguments": [],
+   "options": [
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold doctor [OPTIONS]       \n                                        \n Check the Claude Code CLI, the SDK,    \n and that a tiny haiku call works.      \n                                        \n╭─ Options ────────────────────────────╮\n│ --help          Show this message    │\n│                 and exit.            │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold doctor [OPTIONS]                           \n                                                            \n Check the Claude Code CLI, the SDK, and that a tiny haiku  \n call works.                                                \n                                                            \n╭─ Options ────────────────────────────────────────────────╮\n│ --help          Show this message and exit.              │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold doctor [OPTIONS]                                               \n                                                                                \n Check the Claude Code CLI, the SDK, and that a tiny haiku call works.          \n                                                                                \n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                  │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold doctor [OPTIONS]                                                                   \n                                                                                                    \n Check the Claude Code CLI, the SDK, and that a tiny haiku call works.                              \n                                                                                                    \n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                                      │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold doctor [OPTIONS]                                                                                                                     \n                                                                                                                                                      \n Check the Claude Code CLI, the SDK, and that a tiny haiku call works.                                                                                \n                                                                                                                                                      \n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --help          Show this message and exit.                                                                                                        │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "runtimes",
+  "data": {
+   "usage": "Usage: tellfold runtimes [OPTIONS]",
+   "help": "Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible servers, APIs).",
+   "arguments": [],
+   "options": [
+    {
+     "required": false,
+     "long": "--check-auth",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Also check logins (slower; may call the tools or their APIs).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--json",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Print JSON instead of a table.",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold runtimes [OPTIONS]     \n                                        \n Show the LLM runtimes detected on this \n machine (CLIs, Ollama,                 \n OpenAI-compatible servers, APIs).      \n                                        \n╭─ Options ────────────────────────────╮\n│ --check-auth          Also check     │\n│                       logins         │\n│                       (slower; may   │\n│                       call the tools │\n│                       or their       │\n│                       APIs).         │\n│ --json                Print JSON     │\n│                       instead of a   │\n│                       table.         │\n│ --help                Show this      │\n│                       message and    │\n│                       exit.          │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold runtimes [OPTIONS]                         \n                                                            \n Show the LLM runtimes detected on this machine (CLIs,      \n Ollama, OpenAI-compatible servers, APIs).                  \n                                                            \n╭─ Options ────────────────────────────────────────────────╮\n│ --check-auth          Also check logins (slower; may     │\n│                       call the tools or their APIs).     │\n│ --json                Print JSON instead of a table.     │\n│ --help                Show this message and exit.        │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold runtimes [OPTIONS]                                             \n                                                                                \n Show the LLM runtimes detected on this machine (CLIs, Ollama,                  \n OpenAI-compatible servers, APIs).                                              \n                                                                                \n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ --check-auth          Also check logins (slower; may call the tools or their │\n│                       APIs).                                                 │\n│ --json                Print JSON instead of a table.                         │\n│ --help                Show this message and exit.                            │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold runtimes [OPTIONS]                                                                 \n                                                                                                    \n Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible servers, APIs).    \n                                                                                                    \n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ --check-auth          Also check logins (slower; may call the tools or their APIs).              │\n│ --json                Print JSON instead of a table.                                             │\n│ --help                Show this message and exit.                                                │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold runtimes [OPTIONS]                                                                                                                   \n                                                                                                                                                      \n Show the LLM runtimes detected on this machine (CLIs, Ollama, OpenAI-compatible servers, APIs).                                                      \n                                                                                                                                                      \n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ --check-auth          Also check logins (slower; may call the tools or their APIs).                                                                │\n│ --json                Print JSON instead of a table.                                                                                               │\n│ --help                Show this message and exit.                                                                                                  │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ },
+ {
+  "command": "serve",
+  "data": {
+   "usage": "Usage: tellfold serve [OPTIONS]",
+   "help": "Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then logs to stderr.",
+   "arguments": [],
+   "options": [
+    {
+     "required": true,
+     "long": "--token",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "Bearer token every /api request must carry. Prefer the TELLFOLD_SERVE_TOKEN env var (argv is visible in ps).",
+     "default": null,
+     "envvar": "TELLFOLD_SERVE_TOKEN, SHOAL_SERVE_TOKEN"
+    },
+    {
+     "required": false,
+     "long": "--port",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<int range> [0<=x<=65535]",
+     "help": "Port on 127.0.0.1; 0 picks a free one.",
+     "default": "0",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--runs",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<path>",
+     "help": "Folder that holds run directories (default: settings runs_dir, else ./runs).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--examples",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<path>",
+     "help": "Folder of read-only example runs to list next to the runs (the Mac app passes its bundled examples).",
+     "default": null,
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--log-level",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "<str>",
+     "help": "debug, info, warning or error (logs go to stderr).",
+     "default": "warning",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--watch-stdin",
+     "short": "",
+     "secondary_long": "--no-watch-stdin",
+     "secondary_short": "",
+     "types": "",
+     "help": "Exit when stdin closes (the Mac app keeps it open).",
+     "default": "watch-stdin",
+     "envvar": null
+    },
+    {
+     "required": false,
+     "long": "--help",
+     "short": "",
+     "secondary_long": "",
+     "secondary_short": "",
+     "types": "",
+     "help": "Show this message and exit.",
+     "default": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
+  "renders": {
+   "40": "                                        \n Usage: tellfold serve [OPTIONS]        \n                                        \n Headless API server for the Mac app:   \n prints {\"port\": N} on stdout once      \n listening, then logs to stderr.        \n                                        \n╭─ Options ────────────────────────────╮\n│ *  --to…              <str>  Bearer  │\n│                              token   │\n│                              every   │\n│                              /api    │\n│                              request │\n│                              must    │\n│                              carry.  │\n│                              Prefer  │\n│                              the     │\n│                              TELLFO… │\n│                              env var │\n│                              (argv   │\n│                              is      │\n│                              visible │\n│                              in ps). │\n│                              [env    │\n│                              var:    │\n│                              TELLFO… │\n│                              SHOAL_… │\n│                              [requi… │\n│    --po…              <int   Port on │\n│                       range  127.0.… │\n│                       >      0 picks │\n│                       [0<=x  a free  │\n│                       <=655  one.    │\n│                       35]    [defau… │\n│                              0]      │\n│    --ru…              <path  Folder  │\n│                       >      that    │\n│                              holds   │\n│                              run     │\n│                              direct… │\n│                              (defau… │\n│                              settin… │\n│                              runs_d… │\n│                              else    │\n│                              ./runs… │\n│    --ex…              <path  Folder  │\n│                       >      of      │\n│                              read-o… │\n│                              example │\n│                              runs to │\n│                              list    │\n│                              next to │\n│                              the     │\n│                              runs    │\n│                              (the    │\n│                              Mac app │\n│                              passes  │\n│                              its     │\n│                              bundled │\n│                              exampl… │\n│    --lo…              <str>  debug,  │\n│                              info,   │\n│                              warning │\n│                              or      │\n│                              error   │\n│                              (logs   │\n│                              go to   │\n│                              stderr… │\n│                              [defau… │\n│                              warnin… │\n│    --wa…    --no-…           Exit    │\n│                              when    │\n│                              stdin   │\n│                              closes  │\n│                              (the    │\n│                              Mac app │\n│                              keeps   │\n│                              it      │\n│                              open).  │\n│                              [defau… │\n│                              watch-… │\n│    --he…                     Show    │\n│                              this    │\n│                              message │\n│                              and     │\n│                              exit.   │\n╰──────────────────────────────────────╯\n\n",
+   "60": "                                                            \n Usage: tellfold serve [OPTIONS]                            \n                                                            \n Headless API server for the Mac app: prints {\"port\": N} on \n stdout once listening, then logs to stderr.                \n                                                            \n╭─ Options ────────────────────────────────────────────────╮\n│ *  --token                      <str>        Bearer      │\n│                                              token every │\n│                                              /api        │\n│                                              request     │\n│                                              must carry. │\n│                                              Prefer the  │\n│                                              TELLFOLD_S… │\n│                                              env var     │\n│                                              (argv is    │\n│                                              visible in  │\n│                                              ps).        │\n│                                              [env var:   │\n│                                              TELLFOLD_S… │\n│                                              SHOAL_SERV… │\n│                                              [required]  │\n│    --port                       <int range>  Port on     │\n│                                 [0<=x<=6553  127.0.0.1;  │\n│                                 5]           0 picks a   │\n│                                              free one.   │\n│                                              [default:   │\n│                                              0]          │\n│    --runs                       <path>       Folder that │\n│                                              holds run   │\n│                                              directories │\n│                                              (default:   │\n│                                              settings    │\n│                                              runs_dir,   │\n│                                              else        │\n│                                              ./runs).    │\n│    --examples                   <path>       Folder of   │\n│                                              read-only   │\n│                                              example     │\n│                                              runs to     │\n│                                              list next   │\n│                                              to the runs │\n│                                              (the Mac    │\n│                                              app passes  │\n│                                              its bundled │\n│                                              examples).  │\n│    --log-level                  <str>        debug,      │\n│                                              info,       │\n│                                              warning or  │\n│                                              error (logs │\n│                                              go to       │\n│                                              stderr).    │\n│                                              [default:   │\n│                                              warning]    │\n│    --watch-st…    --no-watc…                 Exit when   │\n│                                              stdin       │\n│                                              closes (the │\n│                                              Mac app     │\n│                                              keeps it    │\n│                                              open).      │\n│                                              [default:   │\n│                                              watch-stdi… │\n│    --help                                    Show this   │\n│                                              message and │\n│                                              exit.       │\n╰──────────────────────────────────────────────────────────╯\n\n",
+   "80": "                                                                                \n Usage: tellfold serve [OPTIONS]                                                \n                                                                                \n Headless API server for the Mac app: prints {\"port\": N} on stdout once         \n listening, then logs to stderr.                                                \n                                                                                \n╭─ Options ────────────────────────────────────────────────────────────────────╮\n│ *  --token                              <str>              Bearer token      │\n│                                                            every /api        │\n│                                                            request must      │\n│                                                            carry. Prefer the │\n│                                                            TELLFOLD_SERVE_T… │\n│                                                            env var (argv is  │\n│                                                            visible in ps).   │\n│                                                            [env var:         │\n│                                                            TELLFOLD_SERVE_T… │\n│                                                            SHOAL_SERVE_TOKE… │\n│                                                            [required]        │\n│    --port                               <int range>        Port on           │\n│                                         [0<=x<=65535]      127.0.0.1; 0      │\n│                                                            picks a free one. │\n│                                                            [default: 0]      │\n│    --runs                               <path>             Folder that holds │\n│                                                            run directories   │\n│                                                            (default:         │\n│                                                            settings          │\n│                                                            runs_dir, else    │\n│                                                            ./runs).          │\n│    --examples                           <path>             Folder of         │\n│                                                            read-only example │\n│                                                            runs to list next │\n│                                                            to the runs (the  │\n│                                                            Mac app passes    │\n│                                                            its bundled       │\n│                                                            examples).        │\n│    --log-level                          <str>              debug, info,      │\n│                                                            warning or error  │\n│                                                            (logs go to       │\n│                                                            stderr).          │\n│                                                            [default:         │\n│                                                            warning]          │\n│    --watch-stdin    --no-watch-stdin                       Exit when stdin   │\n│                                                            closes (the Mac   │\n│                                                            app keeps it      │\n│                                                            open).            │\n│                                                            [default:         │\n│                                                            watch-stdin]      │\n│    --help                                                  Show this message │\n│                                                            and exit.         │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "100": "                                                                                                    \n Usage: tellfold serve [OPTIONS]                                                                    \n                                                                                                    \n Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then logs to     \n stderr.                                                                                            \n                                                                                                    \n╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --token                              <str>                      Bearer token every /api       │\n│                                                                    request must carry. Prefer    │\n│                                                                    the TELLFOLD_SERVE_TOKEN env  │\n│                                                                    var (argv is visible in ps).  │\n│                                                                    [env var:                     │\n│                                                                    TELLFOLD_SERVE_TOKEN,         │\n│                                                                    SHOAL_SERVE_TOKEN]            │\n│                                                                    [required]                    │\n│    --port                               <int range> [0<=x<=65535]  Port on 127.0.0.1; 0 picks a  │\n│                                                                    free one.                     │\n│                                                                    [default: 0]                  │\n│    --runs                               <path>                     Folder that holds run         │\n│                                                                    directories (default:         │\n│                                                                    settings runs_dir, else       │\n│                                                                    ./runs).                      │\n│    --examples                           <path>                     Folder of read-only example   │\n│                                                                    runs to list next to the runs │\n│                                                                    (the Mac app passes its       │\n│                                                                    bundled examples).            │\n│    --log-level                          <str>                      debug, info, warning or error │\n│                                                                    (logs go to stderr).          │\n│                                                                    [default: warning]            │\n│    --watch-stdin    --no-watch-stdin                               Exit when stdin closes (the   │\n│                                                                    Mac app keeps it open).       │\n│                                                                    [default: watch-stdin]        │\n│    --help                                                          Show this message and exit.   │\n╰──────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n",
+   "150": "                                                                                                                                                      \n Usage: tellfold serve [OPTIONS]                                                                                                                      \n                                                                                                                                                      \n Headless API server for the Mac app: prints {\"port\": N} on stdout once listening, then logs to stderr.                                               \n                                                                                                                                                      \n╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ *  --token                              <str>                      Bearer token every /api request must carry. Prefer the TELLFOLD_SERVE_TOKEN env │\n│                                                                    var (argv is visible in ps).                                                    │\n│                                                                    [env var: TELLFOLD_SERVE_TOKEN, SHOAL_SERVE_TOKEN]                              │\n│                                                                    [required]                                                                      │\n│    --port                               <int range> [0<=x<=65535]  Port on 127.0.0.1; 0 picks a free one. [default: 0]                             │\n│    --runs                               <path>                     Folder that holds run directories (default: settings runs_dir, else ./runs).    │\n│    --examples                           <path>                     Folder of read-only example runs to list next to the runs (the Mac app passes   │\n│                                                                    its bundled examples).                                                          │\n│    --log-level                          <str>                      debug, info, warning or error (logs go to stderr). [default: warning]           │\n│    --watch-stdin    --no-watch-stdin                               Exit when stdin closes (the Mac app keeps it open). [default: watch-stdin]      │\n│    --help                                                          Show this message and exit.                                                     │\n╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n\n"
+  }
+ }
+]

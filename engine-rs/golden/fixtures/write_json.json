@@ -1,0 +1,4 @@
+{
+ "empty.json": "[\n\n]\n",
+ "one.json": "[\n{\n  \"round\": 1,\n  \"content\": \"x\"\n}\n]\n"
+}

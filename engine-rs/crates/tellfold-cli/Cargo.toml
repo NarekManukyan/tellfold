@@ -1,0 +1,32 @@
+[package]
+name = "tellfold-cli"
+description = "The tellfold command-line interface (port of cli.py and __main__.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "tellfold"
+path = "src/main.rs"
+
+[dependencies]
+axum.workspace = true
+futures.workspace = true
+indexmap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tellfold-engine.workspace = true
+tellfold-llm.workspace = true
+tellfold-models.workspace = true
+tellfold-report.workspace = true
+tellfold-runtimes.workspace = true
+tellfold-server.workspace = true
+tellfold-store.workspace = true
+tellfold-study.workspace = true
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "signal", "sync", "macros", "net"] }
+
+[dev-dependencies]
+regex.workspace = true
+tempfile.workspace = true

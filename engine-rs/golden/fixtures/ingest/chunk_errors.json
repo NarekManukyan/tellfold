@@ -1,0 +1,7 @@
+{
+ "100/80": "chunk size must be positive and overlap smaller than half of it",
+ "0/0": "chunk size must be positive and overlap smaller than half of it",
+ "10/5": "chunk size must be positive and overlap smaller than half of it",
+ "-5/0": "chunk size must be positive and overlap smaller than half of it",
+ "10/-1": "chunk size must be positive and overlap smaller than half of it"
+}

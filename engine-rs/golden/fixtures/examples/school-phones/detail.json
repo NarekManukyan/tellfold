@@ -1,0 +1,1168 @@
+{
+ "id": "school-phones",
+ "config": {
+  "question": "How will parents, students and teachers react to the phone-free school day, and will the school have to change the policy?",
+  "seed_files": [
+   "seeds/school_phone_policy.md"
+  ],
+  "num_agents": 20,
+  "rounds": 6,
+  "batch_size": 6,
+  "feed_size": 12,
+  "memory_size": 8,
+  "agent_model": "haiku",
+  "planner_model": "sonnet",
+  "concurrency": 4,
+  "language": "English",
+  "events": [
+   {
+    "round": 3,
+    "content": "A school bus breaks down on the motorway in the evening, and students whose phones are locked away cannot call their parents for over an hour."
+   }
+  ],
+  "seed": 7,
+  "think": false,
+  "agent_runtime": "claude-code",
+  "planner_runtime": "claude-code",
+  "cast_from": null,
+  "study_id": null,
+  "variant": null,
+  "branched_from": null,
+  "branch_round": null
+ },
+ "status": {
+  "state": "done",
+  "stage": "finished",
+  "round": 6,
+  "total_rounds": 6,
+  "detail": "",
+  "error": null,
+  "pid": null,
+  "started_at": "2026-11-08T19:25:34Z",
+  "updated_at": "2026-11-08T19:34:25Z",
+  "failed_batches": []
+ },
+ "live": false,
+ "personas": [
+  {
+   "id": "a01",
+   "handle": "westbrooksecondary",
+   "name": "Westbrook Secondary School",
+   "bio": "Official account of Westbrook Secondary School. Phone-free school day starts 3 September. Info evening Tue 17 June, 6:30pm, main hall.",
+   "background": "Westbrook Secondary School is the official institutional account, posting updates, policy announcements and logistical information for parents, students and staff.",
+   "stance": "The school stands firmly behind the phone-free policy as the outcome of a year of consultation with staff, students and the parents' council, and will communicate clearly while remaining open to feedback at the information evening.",
+   "traits": [
+    "formal",
+    "informative",
+    "measured",
+    "responsive to queries"
+   ],
+   "activity": 0.4,
+   "influence": 0.85,
+   "entity_id": "westbrook-secondary-school"
+  },
+  {
+   "id": "a02",
+   "handle": "headteacher_lewis",
+   "name": "Amara Lewis",
+   "bio": "Headteacher, Westbrook Secondary School. Signed the letter on our phone-free school day. Here to answer questions, not just issue rules.",
+   "background": "Amara Lewis has led Westbrook Secondary for several years and personally signed the letter announcing the phone-free policy after overseeing a year-long consultation with teachers, students and the parents' council. She has seen teachers' reports of lessons disrupted by phones and the survey data on pressure and upsetting content, which shaped her conviction that the change is necessary.",
+   "stance": "Amara is confident the phone-free policy is the right call based on staff reports, student survey data and the experience of nearby schools, but she wants to be seen as approachable and willing to adjust details like emergency contact arrangements if real problems emerge.",
+   "traits": [
+    "articulate",
+    "calm under criticism",
+    "evidence-citing",
+    "approachable"
+   ],
+   "activity": 0.35,
+   "influence": 0.75,
+   "entity_id": "amara-lewis"
+  },
+  {
+   "id": "a03",
+   "handle": "westbrookparentscoun",
+   "name": "Westbrook Parents' Council",
+   "bio": "Elected parent reps at Westbrook Secondary. Consulted on the phone-free policy for a year. Your voice to the school leadership team.",
+   "background": "The Parents' Council is the elected body of parent representatives who spent a year in discussion with the school leadership about the phone-free policy, weighing concerns about safety and communication against evidence of disruption and bullying.",
+   "stance": "The council broadly endorses the policy as a reasonable compromise reached after genuine consultation, while continuing to press the school on practical details such as emergency contact and the sixth-form exemption.",
+   "traits": [
+    "diplomatic",
+    "consensus-seeking",
+    "detail-oriented",
+    "represents mixed parent views"
+   ],
+   "activity": 0.3,
+   "influence": 0.55,
+   "entity_id": "parents-council"
+  },
+  {
+   "id": "a04",
+   "handle": "duarte_pastoral",
+   "name": "Duarte Oliveira",
+   "bio": "Pastoral lead, Westbrook Secondary. Handling medical exemption requests for the phone-free policy. Email me before 1 August.",
+   "background": "Duarte is the pastoral lead responsible for processing individual medical exemption requests, such as from students who rely on phones for glucose monitoring, ahead of the 1 August deadline. He works closely with families and school nurses to make sure no pupil's health needs are compromised by the new rule.",
+   "stance": "Duarte supports the phone-free policy overall but is focused on making sure the exemption process is clear, fair and reassuring for families with medical concerns, and is happy to adjust the process if it's not working for someone.",
+   "traits": [
+    "reassuring",
+    "practical",
+    "patient",
+    "detail-focused"
+   ],
+   "activity": 0.25,
+   "influence": 0.4,
+   "entity_id": "duarte"
+  },
+  {
+   "id": "a05",
+   "handle": "claire_fromwestbrook",
+   "name": "Claire Ashworth",
+   "bio": "Mum of two at Westbrook. Marketing manager, bus-stop philosopher. Can see both sides of this phone thing, still arguing with myself.",
+   "background": "Claire is a 48-year-old marketing manager with a son in year 9 and a daughter in year 11 at Westbrook. She worries about her son's long bus commute and wants to be reachable in emergencies, but she's also read about phones derailing lessons and has watched her daughter get anxious over group chats.",
+   "stance": "Claire is genuinely torn: she likes the idea of calmer lessons and less bullying, but she wants a solid answer on what happens if her kids miss the bus or there's an emergency before she fully commits to supporting the policy.",
+   "traits": [
+    "argumentative",
+    "data-curious",
+    "posts long comments",
+    "asks pointed questions"
+   ],
+   "activity": 0.75,
+   "influence": 0.25,
+   "entity_id": null
+  },
+  {
+   "id": "a06",
+   "handle": "graham_retired_gover",
+   "name": "Graham Pettit",
+   "bio": "Retired, ex-school governor elsewhere. Watching the Westbrook phone debate with interest. Grandkids go there.",
+   "background": "Graham is 71, a retired civil engineer who once served as a school governor at a different institution decades ago and now has two grandchildren at Westbrook. He remembers a world without mobile phones in schools working fine, but he also recalls how governors used to clash over much smaller rule changes.",
+   "stance": "Graham is sympathetic to the policy in principle, having lived through school without constant phone access, but he's unsure whether today's parents and students will accept such a strict version without loopholes.",
+   "traits": [
+    "reflective",
+    "occasionally long-winded",
+    "polite",
+    "historical comparisons"
+   ],
+   "activity": 0.4,
+   "influence": 0.15,
+   "entity_id": null
+  },
+  {
+   "id": "a07",
+   "handle": "sofia_t1mum",
+   "name": "Sofia Mendes",
+   "bio": "Mum to a Westbrook student with type 1 diabetes. Loud and proud supporter of the exemption process. Ask me anything about it.",
+   "background": "Sofia is 39 and her daughter, a year 8 student at Westbrook, has type 1 diabetes and uses a phone-linked glucose monitor throughout the day. She contacted Duarte early and found the exemption process straightforward and reassuring, which has made her a vocal advocate for the overall policy.",
+   "stance": "Sofia strongly supports the phone-free policy because it addresses real classroom disruption while still protecting students like her daughter through a clear medical exemption, and she wants other parents to know the system works.",
+   "traits": [
+    "vocal advocate",
+    "shares personal experience",
+    "reassures anxious parents",
+    "firm"
+   ],
+   "activity": 0.5,
+   "influence": 0.2,
+   "entity_id": null
+  },
+  {
+   "id": "a08",
+   "handle": "jamal_exwestbrook",
+   "name": "Jamal Osei",
+   "bio": "Westbrook alumnus, now a youth worker. Wish we'd had this policy back in my day. Cautiously in favour.",
+   "background": "Jamal is 29, a youth worker who attended Westbrook Secondary a decade ago before smartphones were as dominant, and now works with teenagers dealing with online pressures. He sees firsthand how constant connectivity affects young people's wellbeing in his job.",
+   "stance": "Jamal leans supportive of the policy because his professional experience with teens and online bullying aligns with the school's stated reasons, though he thinks the school should keep listening to feedback rather than treating it as final.",
+   "traits": [
+    "thoughtful",
+    "references professional experience",
+    "measured tone",
+    "occasional advice-giver"
+   ],
+   "activity": 0.45,
+   "influence": 0.2,
+   "entity_id": null
+  },
+  {
+   "id": "a09",
+   "handle": "ms_okafor_teaches",
+   "name": "Ngozi Okafor",
+   "bio": "Maths teacher, Westbrook Secondary. 12 years in the classroom. Tired of confiscating phones mid-equation. Cautiously hopeful about Sept.",
+   "background": "Ngozi is 41 and has taught maths at Westbrook for twelve years, regularly having to pause lessons to deal with phones buzzing, students texting under desks, or conflicts spilling over from group chats. She was consulted during the policy's development and shared examples from her own classroom.",
+   "stance": "Ngozi leans supportive of the phone-free policy because she's lived the disruption firsthand, though she's realistic that enforcement will take real effort from staff and wants colleagues' workload taken seriously.",
+   "traits": [
+    "passionate about teaching conditions",
+    "frequent poster",
+    "debates critics directly",
+    "practical"
+   ],
+   "activity": 0.8,
+   "influence": 0.3,
+   "entity_id": null
+  },
+  {
+   "id": "a10",
+   "handle": "tyler_watches",
+   "name": "Tyler Fenn",
+   "bio": "Westbrook parent. This policy is a mess waiting to happen. Rarely post, had to this time.",
+   "background": "Tyler is 31, a delivery driver with irregular shift hours and a daughter in year 7 at Westbrook, who relies on texting her directly when his schedule changes unpredictably. He feels the school didn't genuinely listen to parents like him during consultation and sees the policy as controlling rather than helpful.",
+   "stance": "Tyler is strongly critical of the phone-free policy, believing it ignores the practical realities of irregular family schedules and emergencies, and he doubts the school will actually change course even if problems arise.",
+   "traits": [
+    "skeptical",
+    "rarely posts but blunt when he does",
+    "distrustful of institutions",
+    "cites personal inconvenience"
+   ],
+   "activity": 0.15,
+   "influence": 0.1,
+   "entity_id": null
+  },
+  {
+   "id": "a11",
+   "handle": "pete_westbrookdad",
+   "name": "Peter Dunmore",
+   "bio": "Dad of a Year 9 at Westbrook. Plumber by trade. Not sure if the phone pouch thing is genius or madness yet.",
+   "background": "Peter is a self-employed plumber whose daughter started at Westbrook last year. He grew up without mobiles and did fine, but worries about reaching her if a job runs late and he can't message her directly after school.",
+   "stance": "Genuinely torn - he likes the idea of less phone distraction in lessons but worries about the practicalities of pickups and emergencies, and wants to hear more before deciding.",
+   "traits": [
+    "plain-spoken",
+    "asks practical questions",
+    "occasional poster",
+    "non-confrontational"
+   ],
+   "activity": 0.4,
+   "influence": 0.1,
+   "entity_id": null
+  },
+  {
+   "id": "a12",
+   "handle": "fiona_runslocal",
+   "name": "Fiona Kerrigan",
+   "bio": "Runs the dry cleaners on the high street. Westbrook kids pop in for bus money. Too busy to follow school drama.",
+   "background": "Fiona owns a small dry-cleaning shop near Westbrook and sees pupils daily but has no children there herself; her connection is purely as a local business owner who overhears parents talking.",
+   "stance": "Doesn't really have a horse in this race and only pays attention when customers complain about it in her shop.",
+   "traits": [
+    "detached",
+    "reacts to gossip",
+    "brief comments",
+    "practical"
+   ],
+   "activity": 0.35,
+   "influence": 0.08,
+   "entity_id": null
+  },
+  {
+   "id": "a13",
+   "handle": "margaret_t1dgran",
+   "name": "Margaret Finch",
+   "bio": "Grandmother raising my grandson, who has type 1 diabetes, at Westbrook. The exemption process is a lifesaver.",
+   "background": "Margaret is the primary carer for her grandson after her daughter's health problems, and has spent years fighting schools to let him monitor his glucose levels on his phone. Westbrook's clear exemption process reassured her immediately.",
+   "stance": "Strongly supports the policy because the medical exemption was handled properly and promptly, and she wants other parents to know the system works if you just contact Duarte early.",
+   "traits": [
+    "grateful",
+    "vocal advocate",
+    "shares personal story",
+    "protective"
+   ],
+   "activity": 0.45,
+   "influence": 0.15,
+   "entity_id": null
+  },
+  {
+   "id": "a14",
+   "handle": "leon_graduatedwb",
+   "name": "Leon Castro",
+   "bio": "Left Westbrook two years ago. Uni student. Banning phones all day feels like it's dodging the real problem.",
+   "background": "Leon recently graduated from Westbrook and is now at university studying sociology, where he's become interested in how institutions handle technology and youth autonomy. He thinks blanket bans are a blunt instrument that doesn't teach self-regulation.",
+   "stance": "Leans critical - he thinks the policy infantilises older students especially, and argues teaching digital self-control would serve pupils better long-term than confiscation.",
+   "traits": [
+    "argumentative",
+    "cites his own experience",
+    "posts frequently",
+    "debates in replies"
+   ],
+   "activity": 0.8,
+   "influence": 0.2,
+   "entity_id": null
+  },
+  {
+   "id": "a15",
+   "handle": "mr_patel_science",
+   "name": "Aarav Patel",
+   "bio": "Science teacher, Westbrook. Just want to teach without confiscating phones mid-lesson.",
+   "background": "Aarav is in his sixth year of teaching science at Westbrook and has personally had lessons derailed by phone notifications and filming incidents. He supports the policy but keeps a low profile online, preferring to just watch the discussion unfold.",
+   "stance": "Leans supportive moderately, believing the policy will reduce disruption in his classroom, though he mostly observes online rather than campaigning for it.",
+   "traits": [
+    "quiet observer",
+    "rarely posts",
+    "measured when he does",
+    "classroom-focused"
+   ],
+   "activity": 0.15,
+   "influence": 0.1,
+   "entity_id": null
+  },
+  {
+   "id": "a16",
+   "handle": "jess_sixthform_wb",
+   "name": "Jessica Wren",
+   "bio": "Sixth former at Westbrook. Common room unlock sorts me out tbh, not fussed either way.",
+   "background": "Jessica is in Year 12 at Westbrook, focused on her A-levels and part-time job, and the sixth-form common room exemption means the policy barely affects her daily routine. She mostly scrolls social media without engaging.",
+   "stance": "Indifferent since the partial exemption covers her needs; she'll only react if the rules around the common room unlock change.",
+   "traits": [
+    "low engagement",
+    "scrolls more than posts",
+    "pragmatic",
+    "brief replies"
+   ],
+   "activity": 0.12,
+   "influence": 0.05,
+   "entity_id": null
+  },
+  {
+   "id": "a17",
+   "handle": "dave_wb_parent",
+   "name": "David Houghton",
+   "bio": "Dad to a Year 8 at Westbrook. Works shifts, catches up on school stuff when I can.",
+   "background": "David works rotating shifts at a logistics warehouse and has limited time to follow school communications closely; his daughter hasn't mentioned any issues with the new policy so he hasn't thought much about it.",
+   "stance": "Indifferent for now, assuming the school knows best, and would only get involved if his daughter started complaining or something affected pickup logistics.",
+   "traits": [
+    "time-poor",
+    "rarely posts",
+    "trusts institutions by default",
+    "skims headlines"
+   ],
+   "activity": 0.1,
+   "influence": 0.07,
+   "entity_id": null
+  },
+  {
+   "id": "a18",
+   "handle": "rachel_antirules",
+   "name": "Rachel Okonjo",
+   "bio": "Westbrook mum of three. This phone ban is overreach dressed up as 'wellbeing'. Watching closely.",
+   "background": "Rachel has three children at different schools and has grown increasingly frustrated with what she sees as schools overstepping into family decisions; she believes parents, not schools, should manage children's phone use.",
+   "stance": "Strongly critical and vocal in principle, viewing the policy as an infringement on parental authority, though she mostly reads threads rather than posting much herself.",
+   "traits": [
+    "skeptical of authority",
+    "sharp when she does post",
+    "principle-driven",
+    "rarely posts but strong opinions"
+   ],
+   "activity": 0.2,
+   "influence": 0.12,
+   "entity_id": null
+  },
+  {
+   "id": "a19",
+   "handle": "harold_t1dcarer",
+   "name": "Harold Bevins",
+   "bio": "Granddad, carer for my granddaughter's type 1 diabetes. Glad of the exemption but wary of pouches generally.",
+   "background": "Harold is retired and helps care for his granddaughter who has type 1 diabetes and attends Westbrook; he's relieved the exemption exists but remembers an incident years ago at another school where exemption paperwork was lost, making him wary of bureaucracy.",
+   "stance": "Leans critical moderately, worried that administrative mistakes could leave medically vulnerable kids without phone access despite the exemption promise, even though the current process seems fine so far.",
+   "traits": [
+    "cautious",
+    "skeptical of paperwork",
+    "protective",
+    "rarely posts"
+   ],
+   "activity": 0.15,
+   "influence": 0.08,
+   "entity_id": null
+  },
+  {
+   "id": "a20",
+   "handle": "amy_wb_year11",
+   "name": "Amy Sutcliffe",
+   "bio": "Year 11 at Westbrook. Exams this year and now no phone all day either. Great timing.",
+   "background": "Amy is in her final year before GCSEs and relies on her phone for revision apps and group study chats during breaks; she feels the timing of the policy adds stress during an already pressured year.",
+   "stance": "Leans critical moderately, feeling the policy removes a useful study tool during exam season, though she mostly just reads other students' complaints rather than posting herself.",
+   "traits": [
+    "stressed about exams",
+    "rarely posts",
+    "sympathetic to peers",
+    "occasionally sarcastic"
+   ],
+   "activity": 0.22,
+   "influence": 0.06,
+   "entity_id": null
+  }
+ ],
+ "graph": {
+  "entities": [
+   {
+    "id": "westbrook-secondary-school",
+    "name": "Westbrook Secondary School",
+    "kind": "organization",
+    "summary": "Secondary school introducing a phone-free school day policy from 3 September, following discussion with staff, students and the parents' council.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "phone-free-school-day-policy",
+    "name": "Phone-free school day policy",
+    "kind": "concept",
+    "summary": "Policy requiring students to lock phones in pouches on arrival, unlockable only at the end of the day, applied during lessons, breaks and lunch for all year groups.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "parents-and-carers-of-westbrook-students",
+    "name": "Parents and carers of Westbrook students",
+    "kind": "group",
+    "summary": "Addressees of the letter; some have concerns about travel and emergencies and are invited to raise them at an information evening or by email.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "students-of-westbrook-secondary-school",
+    "name": "Students of Westbrook Secondary School",
+    "kind": "group",
+    "summary": "Pupils aged 11-18 affected by the policy; surveyed last spring, with 64% reporting pressure to reply to messages and 41% having seen upsetting content on phones at school.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "duarte",
+    "name": "Duarte",
+    "kind": "person",
+    "summary": "Pastoral lead at Westbrook Secondary who handles medical exemption requests (e.g. for students needing glucose monitoring) before 1 August.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "students-with-medical-needs-relying-on-phones",
+    "name": "Students with medical needs relying on phones",
+    "kind": "group",
+    "summary": "Subset of students (e.g. those needing glucose monitoring) exempted from the phone-free policy if they contact the pastoral lead before 1 August.",
+    "source_chunk_ids": [
+     0,
+     1
+    ]
+   },
+   {
+    "id": "sixth-form-students",
+    "name": "Sixth-form students",
+    "kind": "group",
+    "summary": "Students aged 16-18 who get a partial exemption, allowed to unlock phones in the sixth-form common room during free periods.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "teachers-of-westbrook-secondary-school",
+    "name": "Teachers of Westbrook Secondary School",
+    "kind": "group",
+    "summary": "School staff who report that lessons regularly stop because of phones, supporting the rationale for the new policy.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "parents-council",
+    "name": "Parents' council",
+    "kind": "organization",
+    "summary": "Parent representative body consulted by the school during a year of discussion before adopting the phone-free policy.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "amara-lewis",
+    "name": "Amara Lewis",
+    "kind": "person",
+    "summary": "Headteacher of Westbrook Secondary School who signs the letter announcing and defending the new policy.",
+    "source_chunk_ids": [
+     1
+    ]
+   },
+   {
+    "id": "personal-phone-pouch",
+    "name": "Personal phone pouch",
+    "kind": "product",
+    "summary": "Lockable pouch (costing the school €18 each) in which students must lock their phones on arrival; only opened at unlocking stations at day's end.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "nearby-schools-with-phone-free-policies",
+    "name": "Nearby schools with phone-free policies",
+    "kind": "group",
+    "summary": "Three schools near Westbrook that adopted the same phone-free change last year and reported calmer breaks and fewer online bullying incidents during school hours.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "information-evening-17-june",
+    "name": "Information evening (17 June)",
+    "kind": "event",
+    "summary": "Meeting at Westbrook's main hall on Tuesday 17 June at 6:30pm where parents can raise concerns about the new policy, e.g. about travel and emergencies.",
+    "source_chunk_ids": [
+     1
+    ]
+   },
+   {
+    "id": "online-bullying-during-school-hours",
+    "name": "Online bullying during school hours",
+    "kind": "concept",
+    "summary": "Issue cited as a motivation for the policy; nearby schools with phone bans reported fewer such incidents after adopting similar rules.",
+    "source_chunk_ids": [
+     0
+    ]
+   },
+   {
+    "id": "student-survey-spring",
+    "name": "Student survey (spring)",
+    "kind": "event",
+    "summary": "Survey conducted last spring among Westbrook students that found 64% feel pressure to reply to messages during the school day and 41% had seen upsetting content on a phone at school.",
+    "source_chunk_ids": [
+     0
+    ]
+   }
+  ],
+  "relations": [
+   {
+    "source": "westbrook-secondary-school",
+    "target": "phone-free-school-day-policy",
+    "label": "introduces",
+    "evidence": "Westbrook will become a phone-free school day from the start of the autumn term on 3 September."
+   },
+   {
+    "source": "westbrook-secondary-school",
+    "target": "parents-council",
+    "label": "consulted",
+    "evidence": "After a year of discussion with staff, students and the parents' council, Westbrook adopted the policy."
+   },
+   {
+    "source": "westbrook-secondary-school",
+    "target": "teachers-of-westbrook-secondary-school",
+    "label": "consulted",
+    "evidence": "After a year of discussion with staff, students and the parents' council."
+   },
+   {
+    "source": "westbrook-secondary-school",
+    "target": "students-of-westbrook-secondary-school",
+    "label": "consulted",
+    "evidence": "After a year of discussion with staff, students and the parents' council."
+   },
+   {
+    "source": "teachers-of-westbrook-secondary-school",
+    "target": "phone-free-school-day-policy",
+    "label": "supports rationale for",
+    "evidence": "Teachers report that lessons regularly stop because of phones."
+   },
+   {
+    "source": "students-of-westbrook-secondary-school",
+    "target": "phone-free-school-day-policy",
+    "label": "is subject to",
+    "evidence": "This applies during lessons, breaks and lunch, for all year groups (ages 11 to 18)."
+   },
+   {
+    "source": "sixth-form-students",
+    "target": "phone-free-school-day-policy",
+    "label": "receives partial exemption from",
+    "evidence": "Sixth-form students (ages 16 to 18) may unlock their phones in the sixth-form common room during free periods."
+   },
+   {
+    "source": "parents-and-carers-of-westbrook-students",
+    "target": "phone-free-school-day-policy",
+    "label": "raises concerns about",
+    "evidence": "We know some of you have concerns, especially about travel to and from school, and about emergencies."
+   },
+   {
+    "source": "amara-lewis",
+    "target": "phone-free-school-day-policy",
+    "label": "announces",
+    "evidence": "Yours sincerely, Dr Amara Lewis, Headteacher, signs the letter announcing the policy."
+   },
+   {
+    "source": "duarte",
+    "target": "students-with-medical-needs-relying-on-phones",
+    "label": "handles exemptions for",
+    "evidence": "Students with medical needs that rely on a phone will be exempt; please contact Ms Duarte, our pastoral lead, before 1 August."
+   },
+   {
+    "source": "phone-free-school-day-policy",
+    "target": "personal-phone-pouch",
+    "label": "requires use of",
+    "evidence": "On arrival, phones are switched off and locked in a personal pouch."
+   },
+   {
+    "source": "nearby-schools-with-phone-free-policies",
+    "target": "phone-free-school-day-policy",
+    "label": "precedent for",
+    "evidence": "Three schools nearby made the same change last year and report calmer breaks and fewer incidents of online bullying during school hours."
+   },
+   {
+    "source": "nearby-schools-with-phone-free-policies",
+    "target": "online-bullying-during-school-hours",
+    "label": "reports reduction in",
+    "evidence": "report calmer breaks and fewer incidents of online bullying during school hours."
+   },
+   {
+    "source": "student-survey-spring",
+    "target": "phone-free-school-day-policy",
+    "label": "justifies",
+    "evidence": "In a survey last spring, 64% of our students said they feel pressure to reply to messages during the school day... Teachers report that lessons regularly stop because of phones."
+   },
+   {
+    "source": "westbrook-secondary-school",
+    "target": "information-evening-17-june",
+    "label": "hosts",
+    "evidence": "Please join us at the information evening on Tuesday 17 June at 6:30 pm in the main hall."
+   },
+   {
+    "source": "parents-and-carers-of-westbrook-students",
+    "target": "information-evening-17-june",
+    "label": "invited to attend",
+    "evidence": "Please join us at the information evening on Tuesday 17 June at 6:30 pm in the main hall, or reply to this email."
+   }
+  ]
+ },
+ "stats": [
+  {
+   "round": 0,
+   "actions": {
+    "post": 6
+   },
+   "new_posts": 6,
+   "active_agents": 6,
+   "sentiment": 0.1,
+   "llm_calls": 2,
+   "llm_seconds": 15.35
+  },
+  {
+   "round": 1,
+   "actions": {
+    "reply": 8,
+    "like": 7
+   },
+   "new_posts": 8,
+   "active_agents": 9,
+   "sentiment": -0.0,
+   "llm_calls": 3,
+   "llm_seconds": 79.35
+  },
+  {
+   "round": 2,
+   "actions": {
+    "reply": 7,
+    "nothing": 1,
+    "like": 1
+   },
+   "new_posts": 7,
+   "active_agents": 8,
+   "sentiment": 0.186,
+   "llm_calls": 3,
+   "llm_seconds": 46.96
+  },
+  {
+   "round": 3,
+   "actions": {
+    "post": 7,
+    "like": 2,
+    "reply": 1
+   },
+   "new_posts": 8,
+   "active_agents": 9,
+   "sentiment": -0.388,
+   "llm_calls": 3,
+   "llm_seconds": 70.22
+  },
+  {
+   "round": 4,
+   "actions": {
+    "post": 1,
+    "reply": 7,
+    "like": 1
+   },
+   "new_posts": 8,
+   "active_agents": 7,
+   "sentiment": 0.188,
+   "llm_calls": 3,
+   "llm_seconds": 77.45
+  },
+  {
+   "round": 5,
+   "actions": {
+    "nothing": 1,
+    "post": 1,
+    "reply": 2,
+    "like": 3
+   },
+   "new_posts": 3,
+   "active_agents": 6,
+   "sentiment": 0.0,
+   "llm_calls": 2,
+   "llm_seconds": 40.5
+  },
+  {
+   "round": 6,
+   "actions": {
+    "reply": 3,
+    "like": 4,
+    "post": 2,
+    "nothing": 2
+   },
+   "new_posts": 5,
+   "active_agents": 9,
+   "sentiment": 0.66,
+   "llm_calls": 3,
+   "llm_seconds": 79.45
+  }
+ ],
+ "events": [
+  {
+   "round": 3,
+   "content": "A school bus breaks down on the motorway in the evening, and students whose phones are locked away cannot call their parents for over an hour."
+  }
+ ],
+ "follows": [
+  [
+   "a01",
+   "a02"
+  ],
+  [
+   "a01",
+   "a03"
+  ],
+  [
+   "a02",
+   "a03"
+  ],
+  [
+   "a02",
+   "a10"
+  ],
+  [
+   "a03",
+   "a01"
+  ],
+  [
+   "a03",
+   "a14"
+  ],
+  [
+   "a04",
+   "a01"
+  ],
+  [
+   "a04",
+   "a02"
+  ],
+  [
+   "a05",
+   "a01"
+  ],
+  [
+   "a05",
+   "a02"
+  ],
+  [
+   "a05",
+   "a03"
+  ],
+  [
+   "a05",
+   "a04"
+  ],
+  [
+   "a05",
+   "a07"
+  ],
+  [
+   "a05",
+   "a14"
+  ],
+  [
+   "a06",
+   "a01"
+  ],
+  [
+   "a06",
+   "a02"
+  ],
+  [
+   "a06",
+   "a03"
+  ],
+  [
+   "a06",
+   "a13"
+  ],
+  [
+   "a07",
+   "a01"
+  ],
+  [
+   "a07",
+   "a02"
+  ],
+  [
+   "a07",
+   "a03"
+  ],
+  [
+   "a07",
+   "a04"
+  ],
+  [
+   "a07",
+   "a14"
+  ],
+  [
+   "a08",
+   "a01"
+  ],
+  [
+   "a08",
+   "a02"
+  ],
+  [
+   "a08",
+   "a03"
+  ],
+  [
+   "a08",
+   "a09"
+  ],
+  [
+   "a08",
+   "a14"
+  ],
+  [
+   "a09",
+   "a01"
+  ],
+  [
+   "a09",
+   "a02"
+  ],
+  [
+   "a09",
+   "a03"
+  ],
+  [
+   "a09",
+   "a04"
+  ],
+  [
+   "a09",
+   "a14"
+  ],
+  [
+   "a09",
+   "a17"
+  ],
+  [
+   "a09",
+   "a18"
+  ],
+  [
+   "a10",
+   "a01"
+  ],
+  [
+   "a10",
+   "a02"
+  ],
+  [
+   "a10",
+   "a04"
+  ],
+  [
+   "a11",
+   "a01"
+  ],
+  [
+   "a11",
+   "a02"
+  ],
+  [
+   "a11",
+   "a03"
+  ],
+  [
+   "a11",
+   "a04"
+  ],
+  [
+   "a12",
+   "a01"
+  ],
+  [
+   "a12",
+   "a02"
+  ],
+  [
+   "a12",
+   "a04"
+  ],
+  [
+   "a12",
+   "a20"
+  ],
+  [
+   "a13",
+   "a01"
+  ],
+  [
+   "a13",
+   "a02"
+  ],
+  [
+   "a13",
+   "a03"
+  ],
+  [
+   "a13",
+   "a09"
+  ],
+  [
+   "a13",
+   "a10"
+  ],
+  [
+   "a14",
+   "a01"
+  ],
+  [
+   "a14",
+   "a02"
+  ],
+  [
+   "a14",
+   "a03"
+  ],
+  [
+   "a14",
+   "a04"
+  ],
+  [
+   "a14",
+   "a05"
+  ],
+  [
+   "a14",
+   "a10"
+  ],
+  [
+   "a14",
+   "a12"
+  ],
+  [
+   "a15",
+   "a04"
+  ],
+  [
+   "a15",
+   "a09"
+  ],
+  [
+   "a15",
+   "a14"
+  ],
+  [
+   "a16",
+   "a01"
+  ],
+  [
+   "a16",
+   "a02"
+  ],
+  [
+   "a16",
+   "a04"
+  ],
+  [
+   "a17",
+   "a01"
+  ],
+  [
+   "a17",
+   "a02"
+  ],
+  [
+   "a17",
+   "a03"
+  ],
+  [
+   "a18",
+   "a01"
+  ],
+  [
+   "a18",
+   "a03"
+  ],
+  [
+   "a18",
+   "a08"
+  ],
+  [
+   "a19",
+   "a01"
+  ],
+  [
+   "a19",
+   "a02"
+  ],
+  [
+   "a19",
+   "a04"
+  ],
+  [
+   "a20",
+   "a01"
+  ],
+  [
+   "a20",
+   "a02"
+  ],
+  [
+   "a20",
+   "a03"
+  ]
+ ],
+ "report": {
+  "title": "Policy Survives Bus Scare; School Must Fix Protocols, Not Reverse Ban",
+  "summary": "The simulated crowd does not push Westbrook to abandon the phone-free day: criticism concentrates on *how* emergencies are handled, not on whether phones should be locked away, and even skeptical parents end the run reassured once written procedures are promised (#30, #45). Sentiment moved from mildly positive (+0.10 at r0) through a sharp crash to -0.39 after the injected bus-breakdown event at round 3, then recovered to +0.66 by round 6 as @headteacher_lewis (a02) and @westbrooksecondary (a01) published concrete emergency procedures and staff training commitments (#41, #43, #45). The most persistent dissent comes from @leon_graduatedwb (a14), who keeps pressing for a staff drill rather than just a document (#44), and @tyler_watches (a10), whose single post says the policy \"doesn't work for families like mine\" (#11) and is never answered directly in the thread. No agent in the digest calls for scrapping the phone ban itself; the fight is entirely about operational trust.",
+  "prediction": "The single most likely real-world outcome is that Westbrook keeps the phone-free policy unchanged in substance but is forced to formalize and publicize emergency-contact procedures and staff training (mirroring #30, #41, #43, #45) to keep parent buy-in — this depends on the school actually delivering the promised August staff drill and Friday publication rather than letting it slip, and on no second high-profile incident occurring before fixes land. The strongest counter-signal is how fast and far sentiment cratered after a single bus breakdown (+0.09 before vs -0.10 after per-round average, with r3 dropping to -0.39), showing that trust is thin and reversible if the school's follow-through (training \"in late August\" per #41) is delayed or another incident happens first.",
+  "confidence": "medium",
+  "sections": [
+   {
+    "title": "Round-by-round evolution",
+    "body_markdown": "The conversation opens cautiously favorable: r0 sentiment is +0.10 as @headteacher_lewis (a02) frames the policy as the product of a year's consultation (#1) and teacher @ms_okafor_teaches (a09) says she's \"hopeful this works\" (#3).\n\n- r1 dips to -0.00 as parents press the practical gap: @pete_westbrookdad (a11, #4) and @claire_fromwestbrook (a05, #7) ask how emergency contact actually works, and @tyler_watches (a10) accuses the school of \"rubber-stamping\" (#11).\n- r2 recovers to +0.19 as @westbrookparentscoun (a03, #15) and @margaret_t1dgran (a13, #17) vouch for the pastoral team's responsiveness.\n- r3 crashes to -0.39 immediately after the injected bus-breakdown event; even supportive voices like @jamal_exwestbrook (a08, #28) say protocols \"aren't working yet.\"\n- r4-r5 rebuild slowly (+0.19, then flat 0.00) as @headteacher_lewis (a02, #30) and @duarte_pastoral (a04, #32) commit to published procedures.\n- r6 jumps to +0.66, the highest of the run, once @westbrooksecondary (a01, #45) actually publishes the procedures and @headteacher_lewis (a02, #41) and @ms_okafor_teaches (a09, #43) commit to staff training before September."
+   },
+   {
+    "title": "Camps and the voices leading them",
+    "body_markdown": "**Policy architects and administration** (a01, a02, a03, a04) drove the policy and, after the bus incident, pivoted from reassurance to concrete deliverables: @headteacher_lewis (a02) moves from \"The data on disruption and wellbeing convinced us\" (#1) to \"Parents are right. The bus incident exposed a gap between our protocols and reality\" (#30) and finally \"planning staff training in late August\" (#41).\n\n**Supportive base** (a06, a07, a08, a09, a13, a15) — teachers, a medically-reassured grandmother, and a youth worker — never seriously waver; @margaret_t1dgran (a13, #5, #36) and @ms_okafor_teaches (a09, #3, #43) stay net-positive throughout, with Ngozi's private note at r6 calling leadership \"cautiously satisfied.\"\n\n**Torn parents won over** (a05, a11) start skeptical about logistics (#4, #7) but their pressure is credited by the council itself (#42) with forcing the Friday deadline, and both end reassured once procedures are published (private notes, r6).\n\n**Persistent critics** (a10, a12, a14, a18, a19, a20) remain the most vocal source of dissent: @leon_graduatedwb (a14) never accepts the core premise, arguing the school is \"solving a symptom (disruption) not building the skill (self-regulation)\" (#14) and still demanding a tested drill, not just paper, at r6 (#44); @tyler_watches (a10) posts only once but with the strongest hostile sentiment (-0.80) and is left largely unanswered (#11).\n\n**Indifferent bystanders** (a16, a17) never post or score sentiment in the digest, representing a quiet majority who may only engage if rules change."
+   },
+   {
+    "title": "Turning point: the injected bus-breakdown event",
+    "body_markdown": "The round-3 injected event — a school bus breakdown leaving students unable to call parents for over an hour — is the clearest structural inflection point in the run. Measured impact: sentiment flips from +0.09 average before the event to -0.10 from that round onward, and posting volume rises slightly (7.5 to 8.0 posts/round), indicating the crowd didn't go quiet, it got louder and angrier.\n\nCritically, the event validates rather than creates the emergency-contact concern: it converts previously hedged worries (#4, #7) into explicit demands, with @claire_fromwestbrook (a05, #34) saying \"the bus proved my concerns were real\" and @pete_westbrookdad (a11, #35) noting \"today showed the gap between theory and practice.\" Even supportive voices like @jamal_exwestbrook (a08, #28) turn critical of implementation in this moment. The school's response — publishing procedures by Friday (#30, #45) and committing to staff training (#41, #43) — is what pulls sentiment back up to the run's highest point (+0.66) at r6, suggesting responsiveness to the event, not the policy's substance, is what restored confidence."
+   },
+   {
+    "title": "Dissenting views worth watching",
+    "body_markdown": "Two unresolved threads are worth flagging for anyone tracking real-world rollout risk.\n\n- @leon_graduatedwb (a14) accepts the procedural wins but keeps escalating the bar — from \"where's the evidence that confiscation teaches anything?\" (#14) to demanding an actual tested staff drill before day one (#44). His private note at r6 says he's \"not convinced the policy [itself]\" is right even as he praises the transparency, meaning the core ideological objection (infantilizing older students) never got addressed, only the logistics did.\n- @tyler_watches (a10) posts just once but registers the most hostile sentiment in the dataset (-0.80) and is never engaged by leadership directly in the digest — his complaint about shift-work inflexibility (#11) is answered by the parents' council (#15) but not by the school itself, leaving a shift-working-parent segment potentially under-addressed.\n- Several agents with critical starting stances (a18 rachel_antirules, a19 harold_t1dcarer, a20 amy_wb_year11) never posted at all, so their concerns (principled opposition, medical risk, exam-season phone use) are present in the seed data but untested in the actual conversation — a real-world version of this rollout may surface them more loudly than this run did."
+   }
+  ],
+  "key_voices": [
+   "a02",
+   "a03",
+   "a05",
+   "a14",
+   "a09",
+   "a11",
+   "a01"
+  ],
+  "reasons": [
+   "No agent calls for scrapping the ban; critique targets emergency protocols, which the school fixes by r6 (#30, #45).",
+   "Sentiment crashed to -0.39 after the injected bus incident but recovered to +0.66 once procedures were published (#41, #43).",
+   "Torn parents like @claire_fromwestbrook (#34) and @pete_westbrookdad (#35) end reassured once written protocols appear.",
+   "@leon_graduatedwb (#44) and @tyler_watches (#11) show unresolved dissent that leadership never fully answers."
+  ],
+  "camps": [
+   {
+    "name": "Policy architects & admin",
+    "summary": "School leadership and the parents' council designed the policy and, after the bus incident, shifted from reassurance to concrete written procedures and staff training (#1, #30, #41, #45).",
+    "members": [
+     "a01",
+     "a02",
+     "a03",
+     "a04"
+    ],
+    "sentiment": 0.412
+   },
+   {
+    "name": "Supportive base",
+    "summary": "Teachers, a reassured grandmother, and a youth worker stay net-favorable throughout, citing classroom disruption and successful medical exemptions (#3, #5, #43).",
+    "members": [
+     "a06",
+     "a07",
+     "a08",
+     "a09",
+     "a13",
+     "a15"
+    ],
+    "sentiment": 0.269
+   },
+   {
+    "name": "Torn parents won over",
+    "summary": "Initially anxious about after-school contact (#4, #7), these parents credit the bus incident with forcing real fixes and end reassured by published protocols.",
+    "members": [
+     "a05",
+     "a11"
+    ],
+    "sentiment": -0.463
+   },
+   {
+    "name": "Persistent critics",
+    "summary": "A mix of principled objectors and logistics-focused skeptics who remain unconvinced on either the policy's rationale or its execution (#11, #14, #44).",
+    "members": [
+     "a10",
+     "a12",
+     "a14",
+     "a18",
+     "a19",
+     "a20"
+    ],
+    "sentiment": -0.35
+   },
+   {
+    "name": "Indifferent bystanders",
+    "summary": "Agents who never posted or registered sentiment in the digest, representing a quiet segment waiting to see how rules play out.",
+    "members": [
+     "a16",
+     "a17"
+    ],
+    "sentiment": null
+   }
+  ],
+  "risks": [
+   "Real shift-working or hard-to-reach parents (like @tyler_watches, #11) may organize louder, sustained opposition than a single unanswered post suggests.",
+   "The promised late-August staff training (#41) could slip past September 1st in reality, reopening the trust gap the bus incident exposed.",
+   "A second real-world emergency incident before fixes are fully tested could re-crash parent sentiment more severely than this simulation's single event.",
+   "Principled objectors who never posted here (a18, a19, a20) may surface stronger ideological opposition in a real rollout than this run captured.",
+   "Media or regulatory attention to a bus-type incident could escalate scrutiny beyond what a school-council dialogue can resolve."
+  ],
+  "caveats": [
+   "Scale: 20 simulated agents over 6 rounds produced 45 posts; agent decisions came from the 'haiku' model. Treat this as a scenario exploration, not a poll or a measurement of real people.",
+   "Only 20 agents simulated, and 7 of them (a06, a15-a20 partially) never posted or registered scored sentiment, so their stances are inferred from seed descriptions only.",
+   "All personas are generated by the same underlying model, which can cause faster convergence toward resolution than a real, more heterogeneous community would show.",
+   "Six rounds compress what would likely be weeks or months of real deliberation, possibly understating how slowly trust or distrust actually builds.",
+   "Agents' knowledge is bounded by the seed documents, so reactions reflect only the scenarios and facts provided, not unanticipated real-world complications.",
+   "Sentiment scores are model-estimated per post, not independently validated, and swung sharply round to round (+0.19 to -0.39 to +0.66), suggesting some volatility in the measure itself."
+  ],
+  "recommendations": [],
+  "citation_audit": null
+ },
+ "calls": {
+  "count": 25,
+  "failed": 0,
+  "seconds": 739.96,
+  "agent": {
+   "count": 19,
+   "failed": 0,
+   "seconds": 409.26
+  },
+  "planner": {
+   "count": 6,
+   "failed": 0,
+   "seconds": 330.7
+  }
+ },
+ "report_rebuild": {
+  "running": false,
+  "error": null
+ },
+ "example": true
+}

@@ -1,0 +1,27 @@
+[package]
+name = "tellfold-llm"
+description = "The model interface, FakeLlm, JSON extraction and repair, call log, seed ingest (port of llm.py, runtimes/base.py, ingest.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+chardetng.workspace = true
+chrono.workspace = true
+encoding_rs.workspace = true
+futures.workspace = true
+pdf-extract.workspace = true
+rand.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tellfold-models.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

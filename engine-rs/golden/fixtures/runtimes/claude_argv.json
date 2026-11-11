@@ -1,0 +1,140 @@
+[
+ {
+  "purpose": "engine.round",
+  "think": false,
+  "schema": null,
+  "system": "Be terse. ünïcode",
+  "argv": [
+   "/opt/bin/claude",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--system-prompt",
+   "Be terse. ünïcode",
+   "--tools",
+   "",
+   "--max-turns",
+   "1",
+   "--model",
+   "haiku",
+   "--strict-mcp-config",
+   "--setting-sources=",
+   "--thinking",
+   "disabled",
+   "--input-format",
+   "stream-json"
+  ]
+ },
+ {
+  "purpose": "report.write",
+  "think": false,
+  "schema": null,
+  "system": "Be terse. ünïcode",
+  "argv": [
+   "/opt/bin/claude",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--system-prompt",
+   "Be terse. ünïcode",
+   "--tools",
+   "",
+   "--max-turns",
+   "1",
+   "--model",
+   "haiku",
+   "--strict-mcp-config",
+   "--setting-sources=",
+   "--input-format",
+   "stream-json"
+  ]
+ },
+ {
+  "purpose": "graph.extract",
+  "think": false,
+  "schema": {
+   "properties": {
+    "color": {
+     "title": "Color",
+     "type": "string"
+    },
+    "n": {
+     "title": "N",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "color",
+    "n"
+   ],
+   "title": "Pick",
+   "type": "object"
+  },
+  "system": "Sys\n\n# Output format\nDeliver your final answer through the structured output tool. Every required field must be present, types must match the schema exactly, and no field may be invented.",
+  "argv": [
+   "/opt/bin/claude",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--system-prompt",
+   "Sys\n\n# Output format\nDeliver your final answer through the structured output tool. Every required field must be present, types must match the schema exactly, and no field may be invented.",
+   "--tools",
+   "",
+   "--max-turns",
+   "3",
+   "--model",
+   "haiku",
+   "--strict-mcp-config",
+   "--setting-sources=",
+   "--thinking",
+   "disabled",
+   "--json-schema",
+   "{\"properties\": {\"color\": {\"title\": \"Color\", \"type\": \"string\"}, \"n\": {\"title\": \"N\", \"type\": \"integer\"}}, \"required\": [\"color\", \"n\"], \"title\": \"Pick\", \"type\": \"object\"}",
+   "--input-format",
+   "stream-json"
+  ]
+ },
+ {
+  "purpose": "graph.extract",
+  "think": true,
+  "schema": {
+   "properties": {
+    "color": {
+     "title": "Color",
+     "type": "string"
+    },
+    "n": {
+     "title": "N",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "color",
+    "n"
+   ],
+   "title": "Pick",
+   "type": "object"
+  },
+  "system": "Sys\n\n# Output format\nDeliver your final answer through the structured output tool. Every required field must be present, types must match the schema exactly, and no field may be invented.",
+  "argv": [
+   "/opt/bin/claude",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--system-prompt",
+   "Sys\n\n# Output format\nDeliver your final answer through the structured output tool. Every required field must be present, types must match the schema exactly, and no field may be invented.",
+   "--tools",
+   "",
+   "--max-turns",
+   "3",
+   "--model",
+   "haiku",
+   "--strict-mcp-config",
+   "--setting-sources=",
+   "--json-schema",
+   "{\"properties\": {\"color\": {\"title\": \"Color\", \"type\": \"string\"}, \"n\": {\"title\": \"N\", \"type\": \"integer\"}}, \"required\": [\"color\", \"n\"], \"title\": \"Pick\", \"type\": \"object\"}",
+   "--input-format",
+   "stream-json"
+  ]
+ }
+]

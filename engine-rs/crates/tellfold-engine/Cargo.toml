@@ -1,0 +1,28 @@
+[package]
+name = "tellfold-engine"
+description = "Graph extraction, personas, the round loop and the run pipeline (port of graph.py, personas.py, engine.py, runner.py)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+futures.workspace = true
+indexmap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tellfold-llm.workspace = true
+tellfold-models.workspace = true
+tellfold-store.workspace = true
+thiserror.workspace = true
+unicode-normalization.workspace = true
+
+[dev-dependencies]
+regex.workspace = true
+rusqlite.workspace = true
+tellfold-runtimes.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }
