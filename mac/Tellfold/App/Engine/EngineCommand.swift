@@ -16,11 +16,9 @@ enum EngineCommand {
             + serveArguments(runsFolder: runsFolder, examplesFolder: examplesFolder, logLevel: logLevel)
     }
 
-    /// The engine built into the app: `<engine>/python/bin/python3 -I -B -m tellfold serve ...` (after the
-    /// executable). `-I` keeps the user's PYTHON* variables and site-packages out; `-B` never writes bytecode into
-    /// the signed bundle (it is compiled at build time).
+    /// The engine built into the app: `<engine>/tellfold serve ...` (after the executable).
     static func bundledArguments(runsFolder: String, examplesFolder: String? = nil, logLevel: String) -> [String] {
-        ["-I", "-B", "-m"] + serveArguments(runsFolder: runsFolder, examplesFolder: examplesFolder, logLevel: logLevel)
+        Array(serveArguments(runsFolder: runsFolder, examplesFolder: examplesFolder, logLevel: logLevel).dropFirst())
     }
 
     /// The example runs built into the app (`Resources/Examples`), which the engine lists read-only.
@@ -28,9 +26,9 @@ enum EngineCommand {
         bundle.url(forResource: "Examples", withExtension: nil)
     }
 
-    /// The Python inside a bundled engine folder (`Resources/engine`).
-    static func bundledPython(in engine: URL) -> URL {
-        engine.appending(path: "python/bin/python3")
+    /// The engine binary inside a bundled engine folder (`Resources/engine`), built from `engine-rs/`.
+    static func bundledBinary(in engine: URL) -> URL {
+        engine.appending(path: "tellfold")
     }
 
     private static func serveArguments(runsFolder: String, examplesFolder: String?, logLevel: String) -> [String] {

@@ -63,16 +63,16 @@ final class AppPreferences {
         URL.applicationSupportDirectory.appending(path: "Tellfold/runs", directoryHint: .isDirectory)
     }
 
-    /// The engine Release builds carry in `Resources/engine`, with its own Python (see `mac/scripts/bundle-engine.sh`).
-    /// Nil when the app has none, as in Debug builds.
+    /// The engine binary every build carries in `Resources/engine` (see `mac/scripts/bundle-engine.sh`). Nil when the
+    /// app has none.
     nonisolated static var bundledEngine: URL? {
         guard let engine = Bundle.main.resourceURL?.appending(path: "engine", directoryHint: .isDirectory),
-              FileManager.default.isExecutableFile(atPath: EngineCommand.bundledPython(in: engine).path) else { return nil }
+              FileManager.default.isExecutableFile(atPath: EngineCommand.bundledBinary(in: engine).path) else { return nil }
         return engine
     }
 
-    /// The Python project `uv run` uses when there is no bundled engine: Debug builds run it from the repository this
-    /// file was compiled from (four folders up from `mac/Tellfold/App/Engine`).
+    /// The Python project `uv run` uses when the app has no bundled engine: the repository this file was compiled
+    /// from (four folders up from `mac/Tellfold/App/Engine`).
     nonisolated static let developmentEnginePath: String = {
         var url = URL(filePath: #filePath)
         for _ in 0..<5 { url.deleteLastPathComponent() }

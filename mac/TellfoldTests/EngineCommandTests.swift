@@ -32,15 +32,15 @@ struct EngineCommandTests {
 
     @Test func bundledCommandLine() {
         let args = EngineCommand.bundledArguments(runsFolder: "/runs", logLevel: "Debug")
-        #expect(args == ["-I", "-B", "-m", "tellfold", "serve", "--port", "0", "--runs", "/runs", "--log-level", "debug"])
-        let python = EngineCommand.bundledPython(in: URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory))
-        #expect(python.path == "/App.app/Contents/Resources/engine/python/bin/python3")
+        #expect(args == ["serve", "--port", "0", "--runs", "/runs", "--log-level", "debug"])
+        let binary = EngineCommand.bundledBinary(in: URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory))
+        #expect(binary.path == "/App.app/Contents/Resources/engine/tellfold")
     }
 
     @Test func examplesFolderIsPassedWhenBundled() {
         let args = EngineCommand.bundledArguments(runsFolder: "/runs", examplesFolder: "/App.app/Contents/Resources/Examples",
                                                   logLevel: "warning")
-        #expect(args == ["-I", "-B", "-m", "tellfold", "serve", "--port", "0", "--runs", "/runs",
+        #expect(args == ["serve", "--port", "0", "--runs", "/runs",
                          "--examples", "/App.app/Contents/Resources/Examples", "--log-level", "warning"])
         let dev = EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs", examplesFolder: "/ex", logLevel: "info")
         #expect(dev.suffix(4) == ["--examples", "/ex", "--log-level", "info"])
@@ -52,6 +52,12 @@ struct EngineCommandTests {
         let names = try FileManager.default.contentsOfDirectory(atPath: examples.path)
         #expect(names.contains("corner-cafe"))
         #expect(FileManager.default.fileExists(atPath: examples.appending(path: "corner-cafe/world.db").path))
+    }
+
+    @Test func appBundleShipsTheEngine() throws {
+        let engine = try #require(AppPreferences.bundledEngine, "no Resources/engine/tellfold in the app")
+        #expect(FileManager.default.isExecutableFile(atPath: EngineCommand.bundledBinary(in: engine).path))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: engine.path) == ["tellfold"])
     }
 
     @Test func tokensAreRandomHex() {

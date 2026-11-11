@@ -3,13 +3,14 @@ import Testing
 @testable import Tellfold
 
 /// Starts the real engine through `EngineController` (offline test model, temporary runs folder), creates a
-/// small run over the API and follows its event stream to the end. Opt-in, because it spawns `uv`:
+/// small run over the API and follows its event stream to the end. Opt-in, because it spawns the engine:
 ///
 ///     TEST_RUNNER_TELLFOLD_REAL_ENGINE=1 TEST_RUNNER_TELLFOLD_HOME=/private/tmp/tellfold-mac-home xcodebuild test ...
 ///
-/// Set TELLFOLD_HOME so the engine reads and writes a scratch settings file instead of the user's.
-/// TEST_RUNNER_TELLFOLD_UV_PATH points the app at another `uv`, such as a shim that starts a different engine
-/// build with the same arguments.
+/// Set TELLFOLD_HOME so the engine reads and writes a scratch settings file instead of the user's. The engine
+/// built into the app answers by default. TEST_RUNNER_TELLFOLD_ENGINE_PATH=<repository> runs the Python package
+/// through `uv` instead, and TEST_RUNNER_TELLFOLD_UV_PATH points the app at another `uv`, such as a shim that starts
+/// a different engine build with the same arguments.
 @MainActor
 @Suite(.enabled(if: ProcessInfo.processInfo.environment["TELLFOLD_REAL_ENGINE"] == "1"), .serialized)
 struct EngineIntegrationTests {
@@ -41,6 +42,9 @@ struct EngineIntegrationTests {
         #expect(engine.state.isRunning)
         #expect(engine.health?.fakeLLM == true)
         #expect(engine.commandDescription.contains("tellfold serve --port 0"))
+        // An engine path runs the Python package through uv; otherwise the binary built into the app answers.
+        #expect(engine.commandDescription.contains("Resources/engine/tellfold serve") == (prefs.bundledEngineFolder != nil))
+        #expect(engine.commandDescription.contains(" run --project ") == (prefs.bundledEngineFolder == nil))
         // The bundled examples are listed; the new runs folder adds nothing.
         #expect(try await client.runs().allSatisfy(\.example))
         #expect(!(try await client.runtimes()).isEmpty)
@@ -86,7 +90,7 @@ struct EngineIntegrationTests {
 
     /// Every route the app calls, through the app's own client and models: a run, its reads, chat, ask, the report
     /// rebuild, rewrite, a branch, Check it and a comparison, runtimes and settings. Whichever engine answers (the
-    /// Python package, or a Rust binary behind the `uv` shim in engine-rs/scripts), the app must decode every answer.
+    /// bundled binary, or the Python package through `uv`), the app must decode every answer.
     @Test(.timeLimit(.minutes(5)))
     func everyRouteTheAppUsesAnswers() async throws {
         let suite = "dev.tellfold.mac.tests.\(UUID().uuidString)"

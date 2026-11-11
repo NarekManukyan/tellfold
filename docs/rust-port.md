@@ -1,7 +1,7 @@
 # Porting the Tellfold engine to Rust
 
-Status: plan, November 2026. Python 0.3.0 is the reference. Nothing here changes what ships until the last
-milestone, and that one waits for the maintainer's approval.
+Status: November 2026. Python 0.3.0 is the reference. Milestones 1 to 9 left what ships unchanged; milestone 10
+switches the Mac app to the Rust engine (see "The switch").
 
 ## Why
 
@@ -260,8 +260,8 @@ on open, as today.
 
 ## Milestones
 
-Each milestone is one pull request against `main`, reviewed and merged only with the maintainer's OK. Python keeps
-shipping until milestone 10.
+Each milestone is one pull request against `main`, reviewed and merged only with the maintainer's OK. Python
+shipped until milestone 10.
 
 | # | milestone | parity is proven by |
 |---|---|---|
@@ -274,7 +274,7 @@ shipping until milestone 10.
 | 7 | `tellfold-cli`: every command, live view, `doctor`, `runtimes`, `shoal` alias, legacy names | `test_cli.py`, `test_rename_compat.py`; golden `--help` texts; CLI runs equal to Python's under `TELLFOLD_FAKE_LLM=1` |
 | 8 | `tellfold-server`: all routes, SSE, run manager, watcher, uploads, auth, shutdown, web UI | `test_server.py`, `test_runtimes_server.py`, `test_serve_shutdown.py`; an API recorder replays the same request script against both servers and diffs every response and SSE stream |
 | 9 | Parity soak: the Mac app's test suite against the Rust binary, real end-to-end runs with Claude Code and Cursor Agent, size and start-up numbers | Mac tests green against the Rust binary (through `engine-rs/scripts/uv-shim.sh`); side-by-side real runs reviewed by hand; see "Parity soak" |
-| 10 | Switch (after approval): `bundle-engine.sh` builds and signs the Rust binary, `EngineCommand` starts `Resources/engine/tellfold serve ...`; Debug builds keep the `uv` path as an option until Python is retired | a Release build of the app, notarisation dry run, Mac tests |
+| 10 | Switch (after approval): `bundle-engine.sh` builds and signs the Rust binary for every build, `EngineCommand` starts `Resources/engine/tellfold serve ...`; an engine path in Settings keeps the `uv` path as an option until Python is retired | a Release build of the app, notarisation dry run, Mac tests |
 
 Milestones 2 and 3 can overlap, as can 5 and 6 once 4 has landed.
 
@@ -333,6 +333,26 @@ agent CLI processes were left behind after the servers exited.
 
 The binary links only system libraries (`libSystem`, `libiconv`, CoreFoundation). The first launch of a newly
 built binary takes several seconds on macOS while the system scans it; later launches take the times above.
+
+## The switch (milestone 10)
+
+`mac/scripts/bundle-engine.sh` now runs `cargo build --release --locked --target aarch64-apple-darwin -p
+tellfold-cli` with `MACOSX_DEPLOYMENT_TARGET=15.0`, checks the binary's `minos`, copies it to
+`Resources/engine/tellfold` and signs it: ad hoc for local builds, and with the hardened runtime and a timestamp for a
+Developer ID identity. The engine needs no entitlements, so `engine.entitlements` (which the bundled Python needed
+for its extension modules) is gone. The script then starts `tellfold serve --help` from the bundle as a smoke test.
+
+The build phase runs for every configuration, so Debug builds run the same engine as releases. `EngineCommand`
+starts `Resources/engine/tellfold serve --port 0 --runs DIR [--examples DIR] --log-level LEVEL`. An engine path in
+Settings > Advanced still runs the Python package with `uv run --project <path> tellfold serve`, and the Mac engine
+tests do the same with `TEST_RUNNER_TELLFOLD_ENGINE_PATH`. Building the app now needs a Rust toolchain instead of
+`uv`.
+
+Checked on 11 November 2026: a Release build is 28 MB (the engine 13 MB), passes `codesign --verify --deep
+--strict`, and its engine is arm64 with `minos 15.0`, linking only system libraries. The same binary signed with the
+hardened runtime starts, answers `/api/health` and exits when stdin closes. The Mac unit suite passes, and the
+engine tests pass against the bundled binary and, with an engine path, against the Python package. Notarisation
+itself needs the release Mac's Developer ID and runs in `mac/scripts/release.sh`.
 
 ## Risks
 

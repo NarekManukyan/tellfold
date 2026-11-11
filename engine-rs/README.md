@@ -1,7 +1,7 @@
 # Tellfold engine in Rust
 
 The Rust port of the Python engine in `tellfold/`. The plan, the milestones and the parity rules are in
-[docs/rust-port.md](../docs/rust-port.md). The Python engine keeps shipping until the port reaches parity.
+[docs/rust-port.md](../docs/rust-port.md). The Mac app bundles this engine (`mac/scripts/bundle-engine.sh`).
 
 ```bash
 cd engine-rs
@@ -49,10 +49,10 @@ The second example runs a whole simulation with the report and prints every even
 `cargo run -p tellfold-study --example compare -- RUN_A RUN_B` makes a real comparison and Check it of two finished
 run folders.
 
-To run the Mac app (Debug) on the Rust engine, build it with `cargo build --release -p tellfold-cli` and set the
-app's uv path to `engine-rs/scripts/uv-shim.sh`. The shim takes the `uv run --project <path> tellfold ...` command
-the app runs and starts the binary instead. The Mac engine tests use it through `TEST_RUNNER_TELLFOLD_UV_PATH` (see
-"Parity soak" in the plan).
+Every Mac app build compiles this engine for `aarch64-apple-darwin` with `MACOSX_DEPLOYMENT_TARGET=15.0` and puts
+it in `Resources/engine/tellfold`. Setting an engine path in the app's Settings runs the Python package through `uv`
+instead. `scripts/uv-shim.sh` stands in for `uv` and starts `target/release/tellfold` with the same arguments, which
+lets a custom engine path still run a local Rust build (see "Parity soak" in the plan).
 
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.

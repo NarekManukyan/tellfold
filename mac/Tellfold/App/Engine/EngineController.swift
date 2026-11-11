@@ -12,8 +12,9 @@ struct EngineLogLine: Identifiable, Hashable, Sendable {
     let text: String
 }
 
-/// Owns the engine process: `tellfold serve --port 0 --runs <dir> --log-level <level>`, run by the Python bundled in
-/// the app (Release) or through `uv run --project <enginePath>` (Debug, or a custom engine path), with the bearer token in `TELLFOLD_SERVE_TOKEN` (equivalent to `--token`, but hidden from `ps`).
+/// Owns the engine process: `tellfold serve --port 0 --runs <dir> --log-level <level>`, run from the engine binary
+/// built into the app, or through `uv run --project <enginePath>` (the Python package, when an engine path is set),
+/// with the bearer token in `TELLFOLD_SERVE_TOKEN` (equivalent to `--token`, but hidden from `ps`).
 ///
 /// It reads the `{"port": N}` line from stdout, verifies `/api/health`, then publishes a `TellfoldAPI`. stdin
 /// stays open for the life of the process (the engine exits when it closes, so it dies with the app). On a
@@ -185,8 +186,8 @@ final class EngineController {
         let examples = EngineCommand.bundledExamples()?.path
         let executable: URL, args: [String], workingDirectory: URL
         if let engine = prefs.bundledEngineFolder {
-            // The engine built into the app: its own Python, nothing to install.
-            executable = EngineCommand.bundledPython(in: engine)
+            // The engine built into the app: one binary, nothing to install.
+            executable = EngineCommand.bundledBinary(in: engine)
             args = EngineCommand.bundledArguments(runsFolder: runs.path, examplesFolder: examples,
                                                   logLevel: prefs.logLevel.rawValue)
             workingDirectory = runs

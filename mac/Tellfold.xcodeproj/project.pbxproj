@@ -530,7 +530,7 @@
 				D643597D82B4E78026F81A27 /* Sources */,
 				BA1D7DEBC767F56DE28199B8 /* Resources */,
 				217BC15FE214BD9ECF846618 /* Frameworks */,
-				106C296A45CD2810E4936BE9 /* Bundle engine (Release) */,
+				FB8295CEE8AFA6B16F0A8D59 /* Bundle engine */,
 			);
 			buildRules = (
 			);
@@ -629,7 +629,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		106C296A45CD2810E4936BE9 /* Bundle engine (Release) */ = {
+		FB8295CEE8AFA6B16F0A8D59 /* Bundle engine */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -639,14 +639,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Bundle engine (Release)";
+			name = "Bundle engine";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Release builds carry the whole engine, with its own Python, in Resources/engine; Debug runs it from\n# the repo through uv.\nif [ \"${CONFIGURATION}\" != \"Release\" ]; then exit 0; fi\n\"${PROJECT_DIR}/scripts/bundle-engine.sh\" \"${PROJECT_DIR}/..\" \\\n  \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\" \"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\n";
+			shellScript = "# Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path still runs\n# the Python package through uv instead.\n\"${PROJECT_DIR}/scripts/bundle-engine.sh\" \"${PROJECT_DIR}/..\" \\\n  \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\" \"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -835,7 +835,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.3.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -901,7 +901,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.3.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

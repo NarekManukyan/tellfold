@@ -2,7 +2,7 @@
 
 This page is for people who want to build Tellfold from source, use the command-line engine, or cut a release. If you just want to use the app, see the [README](../README.md).
 
-The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. The logo and brand files live in `brand/` (see `brand/README.md`).
+The engine is a Python package (`tellfold/`) with a Rust port in `engine-rs/` that behaves the same. The Mac app (`mac/`) bundles the Rust build. The logo and brand files live in `brand/` (see `brand/README.md`).
 
 > **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
@@ -10,6 +10,7 @@ The engine is a Python package (`tellfold/`). The Mac app (`mac/`) bundles it. T
 
 - **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
 - **[uv](https://docs.astral.sh/uv/)** for Python and dependencies. Python 3.11 or newer; uv installs it for you if needed.
+- **[Rust](https://rustup.rs)** (stable) to build the Mac app, which bundles the Rust engine, or to work on `engine-rs/`.
 - macOS or Linux. Windows should work under WSL, but nobody has tested it.
 
 ## Install
@@ -159,14 +160,16 @@ TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" -
 
 ### Mac app
 
-The Mac app lives in `mac/` (XcodeGen). Debug builds run the engine from this repository through `uv`. Release builds are self-contained: `mac/scripts/bundle-engine.sh` puts a relocatable CPython, the locked dependencies and the `tellfold` package into `Tellfold.app/Contents/Resources/engine`, so the app needs neither `uv` nor Python on the user's Mac. It still needs Claude Code installed and signed in, because every model call goes through the user's own `claude`.
+The Mac app lives in `mac/` (XcodeGen). Every build is self-contained: `mac/scripts/bundle-engine.sh` builds the Rust engine (`engine-rs/`) for macOS 15 on Apple silicon and puts the one binary in `Tellfold.app/Contents/Resources/engine/tellfold`, so the app needs neither `uv` nor Python on the user's Mac. Building the app needs a Rust toolchain ([rustup](https://rustup.rs)). The app still needs an AI tool such as Claude Code installed and signed in, because every model call goes through the user's own CLI.
+
+To run the app on the Python package instead, set Settings > Advanced > Engine path to this repository. The app then starts it with `uv run --project <path> tellfold serve`.
 
 ```sh
 cd mac && xcodegen generate
 xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/dd
 ```
 
-The first Release build downloads Python and the dependencies (a few minutes). Later builds reuse `mac/build/engine-cache` until `uv.lock` changes. The bundled engine is about 190 MB and Apple silicon only. A Developer ID signing identity signs everything inside with the hardened runtime, ready for notarization.
+The first build compiles the engine with link-time optimisation (a few minutes); later builds reuse `engine-rs/target` and only rebuild what changed. The bundled engine is about 13 MB and Apple silicon only. A Developer ID signing identity signs it with the hardened runtime, ready for notarization.
 
 ### Releasing
 
