@@ -48,7 +48,12 @@ copy of the folder (as for a built-in example) plus `bundle.json`. `GET /api/run
 `POST /api/runs/import` opens one as a new run. Import checks every name before writing (no absolute paths, `..`,
 links, unexpected files or duplicates; size limits on what is actually read), validates the JSON and the SQLite world, drops
 the sender's study, renders `report.html` and `report.md` again and marks the run with `imported.json`. The server then
-treats it like an example: no events, stop or report rebuild, and interviews use this machine's AI tool.
+treats it like an example: no events, stop or report rebuild, interviews use this machine's AI tool, and a suggested
+rewrite stays in memory, so the run keeps the files it arrived with. Both routes do the zip work on a blocking worker,
+never on the manager thread: the manager only checks the run (and hands over the runs folder), the bundle is written to
+an unnamed temporary file and streamed, and an upload is spooled to one before it is read. An import unpacks into a hidden
+`.import-*` folder in the runs folder and is renamed into place; one an engine crash leaves behind is removed when the
+server next starts (once it is an hour old). Bundles larger than 512 MB are refused both when made and when opened.
 
 Runs compared with each other form a **study**, kept in `runs/studies/<study_id>/`: `study.json` (`Study`: the
 member runs and their labels, "Draft A", "Draft B"), `compare.json` (`CompareResult`) and, for the comparison's own

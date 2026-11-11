@@ -9,17 +9,19 @@ struct ShareCardSheet: View {
     @Environment(\.colorScheme) private var systemScheme
 
     @State private var format: ShareCardFormat = .landscape
-    @State private var dark = false
+    /// The appearance picked in the sheet; until then the card follows the system's.
+    @State private var appearance: ColorScheme?
+    /// Built once per size and appearance in `render()`, never in `body`.
+    @State private var content: ShareCardContent?
     @State private var png: Data?
+    @State private var image: NSImage?
     @State private var errorMessage: String?
     @State private var copied = false
 
-    private var scheme: ColorScheme { dark ? .dark : .light }
+    private var scheme: ColorScheme { appearance ?? systemScheme }
 
-    private var content: ShareCardContent? {
-        guard let report = store.report else { return nil }
-        return ShareCardContent(report: report, stats: store.stats, posts: store.posts, personas: store.personas,
-                                quoteLength: format.quoteLength)
+    private var dark: Binding<Bool> {
+        Binding(get: { scheme == .dark }, set: { appearance = $0 ? .dark : .light })
     }
 
     var body: some View {
@@ -29,7 +31,7 @@ struct ShareCardSheet: View {
                     .font(Theme.title)
                     .foregroundStyle(Theme.text)
                     .accessibilityAddTraits(.isHeader)
-                Text("The headline, confidence and sentiment of this run, with two posts the report cites.")
+                Text("The headline, confidence and sentiment of this run, with two quotes from the report's evidence.")
                     .font(Theme.small)
                     .foregroundStyle(Theme.muted)
             }
@@ -38,7 +40,7 @@ struct ShareCardSheet: View {
                     ForEach(ShareCardFormat.allCases) { Text($0.title).tag($0) }
                 }
                 .fixedSize()
-                Picker("Appearance", selection: $dark) {
+                Picker("Appearance", selection: dark) {
                     Text("Light").tag(false)
                     Text("Dark").tag(true)
                 }
@@ -52,7 +54,9 @@ struct ShareCardSheet: View {
                 Text(errorMessage).font(Theme.small).foregroundStyle(Theme.negative)
             }
             if let content, content.quotes.count < 2 {
-                Text("The report cites fewer than two posts that can be quoted, so the card has \(content.quotes.isEmpty ? "no quotes" : "one quote").")
+                Text(content.quotes.isEmpty
+                     ? "No post in the report's evidence can be quoted, so the card has no quotes."
+                     : "The report's evidence quotes only one person, so the card has one quote.")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.muted)
             }
@@ -60,7 +64,7 @@ struct ShareCardSheet: View {
                 if copied {
                     Label("Copied", systemImage: "checkmark")
                         .font(Theme.small)
-                        .foregroundStyle(Theme.positive)
+                        .foregroundStyle(Theme.positiveText)
                 }
                 Spacer()
                 Button("Close", role: .cancel) { dismiss() }
@@ -79,23 +83,21 @@ struct ShareCardSheet: View {
         .padding(Theme.space5)
         .frame(width: 760)
         .background(Theme.ground)
-        .onAppear {
-            dark = systemScheme == .dark
-            render()
-        }
+        .onAppear { render() }
         .onChange(of: format) { render() }
-        .onChange(of: dark) { render() }
+        .onChange(of: appearance) { render() }
+        .onChange(of: systemScheme) { if appearance == nil { render() } }
     }
 
     @ViewBuilder private var preview: some View {
-        if let png, let image = NSImage(data: png) {
+        if let image {
             Image(nsImage: image)
                 .resizable()
                 .interpolation(.high)
                 .aspectRatio(contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
                 .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.seamStrong, lineWidth: 1))
-                .accessibilityLabel("Share card preview: \(content?.headline ?? "")")
+                .accessibilityLabel("Share card preview: \(content?.spokenDescription ?? "")")
         } else {
             ProgressView()
         }
@@ -103,16 +105,20 @@ struct ShareCardSheet: View {
 
     private func render() {
         copied = false
-        guard let content else {
+        guard let report = store.report else {
+            (content, png, image) = (nil, nil, nil)
             errorMessage = "This run has no report yet."
-            png = nil
             return
         }
+        let content = ShareCardContent(report: report, stats: store.stats, posts: store.posts, personas: store.personas,
+                                       quoteLength: format.quoteLength)
+        self.content = content
         do {
-            png = try ShareCardRenderer.png(content, format: format, scheme: scheme)
+            let png = try ShareCardRenderer.png(content, format: format, scheme: scheme)
+            (self.png, image) = (png, NSImage(data: png))
             errorMessage = nil
         } catch {
-            png = nil
+            (png, image) = (nil, nil)
             errorMessage = error.localizedDescription
         }
     }

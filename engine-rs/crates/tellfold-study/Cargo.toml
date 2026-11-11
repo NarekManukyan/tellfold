@@ -1,6 +1,6 @@
 [package]
 name = "tellfold-study"
-description = "Comparing the runs of a study, Check it, branching a run packing examples and run bundles (port of compare.py, agree.py, branch.py, examples.py)."
+description = "Comparing the runs of a study, Check it, branching a run, packing examples and run bundles (port of compare.py, agree.py, branch.py, examples.py)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

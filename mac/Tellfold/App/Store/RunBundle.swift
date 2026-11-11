@@ -5,28 +5,38 @@ import UniformTypeIdentifiers
 /// `project.yml` as `dev.tellfold.run-bundle`. Opening one makes a read-only copy of someone else's run.
 enum RunBundle {
     static let fileExtension = "tellfold"
+    /// The media type the engine sends and the app declares (`Info.plist`).
+    static let mediaType = "application/vnd.tellfold.run+zip"
     /// The engine refuses anything larger (`MAX_BUNDLE_BYTES` in `tellfold-study`).
     static let maxBytes = 512 * 1024 * 1024
+
+    /// A `.tellfold` file on this Mac that cannot be read or written.
+    struct FileError: Error, LocalizedError, Hashable, Sendable {
+        var message: String
+        var errorDescription: String? { message }
+    }
 
     nonisolated static func isBundle(_ url: URL) -> Bool { url.pathExtension.lowercased() == fileExtension }
 
     /// The report title as a bundle file name, cleaned like the PDF's.
     static func suggestedFileName(title: String) -> String {
-        let pdf = ReportPDFExporter.suggestedFileName(title: title)
-        let name = pdf.hasSuffix(".pdf") ? String(pdf.dropLast(4)) : pdf
-        return (name == "Tellfold report" ? "Tellfold run" : name) + "." + fileExtension
+        let name = ReportPDFExporter.baseName(title: title)
+        return (name == ReportPDFExporter.fallbackName ? "Tellfold run" : name) + "." + fileExtension
     }
 
-    /// The file's bytes, or why it cannot be sent to the engine.
-    static func read(_ url: URL) throws -> Data {
-        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        if size > maxBytes {
-            throw TellfoldAPIError(status: 413, message: "\(url.lastPathComponent) is larger than 512 MB.")
-        }
+    /// Throws when the file at `url` cannot be sent to the engine: unreadable, or larger than the engine accepts.
+    static func checkReadable(_ url: URL) throws {
+        let values: URLResourceValues
         do {
-            return try Data(contentsOf: url, options: .mappedIfSafe)
+            values = try url.resourceValues(forKeys: [.fileSizeKey, .isReadableKey])
         } catch {
-            throw TellfoldAPIError(status: 0, message: "Could not read \(url.lastPathComponent): \(error.localizedDescription)")
+            throw FileError(message: "Could not read \(url.lastPathComponent): \(error.localizedDescription)")
+        }
+        if values.isReadable == false {
+            throw FileError(message: "Could not read \(url.lastPathComponent).")
+        }
+        if (values.fileSize ?? 0) > maxBytes {
+            throw FileError(message: "\(url.lastPathComponent) is larger than 512 MB.")
         }
     }
 }

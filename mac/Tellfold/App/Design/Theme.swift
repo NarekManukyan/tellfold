@@ -52,6 +52,8 @@ enum Theme {
         /// Links and citations (text): AA on the ground in both appearances. `accent` stays for non-text marks.
         static let link = Pair(dark: 0xA5B4FC, light: 0x4F46E5)
         static let positive = Pair(dark: 0x4ADE80, light: 0x16A34A)
+        /// Positive as text: AA on the ground and on cards in both appearances. `positive` stays for marks.
+        static let positiveText = Pair(dark: 0x4ADE80, light: 0x15803D)
         static let negative = Pair(dark: 0xF87171, light: 0xDC2626)
         static let repost = Pair(dark: 0xC084FC, light: 0xA855F7)
         static let event = Pair(dark: 0xFBBF24, light: 0xD97706)
@@ -86,6 +88,7 @@ enum Theme {
     static let accentFill = dynamic(Hex.accentFill)
     static let link = dynamic(Hex.link)
     static let positive = dynamic(Hex.positive)
+    static let positiveText = dynamic(Hex.positiveText)
     static let negative = dynamic(Hex.negative)
     static let negativeSoft = dynamic(dark: 0xF87171, light: 0xDC2626, darkAlpha: 0.14, lightAlpha: 0.08)
     static let repost = dynamic(Hex.repost)

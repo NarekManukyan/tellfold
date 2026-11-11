@@ -187,12 +187,10 @@ struct RunSidebar: View {
         }
         Button("Export Run Bundle…") {
             Task {
-                do { try await model.exportBundle(run.id, title: run.question) } catch {
-                    errorMessage = error.localizedDescription
-                }
+                do { try await model.exportBundle(run.id) } catch { errorMessage = error.localizedDescription }
             }
         }
-        .disabled(!run.hasReport || run.state != .done || model.exportingBundle != nil)
+        .disabled(!model.canExportBundle(run.id))
         Divider()
         Button("Move to Trash…", role: .destructive) { pendingDelete = run }
             .disabled(run.state.isActive)

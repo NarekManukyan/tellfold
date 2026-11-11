@@ -35,14 +35,11 @@ struct TellfoldCommands: Commands {
 
             Button("Export Run Bundle…") {
                 guard let store else { return }
-                let title = store.report?.title ?? store.question
                 Task {
-                    do { try await model.exportBundle(store.runID, title: title) } catch {
-                        store.actionError = error.localizedDescription
-                    }
+                    do { try await model.exportBundle(store.runID) } catch { store.actionError = error.localizedDescription }
                 }
             }
-            .disabled(store?.report == nil || store?.isLive != false || model.exportingBundle != nil)
+            .disabled(!(store.map { model.canExportBundle($0.runID) } ?? false))
         }
 
         CommandMenu("Simulation") {

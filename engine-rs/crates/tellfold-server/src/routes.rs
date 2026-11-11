@@ -2,7 +2,8 @@
 //!
 //! Handlers run their work on the manager thread through [`Handle::call`], so reads and writes of a run happen in
 //! the same order as on the Python server's single event loop. Bodies and query parameters are validated before a
-//! handler looks at the run, as FastAPI does.
+//! handler looks at the run, as FastAPI does. Making and opening `.tellfold` bundles is the exception: the manager only
+//! checks the run, and the zip work runs on a blocking worker so live runs and other requests are not held up.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -25,7 +26,7 @@ use tellfold_store::api::RunSummary;
 use tellfold_study::compare::digest_run;
 
 use crate::error::{ok_json, ApiError, ApiResult};
-use crate::manager::{history_pairs, Closed, Handle, Manager, ManagerError, Queue};
+use crate::manager::{history_pairs, Closed, Handle, Manager, ManagerError, Queue, ReadOnly};
 use crate::upload::create_run;
 use crate::validate::{parse_body, query_int, Checker};
 use crate::{web, AppState, VERSION};
@@ -36,9 +37,13 @@ fn regex(cell: &'static OnceLock<Regex>, pattern: &str) -> &'static Regex {
     cell.get_or_init(|| Regex::new(pattern).expect("valid pattern"))
 }
 
+/// [`tellfold_store::files::is_run_id`] as a pattern, for `py_match`.
 pub fn run_id_pattern() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    regex(&R, r"^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$")
+    R.get_or_init(|| {
+        Regex::new(&format!(r"^[A-Za-z0-9][A-Za-z0-9._-]{{0,{}}}$", tellfold_store::files::MAX_RUN_ID_LEN - 1))
+            .expect("valid pattern")
+    })
 }
 
 pub fn agent_id_pattern() -> &'static Regex {
@@ -169,8 +174,9 @@ pub async fn get_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<Strin
             detail.status = m.effective_status(&run_id);
         }
         detail.report_rebuild = m.rebuild_state(&run_id);
-        detail.example = m.is_example(&run_id);
-        detail.imported = m.is_imported(&run_id);
+        let read_only = m.read_only(&run_id);
+        detail.example = read_only == Some(ReadOnly::Example);
+        detail.imported = read_only == Some(ReadOnly::Imported);
         Ok(ok_json(&detail))
     })
     .await
@@ -482,37 +488,80 @@ fn bundle_error(e: tellfold_study::Error) -> ApiError {
     }
 }
 
-/// The finished run as one `.tellfold` file (a zip of its cleaned folder) to send to someone else.
-pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
-    on_manager(&app.handle, move |m| async move {
-        let dir = run_dir_of(&m, &run_id)?;
-        if m.is_live(&run_id) {
-            return Err(ApiError::new(409, "the run is still in progress; share it once it has finished"));
+/// Runs bundle work on a blocking worker, never on the manager thread that drives live runs and answers every other
+/// request. The test hook, when set, runs first on that worker.
+async fn bundle_work<T: Send + 'static>(
+    app: &AppState,
+    work: impl FnOnce() -> Result<T, tellfold_study::Error> + Send + 'static,
+) -> Result<T, ApiError> {
+    let hook = app.bundle_hook.clone();
+    tokio::task::spawn_blocking(move || {
+        if let Some(hook) = hook {
+            (hook.0)();
         }
-        let bytes = tellfold_study::bundle::bundle_bytes(&dir, &run_id).map_err(bundle_error)?;
-        let mut response = Response::new(Body::from(bytes));
-        let headers = response.headers_mut();
-        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/zip"));
-        let name = format!("attachment; filename=\"{run_id}.{}\"", tellfold_study::bundle::EXTENSION);
-        if let Ok(value) = HeaderValue::from_str(&name) {
-            headers.insert(header::CONTENT_DISPOSITION, value);
-        }
-        Ok(response)
+        work()
     })
     .await
+    .map_err(ApiError::internal)?
+    .map_err(bundle_error)
+}
+
+/// The media type of a bundle, as the Mac app declares it.
+pub const BUNDLE_TYPE: &str = "application/vnd.tellfold.run+zip";
+
+/// The finished run as one `.tellfold` file (a zip of its cleaned folder) to send to someone else. The manager only
+/// checks that the run may be shared; the bundle is written to an unnamed temporary file off the manager thread and
+/// streamed from there.
+pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, method: Method) -> ApiResult {
+    let id = run_id.clone();
+    let dir = app
+        .handle
+        .call(move |m| async move {
+            let dir = run_dir_of(&m, &id)?;
+            if m.is_live(&id) {
+                return Err(ApiError::new(409, "the run is still in progress; share it once it has finished"));
+            }
+            if m.rebuild_state(&id).running {
+                return Err(ApiError::new(409, "the report is being rebuilt; share the run once it is done"));
+            }
+            Ok(dir)
+        })
+        .await??;
+    let name = format!("{run_id}.{}", tellfold_study::bundle::EXTENSION);
+    let file = bundle_work(&app, move || tellfold_study::bundle::bundle_file(&dir, &run_id)).await?;
+    web::open_file_response(tokio::fs::File::from_std(file), &method, BUNDLE_TYPE, Some(&name), &[]).await
+}
+
+/// The request body in an unnamed temporary file, read from its start; refused when empty or over `limit` bytes.
+async fn spool_body(body: Body, limit: u64) -> Result<std::fs::File, ApiError> {
+    use futures::StreamExt;
+    use tokio::io::{AsyncSeekExt, AsyncWriteExt};
+    let mut file = tokio::fs::File::from_std(tempfile::tempfile().map_err(ApiError::internal)?);
+    let mut stream = body.into_data_stream();
+    let mut total: u64 = 0;
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|_| ApiError::new(400, "the upload did not finish"))?;
+        total += chunk.len() as u64;
+        if total > limit {
+            return Err(ApiError::new(413, format!("the bundle is larger than {} MB", limit / (1024 * 1024))));
+        }
+        file.write_all(&chunk).await.map_err(ApiError::internal)?;
+    }
+    if total == 0 {
+        return Err(ApiError::new(400, "send the .tellfold file as the request body"));
+    }
+    file.flush().await.map_err(ApiError::internal)?;
+    file.rewind().await.map_err(ApiError::internal)?;
+    Ok(file.into_std().await)
 }
 
 /// Opens a `.tellfold` file sent as the request body: a new, read-only run in the runs folder. `{"id": new run id}`.
-pub async fn import_bundle(State(app): State<AppState>, body: Bytes) -> ApiResult {
-    if body.is_empty() {
-        return Err(ApiError::new(400, "send the .tellfold file as the request body"));
-    }
-    on_manager(&app.handle, move |m| async move {
-        let id =
-            tellfold_study::bundle::import_bundle(std::io::Cursor::new(body), &m.runs_dir).map_err(bundle_error)?;
-        Ok(ok_json(&json!({"id": id})))
-    })
-    .await
+/// The body goes to a temporary file as it arrives and is unpacked and checked off the manager thread.
+pub async fn import_bundle(State(app): State<AppState>, body: Body) -> ApiResult {
+    let file = spool_body(body, tellfold_study::bundle::MAX_BUNDLE_BYTES).await?;
+    let runs_dir = app.handle.call(|m| async move { m.runs_dir.clone() }).await?;
+    let id = bundle_work(&app, move || tellfold_study::bundle::import_bundle(file, &runs_dir)).await?;
+    Ok(ok_json(&json!({"id": id})))
 }
 
 /// Unsubscribes its client when the response stream is dropped (the client went away, or the stream ended).
@@ -618,11 +667,18 @@ pub async fn get_study(State(app): State<AppState>, UrlPath(study_id): UrlPath<S
         for member in m.study_members(&study) {
             let Some(summary) = m.reader(&member.run_id).summary(m.is_live(&member.run_id)) else { continue };
             let digest = digest_run(&member, &summary.state).map_err(ApiError::internal)?;
-            runs.push(json!({
+            let read_only = m.read_only(&member.run_id);
+            let mut row = json!({
                 "id": member.run_id, "variant": member.variant, "letter": member.letter,
                 "question": summary.question, "state": summary.state, "has_report": summary.has_report,
-                "example": m.is_example(&member.run_id), "digest": serde_json::to_value(&digest).map_err(ApiError::internal)?,
-            }));
+                "example": read_only == Some(ReadOnly::Example),
+                "digest": serde_json::to_value(&digest).map_err(ApiError::internal)?,
+            });
+            // only when set, as in the run list
+            if read_only == Some(ReadOnly::Imported) {
+                row["imported"] = json!(true);
+            }
+            runs.push(row);
         }
         let compare = m.compare_result(&study.id).map(|c| serde_json::to_value(c).unwrap_or(Value::Null));
         let agreement = m.agreement(&study.id).map(|a| serde_json::to_value(a).unwrap_or(Value::Null));

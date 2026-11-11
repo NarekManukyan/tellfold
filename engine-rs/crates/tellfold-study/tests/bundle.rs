@@ -152,8 +152,89 @@ fn only_a_finished_run_can_be_shared() {
     let tmp = tempfile::tempdir().unwrap();
     let source = finished_run(&tmp.path().join("mine"), "run");
     std::fs::remove_file(source.join("report.json")).unwrap();
-    let error = bundle_bytes(&source, "run").unwrap_err();
-    assert!(error.to_string().contains("not a finished run with a report"), "{error}");
+    let error = bundle_bytes(&source, "run").unwrap_err().to_string();
+    assert!(error.contains("only a finished run with a report"), "{error}");
+    // the message is shown in the app: it names no folder of this machine
+    assert!(!error.contains(&tmp.path().to_string_lossy().into_owned()), "{error}");
+}
+
+/// Sets the uncompressed size `name` claims, in its local header and in the central directory, to `size`.
+fn claim_size(bytes: &mut [u8], name: &str, size: u32) {
+    let u16_at = |b: &[u8], i: usize| u16::from_le_bytes([b[i], b[i + 1]]) as usize;
+    let mut patched = 0;
+    for i in 0..bytes.len().saturating_sub(46) {
+        let (field, name_len, name_at) = match &bytes[i..i + 4] {
+            [0x50, 0x4b, 0x03, 0x04] => (i + 22, u16_at(bytes, i + 26), i + 30),
+            [0x50, 0x4b, 0x01, 0x02] => (i + 24, u16_at(bytes, i + 28), i + 46),
+            _ => continue,
+        };
+        if bytes.get(name_at..name_at + name_len) == Some(name.as_bytes()) {
+            bytes[field..field + 4].copy_from_slice(&size.to_le_bytes());
+            patched += 1;
+        }
+    }
+    assert_eq!(patched, 2, "{name} is in the local headers and the central directory");
+}
+
+#[test]
+fn sizes_and_counts_are_held_to_what_is_actually_there() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = finished_run(&tmp.path().join("mine"), "20261110-090604-will-buyers");
+    let good = entries(&bundle_bytes(&source, "20261110-090604-will-buyers").unwrap());
+    let runs = tmp.path().join("runs");
+
+    // a file that says it is one byte long but inflates to more (the zip reader or the count of what was written
+    // catches it, whichever is first)
+    let mut understated = zip_of(&good);
+    claim_size(&mut understated, "report.md", 1);
+    let message = refused(understated, &runs);
+    assert!(message.contains("sizes are wrong") || message.contains("declared uncompressed size"), "{message}");
+
+    // files that claim more than may be unpacked are refused before anything is written
+    let mut overstated = zip_of(&good);
+    claim_size(&mut overstated, "report.md", u32::MAX);
+    assert!(refused(overstated, &runs).contains("too large to unpack"));
+
+    // more entries than a bundle may hold
+    let mut crowded = good.clone();
+    crowded.extend((0..tellfold_study::bundle::MAX_ENTRIES).map(|i| (format!("seeds/note-{i}.md"), b"x".to_vec())));
+    assert!(refused(zip_of(&crowded), &runs).contains("more than"));
+
+    assert!(names(&runs).is_empty(), "left behind: {:?}", names(&runs));
+}
+
+#[test]
+fn a_long_id_stays_a_valid_run_id_when_it_needs_a_number() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = finished_run(&tmp.path().join("mine"), "20261110-090604-will-buyers");
+    let long = format!("20261110-090604-{}", "a".repeat(184));
+    assert_eq!(long.len(), tellfold_store::files::MAX_RUN_ID_LEN);
+    let bytes = bundle_bytes(&source, &long).unwrap();
+    let runs = tmp.path().join("runs");
+    assert_eq!(import_bundle(Cursor::new(bytes.clone()), &runs).unwrap(), long);
+    for n in 2..=11 {
+        let id = import_bundle(Cursor::new(bytes.clone()), &runs).unwrap();
+        assert!(tellfold_store::files::is_run_id(&id) && id.ends_with(&format!("-{n}")), "{id}");
+    }
+}
+
+#[test]
+fn staging_left_by_a_stopped_import_is_swept() {
+    let tmp = tempfile::tempdir().unwrap();
+    let runs = tmp.path();
+    let stale = runs.join(".import-stale");
+    let fresh = runs.join(".import-fresh");
+    let older = runs.join(".import-older");
+    for dir in [&stale, &fresh, &older] {
+        std::fs::create_dir_all(dir.join("seeds")).unwrap();
+    }
+    let hours_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 60 * 60);
+    for dir in [&stale, &older] {
+        std::fs::File::open(dir).unwrap().set_modified(hours_ago).unwrap();
+    }
+    std::fs::create_dir_all(runs.join("20261110-090604-kept")).unwrap();
+    tellfold_study::bundle::sweep_staging(runs);
+    assert_eq!(names(runs), vec![".import-fresh", "20261110-090604-kept"]);
 }
 
 #[test]

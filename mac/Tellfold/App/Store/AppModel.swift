@@ -56,7 +56,7 @@ final class AppModel {
     private(set) var exportingPDF: String?
     /// The run being saved as a `.tellfold` bundle, if any; one at a time.
     private(set) var exportingBundle: String?
-    /// True while `.tellfold` files are being opened.
+    /// True while `.tellfold` files are being opened; the main window shows it and takes no other drop meanwhile.
     private(set) var isImporting = false
     /// Why the last `.tellfold` file could not be opened; the main window shows it.
     var importError: String?
@@ -358,43 +358,59 @@ final class AppModel {
 
     // MARK: Run bundles
 
-    /// Saves a finished run as one `.tellfold` file to send to someone (File > Export Run Bundle…, the report toolbar).
-    /// Returns the saved file, or nil when cancelled.
+    /// Whether the run can be saved as a `.tellfold` file now: finished with a report (the engine refuses anything
+    /// else) and no other bundle being saved. Every Export Run Bundle control uses this.
+    func canExportBundle(_ id: String) -> Bool {
+        guard api != nil, exportingBundle == nil, let run = summary(id) else { return false }
+        return run.state == .done && run.hasReport
+    }
+
+    /// Saves a finished run as one `.tellfold` file to send to someone (File > Export Run Bundle…, the report toolbar,
+    /// the run's menus). The file is named after the report's title. Returns the saved file, or nil when cancelled.
     @discardableResult
-    func exportBundle(_ id: String, title: String) async throws -> URL? {
+    func exportBundle(_ id: String) async throws -> URL? {
         guard exportingBundle == nil else { return nil }
         guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        // Taken before the save panel, so a second click while it is open does nothing.
+        exportingBundle = id
+        defer { exportingBundle = nil }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.tellfoldBundle]
         panel.canCreateDirectories = true
         panel.isExtensionHidden = false
-        panel.nameFieldStringValue = RunBundle.suggestedFileName(title: title)
+        panel.nameFieldStringValue = RunBundle.suggestedFileName(title: await reportTitle(id, api: api))
         panel.message = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
         let parent = NSApp.keyWindow ?? NSApp.mainWindow
         let response = if let parent { await panel.beginSheetModal(for: parent) } else { panel.runModal() }
         guard response == .OK, let url = panel.url else { return nil }
-        exportingBundle = id
-        defer { exportingBundle = nil }
-        let data = try await api.bundle(runID: id)
-        try data.write(to: url, options: .atomic)
+        try await api.downloadBundle(runID: id, to: url)
         return url
     }
 
+    /// The run's report title (the open run's, else the engine's), falling back to its question.
+    private func reportTitle(_ id: String, api: TellfoldAPI) async -> String {
+        if currentStore?.runID == id, let title = currentStore?.report?.title, !title.isEmpty { return title }
+        if let title = try? await api.run(id).report?.title, !title.isEmpty { return title }
+        return summary(id)?.question ?? id
+    }
+
     /// Opens `.tellfold` files as read-only runs and selects the last one. Waits for the engine when it is not up yet.
+    /// Files dropped while others are being opened are refused by the window (`isImporting`).
     func importBundles(_ urls: [URL]) async {
         guard !urls.isEmpty else { return }
         guard let api else {
             pendingBundles.append(contentsOf: urls.filter { !pendingBundles.contains($0) })
             return
         }
+        guard !isImporting else { return }
         isImporting = true
         defer { isImporting = false }
         var opened: String?
         var failures: [String] = []
         for url in urls {
             do {
-                let data = try RunBundle.read(url)
-                opened = try await api.importBundle(data)
+                try RunBundle.checkReadable(url)
+                opened = try await api.importBundle(fileAt: url)
             } catch {
                 failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
             }
@@ -468,7 +484,7 @@ final class AppModel {
                 // An engine without the endpoint is treated like an older run: the sheet asks for the documents again.
             }
         }
-        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromExample: isReadOnly(runID)))
+        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromReadOnly: isReadOnly(runID)))
     }
 
     // MARK: Studies
@@ -520,17 +536,17 @@ final class AppModel {
         try await createVersion(request)
     }
 
-    /// The settings a new version of a run uses: the run's own, except that a built-in example uses the AI tools set up on
-    /// this Mac (the example's may not be installed here).
+    /// The settings a new version of a run uses: the run's own, except that a read-only run (a built-in example or an
+    /// imported run) uses the AI tools set up on this Mac (the recorded ones may not be installed here).
     func versionConfig(runID: String, config: SimConfig) -> SimConfig {
-        Self.versionConfig(config, isExample: isReadOnly(runID), agentRuntime: defaultAgentRuntime,
+        Self.versionConfig(config, isReadOnly: isReadOnly(runID), agentRuntime: defaultAgentRuntime,
                            plannerRuntime: defaultPlannerRuntime) { defaultModel(runtime: $0, role: $1) }
     }
 
     /// `versionConfig(runID:config:)` without the app state, so it can be tested.
-    nonisolated static func versionConfig(_ config: SimConfig, isExample: Bool, agentRuntime: String, plannerRuntime: String,
+    nonisolated static func versionConfig(_ config: SimConfig, isReadOnly: Bool, agentRuntime: String, plannerRuntime: String,
                                           model: (_ runtime: String, _ role: String) -> String) -> SimConfig {
-        guard isExample else { return config }
+        guard isReadOnly else { return config }
         var config = config
         config.agentRuntime = agentRuntime
         config.plannerRuntime = plannerRuntime

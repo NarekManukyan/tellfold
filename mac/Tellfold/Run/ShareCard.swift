@@ -4,6 +4,12 @@ import SwiftUI
 /// What a share card shows, taken from a finished run: the report's headline and confidence, the sentiment of each
 /// round, and two posts the report cites, with who wrote them. Built without any view so the choice can be tested.
 struct ShareCardContent: Equatable {
+    /// One round's mean sentiment.
+    struct SentimentPoint: Equatable {
+        var round: Int
+        var value: Double
+    }
+
     struct Quote: Equatable {
         var postID: Int
         var text: String
@@ -16,21 +22,24 @@ struct ShareCardContent: Equatable {
 
     var headline: String
     var confidence: ReportConfidence
-    /// (round, mean sentiment) for every round the sentiment pass scored, in round order.
-    var sentiment: [(round: Int, value: Double)]
+    /// Every round the sentiment pass scored, in round order.
+    var sentiment: [SentimentPoint]
     var quotes: [Quote]
 
     var finalSentiment: Double? { sentiment.last?.value }
 
-    static func == (a: ShareCardContent, b: ShareCardContent) -> Bool {
-        a.headline == b.headline && a.confidence == b.confidence && a.quotes == b.quotes
-            && a.sentiment.map(\.round) == b.sentiment.map(\.round) && a.sentiment.map(\.value) == b.sentiment.map(\.value)
+    /// What VoiceOver reads for the card: the headline, the confidence, the final sentiment and who is quoted.
+    var spokenDescription: String {
+        var parts = [headline, confidence == .unknown ? "Confidence unknown" : "\(confidence.title) confidence"]
+        if let finalSentiment { parts.append("final sentiment \(RunUI.sentimentText(finalSentiment))") }
+        if !quotes.isEmpty { parts.append("quotes from " + ListFormatter.localizedString(byJoining: quotes.map(\.name))) }
+        return parts.joined(separator: ". ")
     }
 
     static let maxHeadline = 120
     static let maxRole = 42
 
-    init(headline: String, confidence: ReportConfidence, sentiment: [(round: Int, value: Double)], quotes: [Quote]) {
+    init(headline: String, confidence: ReportConfidence, sentiment: [SentimentPoint], quotes: [Quote]) {
         self.headline = headline
         self.confidence = confidence
         self.sentiment = sentiment
@@ -42,7 +51,7 @@ struct ShareCardContent: Equatable {
         headline = Self.shorten(report.title, to: Self.maxHeadline)
         confidence = report.confidence
         sentiment = stats.sorted { $0.round < $1.round }.compactMap { s in
-            s.sentiment.flatMap { $0.isFinite ? (s.round, $0) : nil }
+            s.sentiment.flatMap { $0.isFinite ? SentimentPoint(round: s.round, value: $0) : nil }
         }
         let byID = Dictionary(personas.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         quotes = Self.pickQuotes(report: report, posts: posts).map { post in
@@ -58,6 +67,7 @@ struct ShareCardContent: Equatable {
 
     /// `#12` post citations in the report's own order of weight: the reasons first, then the prediction, the summary, the
     /// sections, the next steps and the risks. Study refs such as `A#12` are not this run's posts and are skipped.
+    // `nonisolated(unsafe)`: NSRegularExpression is immutable once made and documented as safe to use from any thread.
     nonisolated(unsafe) private static let citation = try! NSRegularExpression(pattern: #"(?<![A-Za-z0-9#])#(\d{1,9})(?![0-9])"#)
 
     static func citedPostIDs(in report: Report) -> [Int] {
@@ -294,7 +304,10 @@ struct ShareCardView: View {
     /// "Sentiment by round" with the final value, over a small line on a fixed −1…1 scale (the zero line dashed).
     private func sentimentBlock(width: CGFloat, height: CGFloat) -> some View {
         let final = content.finalSentiment
-        let tone: Theme.Pair = (final ?? 0) > 0.05 ? Theme.Hex.positive : (final ?? 0) < -0.05 ? Theme.Hex.negative : Theme.Hex.neutral
+        let value = final ?? 0
+        // the number is text (AA tokens); the line is a mark
+        let ink: Theme.Pair = value > 0.05 ? Theme.Hex.positiveText : value < -0.05 ? Theme.Hex.negative : Theme.Hex.neutral
+        let tone: Theme.Pair = value > 0.05 ? Theme.Hex.positive : ink
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("Sentiment by round")
@@ -302,8 +315,8 @@ struct ShareCardView: View {
                     .foregroundStyle(c(Theme.Hex.muted))
                 if let final {
                     Text(RunUI.sentimentText(final))
-                        .font(.system(size: 18, weight: .semibold, design: .monospaced).monospacedDigit())
-                        .foregroundStyle(c(tone))
+                        .font(Theme.mono(18, .semibold))
+                        .foregroundStyle(c(ink))
                 }
             }
             SentimentSparkline(values: content.sentiment.map(\.value), line: c(tone), zero: c(Theme.Hex.seamStrong))
@@ -365,8 +378,7 @@ enum ShareCardRenderer {
 
     /// The suggested file name: the report title, then the format, as PNG.
     static func suggestedFileName(title: String, format: ShareCardFormat, scheme: ColorScheme) -> String {
-        let pdf = ReportPDFExporter.suggestedFileName(title: title)
-        let name = pdf.hasSuffix(".pdf") ? String(pdf.dropLast(4)) : pdf
+        let name = ReportPDFExporter.baseName(title: title)
         return "\(name) (\(format.rawValue), \(scheme == .dark ? "dark" : "light")).png"
     }
 

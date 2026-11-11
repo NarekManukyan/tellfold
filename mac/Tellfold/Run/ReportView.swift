@@ -150,20 +150,23 @@ struct ReportView: View {
                 Label("Share card…", systemImage: "photo")
             }
             .buttonStyle(.console(.secondary, compact: true))
-            .help("An image of the headline, confidence, sentiment and two cited posts, to post or paste")
+            .help("An image of the headline, confidence, sentiment and two quotes from the report's evidence, to post or paste")
 
             Button {
                 Task {
-                    do { try await app.exportBundle(store.runID, title: store.report?.title ?? store.runID) } catch {
-                        actionError = error.localizedDescription
-                    }
+                    do { try await app.exportBundle(store.runID) } catch { actionError = error.localizedDescription }
                 }
             } label: {
-                Label("Export run bundle…", systemImage: "shippingbox")
-                    .labelStyle(.iconOnly)
+                if app.exportingBundle == store.runID {
+                    ProgressView().controlSize(.small)
+                        .accessibilityLabel("Exporting run bundle")
+                } else {
+                    Label("Export run bundle…", systemImage: "shippingbox")
+                        .labelStyle(.iconOnly)
+                }
             }
             .buttonStyle(.console(.secondary, compact: true))
-            .disabled(store.isLive || app.exportingBundle != nil)
+            .disabled(!app.canExportBundle(store.runID))
             .help("Save the whole run as one .tellfold file that anyone with Tellfold can open")
 
             Button {

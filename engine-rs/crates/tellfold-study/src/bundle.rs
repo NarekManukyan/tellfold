@@ -13,7 +13,7 @@
 //! with an `imported.json` next to it: the server treats such a run as read-only, like an example.
 
 use std::collections::HashSet;
-use std::io::{Read, Seek, Write};
+use std::io::{BufRead, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -21,8 +21,11 @@ use tellfold_llm::ingest::SUPPORTED_SUFFIXES;
 use tellfold_models::{KnowledgeGraph, Persona, Report, RewriteSuggestion, RunState, RunStatus, SimConfig, VERSION};
 use tellfold_report::html::render_html;
 use tellfold_report::report::render_markdown;
-use tellfold_store::files::{make_run_id, now_iso, write_json, write_status, REWRITE_FILE, SEEDS_DIR};
+use tellfold_store::files::{
+    is_run_id, make_run_id, now_iso, write_json, write_status, EXAMPLE_PREFIX, MAX_RUN_ID_LEN, REWRITE_FILE, SEEDS_DIR,
+};
 use tellfold_store::world::World;
+use zip::read::ZipFile;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
@@ -38,10 +41,11 @@ pub const MANIFEST_FILE: &str = "bundle.json";
 pub const IMPORTED_FILE: &str = "imported.json";
 /// The newest bundle format this engine reads and the one it writes.
 pub const FORMAT: i64 = 1;
-/// The largest bundle accepted, as sent.
+/// The largest bundle made or accepted, as sent.
 pub const MAX_BUNDLE_BYTES: u64 = 512 * 1024 * 1024;
 /// The most a bundle may unpack to, all files together.
 pub const MAX_UNPACKED_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+/// The most entries (files and the seeds folder) a bundle may hold.
 pub const MAX_ENTRIES: usize = 2000;
 /// Files the run folder may hold at the top of a bundle.
 pub const TOP_LEVEL: [&str; 11] = [
@@ -96,7 +100,7 @@ pub fn is_imported(run_dir: &Path) -> bool {
 }
 
 pub fn read_imported(run_dir: &Path) -> Option<Imported> {
-    serde_json::from_str(&std::fs::read_to_string(run_dir.join(IMPORTED_FILE)).ok()?).ok()
+    read_model(&run_dir.join(IMPORTED_FILE))
 }
 
 fn is_seed_name(name: &str) -> bool {
@@ -115,6 +119,15 @@ pub fn export_bundle(run_dir: &Path, run_id: &str, out: &Path) -> Result<(), Err
     Ok(())
 }
 
+/// The bundle of finished run `run_dir` in an unnamed temporary file, read from its start. The file has no name on
+/// disk, so nothing is left behind however the reader ends.
+pub fn bundle_file(run_dir: &Path, run_id: &str) -> Result<std::fs::File, Error> {
+    let mut file = tempfile::tempfile()?;
+    write_bundle(run_dir, run_id, &mut file)?;
+    file.seek(SeekFrom::Start(0))?;
+    Ok(file)
+}
+
 /// The bundle of finished run `run_dir` as bytes.
 pub fn bundle_bytes(run_dir: &Path, run_id: &str) -> Result<Vec<u8>, Error> {
     let mut out = std::io::Cursor::new(Vec::new());
@@ -122,7 +135,26 @@ pub fn bundle_bytes(run_dir: &Path, run_id: &str) -> Result<Vec<u8>, Error> {
     Ok(out.into_inner())
 }
 
+const MIB: u64 = 1024 * 1024;
+
+/// The sizes of all files under `dir`, added up.
+fn folder_bytes(dir: &Path) -> std::io::Result<u64> {
+    let mut total = 0u64;
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let meta = entry.metadata()?;
+        total = total.saturating_add(if meta.is_dir() { folder_bytes(&entry.path())? } else { meta.len() });
+    }
+    Ok(total)
+}
+
+/// Writes finished run `run_dir` as a bundle to `writer`. Refuses a run that is not finished, and one whose bundle
+/// another Tellfold would refuse for its size.
 pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) -> Result<(), Error> {
+    let finished = read_model::<RunStatus>(&run_dir.join("status.json")).is_some_and(|s| s.state == RunState::Done);
+    if !finished || !run_dir.join("report.json").is_file() {
+        return Err(invalid("only a finished run with a report can be shared"));
+    }
     let staging = tempfile::tempdir()?;
     let clean = staging.path().join("run");
     pack_example(run_dir, &clean).map_err(|e| match e {
@@ -132,8 +164,10 @@ pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) ->
     if run_dir.join(REWRITE_FILE).is_file() {
         copy_file(&run_dir.join(REWRITE_FILE), &clean.join(REWRITE_FILE))?;
     }
-    let config: SimConfig = serde_json::from_str(&std::fs::read_to_string(clean.join("config.json"))?)
-        .map_err(|e| invalid(format!("config.json: {e}")))?;
+    if folder_bytes(&clean)? > MAX_UNPACKED_BYTES {
+        return Err(too_large_to_share(folder_bytes(&clean)?));
+    }
+    let config: SimConfig = parse_file(&clean, "config.json")?;
     let manifest = Manifest {
         format: FORMAT,
         run_id: run_id.to_string(),
@@ -169,11 +203,43 @@ pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) ->
         zip.start_file(format!("{SEEDS_DIR}/{name}"), options)?;
         std::io::copy(&mut std::fs::File::open(clean.join(SEEDS_DIR).join(&name))?, &mut zip)?;
     }
-    zip.finish()?;
+    let mut writer = zip.finish()?;
+    let size = writer.stream_position()?;
+    if size > MAX_BUNDLE_BYTES {
+        return Err(too_large_to_share(size));
+    }
     Ok(())
 }
 
+fn too_large_to_share(bytes: u64) -> Error {
+    invalid(format!(
+        "this run is too large to share: its bundle would be {} MB, and Tellfold opens bundles of up to {} MB",
+        bytes.div_ceil(MIB),
+        MAX_BUNDLE_BYTES / MIB
+    ))
+}
+
 // ---------- import ----------
+
+/// The start of the hidden folder an import unpacks into, in the runs folder.
+pub const STAGING_PREFIX: &str = ".import-";
+/// A staging folder this old was left by an import that never finished.
+const STALE_STAGING: std::time::Duration = std::time::Duration::from_secs(60 * 60);
+
+/// Removes staging folders in `runs_dir` left by imports that never finished (the engine stopped halfway). A folder
+/// younger than an hour is kept: another engine on the same runs folder may still be unpacking it.
+pub fn sweep_staging(runs_dir: &Path) {
+    let Ok(entries) = std::fs::read_dir(runs_dir) else { return };
+    for entry in entries.filter_map(Result::ok) {
+        let stale = entry
+            .metadata()
+            .and_then(|m| m.modified())
+            .is_ok_and(|t| t.elapsed().is_ok_and(|age| age >= STALE_STAGING));
+        if stale && entry.file_name().to_string_lossy().starts_with(STAGING_PREFIX) {
+            let _ = std::fs::remove_dir_all(entry.path());
+        }
+    }
+}
 
 /// Where an archive entry goes in the run folder, or why it is refused.
 fn entry_path(name: &str) -> Result<Option<PathBuf>, Error> {
@@ -199,47 +265,70 @@ fn entry_path(name: &str) -> Result<Option<PathBuf>, Error> {
     Err(invalid(format!("the bundle holds an unexpected file: {shown:?}")))
 }
 
+fn read_model<T: serde::de::DeserializeOwned>(path: &Path) -> Option<T> {
+    serde_json::from_reader(BufReader::new(std::fs::File::open(path).ok()?)).ok()
+}
+
 fn parse_file<T: serde::de::DeserializeOwned>(dir: &Path, name: &str) -> Result<T, Error> {
-    let text = std::fs::read_to_string(dir.join(name)).map_err(|_| invalid(format!("{name} is not readable text")))?;
-    serde_json::from_str(&text).map_err(|e| invalid(format!("{name} is not valid: {e}")))
+    let file = std::fs::File::open(dir.join(name)).map_err(|_| invalid(format!("{name} is not readable")))?;
+    serde_json::from_reader(BufReader::new(file)).map_err(|e| invalid(format!("{name} is not valid: {e}")))
 }
 
 /// A run id from the bundle that is safe as a folder name and cannot pass for an example's.
 fn safe_run_id(id: &str) -> bool {
-    let mut chars = id.chars();
-    chars.next().is_some_and(|c| c.is_ascii_alphanumeric())
-        && id.len() <= 200
-        && chars.all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
-        && !id.contains("..")
-        && !id.starts_with("example-")
+    is_run_id(id) && !id.contains("..") && !id.starts_with(EXAMPLE_PREFIX)
 }
 
 /// Unpacks bundle `reader` as a new, read-only run in `runs_dir`. Returns the new run's id: the exported run's id, or
 /// that id with `-2`, `-3`, ... when a run of that name is already there.
+///
+/// Each step is one kind of check: [`check_entries`] looks at the names and sizes the archive claims, [`unpack`]
+/// holds the files to what is actually read, [`validate_run`] parses what was unpacked, and [`finish`] writes the
+/// files the receiver's engine owns before [`place`] moves the run into the runs folder.
 pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<String, Error> {
     let mut archive = ZipArchive::new(reader).map_err(|e| invalid(format!("this is not a Tellfold bundle: {e}")))?;
+    let targets = check_entries(&mut archive)?;
+    std::fs::create_dir_all(runs_dir)?;
+    // hidden, so the run list never shows a half-unpacked run; one an engine crash leaves is swept on the next start
+    let staging = tempfile::Builder::new().prefix(STAGING_PREFIX).tempdir_in(runs_dir)?;
+    unpack(&mut archive, &targets, staging.path())?;
+    let run = validate_run(staging.path())?;
+    let base = finish(staging.path(), run)?;
+    let id = place(staging.path(), runs_dir, &base)?;
+    drop(staging); // already moved: nothing left to remove
+    Ok(id)
+}
+
+/// The name of one archive entry and where it goes (`None` for the seeds folder). Refuses encrypted entries, links,
+/// unsafe or unexpected names and files posing as folders.
+fn check_entry<R: Read>(file: &ZipFile<'_, R>) -> Result<(String, Option<PathBuf>), Error> {
+    let name = String::from_utf8(file.name_raw().to_vec())
+        .map_err(|_| invalid("the bundle holds a file whose name is not UTF-8"))?;
+    if file.encrypted() {
+        return Err(invalid("the bundle holds an encrypted file"));
+    }
+    if file.is_symlink() || file.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000) {
+        return Err(invalid(format!("the bundle holds a link: {name:?}")));
+    }
+    let target = entry_path(&name)?;
+    if file.is_dir() != target.is_none() {
+        return Err(invalid(format!("the bundle holds an unexpected folder: {name:?}")));
+    }
+    Ok((name, target))
+}
+
+/// Every entry's target, checked before anything is written: at most [`MAX_ENTRIES`] entries, no name twice (in any
+/// case), the [`REQUIRED`] files present, and claimed sizes within [`MAX_UNPACKED_BYTES`].
+fn check_entries<R: Read + Seek>(archive: &mut ZipArchive<R>) -> Result<Vec<Option<PathBuf>>, Error> {
     if archive.len() > MAX_ENTRIES {
         return Err(invalid(format!("the bundle holds more than {MAX_ENTRIES} files")));
     }
-    // Every name is checked before anything is written.
-    let mut targets: Vec<Option<PathBuf>> = Vec::with_capacity(archive.len());
+    let mut targets = Vec::with_capacity(archive.len());
     let mut seen = HashSet::new();
     let mut declared: u64 = 0;
     for i in 0..archive.len() {
         let file = archive.by_index(i).map_err(|e| invalid(format!("the bundle is damaged: {e}")))?;
-        let name = String::from_utf8(file.name_raw().to_vec())
-            .map_err(|_| invalid("the bundle holds a file whose name is not UTF-8"))?;
-        if file.encrypted() {
-            return Err(invalid("the bundle holds an encrypted file"));
-        }
-        let is_link = file.is_symlink() || file.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000);
-        if is_link {
-            return Err(invalid(format!("the bundle holds a link: {name:?}")));
-        }
-        let target = entry_path(&name)?;
-        if file.is_dir() != target.is_none() {
-            return Err(invalid(format!("the bundle holds an unexpected folder: {name:?}")));
-        }
+        let (name, target) = check_entry(&file)?;
         if !seen.insert(name.to_lowercase()) {
             return Err(invalid(format!("the bundle holds {name:?} twice")));
         }
@@ -249,16 +338,15 @@ pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<Strin
     if declared > MAX_UNPACKED_BYTES {
         return Err(invalid("the bundle is too large to unpack"));
     }
-    for name in REQUIRED {
-        if !seen.contains(name) {
-            return Err(invalid(format!("the bundle has no {name}")));
-        }
+    if let Some(missing) = REQUIRED.iter().find(|name| !seen.contains(**name)) {
+        return Err(invalid(format!("the bundle has no {missing}")));
     }
+    Ok(targets)
+}
 
-    std::fs::create_dir_all(runs_dir)?;
-    // hidden, so the run list never shows a half-unpacked run
-    let staging = tempfile::Builder::new().prefix(".import-").tempdir_in(runs_dir)?;
-    let dir = staging.path();
+/// Writes each entry to its target in `dir`. The size limit holds for the bytes actually inflated, not for what the
+/// archive claims, and an entry must be exactly the size it claims.
+fn unpack<R: Read + Seek>(archive: &mut ZipArchive<R>, targets: &[Option<PathBuf>], dir: &Path) -> Result<(), Error> {
     std::fs::create_dir(dir.join(SEEDS_DIR))?;
     let mut budget = MAX_UNPACKED_BYTES;
     for (i, target) in targets.iter().enumerate() {
@@ -274,7 +362,19 @@ pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<Strin
         }
         budget -= written;
     }
+    Ok(())
+}
 
+/// The parsed files of an unpacked run that [`finish`] writes again.
+struct Unpacked {
+    manifest: Manifest,
+    config: SimConfig,
+    status: RunStatus,
+    report: Report,
+}
+
+/// Every JSON file of the run in `dir` parses as its model, the run is finished, and its world is a plain database.
+fn validate_run(dir: &Path) -> Result<Unpacked, Error> {
     let manifest: Manifest = parse_file(dir, MANIFEST_FILE)?;
     if manifest.format < 1 || manifest.format > FORMAT {
         return Err(invalid(format!(
@@ -282,7 +382,7 @@ pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<Strin
             manifest.format
         )));
     }
-    let mut config: SimConfig = parse_file(dir, "config.json")?;
+    let config: SimConfig = parse_file(dir, "config.json")?;
     let status: RunStatus = parse_file(dir, "status.json")?;
     let report: Report = parse_file(dir, "report.json")?;
     let _: Vec<Persona> = parse_file(dir, "personas.json")?;
@@ -293,18 +393,31 @@ pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<Strin
         let _: RewriteSuggestion = parse_file(dir, REWRITE_FILE)?;
     }
     if dir.join("calls.jsonl").is_file() {
-        let text = std::fs::read_to_string(dir.join("calls.jsonl")).map_err(|_| invalid("calls.jsonl is not text"))?;
-        if text.lines().filter(|l| !l.trim().is_empty()).any(|l| serde_json::from_str::<serde_json::Value>(l).is_err())
-        {
-            return Err(invalid("calls.jsonl is not valid"));
-        }
+        check_calls(&dir.join("calls.jsonl"))?;
     }
     if status.state != RunState::Done {
         return Err(invalid("only a finished run can be imported"));
     }
     check_world(&dir.join("world.db"))?;
+    Ok(Unpacked { manifest, config, status, report })
+}
 
-    // The sender's study and versions are not here.
+/// Each line of the calls log is a JSON value, read one line at a time.
+fn check_calls(path: &Path) -> Result<(), Error> {
+    for line in BufReader::new(std::fs::File::open(path)?).lines() {
+        let line = line.map_err(|_| invalid("calls.jsonl is not text"))?;
+        if !line.trim().is_empty() && serde_json::from_str::<serde::de::IgnoredAny>(&line).is_err() {
+            return Err(invalid("calls.jsonl is not valid"));
+        }
+    }
+    Ok(())
+}
+
+/// Writes again the files this engine owns: the config without the sender's study, versions or seed paths, the
+/// status without a process id, the report pages rendered from `report.json`, and `imported.json`. Returns the id
+/// the run should take.
+fn finish(dir: &Path, run: Unpacked) -> Result<String, Error> {
+    let Unpacked { manifest, mut config, status, report } = run;
     config.study_id = None;
     config.variant = None;
     let mut seeds: Vec<String> = std::fs::read_dir(dir.join(SEEDS_DIR))?
@@ -329,18 +442,39 @@ pub fn import_bundle<R: Read + Seek>(reader: R, runs_dir: &Path) -> Result<Strin
             engine_version: manifest.engine_version,
         },
     )?;
+    Ok(if safe_run_id(&manifest.run_id) { manifest.run_id } else { make_run_id(&config.question, None) })
+}
 
-    let base = if safe_run_id(&manifest.run_id) { manifest.run_id } else { make_run_id(&config.question, None) };
-    let mut id = base.clone();
-    let mut n = 2;
-    // `rename` onto an existing empty folder would succeed on Unix: only a name that is free is taken.
-    while runs_dir.join(&id).exists() {
-        id = format!("{base}-{n}");
-        n += 1;
+/// `base`, or `base` cut short with `-2`, `-3`, ... so it stays a valid run id, when that name is taken.
+fn candidate_id(base: &str, n: u32) -> String {
+    if n < 2 {
+        return base.to_string();
     }
-    std::fs::rename(dir, runs_dir.join(&id))?;
-    drop(staging); // already moved: nothing left to remove
-    Ok(id)
+    let suffix = format!("-{n}");
+    // ASCII only (a safe run id or a made one), so any length is a character boundary
+    let keep = base.len().min(MAX_RUN_ID_LEN - suffix.len());
+    format!("{}{suffix}", &base[..keep])
+}
+
+/// Moves unpacked run `dir` into `runs_dir` under the first free [`candidate_id`]. The name is taken with
+/// `create_dir` first, so a run another request is creating at the same moment is never replaced; the rename then
+/// replaces only that new, empty folder.
+fn place(dir: &Path, runs_dir: &Path, base: &str) -> Result<String, Error> {
+    for n in 1..=10_000 {
+        let id = candidate_id(base, n);
+        let target = runs_dir.join(&id);
+        match std::fs::create_dir(&target) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(e) => return Err(e.into()),
+        }
+        if let Err(e) = std::fs::rename(dir, &target) {
+            let _ = std::fs::remove_dir(&target);
+            return Err(e.into());
+        }
+        return Ok(id);
+    }
+    Err(invalid("there are too many runs with this bundle's name"))
 }
 
 /// A world from a bundle must be a SQLite database with Tellfold's tables, no triggers or views, that passes a quick

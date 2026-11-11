@@ -16,8 +16,8 @@
 //! but never changed: they are opened with SQLite's `immutable` flag and nothing is ever written next to them.
 //!
 //! Runs imported from a `.tellfold` bundle (an `imported.json` in the run folder) are treated the same way: someone
-//! else's finished run, read with the AI tool set up on this machine and never changed, except that a suggested
-//! rewrite is kept in its folder.
+//! else's finished run, read with the AI tool set up on this machine and never changed. A rewrite suggested for one is
+//! kept in memory, as for an example, so the run stays as it arrived.
 
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
@@ -63,13 +63,22 @@ use tellfold_study::compare::{build_compare, Member};
 
 use crate::log;
 
-pub const EXAMPLE_PREFIX: &str = "example-";
+pub use tellfold_store::files::EXAMPLE_PREFIX;
 pub const QUEUE_SIZE: usize = 2000;
 pub const EXAMPLE_READ_ONLY: &str =
     "this is a built-in example run; it cannot be changed. Use Run again to make your own copy";
 pub const IMPORTED_READ_ONLY: &str =
     "this run was imported from a .tellfold bundle; it cannot be changed. Use Run again to make your own copy";
 const LOGGER: &str = "tellfold.server.manager";
+
+/// Why a run cannot be changed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReadOnly {
+    /// one of the built-in examples
+    Example,
+    /// someone else's run, opened from a `.tellfold` bundle
+    Imported,
+}
 
 /// `llm_factory(run_dir, concurrency, think)`: the model backend for a run folder (None: no call log).
 pub type LlmFactory = Arc<dyn Fn(Option<&Path>, i64, bool) -> Result<Arc<dyn Llm>, LlmError> + Send + Sync>;
@@ -422,8 +431,8 @@ struct State {
     compare_errors: HashMap<String, String>,
     /// study id -> "Check it" series
     repeating: HashMap<String, JoinHandle<()>>,
-    /// examples are read-only, so their suggestions are kept here
-    example_rewrites: HashMap<String, RewriteSuggestion>,
+    /// examples and imported runs are read-only, so their suggestions are kept here
+    read_only_rewrites: HashMap<String, RewriteSuggestion>,
     /// set by shutdown(): no new run starts
     closing: bool,
 }
@@ -511,14 +520,26 @@ impl Manager {
         run_id.starts_with(EXAMPLE_PREFIX) && self.examples().contains_key(run_id)
     }
 
+    /// Why a run cannot be changed, if it cannot. The examples folder is read only for an id with the example prefix
+    /// (an imported run never has one), so the polled run list checks one marker file per run.
+    pub fn read_only(&self, run_id: &str) -> Option<ReadOnly> {
+        if self.is_example(run_id) {
+            Some(ReadOnly::Example)
+        } else if tellfold_study::bundle::is_imported(&self.runs_dir.join(run_id)) {
+            Some(ReadOnly::Imported)
+        } else {
+            None
+        }
+    }
+
     /// A run imported from a `.tellfold` bundle.
     pub fn is_imported(&self, run_id: &str) -> bool {
-        !self.is_example(run_id) && tellfold_study::bundle::is_imported(&self.runs_dir.join(run_id))
+        self.read_only(run_id) == Some(ReadOnly::Imported)
     }
 
     /// An example or an imported run: read with this machine's AI tool, never changed.
     pub fn is_read_only(&self, run_id: &str) -> bool {
-        self.is_example(run_id) || self.is_imported(run_id)
+        self.read_only(run_id).is_some()
     }
 
     /// The folder of a run: an example's folder for an example id, else `runs_dir/run_id`.
@@ -532,20 +553,22 @@ impl Manager {
     }
 
     pub fn reader(&self, run_id: &str) -> RunReader {
-        if self.is_example(run_id) {
-            return RunReader::new(&self.run_path(run_id), Some(run_id), true);
+        if run_id.starts_with(EXAMPLE_PREFIX) {
+            if let Some(path) = self.examples().remove(run_id) {
+                return RunReader::new(&path, Some(run_id), true);
+            }
         }
-        RunReader::new(&self.runs_dir.join(run_id), None, self.is_imported(run_id))
+        let run_dir = self.runs_dir.join(run_id);
+        let read_only = tellfold_study::bundle::is_imported(&run_dir);
+        RunReader::new(&run_dir, None, read_only)
     }
 
     fn writable(&self, run_id: &str) -> Result<(), ManagerError> {
-        if self.is_example(run_id) {
-            return Err(ManagerError::ReadOnly(EXAMPLE_READ_ONLY.into()));
+        match self.read_only(run_id) {
+            Some(ReadOnly::Example) => Err(ManagerError::ReadOnly(EXAMPLE_READ_ONLY.into())),
+            Some(ReadOnly::Imported) => Err(ManagerError::ReadOnly(IMPORTED_READ_ONLY.into())),
+            None => Ok(()),
         }
-        if self.is_imported(run_id) {
-            return Err(ManagerError::ReadOnly(IMPORTED_READ_ONLY.into()));
-        }
-        Ok(())
     }
 
     pub fn effective_status(&self, run_id: &str) -> Option<RunStatus> {
@@ -845,14 +868,14 @@ impl Manager {
 
     /// "an example run" or "an imported run", for messages.
     fn kind(&self, run_id: &str) -> &'static str {
-        if self.is_example(run_id) {
-            "an example run"
-        } else {
-            "an imported run"
+        match self.read_only(run_id) {
+            Some(ReadOnly::Example) => "an example run",
+            _ => "an imported run",
         }
     }
 
-    /// An example's config with the AI tool and models set up on this machine instead of the recorded ones.
+    /// A read-only run's config (an example's or an imported run's) with the AI tool and models set up on this
+    /// machine instead of the recorded ones, which may not be installed here.
     /// Conflict when no tool is set up; `purpose` finishes that message.
     async fn local_tool(&self, config: SimConfig, purpose: &str) -> Result<SimConfig, ManagerError> {
         if let Some(ready) = &self.runtime_ready {
@@ -919,8 +942,8 @@ impl Manager {
         let Some(mut source) = self.reader(source_id).config() else {
             return Err(conflict("this run has no settings to branch from"));
         };
-        let example = self.is_read_only(source_id);
-        if example {
+        let read_only = self.is_read_only(source_id);
+        if read_only {
             source = self.local_tool(source, &format!("to branch {}", self.kind(source_id))).await?;
         }
         let label = format!("Branch at round {round}");
@@ -930,7 +953,7 @@ impl Manager {
         let run_dir = self.create_run_dir(&source.question).map_err(internal)?;
         let options = BranchOptions {
             source_id: Some(source_id),
-            immutable: example,
+            immutable: read_only,
             study_id: Some(&study.id),
             variant: Some(&label),
         };
@@ -962,31 +985,32 @@ impl Manager {
         };
         drop(reader);
         let (llm, config) = self.talker(run_id, config).await?;
-        let example = self.is_example(run_id);
-        let suggestion = build_rewrite(
-            llm.as_ref(),
-            &self.run_path(run_id),
-            &config,
-            &report,
-            &config.planner_model,
-            self.is_read_only(run_id),
-        )
-        .await
-        .map_err(|e| match e {
-            ReportError::Rewrite(message) => ManagerError::BadRequest(message),
-            other => report_error(other),
-        })?;
-        if example {
-            self.st.borrow_mut().example_rewrites.insert(run_id.into(), suggestion.clone());
+        let read_only = self.is_read_only(run_id);
+        let suggestion =
+            build_rewrite(llm.as_ref(), &self.run_path(run_id), &config, &report, &config.planner_model, read_only)
+                .await
+                .map_err(|e| match e {
+                    ReportError::Rewrite(message) => ManagerError::BadRequest(message),
+                    other => report_error(other),
+                })?;
+        if read_only {
+            self.st.borrow_mut().read_only_rewrites.insert(run_id.into(), suggestion.clone());
         } else {
             write_json(&self.run_path(run_id).join(REWRITE_FILE), &suggestion).map_err(internal)?;
         }
         Ok(suggestion)
     }
 
+    /// The suggestion made on this machine, else (for a normal or an imported run) the one in `rewrite.json`.
     pub fn saved_rewrite(&self, run_id: &str) -> Option<RewriteSuggestion> {
-        if self.is_example(run_id) {
-            return self.st.borrow().example_rewrites.get(run_id).cloned();
+        let read_only = self.read_only(run_id);
+        if read_only.is_some() {
+            if let Some(suggestion) = self.st.borrow().read_only_rewrites.get(run_id) {
+                return Some(suggestion.clone());
+            }
+        }
+        if read_only == Some(ReadOnly::Example) {
+            return None;
         }
         read_model(&self.run_path(run_id).join(REWRITE_FILE))
     }

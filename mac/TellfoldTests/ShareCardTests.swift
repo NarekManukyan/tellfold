@@ -70,6 +70,10 @@ struct ShareCardTests {
         #expect(content.quotes.first?.role == "AI noise cancellation for calls, meetings…")
         #expect(content.sentiment.map(\.round) == [0, 2])
         #expect(content.finalSentiment == 0.34)
+        // VoiceOver hears what the card shows, not only the headline
+        let spoken = content.spokenDescription
+        #expect(spoken.hasPrefix("Customers tolerate card trials only with live safeguards. Medium confidence. "))
+        #expect(spoken.contains(RunUI.sentimentText(0.34)) && spoken.contains("Krisp") && spoken.contains("Dan Ortega"))
     }
 
     @Test func withoutAnOppositeVoiceTheNextCitedPersonIsQuoted() throws {

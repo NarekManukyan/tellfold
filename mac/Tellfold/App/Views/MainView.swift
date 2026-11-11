@@ -30,10 +30,27 @@ struct MainView: View {
         }
         .dropDestination(for: URL.self) { urls, _ in
             // A shared `.tellfold` run dropped on the window opens it; documents go to the New Simulation sheet.
-            guard urls.contains(where: { RunBundle.isBundle($0) || AppModel.isSeedFile($0) || AppModel.isFolder($0) })
+            // Nothing is taken while bundles are still being opened.
+            guard !model.isImporting,
+                  urls.contains(where: { RunBundle.isBundle($0) || AppModel.isSeedFile($0) || AppModel.isFolder($0) })
             else { return false }
             model.open(urls)
             return true
+        }
+        .overlay(alignment: .bottom) {
+            if model.isImporting {
+                HStack(spacing: Theme.space2) {
+                    ProgressView().controlSize(.small)
+                    Text("Opening the run…").font(Theme.small).foregroundStyle(Theme.text)
+                }
+                .padding(.horizontal, Theme.space4)
+                .padding(.vertical, Theme.space2)
+                .background(Theme.card, in: Capsule())
+                .overlay(Capsule().strokeBorder(Theme.seamStrong, lineWidth: 1))
+                .padding(.bottom, Theme.space5)
+                .accessibilityElement(children: .combine)
+                .transition(.opacity)
+            }
         }
         .alert("Could Not Open the Run", isPresented: Binding(get: { model.importError != nil },
                                                              set: { if !$0 { model.importError = nil } })) {

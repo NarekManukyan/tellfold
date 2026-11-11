@@ -32,12 +32,12 @@ struct ExampleRunTests {
     }
 
     @Test func examplesHideTheControlsThatChangeARun() throws {
-        #expect(RunControls(isLive: false, isExample: true) == RunControls(isLive: true, isExample: true))
-        let example = RunControls(isLive: false, isExample: true)
+        #expect(RunControls(isLive: false, isReadOnly: true) == RunControls(isLive: true, isReadOnly: true))
+        let example = RunControls(isLive: false, isReadOnly: true)
         #expect(!example.stop && !example.injectEvent && !example.rebuildReport)
-        let live = RunControls(isLive: true, isExample: false)
+        let live = RunControls(isLive: true, isReadOnly: false)
         #expect(live.stop && live.injectEvent && live.rebuildReport)
-        #expect(!RunControls(isLive: false, isExample: false).stop)
+        #expect(!RunControls(isLive: false, isReadOnly: false).stop)
 
         var detail = try Fixtures.decode(RunDetail.self, "run_detail.json")
         detail.example = true
@@ -62,7 +62,7 @@ struct ExampleRunTests {
 
     @Test func runAgainFromAnExampleKeepsTheDefaultRuntimes() {
         let config = SimConfig(question: "Q", seedFiles: ["seeds/cafe.md"])
-        #expect(NewSimulationPrefill.runAgain(config: config, seedFiles: [], fromExample: true).keepsDefaultRuntimes)
+        #expect(NewSimulationPrefill.runAgain(config: config, seedFiles: [], fromReadOnly: true).keepsDefaultRuntimes)
         #expect(!NewSimulationPrefill.runAgain(config: config, seedFiles: []).keepsDefaultRuntimes)
     }
 }

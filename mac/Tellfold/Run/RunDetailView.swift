@@ -181,14 +181,12 @@ struct RunDetailView: View {
 
                 Button {
                     Task {
-                        do { try await app.exportBundle(store.runID, title: store.report?.title ?? store.question) } catch {
-                            store.actionError = error.localizedDescription
-                        }
+                        do { try await app.exportBundle(store.runID) } catch { store.actionError = error.localizedDescription }
                     }
                 } label: {
                     Label("Export Run Bundle…", systemImage: "shippingbox")
                 }
-                .disabled(store.report == nil || store.isLive || app.exportingBundle != nil)
+                .disabled(!app.canExportBundle(store.runID))
 
                 if !store.isExample {
                     Button {
