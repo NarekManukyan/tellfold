@@ -70,6 +70,26 @@ pub fn as_uri(path: &Path) -> String {
     out
 }
 
+/// `webbrowser.open(url)`: hands the URL to the desktop's opener and does not wait. Nothing is reported if there is
+/// no opener, as `webbrowser.open` returns False without raising.
+pub fn open_url(url: &str) {
+    let mut command = if cfg!(target_os = "macos") {
+        std::process::Command::new("open")
+    } else if cfg!(windows) {
+        let mut command = std::process::Command::new("cmd");
+        command.args(["/C", "start", ""]);
+        command
+    } else {
+        std::process::Command::new("xdg-open")
+    };
+    let _ = command
+        .arg(url)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

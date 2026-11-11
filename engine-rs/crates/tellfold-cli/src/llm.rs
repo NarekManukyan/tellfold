@@ -23,10 +23,24 @@ pub fn fake_mode() -> bool {
 
 /// Seconds each fake model call waits (TELLFOLD_FAKE_DELAY, 0-10, default 0), so a fake run can be watched live.
 pub fn fake_delay() -> f64 {
-    let raw = env(FAKE_DELAY_ENV).unwrap_or_else(|| "0".into());
-    let raw = if raw.is_empty() { "0".to_string() } else { raw };
-    // float(): surrounding whitespace and digit-group underscores are allowed
-    match tellfold_models::text::py_strip(&raw).replace('_', "").parse::<f64>() {
+    let raw = env(FAKE_DELAY_ENV).unwrap_or_default();
+    delay_seconds(if raw.is_empty() { "0" } else { &raw })
+}
+
+/// `float(text)` clamped to 0-10, or 0 where Python's `float()` raises.
+fn delay_seconds(raw: &str) -> f64 {
+    // float(): surrounding whitespace is allowed, and `_` only between two digits
+    let text = tellfold_models::text::py_strip(raw);
+    let chars: Vec<char> = text.chars().collect();
+    let digit_group = |i: usize| {
+        i > 0
+            && chars.get(i - 1).is_some_and(char::is_ascii_digit)
+            && chars.get(i + 1).is_some_and(char::is_ascii_digit)
+    };
+    if chars.iter().enumerate().any(|(i, c)| *c == '_' && !digit_group(i)) {
+        return 0.0;
+    }
+    match text.replace('_', "").parse::<f64>() {
         Ok(v) if !v.is_nan() => v.clamp(0.0, 10.0),
         _ => 0.0,
     }
@@ -91,4 +105,29 @@ pub fn resolve_runtimes(agent: Option<&str>, planner: Option<&str>) -> Result<(S
         }
     }
     Ok(chosen)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::delay_seconds;
+
+    #[test]
+    fn delays_parse_like_python_float() {
+        for (raw, seconds) in [
+            ("0", 0.0),
+            (" 2.5 ", 2.5),
+            ("1_0", 10.0),
+            ("1_5e-1", 1.5),
+            ("_5", 0.0),
+            ("5_", 0.0),
+            ("1__0", 0.0),
+            ("1_.5", 0.0),
+            ("99", 10.0),
+            ("-3", 0.0),
+            ("nan", 0.0),
+            ("abc", 0.0),
+        ] {
+            assert_eq!(delay_seconds(raw), seconds, "{raw:?}");
+        }
+    }
 }

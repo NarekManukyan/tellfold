@@ -4,7 +4,8 @@
 use std::collections::HashMap;
 use std::future::Future;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
@@ -68,26 +69,80 @@ enum Outcome<T> {
     Interrupted,
 }
 
+/// Set while `block_on` waits, so Ctrl-C cancels its future instead of ending the process.
+static WAITING: AtomicBool = AtomicBool::new(false);
+static INTERRUPTS: OnceLock<tokio::sync::watch::Receiver<u64>> = OnceLock::new();
+
+/// Counts Ctrl-Cs, listening from the first call on. Once tokio handles SIGINT the default action never comes back,
+/// so a Ctrl-C outside `block_on` (synchronous work between two awaits) ends the command here, the way Python's
+/// KeyboardInterrupt would, instead of being swallowed.
+fn interrupts() -> tokio::sync::watch::Receiver<u64> {
+    INTERRUPTS
+        .get_or_init(|| {
+            let (tx, rx) = tokio::sync::watch::channel(0u64);
+            let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+            std::thread::Builder::new()
+                .name("tellfold-ctrl-c".into())
+                .spawn(move || {
+                    let runtime =
+                        tokio::runtime::Builder::new_current_thread().enable_all().build().expect("a tokio runtime");
+                    runtime.block_on(async move {
+                        #[cfg(unix)]
+                        let mut signal = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+                            .expect("a SIGINT handler");
+                        let _ = ready_tx.send(());
+                        loop {
+                            #[cfg(unix)]
+                            signal.recv().await;
+                            #[cfg(not(unix))]
+                            let _ = tokio::signal::ctrl_c().await;
+                            if WAITING.load(Ordering::SeqCst) {
+                                tx.send_modify(|n| *n += 1);
+                            } else {
+                                tellfold_runtimes::process::kill_live_process_groups();
+                                let err = Console::stderr();
+                                err.write("\n");
+                                err.print("[red]Aborted.[/]");
+                                std::process::exit(1);
+                            }
+                        }
+                    });
+                })
+                .expect("the Ctrl-C thread");
+            let _ = ready_rx.recv();
+            rx
+        })
+        .clone()
+}
+
+/// From here on, Ctrl-C ends the command with "Aborted." (exit 1) like Python's KeyboardInterrupt, or cancels what
+/// `block_on` is waiting for. Not for `serve` / `ui`, which handle Ctrl-C themselves.
+pub fn catch_interrupts() {
+    let _ = interrupts();
+}
+
 /// Runs `future` to its end, or until Ctrl-C (Python's KeyboardInterrupt), when it is dropped.
 fn block_on<F: Future>(future: F) -> Outcome<F::Output> {
+    let mut interrupts = interrupts();
+    interrupts.mark_unchanged();
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("a tokio runtime");
-    runtime.block_on(async {
+    WAITING.store(true, Ordering::SeqCst);
+    let outcome = runtime.block_on(async {
         tokio::select! {
             value = future => Outcome::Done(value),
-            _ = tokio::signal::ctrl_c() => Outcome::Interrupted,
+            _ = interrupts.changed() => Outcome::Interrupted,
         }
-    })
+    });
+    WAITING.store(false, Ordering::SeqCst);
+    // a Ctrl-C just as the future finished still interrupts the command
+    if interrupts.has_changed().unwrap_or(false) {
+        return Outcome::Interrupted;
+    }
+    outcome
 }
 
 fn open_in_browser(path: &Path) {
-    let uri = as_uri(&py_resolve(path));
-    let opener = if cfg!(target_os = "macos") { "open" } else { "xdg-open" };
-    let _ = std::process::Command::new(opener)
-        .arg(uri)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn();
+    crate::paths::open_url(&as_uri(&py_resolve(path)));
 }
 
 // ---------- small helpers ----------
@@ -790,6 +845,18 @@ fn cli_version(path: &str) -> String {
         Ok(child) => child,
         Err(e) => return format!("version check failed: {}", py_os_error(&e, Path::new(path))),
     };
+    // drain both pipes while waiting, or a chatty CLI blocks on a full pipe and never exits
+    let drain = |pipe: Option<Box<dyn std::io::Read + Send>>| {
+        std::thread::spawn(move || {
+            let mut bytes = Vec::new();
+            if let Some(mut pipe) = pipe {
+                let _ = pipe.read_to_end(&mut bytes);
+            }
+            bytes
+        })
+    };
+    let stdout = drain(child.stdout.take().map(|p| Box::new(p) as Box<dyn std::io::Read + Send>));
+    let stderr = drain(child.stderr.take().map(|p| Box::new(p) as Box<dyn std::io::Read + Send>));
     let started = Instant::now();
     loop {
         match child.try_wait() {
@@ -803,12 +870,12 @@ fn cli_version(path: &str) -> String {
             Err(e) => return format!("version check failed: {e}"),
         }
     }
-    let output = match child.wait_with_output() {
-        Ok(output) => output,
-        Err(e) => return format!("version check failed: {e}"),
+    let stdout = String::from_utf8_lossy(&stdout.join().unwrap_or_default()).into_owned();
+    let text = if stdout.is_empty() {
+        String::from_utf8_lossy(&stderr.join().unwrap_or_default()).into_owned()
+    } else {
+        stdout
     };
-    let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-    let text = if stdout.is_empty() { String::from_utf8_lossy(&output.stderr).into_owned() } else { stdout };
     let text = py_strip(&text);
     if text.is_empty() {
         "unknown version".into()
@@ -817,28 +884,25 @@ fn cli_version(path: &str) -> String {
     }
 }
 
-fn ping_model() -> (String, bool, String) {
+fn ping_model() -> Result<(String, bool, String), Exit> {
     let label = format!("Logged in (haiku call){}", if fake_mode() { " [fake LLM]" } else { "" });
     let llm = match make_llm(None, 1, false, None) {
         Ok(llm) => llm,
-        Err(e) => return (label, false, format!("{e}. Run `claude` once and log in with /login.")),
+        Err(e) => return Ok((label, false, format!("{e}. Run `claude` once and log in with /login."))),
     };
     let started = Instant::now();
     let reply =
         block_on(llm.text(tellfold_runtimes::PING_PROMPT, tellfold_runtimes::PING_SYSTEM, "haiku", "doctor.ping"));
     match reply {
-        Outcome::Interrupted => {
-            eprint!("\nAborted.\n");
-            std::process::exit(1)
-        }
-        Outcome::Done(Err(e)) => (label, false, format!("{e}. Run `claude` once and log in with /login.")),
+        Outcome::Interrupted => Err(Exit::Abort),
+        Outcome::Done(Err(e)) => Ok((label, false, format!("{e}. Run `claude` once and log in with /login."))),
         Outcome::Done(Ok(reply)) => {
             let reply = py_strip(&reply);
-            (
+            Ok((
                 label,
                 !reply.is_empty(),
                 format!("replied {} in {:.1}s", py_repr(py_prefix(reply, 40)), started.elapsed().as_secs_f64()),
-            )
+            ))
         }
     }
 }
@@ -859,7 +923,7 @@ pub fn doctor(con: &Console, _p: &Parsed) -> Done {
     ));
     rows.push(("Tellfold engine".into(), true, format!("{VERSION} (Rust)")));
     if fake_mode() || cli_path.is_some() {
-        rows.push(ping_model());
+        rows.push(ping_model()?);
     } else {
         rows.push(("Logged in (haiku call)".into(), false, "skipped: fix the checks above first".into()));
     }

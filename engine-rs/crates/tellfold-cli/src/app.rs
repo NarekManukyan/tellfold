@@ -20,7 +20,7 @@ pub fn main(argv0: &str, args: &[String]) -> i32 {
     let out = Console::stdout();
     let commands = all_commands();
     if args.is_empty() {
-        out.write(&help::group_help(&commands, out.width));
+        out.write(&help::group_help(&commands));
         return 2;
     }
     // The group's own options come before the command: click stops at the first argument that is not an option.
@@ -47,14 +47,14 @@ pub fn main(argv0: &str, args: &[String]) -> i32 {
                 } else {
                     UsageError::new(group_no_such_option(arg))
                 };
-                return usage_error(&out, None, error);
+                return usage_error(None, error);
             }
         }
         index += 1;
     }
     match first_eager {
         Some("--help") => {
-            out.write(&help::group_help(&commands, out.width));
+            out.write(&help::group_help(&commands));
             return 0;
         }
         Some(_) => {
@@ -64,11 +64,11 @@ pub fn main(argv0: &str, args: &[String]) -> i32 {
         None => {}
     }
     let Some(command_name) = args.get(index) else {
-        return usage_error(&out, None, UsageError::new("Missing command."));
+        return usage_error(None, UsageError::new("Missing command."));
     };
     if command_name.starts_with('-') {
         // only after `--`: typer parses it as an option of the group
-        return usage_error(&out, None, UsageError::new(group_no_such_option(command_name)));
+        return usage_error(None, UsageError::new(group_no_such_option(command_name)));
     }
     let Some(command) = commands.iter().find(|c| c.name == command_name) else {
         let mut message = format!("No such command {}.", crate::args::py_repr(command_name));
@@ -78,20 +78,20 @@ pub fn main(argv0: &str, args: &[String]) -> i32 {
             let suggestions = matches.iter().map(|m| crate::args::py_repr(m)).collect::<Vec<_>>().join(", ");
             message = format!("{}. Did you mean {suggestions}?", message.trim_end_matches('.'));
         }
-        return usage_error(&out, None, UsageError::new(message));
+        return usage_error(None, UsageError::new(message));
     };
     let parsed = match parse(&command.params, &args[index + 1..]) {
         Ok(parsed) => parsed,
-        Err(e) => return usage_error(&out, Some(command), e),
+        Err(e) => return usage_error(Some(command), e),
     };
     if parsed.help {
-        out.write(&help::command_help(command, out.width));
+        out.write(&help::command_help(command));
         return 0;
     }
     match dispatch(&out, command, &parsed) {
         Ok(()) => 0,
         Err(Exit::Code(code)) => code,
-        Err(Exit::Usage(e)) => usage_error(&out, Some(command), e),
+        Err(Exit::Usage(e)) => usage_error(Some(command), e),
         Err(Exit::Abort) => {
             let err = Console::stderr();
             err.write("\n");
@@ -117,13 +117,16 @@ fn group_no_such_option(arg: &str) -> String {
     format!("No such option: {} (Possible options: {})", crate::args::escape_control(opt), sorted.join(", "))
 }
 
-fn usage_error(out: &Console, command: Option<&Command>, error: UsageError) -> i32 {
+fn usage_error(command: Option<&Command>, error: UsageError) -> i32 {
     let err = Console::stderr();
-    err.write(&help::usage_error(command, &error, out.width));
+    err.write(&help::usage_error(command, &error));
     2
 }
 
 fn dispatch(con: &Console, command: &Command, p: &Parsed) -> Done {
+    if !matches!(command.name, "serve" | "ui") {
+        commands::catch_interrupts();
+    }
     match command.name {
         "run" => commands::run(con, p),
         "compare" => commands::compare(con, p),

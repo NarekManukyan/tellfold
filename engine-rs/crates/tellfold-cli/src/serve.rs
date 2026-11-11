@@ -223,13 +223,7 @@ pub fn port_free(port: u16) -> bool {
 fn open_browser_later(url: String) {
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(1));
-        let opener = if cfg!(target_os = "macos") { "open" } else { "xdg-open" };
-        let _ = std::process::Command::new(opener)
-            .arg(url)
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .spawn();
+        crate::paths::open_url(&url);
     });
 }
 

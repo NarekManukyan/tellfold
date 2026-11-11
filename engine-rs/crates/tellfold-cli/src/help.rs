@@ -49,7 +49,7 @@ fn usage(command: Option<&Command>) -> String {
 }
 
 /// What `tellfold --help` prints.
-pub fn group_help(commands: &[Command], _width: usize) -> String {
+pub fn group_help(commands: &[Command]) -> String {
     render_help(&group_spec_help(commands), crate::term::help_width())
 }
 
@@ -79,12 +79,12 @@ pub fn command_spec_help(command: &Command) -> CommandHelp {
 }
 
 /// What `tellfold <command> --help` prints.
-pub fn command_help(command: &Command, _width: usize) -> String {
+pub fn command_help(command: &Command) -> String {
     render_help(&command_spec_help(command), crate::term::help_width())
 }
 
 /// What a usage error prints on stderr: the usage line and hint (unless click shows none) and the Error panel.
-pub fn usage_error(command: Option<&Command>, error: &UsageError, _width: usize) -> String {
+pub fn usage_error(command: Option<&Command>, error: &UsageError) -> String {
     let path = match command {
         None => PROG.to_string(),
         Some(c) => format!("{PROG} {}", c.name),
