@@ -52,6 +52,8 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 /// Reads of runs and studies, and the quick actions (stop, events, check), answer at once. Asking the crowd or a
 /// person waits on an AI tool, so has no limit.
 const QUICK_TIMEOUT: Duration = Duration::from_secs(30);
+/// The shortest time-out of a poll's request after the first.
+const MIN_POLL_REQUEST: Duration = Duration::from_secs(5);
 /// Uploading the seeds of a new run (at most 100 MB, to this machine).
 const UPLOAD_TIMEOUT: Duration = Duration::from_secs(120);
 const LOGGER: &str = "tellfold.mcp";
@@ -72,6 +74,13 @@ pub struct Engine {
     http: reqwest::Client,
 }
 
+/// A failed request to the engine.
+struct EngineError {
+    message: String,
+    /// the engine did not answer in time (it may only be busy)
+    timed_out: bool,
+}
+
 /// One seed document to upload.
 struct Seed {
     name: String,
@@ -90,14 +99,24 @@ impl Engine {
     }
 
     /// The body of a 2xx response, or the API's `detail` (or the status) as the error.
-    async fn send(&self, mut request: reqwest::RequestBuilder) -> Result<String, String> {
+    async fn send(&self, request: reqwest::RequestBuilder) -> Result<String, String> {
+        self.send_timed(request).await.map_err(|e| e.message)
+    }
+
+    /// `send`, telling a time-out apart from other failures.
+    async fn send_timed(&self, mut request: reqwest::RequestBuilder) -> Result<String, EngineError> {
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
         }
-        let response =
-            request.send().await.map_err(|e| format!("cannot reach the Tellfold engine at {}: {e}", self.base))?;
+        let response = request.send().await.map_err(|e| EngineError {
+            message: format!("cannot reach the Tellfold engine at {}: {e}", self.base),
+            timed_out: e.is_timeout(),
+        })?;
         let status = response.status();
-        let text = response.text().await.map_err(|e| format!("could not read the engine's answer: {e}"))?;
+        let text = response.text().await.map_err(|e| EngineError {
+            message: format!("could not read the engine's answer: {e}"),
+            timed_out: e.is_timeout(),
+        })?;
         if status.is_success() {
             return Ok(text);
         }
@@ -106,10 +125,11 @@ impl Engine {
             Some(other) if !other.is_null() => Some(other.to_string()),
             _ => None,
         });
-        Err(match detail {
+        let message = match detail {
             Some(detail) => format!("{detail} (HTTP {})", status.as_u16()),
             None => format!("the engine answered HTTP {}", status.as_u16()),
-        })
+        };
+        Err(EngineError { message, timed_out: false })
     }
 
     async fn json(&self, request: reqwest::RequestBuilder) -> Result<Value, String> {
@@ -121,9 +141,15 @@ impl Engine {
         self.get_within(path, QUICK_TIMEOUT).await
     }
 
-    /// `get` with its own time-out, so a poll does not outlast its caller's deadline.
+    /// `get` with its own time-out, telling a time-out apart from other failures.
+    async fn get_timed(&self, path: &str, timeout: Duration) -> Result<Value, EngineError> {
+        let text = self.send_timed(self.http.get(self.url(path)).timeout(timeout)).await?;
+        serde_json::from_str(&text)
+            .map_err(|e| EngineError { message: format!("the engine sent invalid JSON: {e}"), timed_out: false })
+    }
+
     async fn get_within(&self, path: &str, timeout: Duration) -> Result<Value, String> {
-        self.json(self.http.get(self.url(path)).timeout(timeout)).await
+        self.get_timed(path, timeout).await.map_err(|e| e.message)
     }
 
     pub async fn get_text(&self, path: &str) -> Result<String, String> {
@@ -359,10 +385,14 @@ impl Poll {
         true
     }
 
-    /// The time-out of one poll's request: what is left of the wait (at least a second, for the last poll), at most
-    /// `QUICK_TIMEOUT`, so a slow engine cannot stretch the wait.
-    fn request_timeout(&self) -> Duration {
-        self.deadline.saturating_duration_since(Instant::now()).clamp(Duration::from_secs(1), QUICK_TIMEOUT)
+    /// The time-out of one poll's request. The first read of a wait gets the whole `QUICK_TIMEOUT`, as it has
+    /// nothing to fall back on. A later one gets what is left of the wait (at least `MIN_POLL_REQUEST`), so a busy
+    /// engine cannot stretch the wait much: if it times out, the caller answers with what it read last.
+    fn request_timeout(&self, first: bool) -> Duration {
+        if first {
+            return QUICK_TIMEOUT;
+        }
+        self.deadline.saturating_duration_since(Instant::now()).clamp(MIN_POLL_REQUEST, QUICK_TIMEOUT)
     }
 }
 
@@ -602,9 +632,9 @@ enum PendingB {
 /// How waiting for draft A's people ended.
 enum People {
     Ready,
-    /// the wait ran out; `paused` while the cast waits to be checked in the app
+    /// the wait ran out; `pause` is set while the cast waits to be checked in the app
     NotYet {
-        paused: bool,
+        pause: Option<String>,
     },
 }
 
@@ -671,6 +701,29 @@ fn cast_ready(detail: &Value) -> bool {
         && detail["status"]["pause"].is_null()
 }
 
+/// The pause of a run (`personas_ready` while its cast waits to be checked in the app), if it is paused.
+fn pause_of(detail: &Value) -> Option<String> {
+    detail["status"]["pause"].as_str().filter(|p| !p.is_empty()).map(str::to_string)
+}
+
+/// The answer while draft B waits for draft A's people, or for draft A's cast to be checked in the app.
+fn waiting_for_b(run_a: &str, pause: Option<&str>) -> Value {
+    let mut out = json!({
+        "study_id": null, "ready": false, "run_a": run_a, "run_b": null,
+        "next": "Draft B starts from this MCP session as soon as draft A has its people, so keep it open. Call \
+                 get_study with run_id set to run_a and wait_seconds until it returns a study_id.",
+    });
+    if let Some(pause) = pause {
+        out["pause"] = json!(pause);
+        out["next"] = json!(
+            "Draft A's cast is waiting to be checked in the Tellfold app. Ask the user to confirm it there, and wait \
+             for them before calling get_study (run_id set to run_a) again. Draft B starts from this MCP session \
+             after that, so keep it open."
+        );
+    }
+    out
+}
+
 /// The persona `wanted` names: an id, or a handle with or without "@", in any case.
 fn find_person<'a>(detail: &'a Value, wanted: &str) -> Option<&'a Value> {
     let wanted = wanted.trim();
@@ -698,9 +751,10 @@ enum StudyOutcome {
 
 /// Whether a study's result is final. It is ready once every run has ended, nothing is being written, and the
 /// result covers every run with a report: the server keeps an older comparison until a run added later (another
-/// draft on the same crowd) has finished and been compared, so a comparison alone is not enough. It has failed when,
-/// with every run ended, writing it failed or fewer than two runs have a report. An error while runs are still going
-/// is the previous attempt's: a new one starts once they end.
+/// draft on the same crowd) has finished and been compared, so a comparison alone is not enough. Once every run has
+/// ended and nothing is being written, anything else is final: writing it failed, fewer than two runs have a report,
+/// or the engine stopped before it was written. An error while runs are still going is the previous attempt's: a new
+/// one starts once they end.
 fn study_outcome(study: &Value) -> StudyOutcome {
     let runs = study["runs"].as_array().map(Vec::as_slice).unwrap_or_default();
     let ended = |r: &Value| TERMINAL_STATES.contains(&r["state"].as_str().unwrap_or(""));
@@ -723,15 +777,19 @@ fn study_outcome(study: &Value) -> StudyOutcome {
     if let Some(error) = study["compare_state"]["error"].as_str().filter(|e| !e.is_empty()) {
         return StudyOutcome::Failed(error.to_string());
     }
+    let what = if repeat { "a check" } else { "a comparison" };
     if reported.len() < 2 {
-        let what = if repeat { "a check" } else { "a comparison" };
         let n = reported.len();
         return StudyOutcome::Failed(format!(
             "only {n} run{} finished with a report; {what} needs two",
             if n == 1 { "" } else { "s" }
         ));
     }
-    StudyOutcome::Waiting
+    // The engine starts writing the result as the last run ends, in the same step, so with every run ended and
+    // nothing being written it will not come: the engine stopped while writing it (a restart, or a shutdown).
+    StudyOutcome::Failed(format!(
+        "the result of {what} of these runs was not written, probably because the engine stopped while writing it"
+    ))
 }
 
 /// What `get_study` answers for a study.
@@ -793,9 +851,14 @@ impl Tellfold {
         self.engine.get(&run_path(run_id, "")).await
     }
 
-    /// `detail` for one poll of `poll`.
-    async fn poll_detail(&self, run_id: &str, poll: &Poll) -> Result<Value, String> {
-        self.engine.get_within(&run_path(run_id, ""), poll.request_timeout()).await
+    /// One poll's read of `path`. `None` when a read after the `first` timed out: the caller keeps what it read
+    /// last rather than failing on a busy engine.
+    async fn polled(&self, path: &str, poll: &Poll, first: bool) -> Result<Option<Value>, String> {
+        match self.engine.get_timed(path, poll.request_timeout(first)).await {
+            Ok(value) => Ok(Some(value)),
+            Err(e) if e.timed_out && !first => Ok(None),
+            Err(e) => Err(e.message),
+        }
     }
 
     /// The study a run belongs to: its own `study_id`, else the study that lists it (a draft A has no
@@ -847,18 +910,21 @@ impl Tellfold {
     /// Waits until run A has its people, ends without them (an error), or `limit` passes.
     async fn wait_for_people(&self, run_a: &str, limit: Duration) -> Result<People, String> {
         let mut poll = Poll::until(limit);
+        let mut last: Option<Value> = None;
         loop {
-            let detail = self.poll_detail(run_a, &poll).await?;
-            if cast_ready(&detail) {
-                return Ok(People::Ready);
-            }
-            let state = detail["status"]["state"].as_str().unwrap_or("");
-            if TERMINAL_STATES.contains(&state) {
-                let error = detail["status"]["error"].as_str().unwrap_or("").to_string();
-                return Err(format!("draft A ended ({state}) before it had people. {error}").trim().to_string());
+            if let Some(detail) = self.polled(&run_path(run_a, ""), &poll, last.is_none()).await? {
+                if cast_ready(&detail) {
+                    return Ok(People::Ready);
+                }
+                let state = detail["status"]["state"].as_str().unwrap_or("");
+                if TERMINAL_STATES.contains(&state) {
+                    let error = detail["status"]["error"].as_str().unwrap_or("").to_string();
+                    return Err(format!("draft A ended ({state}) before it had people. {error}").trim().to_string());
+                }
+                last = Some(detail);
             }
             if !poll.wait().await {
-                return Ok(People::NotYet { paused: !detail["status"]["pause"].is_null() });
+                return Ok(People::NotYet { pause: last.as_ref().and_then(pause_of) });
             }
         }
     }
@@ -871,11 +937,11 @@ impl Tellfold {
         tokio::spawn(async move {
             let outcome = match me.wait_for_people(&run_a, COMPARE_BACKGROUND_WAIT).await {
                 Ok(People::Ready) => me.start_b(&run_a, &draft_b, label.as_deref()).await,
-                Ok(People::NotYet { paused: true }) => Err(format!(
+                Ok(People::NotYet { pause: Some(_) }) => Err(format!(
                     "draft A's cast is still waiting to be checked in the Tellfold app. Confirm it there, then call \
                      compare_drafts again with baseline_run_id set to {run_a}."
                 )),
-                Ok(People::NotYet { paused: false }) => Err("draft A took too long to make its people".into()),
+                Ok(People::NotYet { pause: None }) => Err("draft A took too long to make its people".into()),
                 Err(e) => Err(e),
             };
             let state = match outcome {
@@ -951,14 +1017,17 @@ impl Tellfold {
     #[tool(description = WAIT_FOR_RUN)]
     async fn wait_for_run(&self, Parameters(p): Parameters<WaitForRun>) -> Result<CallToolResult, ErrorData> {
         let mut poll = Poll::until(clamp_wait(p.timeout_seconds));
+        let mut last: Option<Value> = None;
         loop {
-            let status = match self.poll_detail(&p.run_id, &poll).await {
-                Ok(detail) => run_status(&detail),
+            match self.polled(&run_path(&p.run_id, ""), &poll, last.is_none()).await {
+                Ok(Some(detail)) => last = Some(run_status(&detail)),
+                Ok(None) => {}
                 Err(e) => return fail(e),
-            };
+            }
+            let status = last.as_ref().expect("the first read answers or fails");
             // a run paused for its cast check keeps being waited for: the pause ends when someone confirms it
             if status["finished"] == json!(true) || !poll.wait().await {
-                return ok(status);
+                return ok(status.clone());
             }
         }
     }
@@ -1113,25 +1182,20 @@ impl Tellfold {
             }
         };
         match self.wait_for_people(&run_a, COMPARE_INLINE_WAIT).await {
-            Err(e) => return fail(e),
-            Ok(People::Ready) => {
-                return match self.start_b(&run_a, &p.draft_b, p.label_b.as_deref()).await {
-                    Ok(b) => ok(json!({
-                        "run_a": run_a, "run_b": b.run_id, "study_id": b.study_id,
-                        "next": "Call wait_for_run on both runs, then get_study with wait_seconds for the comparison.",
-                    })),
-                    Err(e) => fail(e),
-                };
+            Err(e) => fail(e),
+            Ok(People::Ready) => match self.start_b(&run_a, &p.draft_b, p.label_b.as_deref()).await {
+                Ok(b) => ok(json!({
+                    "run_a": run_a, "run_b": b.run_id, "study_id": b.study_id,
+                    "next": "Call wait_for_run on both runs, then get_study with wait_seconds for the comparison.",
+                })),
+                Err(e) => fail(e),
+            },
+            Ok(People::NotYet { pause }) => {
+                // Draft A is still working out its people, or waits for its cast to be checked in the app
+                self.start_b_later(&run_a, p.draft_b, p.label_b);
+                ok(waiting_for_b(&run_a, pause.as_deref()))
             }
-            Ok(People::NotYet { .. }) => {}
         }
-        // Draft A is still working out its people (or waits for its cast to be checked in the app)
-        self.start_b_later(&run_a, p.draft_b, p.label_b);
-        ok(json!({
-            "run_a": run_a, "run_b": null, "study_id": null,
-            "next": "Draft B starts from this MCP session as soon as draft A has its people, so keep it open. Call \
-                     get_study with run_id set to run_a and wait_seconds until it returns a study_id.",
-        }))
     }
 
     #[tool(description = GET_STUDY)]
@@ -1140,21 +1204,23 @@ impl Tellfold {
         let study_id = match self.study_target(&p, &mut poll).await {
             Ok(StudyTarget::Study(study_id)) => study_id,
             Ok(StudyTarget::WaitingForB(run_a)) => {
-                return ok(json!({
-                    "study_id": null, "ready": false, "run_a": run_a, "run_b": null,
-                    "next": "Draft B starts once draft A has its people; call get_study again with wait_seconds.",
-                }))
+                // one read of draft A, so a cast waiting in the app is said, not waited on again and again
+                let pause = self.detail(&run_a).await.ok().as_ref().and_then(pause_of);
+                return ok(waiting_for_b(&run_a, pause.as_deref()));
             }
             Err(e) => return fail(e),
         };
+        let mut last: Option<Value> = None;
         loop {
-            let study = match self.engine.get_within(&study_path(&study_id), poll.request_timeout()).await {
-                Ok(study) => study,
+            match self.polled(&study_path(&study_id), &poll, last.is_none()).await {
+                Ok(Some(study)) => last = Some(study),
+                Ok(None) => {}
                 Err(e) => return fail(e),
-            };
-            let outcome = study_outcome(&study);
+            }
+            let study = last.as_ref().expect("the first read answers or fails");
+            let outcome = study_outcome(study);
             if outcome != StudyOutcome::Waiting || !poll.wait().await {
-                return ok(study_answer(&study_id, &study, &outcome));
+                return ok(study_answer(&study_id, study, &outcome));
             }
         }
     }
@@ -1433,7 +1499,10 @@ mod tests {
         let answer = study_answer("s1", &stale, &Waiting);
         assert!(answer["comparison"].is_null(), "{answer}");
         let finished = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1"]);
-        assert_eq!(study_outcome(&finished), Waiting, "B2 has finished but is not compared yet");
+        // every run has ended and nothing is being written, yet B2 was never compared: the engine stopped
+        assert!(matches!(study_outcome(&finished), Failed(e) if e.contains("was not written")));
+        let answer = study_answer("s1", &finished, &study_outcome(&finished));
+        assert!(answer["next"].as_str().unwrap().contains("compare_drafts"), "{answer}");
         let fresh = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1", "b2"]);
         assert_eq!(study_outcome(&fresh), Ready);
         assert_eq!(study_answer("s1", &fresh, &Ready)["compared_runs"], json!(["a", "b1", "b2"]));
@@ -1476,20 +1545,86 @@ mod tests {
     #[test]
     fn repeats_are_ready_once_they_all_agree() {
         let mut repeat = json!({"kind": "repeat", "runs": [done("a"), done("b"), done("c")],
-                                "agreement": {"runs": 2}, "repeating": false});
+                                "agreement": {"runs": 2}, "repeating": true});
         assert_eq!(study_outcome(&repeat), StudyOutcome::Waiting);
+        // a series cut off by a restart: two or more reports, and nothing will write the agreement
+        repeat["repeating"] = json!(false);
+        assert!(matches!(study_outcome(&repeat), StudyOutcome::Failed(e) if e.contains("a check")));
+        assert!(study_answer("s1", &repeat, &study_outcome(&repeat))["next"].as_str().unwrap().contains("check_run"));
         repeat["agreement"]["runs"] = json!(3);
         assert_eq!(study_outcome(&repeat), StudyOutcome::Ready);
-        repeat["repeating"] = json!(true);
-        assert_eq!(study_outcome(&repeat), StudyOutcome::Waiting);
     }
 
     #[test]
     fn a_poll_request_never_outlasts_the_wait() {
-        let poll = Poll::until(Duration::from_secs(5));
-        assert!(poll.request_timeout() <= Duration::from_secs(5));
-        assert_eq!(Poll::until(Duration::ZERO).request_timeout(), Duration::from_secs(1));
-        assert_eq!(Poll::until(Duration::from_secs(600)).request_timeout(), QUICK_TIMEOUT);
+        // the first read has nothing to fall back on, so gets the whole time-out
+        assert_eq!(Poll::until(Duration::ZERO).request_timeout(true), QUICK_TIMEOUT);
+        assert_eq!(Poll::until(Duration::ZERO).request_timeout(false), MIN_POLL_REQUEST);
+        let poll = Poll::until(Duration::from_secs(10));
+        assert!((MIN_POLL_REQUEST..=Duration::from_secs(10)).contains(&poll.request_timeout(false)));
+        assert_eq!(Poll::until(Duration::from_secs(600)).request_timeout(false), QUICK_TIMEOUT);
+    }
+
+    #[test]
+    fn a_cast_waiting_in_the_app_is_reported() {
+        let waiting = waiting_for_b("a1", None);
+        assert!(waiting.get("pause").is_none());
+        let paused = waiting_for_b("a1", Some("personas_ready"));
+        assert_eq!(paused["pause"], "personas_ready");
+        assert!(paused["next"].as_str().unwrap().contains("Ask the user to confirm it"), "{paused}");
+        let detail = json!({"status": {"state": "running", "pause": "personas_ready"}});
+        assert_eq!(pause_of(&detail).as_deref(), Some("personas_ready"));
+        assert_eq!(pause_of(&json!({"status": {"pause": null}})), None);
+    }
+
+    /// An engine that answers its first request with `first` and never answers another, as a busy one might.
+    async fn answers_once(first: Value) -> String {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let answered = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        tokio::spawn(async move {
+            loop {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let (first, answered) = (first.to_string(), answered.clone());
+                tokio::spawn(async move {
+                    let mut request = Vec::new();
+                    let mut buf = [0u8; 4096];
+                    loop {
+                        let n = socket.read(&mut buf).await.unwrap_or(0);
+                        if n == 0 {
+                            return;
+                        }
+                        request.extend_from_slice(&buf[..n]);
+                        if !request.windows(4).any(|w| w == b"\r\n\r\n") {
+                            continue;
+                        }
+                        request.clear();
+                        if answered.swap(true, std::sync::atomic::Ordering::SeqCst) {
+                            tokio::time::sleep(Duration::from_secs(600)).await;
+                        }
+                        let reply = format!(
+                            "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\n\r\n{first}",
+                            first.len()
+                        );
+                        socket.write_all(reply.as_bytes()).await.unwrap();
+                    }
+                });
+            }
+        });
+        url
+    }
+
+    #[tokio::test]
+    async fn a_busy_engine_gives_the_last_status_not_an_error() {
+        let detail = json!({"id": "r1", "config": {"rounds": 3}, "status": {"state": "running", "stage": "rounds"}});
+        let server = Tellfold::new(Engine::new(&answers_once(detail).await, None));
+        let p = WaitForRun { run_id: "r1".into(), timeout_seconds: Some(1) };
+        let start = Instant::now();
+        let answer = serde_json::to_value(server.wait_for_run(Parameters(p)).await.unwrap()).unwrap();
+        assert_ne!(answer["isError"], true, "{answer}");
+        assert_eq!(answer["structuredContent"]["state"], "running", "{answer}");
+        assert!(start.elapsed() < MIN_POLL_REQUEST + Duration::from_secs(3), "{:?}", start.elapsed());
     }
 
     /// A server whose engine is not reachable: only the pending map can answer.
