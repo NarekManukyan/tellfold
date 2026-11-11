@@ -316,6 +316,17 @@ async fn a_bundle_opens_as_a_read_only_run() {
     assert_eq!(body["detail"], "set up an AI tool first to interview people or ask questions in an imported run");
     let (status, body) = server.post(&format!("/api/runs/{id}/check"), json!({})).await;
     assert_eq!((status, body["detail"].as_str()), (409, Some("set up an AI tool first to check an imported run")));
+    // nor can its cast be edited, extended or confirmed
+    let people = server.get(&format!("/api/runs/{id}/personas")).await;
+    assert_eq!(people["waiting"], false);
+    let cast = json!({"personas": people["personas"].clone()});
+    let (status, body) = server.send(reqwest::Method::PUT, &format!("/api/runs/{id}/personas"), Some(cast)).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let group = json!({"description": "Night-shift nurses", "count": 2});
+    let (status, body) = server.post(&format!("/api/runs/{id}/personas/group"), group).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) = server.post(&format!("/api/runs/{id}/personas/confirm"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
     assert_eq!(listing(&server.runs.join(&id)), before, "nothing is written next to an imported run");
 
     let res = import(b"definitely not a zip".to_vec()).await.unwrap();

@@ -795,6 +795,19 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     assert_eq!(status, 200, "{version}");
     let version = server.wait_state(version["id"].as_str().unwrap(), &["done"]).await;
     assert_eq!(version["config"]["fair_turns"], true);
+    // a checked cast, with its camps and sources, survives a .tellfold bundle
+    let res = server.http.get(server.url(&format!("/api/runs/{run_id}/bundle"))).send().await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let bundle = res.bytes().await.unwrap();
+    let res = server.http.post(server.url("/api/runs/import")).body(bundle.to_vec()).send().await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let copy = res.json::<Value>().await.unwrap()["id"].as_str().unwrap().to_string();
+    let imported = server.detail(&copy).await;
+    assert_eq!((imported["imported"].clone(), imported["status"]["state"].clone()), (json!(true), json!("done")));
+    assert_eq!(imported["config"]["review_cast"], true);
+    assert_eq!(imported["personas"], done["personas"]);
+    assert!(imported["personas"].as_array().unwrap().iter().any(|p| p["source"] == "edited"));
+    assert!(imported["personas"].as_array().unwrap().iter().any(|p| p["source"] == "group" && p["camp"].is_string()));
     sse.close();
     server.shutdown().await;
 }
