@@ -1,7 +1,9 @@
 # How accurate is Tellfold?
 
-**We don't know yet.** This page describes the test that will tell us, and it will hold the results, including the
-cases Tellfold gets wrong. Until a real pass has run, Tellfold makes no accuracy claim of any kind.
+**Not accurate enough yet.** In the first real pass (one seed per case, 11 November 2026), Tellfold called the
+overall reaction right in 6 of 20 cases. Asking the same model once, with no simulated crowd, got 14 right, and
+answering "negative" every time would have got 15. Tellfold makes no accuracy claim. This page describes the test,
+holds every result and lists every case it got wrong.
 
 Tellfold calls itself a rehearsal, not a survey. A rehearsal is still only worth doing if it points the right way
 more often than a guess. So we took real announcements whose public reaction is well documented, gave Tellfold only
@@ -108,19 +110,82 @@ The set leans negative: well-sourced positive reactions were hard to find, becau
 
 ## Results
 
-No real pass has run yet. The table will be filled from `bench/results/<date>-<label>.json`, every case listed,
-failures included.
+One pass so far: 11 November 2026, commit `a92638f`, seed 7 only, with the zero-shot baseline. All 20 runs and all
+20 zero-shot answers completed and were graded; none failed. The full output, with every judge verdict and the
+quote behind it, is in
+[`bench/results/2026-11-11-sonnet-haiku.json`](../bench/results/2026-11-11-sonnet-haiku.json), with a per-case table in
+[`2026-11-11-sonnet-haiku.md`](../bench/results/2026-11-11-sonnet-haiku.md).
 
 | | cases | direction | objection recall | backdown | groups named | direction from sentiment |
 |---|---|---|---|---|---|---|
-| Tellfold, after cutoff | | | | | | |
-| Tellfold, known to model | | | | | | |
-| No crowd (zero-shot) | | | | | | – |
-| Always "negative" / "no backdown" | | | – | | – | – |
+| Tellfold, after cutoff | 18 | 33% | 34% | 78% | 49% | 33% |
+| Tellfold, known to model | 2 | 0% | 40% | 100% | 33% | 0% |
+| Tellfold, all cases | 20 | 30% | 35% | 80% | 47% | 30% |
+| No crowd (zero-shot), after cutoff | 18 | 67% | 67% | 61% | 72% | – |
+| No crowd (zero-shot), all cases | 20 | 70% | 66% | 65% | 70% | – |
+| Always "negative" / "no backdown", after cutoff | 18 | 72% | – | 67% | – | – |
+| Always "negative" / "no backdown", all cases | 20 | 75% | – | 65% | – | – |
+
+"Groups named" covers the 18 cases that have pushback groups. With 20 cases, one case is five points.
+
+What this says:
+
+- **Direction: worse than both baselines.** Tellfold called 6 of 20 right. Asking the model once called 14, and
+  always answering "negative" would have called 15. This is the main result of the pass.
+- **Objections: about half of what the model finds on its own.** The reports raised 35% of the objections people
+  actually made; the zero-shot answers raised 66%.
+- **Backdown: the one score above the baselines, and only just.** Tellfold said correctly whether the organisation
+  would change course in 16 of 20 cases, against 13 for "never backs down" and 13 for zero-shot. That is three cases,
+  on one seed. It caught 6 of the 7 real backdowns but called a change in 3 cases where none came. It never
+  predicted a full reversal: all 4 full reversals were called "partial". Counting the exact kind (none, partial or
+  full), it got 12 of 20, and zero-shot 11.
+- **The control says nothing yet.** Two `known_to_model` cases are too few to show recall either way. Tellfold got
+  the direction of both wrong; zero-shot got both right.
+- **Sentiment agrees with the judge.** The judge-free reading of the last round's sentiment also gets 6 of 20, so
+  the low direction score is not the judge misreading the reports.
 
 ### Where it went wrong
 
-To be written from the per-case results: every miss, and what the report said instead.
+Every miss from the 11 November pass. "Said" is what the judge quoted from Tellfold's report; anyone can check the
+quote against the report in the results file.
+
+**It hedged to "mixed".** The reports called 15 of the 20 cases mixed. Two were. All three positive cases and 10 of
+the 15 negative ones were called mixed. In most of them the simulated crowd started negative and then recovered,
+often after an agent playing the organisation posted reassurance, data or a concession inside the simulation. In
+the real cases the reaction stayed negative, or, for the three positive ones, stayed positive.
+
+| case | actual | Tellfold | what the report said instead |
+|---|---|---|---|
+| Apple Music rebrand | negative | positive | Sentiment "opens positive at +0.37" and "climbs sharply" to +0.77. Missed that people found the new icon dull and lost the red's identity |
+| Barnet parking | positive | mixed | Traders turned sentiment from +0.35 to −0.57, while residents "stayed broadly satisfied" |
+| Dublin 7 bin bags (control) | negative | mixed | Sentiment fell to −0.60, then recovered to +0.12 "once" the council and waste firm "commit to specific, dated deliverables" |
+| Garmin CIRQA paywall | negative | mixed | Casual and training buyers "warm up"; Garmin wins sceptics "through documentation promises". Also called no backdown; Garmin reversed the live heart-rate part |
+| Hillsborough dress code | negative | mixed | Sentiment rose to +0.18 after the simulated district "admitted enforcement gaps". Called a partial change; the board dropped the restriction. Raised 1 of 4 objections, partly |
+| HubSpot data sharing | negative | mixed | An opt-in concession "flipped sentiment to +0.38". Called partial; HubSpot withdrew the change |
+| Ireland NTA fares | negative | mixed | Crowd settled on "conditional acceptance pending Q1-Q2 evidence". Named none of the groups that pushed back |
+| MBTA fare pilots | positive | mixed | Pushback from riders who "distrust pilots as political theater" and riders left out, though sentiment ended at +0.30 |
+| Nintendo Switch 2 price (control) | negative | mixed | Anger "cooled" after invented preorder data showed demand "+18% above Switch 1 pace" |
+| Olathe school closures | negative | mixed | The crowd "never turned hostile"; five personas with critical stances "never posted a single message" |
+| Sony ends discs | negative | mixed | The crowd split "between pragmatic acceptance" and demands for guarantees. Called a partial change from a promised FAQ; Sony changed nothing |
+| UT Austin majors | negative | mixed | Sentiment "swung wildly" (−0.73, +0.60, −0.31). Called a partial change; there was none |
+| Witcher 3 free upgrade | positive | mixed | No one questioned the free upgrade, but an invented "labor-transparency thread" pulled sentiment to −0.35 |
+| Xbox cloud caps | negative | mixed | Sentiment ended at +0.10 after the simulated Xbox account announced "a grandfathering concession". Xbox kept the caps and only added paid top-ups |
+
+**Right direction, wrong backdown.** Meta's crawling terms and OpenAI's Pro 200 cut were called negative, correctly,
+but both reports predicted a partial change where the companies reversed in full.
+
+**Right for the wrong reason.** NatWest was called negative, correctly and with no backdown, correctly, but the
+simulation drifted to an invented Ulster Bank branch restructuring and argued about capital spending and rural
+branches. It raised none of the four objections staff actually made (the union consultation process, travel and
+childcare costs, caring and health needs, a broken understanding about remote work) and named none of the groups.
+Its objection recall was 0%.
+
+**Thin objection coverage even when the direction was right.** Instagram's wordmark (mixed, correct) raised 1 of 4
+objections, partly. Barclays (negative, correct) raised 50%.
+
+What we take from this, as hypotheses for the next pass rather than findings: the simulated crowd is pulled towards
+the middle, in-simulation responses from the organisation calm it in a way the real world didn't, and some runs drift
+away from the announcement. None of this has been tested yet.
 
 ## Known limits
 
@@ -143,7 +208,8 @@ Read the results with these in mind. Some of them we can measure; some we can on
 - **The judge is an LLM.** Grading objection recall needs judgement, so a model does it. It can be lenient, strict or
   inconsistent. Its prompt is public, it sees only the report, the seed's headline and the rubric's objections and
   groups (never the true direction or backdown), and every verdict comes with a quote
-  from the report so it can be checked by hand. We will spot-check a sample by hand and report the agreement.
+  from the report so it can be checked by hand. We will spot-check a sample by hand and report the agreement; that
+  has not been done for the 11 November pass yet.
 - **Few cases.** With 20 cases, one case moves a percentage by five points. Differences of a few points
   between two passes mean nothing.
 - **"Direction" is a judgement too.** Reporting rarely says "62% of people were against". The rubric's direction is
@@ -160,8 +226,14 @@ the average prompt and reply sizes of real runs. For the 20 cases, one seed each
 540 model calls, 3.0M input and 0.6M output tokens, roughly **$5** at API list prices (Haiku 5.5 $0.10/$0.50, Sonnet
 5.5 $2/$10 per million tokens). With `--repeats 3` it is about 1,540 calls and $15. On a Claude Code subscription
 nothing is billed per token; the pass counts against the plan's usage limits instead. Most of the money is the
-Sonnet report and persona calls; most of the calls are Haiku agent rounds. A case takes about eight minutes, so one
-seed of every case is close to three hours.
+Sonnet report and persona calls; most of the calls are Haiku agent rounds.
+
+The 11 November pass ran on a Claude Code plan, so nothing was billed per token. It made 547 calls: 487 for the
+simulations, 40 for the judge and 20 for zero-shot. Priced at API list rates it would have cost about **$10**,
+nearly twice the estimate. The judge alone used 0.29M input and 0.09M output tokens ($1.87), and zero-shot $0.68.
+The simulations used about 0.9M output tokens, mostly Sonnet ($6.00). Their input was about 2.7M tokens ($1.20), an
+estimate from prompt size, since the CLI logs output tokens only. The estimator undercounts Sonnet output. The pass
+took about four hours and fifteen minutes, close to 13 minutes a case including grading.
 
 ## Rerun it
 
