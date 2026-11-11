@@ -158,6 +158,16 @@ fn only_a_finished_run_can_be_shared() {
     assert!(!error.contains(&tmp.path().to_string_lossy().into_owned()), "{error}");
 }
 
+#[test]
+fn a_calls_log_with_prompt_text_is_refused_without_naming_a_folder() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = finished_run(&tmp.path().join("mine"), "run");
+    let mut calls = std::fs::OpenOptions::new().create(true).append(true).open(source.join("calls.jsonl")).unwrap();
+    writeln!(calls, "{{\"purpose\": \"agent.post\", \"prompt\": \"the whole prompt\"}}").unwrap();
+    let error = bundle_bytes(&source, "run").unwrap_err().to_string();
+    assert_eq!(error, "the run's calls log holds prompt or answer text, so it cannot be shared");
+}
+
 /// Sets the uncompressed size `name` claims, in its local header and in the central directory, to `size`.
 fn claim_size(bytes: &mut [u8], name: &str, size: u32) {
     let u16_at = |b: &[u8], i: usize| u16::from_le_bytes([b[i], b[i + 1]]) as usize;
@@ -189,6 +199,12 @@ fn sizes_and_counts_are_held_to_what_is_actually_there() {
     claim_size(&mut understated, "report.md", 1);
     let message = refused(understated, &runs);
     assert!(message.contains("sizes are wrong") || message.contains("declared uncompressed size"), "{message}");
+
+    // a file that claims one byte more than it holds: only the count of what was written catches it
+    let real = good.iter().find(|(n, _)| n == "report.md").unwrap().1.len() as u32;
+    let mut overclaimed = zip_of(&good);
+    claim_size(&mut overclaimed, "report.md", real + 1);
+    assert_eq!(refused(overclaimed, &runs), "the bundle is too large to unpack or its sizes are wrong");
 
     // files that claim more than may be unpacked are refused before anything is written
     let mut overstated = zip_of(&good);

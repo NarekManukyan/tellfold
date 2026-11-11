@@ -360,8 +360,27 @@ async fn the_server_keeps_answering_while_a_bundle_is_made_or_opened() {
     gate.waiting.recv().await.unwrap();
     assert_eq!(answers("/api/runs".into()).await, Ok(200));
     assert_eq!(answers(format!("/api/runs/{source}")).await, Ok(200));
+    // the report files must not change under the bundle being written
+    let (status, body) = server.post(&format!("/api/runs/{source}/report"), json!({})).await;
+    assert_eq!(status, 409, "{body}");
+    assert!(body["detail"].as_str().unwrap().contains("being saved as a bundle"), "{body}");
     gate.release.send(()).unwrap();
     let bundle = export.await.unwrap().unwrap().bytes().await.unwrap();
+    // once it is written, the report can be rebuilt again
+    let deadline = Instant::now() + TIMEOUT;
+    loop {
+        let (status, body) = server.post(&format!("/api/runs/{source}/report"), json!({})).await;
+        if status == 200 {
+            break;
+        }
+        assert!(status == 409 && Instant::now() < deadline, "{status} {body}");
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    let deadline = Instant::now() + TIMEOUT;
+    while server.get(&format!("/api/runs/{source}")).await["report_rebuild"]["running"] == true {
+        assert!(Instant::now() < deadline, "the rebuild did not finish");
+        tokio::time::sleep(Duration::from_millis(30)).await;
+    }
 
     // import: the same while the bundle is checked and unpacked
     let url = format!("{}/api/runs/import", server.base);

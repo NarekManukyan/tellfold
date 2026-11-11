@@ -53,9 +53,11 @@ extension RunStore {
     /// Rounds that actually completed: the recorded data wins over a stale status.
     var roundsCompleted: Int { latestRound }
 
-    /// The run's report text can be rebuilt (not while it runs, not before any round completed, never for an example or
-    /// an imported run).
-    var canRebuildReport: Bool { controls.rebuildReport && !isLive && api != nil && (latestRound > 0 || report != nil) }
+    /// The run's report text can be rebuilt (not while it runs, not before any round completed, not while it is being
+    /// saved as a bundle, never for an example or an imported run).
+    var canRebuildReport: Bool {
+        controls.rebuildReport && !isLive && !isSavingBundle && api != nil && (latestRound > 0 || report != nil)
+    }
 
     /// Which run-changing controls appear for this run.
     var controls: RunControls { RunControls(isLive: isLive, isReadOnly: isReadOnly) }

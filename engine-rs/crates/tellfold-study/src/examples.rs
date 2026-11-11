@@ -6,6 +6,7 @@
 //! journal so `mode=ro&immutable=1` can open it from a signed bundle), the owning process id, and absolute seed
 //! paths from the machine that made the run (in `config.json` and the footer of `report.html`).
 
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use serde_json::Value;
@@ -87,14 +88,23 @@ pub fn pack_example(run_dir: &Path, dest: &Path) -> Result<std::path::PathBuf, E
 
 /// The calls log must hold timings and outcomes only, never prompt or answer text.
 fn check_calls(path: &Path) -> Result<(), Error> {
-    if !path.is_file() {
-        return Ok(());
+    if calls_hold_text(path)? {
+        return Err(Error::Example(format!("{} holds prompt or answer text; it cannot ship", path.display())));
     }
-    for line in std::fs::read_to_string(path)?.lines() {
+    Ok(())
+}
+
+/// Whether calls log `path` holds prompt or answer text, read one line at a time. A missing log holds none.
+pub fn calls_hold_text(path: &Path) -> Result<bool, Error> {
+    if !path.is_file() {
+        return Ok(false);
+    }
+    for line in BufReader::new(std::fs::File::open(path)?).lines() {
+        let line = line?;
         if line.trim().is_empty() {
             continue;
         }
-        let value: Value = serde_json::from_str(line).map_err(|e| Error::Invalid(e.to_string()))?;
+        let value: Value = serde_json::from_str(&line).map_err(|e| Error::Invalid(e.to_string()))?;
         let has_text = match &value {
             Value::Object(map) => PROMPT_KEYS.iter().any(|k| map.contains_key(*k)),
             Value::Array(items) => items.iter().any(|v| v.as_str().is_some_and(|s| PROMPT_KEYS.contains(&s))),
@@ -102,8 +112,8 @@ fn check_calls(path: &Path) -> Result<(), Error> {
             _ => false,
         };
         if has_text {
-            return Err(Error::Example(format!("{} holds prompt or answer text; it cannot ship", path.display())));
+            return Ok(true);
         }
     }
-    Ok(())
+    Ok(false)
 }

@@ -22,7 +22,8 @@ use tellfold_models::{KnowledgeGraph, Persona, Report, RewriteSuggestion, RunSta
 use tellfold_report::html::render_html;
 use tellfold_report::report::render_markdown;
 use tellfold_store::files::{
-    is_run_id, make_run_id, now_iso, write_json, write_status, EXAMPLE_PREFIX, MAX_RUN_ID_LEN, REWRITE_FILE, SEEDS_DIR,
+    is_run_id, make_run_id, now_iso, write_json, write_status, CALLS_FILE, EXAMPLE_PREFIX, MAX_RUN_ID_LEN,
+    REWRITE_FILE, SEEDS_DIR,
 };
 use tellfold_store::world::World;
 use zip::read::ZipFile;
@@ -30,7 +31,7 @@ use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 use crate::branch::copy_file;
-use crate::examples::{pack_example, KEEP};
+use crate::examples::{calls_hold_text, pack_example, KEEP};
 use crate::Error;
 
 /// The file extension of a bundle.
@@ -155,6 +156,11 @@ pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) ->
     if !finished || !run_dir.join("report.json").is_file() {
         return Err(invalid("only a finished run with a report can be shared"));
     }
+    // checked here, before the copy, so the message names no folder of this machine
+    let calls = calls_hold_text(&run_dir.join(CALLS_FILE)).map_err(|_| invalid("the run's calls log is damaged"))?;
+    if calls {
+        return Err(invalid("the run's calls log holds prompt or answer text, so it cannot be shared"));
+    }
     let staging = tempfile::tempdir()?;
     let clean = staging.path().join("run");
     pack_example(run_dir, &clean).map_err(|e| match e {
@@ -164,8 +170,13 @@ pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) ->
     if run_dir.join(REWRITE_FILE).is_file() {
         copy_file(&run_dir.join(REWRITE_FILE), &clean.join(REWRITE_FILE))?;
     }
-    if folder_bytes(&clean)? > MAX_UNPACKED_BYTES {
-        return Err(too_large_to_share(folder_bytes(&clean)?));
+    let unpacked = folder_bytes(&clean)?;
+    if unpacked > MAX_UNPACKED_BYTES {
+        return Err(invalid(format!(
+            "this run is too large to share: it holds {} MB, and a bundle may unpack to at most {} MB",
+            unpacked.div_ceil(MIB),
+            MAX_UNPACKED_BYTES / MIB
+        )));
     }
     let config: SimConfig = parse_file(&clean, "config.json")?;
     let manifest = Manifest {
@@ -206,17 +217,13 @@ pub fn write_bundle<W: Write + Seek>(run_dir: &Path, run_id: &str, writer: W) ->
     let mut writer = zip.finish()?;
     let size = writer.stream_position()?;
     if size > MAX_BUNDLE_BYTES {
-        return Err(too_large_to_share(size));
+        return Err(invalid(format!(
+            "this run is too large to share: its bundle would be {} MB, and Tellfold opens bundles of up to {} MB",
+            size.div_ceil(MIB),
+            MAX_BUNDLE_BYTES / MIB
+        )));
     }
     Ok(())
-}
-
-fn too_large_to_share(bytes: u64) -> Error {
-    invalid(format!(
-        "this run is too large to share: its bundle would be {} MB, and Tellfold opens bundles of up to {} MB",
-        bytes.div_ceil(MIB),
-        MAX_BUNDLE_BYTES / MIB
-    ))
 }
 
 // ---------- import ----------

@@ -506,12 +506,26 @@ async fn bundle_work<T: Send + 'static>(
     .map_err(bundle_error)
 }
 
+/// Marks a run as being exported for as long as it lives; dropping it tells the manager the export ended. It is moved
+/// into the blocking job, so it ends with the job even when the client goes away first.
+struct ExportGuard {
+    handle: Handle,
+    run_id: String,
+}
+
+impl Drop for ExportGuard {
+    fn drop(&mut self) {
+        let run_id = std::mem::take(&mut self.run_id);
+        self.handle.spawn(move |m| m.end_export(&run_id));
+    }
+}
+
 /// The media type of a bundle, as the Mac app declares it.
 pub const BUNDLE_TYPE: &str = "application/vnd.tellfold.run+zip";
 
 /// The finished run as one `.tellfold` file (a zip of its cleaned folder) to send to someone else. The manager only
-/// checks that the run may be shared; the bundle is written to an unnamed temporary file off the manager thread and
-/// streamed from there.
+/// checks that the run may be shared and marks it as being exported (no report rebuild starts until the bundle is
+/// written); the bundle is written to an unnamed temporary file off the manager thread and streamed from there.
 pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, method: Method) -> ApiResult {
     let id = run_id.clone();
     let dir = app
@@ -524,11 +538,18 @@ pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath
             if m.rebuild_state(&id).running {
                 return Err(ApiError::new(409, "the report is being rebuilt; share the run once it is done"));
             }
+            // checked and marked in one manager job, so a rebuild cannot start in between
+            m.begin_export(&id);
             Ok(dir)
         })
         .await??;
+    let guard = ExportGuard { handle: app.handle.clone(), run_id: run_id.clone() };
     let name = format!("{run_id}.{}", tellfold_study::bundle::EXTENSION);
-    let file = bundle_work(&app, move || tellfold_study::bundle::bundle_file(&dir, &run_id)).await?;
+    let file = bundle_work(&app, move || {
+        let _guard = guard;
+        tellfold_study::bundle::bundle_file(&dir, &run_id)
+    })
+    .await?;
     web::open_file_response(tokio::fs::File::from_std(file), &method, BUNDLE_TYPE, Some(&name), &[]).await
 }
 

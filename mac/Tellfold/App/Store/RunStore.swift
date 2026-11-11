@@ -58,6 +58,8 @@ final class RunStore: Identifiable {
     var actionError: String?
     /// The share card sheet (File > Share Card…, the report toolbar).
     var showsShareCard = false
+    /// A bundle of this run is being saved (the app model sets it); the report cannot be rebuilt meanwhile.
+    var isSavingBundle = false
 
     @ObservationIgnored private var streamTask: Task<Void, Never>?
     @ObservationIgnored private var sentimentCache: [Int: [String: Double]] = [:]

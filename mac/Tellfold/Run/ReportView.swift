@@ -157,7 +157,7 @@ struct ReportView: View {
                     do { try await app.exportBundle(store.runID) } catch { actionError = error.localizedDescription }
                 }
             } label: {
-                if app.exportingBundle == store.runID {
+                if app.downloadingBundle == store.runID {
                     ProgressView().controlSize(.small)
                         .accessibilityLabel("Exporting run bundle")
                 } else {

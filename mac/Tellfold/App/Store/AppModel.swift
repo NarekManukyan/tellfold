@@ -54,13 +54,19 @@ final class AppModel {
     var pendingSeedFiles: [URL] = []
     /// The run whose report is being exported as PDF, if any; one export at a time.
     private(set) var exportingPDF: String?
-    /// The run being saved as a `.tellfold` bundle, if any; one at a time.
-    private(set) var exportingBundle: String?
+    /// The run being saved as a `.tellfold` bundle, if any, from the save panel on; one at a time. Its report cannot be
+    /// rebuilt meanwhile (the engine refuses too).
+    private(set) var exportingBundle: String? {
+        didSet { currentStore?.isSavingBundle = currentStore?.runID == exportingBundle }
+    }
+    /// The run whose bundle is being downloaded, once its save panel was confirmed: the toolbar's progress.
+    private(set) var downloadingBundle: String?
     /// True while `.tellfold` files are being opened; the main window shows it and takes no other drop meanwhile.
     private(set) var isImporting = false
     /// Why the last `.tellfold` file could not be opened; the main window shows it.
     var importError: String?
-    /// `.tellfold` files opened before the engine was ready (a double-click that launched the app).
+    /// `.tellfold` files waiting to be opened: opened before the engine was ready (a double-click that launched the
+    /// app), or while other bundles were being opened.
     @ObservationIgnored private var pendingBundles: [URL] = []
 
     private(set) var runtimes: [RuntimeInfo] = []
@@ -120,11 +126,8 @@ final class AppModel {
         guard api != nil else { return }
         Task {
             await refreshRuns()
-            if !pendingBundles.isEmpty {
-                let urls = pendingBundles
-                pendingBundles = []
-                await importBundles(urls)
-            }
+            // also a no-op while an import is still draining the queue: that loop takes them
+            await importBundles([])
             await loadRuntimes()
             await loadEngineSettings()
             if !prefs.agentSetupDone && !runtimesUnsupported {
@@ -255,6 +258,7 @@ final class AppModel {
             return
         }
         let store = RunStore(runID: id, api: api)
+        store.isSavingBundle = exportingBundle == id
         currentStore = store
         Task { await store.load() }
     }
@@ -383,6 +387,8 @@ final class AppModel {
         let parent = NSApp.keyWindow ?? NSApp.mainWindow
         let response = if let parent { await panel.beginSheetModal(for: parent) } else { panel.runModal() }
         guard response == .OK, let url = panel.url else { return nil }
+        downloadingBundle = id
+        defer { downloadingBundle = nil }
         try await api.downloadBundle(runID: id, to: url)
         return url
     }
@@ -394,25 +400,27 @@ final class AppModel {
         return summary(id)?.question ?? id
     }
 
-    /// Opens `.tellfold` files as read-only runs and selects the last one. Waits for the engine when it is not up yet.
-    /// Files dropped while others are being opened are refused by the window (`isImporting`).
+    /// Opens `.tellfold` files as read-only runs and selects the last one. Files that arrive before the engine is up, or
+    /// while others are being opened (Finder, the Dock, File > Open), wait in `pendingBundles` and are opened next.
+    /// The window itself takes no drop meanwhile (`isImporting`).
     func importBundles(_ urls: [URL]) async {
-        guard !urls.isEmpty else { return }
-        guard let api else {
-            pendingBundles.append(contentsOf: urls.filter { !pendingBundles.contains($0) })
-            return
-        }
-        guard !isImporting else { return }
+        pendingBundles.append(contentsOf: urls.filter { !pendingBundles.contains($0) })
+        guard api != nil, !isImporting, !pendingBundles.isEmpty else { return }
         isImporting = true
         defer { isImporting = false }
         var opened: String?
         var failures: [String] = []
-        for url in urls {
-            do {
-                try RunBundle.checkReadable(url)
-                opened = try await api.importBundle(fileAt: url)
-            } catch {
-                failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
+        // files queued while these are opened are taken in the next pass
+        while let api, !pendingBundles.isEmpty {
+            let batch = pendingBundles
+            pendingBundles = []
+            for url in batch {
+                do {
+                    try RunBundle.checkReadable(url)
+                    opened = try await api.importBundle(fileAt: url)
+                } catch {
+                    failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
+                }
             }
         }
         await refreshRuns()

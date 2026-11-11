@@ -423,6 +423,8 @@ struct State {
     /// what the server last told clients about a run's status, so polling only sends changes
     sent: HashMap<String, String>,
     rebuilding: HashMap<String, JoinHandle<()>>,
+    /// run id -> bundles of it being written right now (off this thread); no rebuild starts meanwhile
+    exporting: HashMap<String, usize>,
     /// why the last rebuild failed
     rebuild_errors: HashMap<String, String>,
     /// study id -> compare task
@@ -1020,6 +1022,9 @@ impl Manager {
         if self.is_live(run_id) {
             return Err(conflict("the run is still in progress; it writes its own report"));
         }
+        if self.is_exporting(run_id) {
+            return Err(conflict("the run is being saved as a bundle; rebuild the report once that is done"));
+        }
         if running(&self.st.borrow().rebuilding, run_id) {
             return Err(conflict("the report is already being rebuilt"));
         }
@@ -1065,6 +1070,25 @@ impl Manager {
     }
 
     /// Whether a report rebuild is running, and why the last one failed (None if it did not).
+    /// A bundle of the run is about to be written; [`Manager::end_export`] undoes it.
+    pub fn begin_export(&self, run_id: &str) {
+        *self.st.borrow_mut().exporting.entry(run_id.into()).or_default() += 1;
+    }
+
+    pub fn end_export(&self, run_id: &str) {
+        let mut st = self.st.borrow_mut();
+        if let Some(count) = st.exporting.get_mut(run_id) {
+            *count -= 1;
+            if *count == 0 {
+                st.exporting.remove(run_id);
+            }
+        }
+    }
+
+    pub fn is_exporting(&self, run_id: &str) -> bool {
+        self.st.borrow().exporting.contains_key(run_id)
+    }
+
     pub fn rebuild_state(&self, run_id: &str) -> ReportRebuild {
         let st = self.st.borrow();
         ReportRebuild { running: running(&st.rebuilding, run_id), error: st.rebuild_errors.get(run_id).cloned() }

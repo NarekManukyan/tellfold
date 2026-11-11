@@ -183,7 +183,7 @@ struct RunSidebar: View {
                     do { try await model.rebuildReport(run.id) } catch { errorMessage = error.localizedDescription }
                 }
             }
-            .disabled(run.state.isActive || !model.engine.state.isRunning)
+            .disabled(run.state.isActive || !model.engine.state.isRunning || model.exportingBundle == run.id)
         }
         Button("Export Run Bundle…") {
             Task {

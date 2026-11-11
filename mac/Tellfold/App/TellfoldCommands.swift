@@ -80,7 +80,7 @@ struct TellfoldCommands: Commands {
                 guard let store else { return }
                 Task { await store.rebuildReport() }
             }
-            .disabled(store == nil || (store?.isLive ?? true) || !(store?.controls.rebuildReport ?? false))
+            .disabled(!(store?.canRebuildReport ?? false))
 
             Button("Reveal in Finder") {
                 if let id = store?.runID { model.revealInFinder(id) }
