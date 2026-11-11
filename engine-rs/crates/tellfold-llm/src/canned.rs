@@ -289,7 +289,7 @@ fn fit(text: String, node: &Map<String, Value>) -> String {
     let min = node.get("minLength").and_then(Value::as_u64).unwrap_or(0) as usize;
     let len = text.chars().count();
     if len < min {
-        text.extend(std::iter::repeat('x').take(min - len));
+        text.extend(std::iter::repeat_n('x', min - len));
     }
     match node.get("maxLength").and_then(Value::as_u64) {
         Some(max) => text.chars().take(max as usize).collect(),
