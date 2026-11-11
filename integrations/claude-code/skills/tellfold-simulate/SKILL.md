@@ -63,6 +63,8 @@ and `draft_b` (or `baseline_run_id` set to a finished run plus `draft_b`). Draft
 draft A, so the difference comes from the text.
 
 If `run_b` and `study_id` come back null, draft A is still making its people and draft B starts once it has them.
+If that answer (or `get_study`'s) also has `pause` set, draft A's cast waits to be checked in the Tellfold app: ask
+the user to confirm it there and wait for them before calling `get_study` again.
 Call `get_study` with `run_id` set to `run_a` and `wait_seconds: 60`, again until it returns a `study_id` and the
 runs. Then wait for both runs with `wait_for_run`, call `get_study` with the `study_id` and `wait_seconds: 60` until
 `ready` is true, and summarise which draft landed better and why. If it answers with an `error` instead (for example
