@@ -321,13 +321,13 @@ struct ModelDecodingTests {
         let trial = AnotherVersionSource.trial(runID: "example-corner-cafe", config: config, step: step).config
         let model: (String, String) -> String = { "\($0)/\($1)" }
         // What the sheet sends for a built-in example: this Mac's tools, the change still at round 1.
-        let mine = AppModel.versionConfig(trial, isExample: true, agentRuntime: "claude-code", plannerRuntime: "codex",
+        let mine = AppModel.versionConfig(trial, isReadOnly: true, agentRuntime: "claude-code", plannerRuntime: "codex",
                                           model: model)
         #expect(mine.agentRuntime == "claude-code" && mine.agentModel == "claude-code/agent")
         #expect(mine.plannerRuntime == "codex" && mine.plannerModel == "codex/planner")
         #expect(mine.events == [GodEvent(round: 1, content: "Change announced: Add a pensioner price.")])
         // A run of the user's own keeps its tools.
-        #expect(AppModel.versionConfig(trial, isExample: false, agentRuntime: "claude-code", plannerRuntime: "codex",
+        #expect(AppModel.versionConfig(trial, isReadOnly: false, agentRuntime: "claude-code", plannerRuntime: "codex",
                                        model: model) == trial)
     }
 }

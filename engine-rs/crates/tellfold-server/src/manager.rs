@@ -14,6 +14,10 @@
 //! An optional read-only examples root (the Mac app's bundled example runs) is listed next to the normal runs. Each
 //! example's id is `example-<folder name>`; examples can be read, streamed and (with an AI tool set up) interviewed,
 //! but never changed: they are opened with SQLite's `immutable` flag and nothing is ever written next to them.
+//!
+//! Runs imported from a `.tellfold` bundle (an `imported.json` in the run folder) are treated the same way: someone
+//! else's finished run, read with the AI tool set up on this machine and never changed. A rewrite suggested for one is
+//! kept in memory, as for an example, so the run stays as it arrived.
 
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
@@ -59,11 +63,22 @@ use tellfold_study::compare::{build_compare, Member};
 
 use crate::log;
 
-pub const EXAMPLE_PREFIX: &str = "example-";
+pub use tellfold_store::files::EXAMPLE_PREFIX;
 pub const QUEUE_SIZE: usize = 2000;
 pub const EXAMPLE_READ_ONLY: &str =
     "this is a built-in example run; it cannot be changed. Use Run again to make your own copy";
+pub const IMPORTED_READ_ONLY: &str =
+    "this run was imported from a .tellfold bundle; it cannot be changed. Use Run again to make your own copy";
 const LOGGER: &str = "tellfold.server.manager";
+
+/// Why a run cannot be changed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReadOnly {
+    /// one of the built-in examples
+    Example,
+    /// someone else's run, opened from a `.tellfold` bundle
+    Imported,
+}
 
 /// `llm_factory(run_dir, concurrency, think)`: the model backend for a run folder (None: no call log).
 pub type LlmFactory = Arc<dyn Fn(Option<&Path>, i64, bool) -> Result<Arc<dyn Llm>, LlmError> + Send + Sync>;
@@ -408,6 +423,8 @@ struct State {
     /// what the server last told clients about a run's status, so polling only sends changes
     sent: HashMap<String, String>,
     rebuilding: HashMap<String, JoinHandle<()>>,
+    /// run id -> bundles of it being written right now (off this thread); no rebuild starts meanwhile
+    exporting: HashMap<String, usize>,
     /// why the last rebuild failed
     rebuild_errors: HashMap<String, String>,
     /// study id -> compare task
@@ -416,8 +433,8 @@ struct State {
     compare_errors: HashMap<String, String>,
     /// study id -> "Check it" series
     repeating: HashMap<String, JoinHandle<()>>,
-    /// examples are read-only, so their suggestions are kept here
-    example_rewrites: HashMap<String, RewriteSuggestion>,
+    /// examples and imported runs are read-only, so their suggestions are kept here
+    read_only_rewrites: HashMap<String, RewriteSuggestion>,
     /// set by shutdown(): no new run starts
     closing: bool,
 }
@@ -505,6 +522,28 @@ impl Manager {
         run_id.starts_with(EXAMPLE_PREFIX) && self.examples().contains_key(run_id)
     }
 
+    /// Why a run cannot be changed, if it cannot. The examples folder is read only for an id with the example prefix
+    /// (an imported run never has one), so the polled run list checks one marker file per run.
+    pub fn read_only(&self, run_id: &str) -> Option<ReadOnly> {
+        if self.is_example(run_id) {
+            Some(ReadOnly::Example)
+        } else if tellfold_study::bundle::is_imported(&self.runs_dir.join(run_id)) {
+            Some(ReadOnly::Imported)
+        } else {
+            None
+        }
+    }
+
+    /// A run imported from a `.tellfold` bundle.
+    pub fn is_imported(&self, run_id: &str) -> bool {
+        self.read_only(run_id) == Some(ReadOnly::Imported)
+    }
+
+    /// An example or an imported run: read with this machine's AI tool, never changed.
+    pub fn is_read_only(&self, run_id: &str) -> bool {
+        self.read_only(run_id).is_some()
+    }
+
     /// The folder of a run: an example's folder for an example id, else `runs_dir/run_id`.
     pub fn run_path(&self, run_id: &str) -> PathBuf {
         if run_id.starts_with(EXAMPLE_PREFIX) {
@@ -516,17 +555,22 @@ impl Manager {
     }
 
     pub fn reader(&self, run_id: &str) -> RunReader {
-        if self.is_example(run_id) {
-            return RunReader::new(&self.run_path(run_id), Some(run_id), true);
+        if run_id.starts_with(EXAMPLE_PREFIX) {
+            if let Some(path) = self.examples().remove(run_id) {
+                return RunReader::new(&path, Some(run_id), true);
+            }
         }
-        RunReader::new(&self.runs_dir.join(run_id), None, false)
+        let run_dir = self.runs_dir.join(run_id);
+        let read_only = tellfold_study::bundle::is_imported(&run_dir);
+        RunReader::new(&run_dir, None, read_only)
     }
 
     fn writable(&self, run_id: &str) -> Result<(), ManagerError> {
-        if self.is_example(run_id) {
-            return Err(ManagerError::ReadOnly(EXAMPLE_READ_ONLY.into()));
+        match self.read_only(run_id) {
+            Some(ReadOnly::Example) => Err(ManagerError::ReadOnly(EXAMPLE_READ_ONLY.into())),
+            Some(ReadOnly::Imported) => Err(ManagerError::ReadOnly(IMPORTED_READ_ONLY.into())),
+            None => Ok(()),
         }
-        Ok(())
     }
 
     pub fn effective_status(&self, run_id: &str) -> Option<RunStatus> {
@@ -802,7 +846,7 @@ impl Manager {
         let Some(config) = config.filter(|_| db.is_file()) else {
             return Err(conflict("this run has no simulated world yet"));
         };
-        let world = if self.is_example(run_id) {
+        let world = if self.is_read_only(run_id) {
             World::open_read_only(&db, config.seed)
         } else {
             World::open(&db, config.seed)
@@ -813,17 +857,27 @@ impl Manager {
 
     /// The model for interviews and follow-up questions, and the config that names its models.
     ///
-    /// A normal run uses its own runtimes. An example uses the AI tool set up on this machine (its recorded runtime
-    /// may not be installed here), logs no calls (its folder is read-only), and needs a tool at all.
+    /// A normal run uses its own runtimes. An example or an imported run uses the AI tool set up on this machine (its
+    /// recorded runtime may not be installed here), logs no calls (they are not the run's own), and needs a tool at all.
     async fn talker(&self, run_id: &str, config: SimConfig) -> Result<(Arc<dyn Llm>, SimConfig), ManagerError> {
-        if !self.is_example(run_id) {
+        if !self.is_read_only(run_id) {
             return Ok((self.llm(Some(&self.runs_dir.join(run_id)), 1, false)?, config));
         }
-        let config = self.local_tool(config, "to interview people or ask questions in an example run").await?;
+        let config =
+            self.local_tool(config, &format!("to interview people or ask questions in {}", self.kind(run_id))).await?;
         Ok((self.llm(None, 1, false)?, config))
     }
 
-    /// An example's config with the AI tool and models set up on this machine instead of the recorded ones.
+    /// "an example run" or "an imported run", for messages.
+    fn kind(&self, run_id: &str) -> &'static str {
+        match self.read_only(run_id) {
+            Some(ReadOnly::Example) => "an example run",
+            _ => "an imported run",
+        }
+    }
+
+    /// A read-only run's config (an example's or an imported run's) with the AI tool and models set up on this
+    /// machine instead of the recorded ones, which may not be installed here.
     /// Conflict when no tool is set up; `purpose` finishes that message.
     async fn local_tool(&self, config: SimConfig, purpose: &str) -> Result<SimConfig, ManagerError> {
         if let Some(ready) = &self.runtime_ready {
@@ -890,9 +944,9 @@ impl Manager {
         let Some(mut source) = self.reader(source_id).config() else {
             return Err(conflict("this run has no settings to branch from"));
         };
-        let example = self.is_example(source_id);
-        if example {
-            source = self.local_tool(source, "to branch an example run").await?;
+        let read_only = self.is_read_only(source_id);
+        if read_only {
+            source = self.local_tool(source, &format!("to branch {}", self.kind(source_id))).await?;
         }
         let label = format!("Branch at round {round}");
         let (study, label) =
@@ -901,7 +955,7 @@ impl Manager {
         let run_dir = self.create_run_dir(&source.question).map_err(internal)?;
         let options = BranchOptions {
             source_id: Some(source_id),
-            immutable: example,
+            immutable: read_only,
             study_id: Some(&study.id),
             variant: Some(&label),
         };
@@ -933,25 +987,32 @@ impl Manager {
         };
         drop(reader);
         let (llm, config) = self.talker(run_id, config).await?;
-        let example = self.is_example(run_id);
+        let read_only = self.is_read_only(run_id);
         let suggestion =
-            build_rewrite(llm.as_ref(), &self.run_path(run_id), &config, &report, &config.planner_model, example)
+            build_rewrite(llm.as_ref(), &self.run_path(run_id), &config, &report, &config.planner_model, read_only)
                 .await
                 .map_err(|e| match e {
                     ReportError::Rewrite(message) => ManagerError::BadRequest(message),
                     other => report_error(other),
                 })?;
-        if example {
-            self.st.borrow_mut().example_rewrites.insert(run_id.into(), suggestion.clone());
+        if read_only {
+            self.st.borrow_mut().read_only_rewrites.insert(run_id.into(), suggestion.clone());
         } else {
             write_json(&self.run_path(run_id).join(REWRITE_FILE), &suggestion).map_err(internal)?;
         }
         Ok(suggestion)
     }
 
+    /// The suggestion made on this machine, else (for a normal or an imported run) the one in `rewrite.json`.
     pub fn saved_rewrite(&self, run_id: &str) -> Option<RewriteSuggestion> {
-        if self.is_example(run_id) {
-            return self.st.borrow().example_rewrites.get(run_id).cloned();
+        let read_only = self.read_only(run_id);
+        if read_only.is_some() {
+            if let Some(suggestion) = self.st.borrow().read_only_rewrites.get(run_id) {
+                return Some(suggestion.clone());
+            }
+        }
+        if read_only == Some(ReadOnly::Example) {
+            return None;
         }
         read_model(&self.run_path(run_id).join(REWRITE_FILE))
     }
@@ -960,6 +1021,9 @@ impl Manager {
         self.writable(run_id)?;
         if self.is_live(run_id) {
             return Err(conflict("the run is still in progress; it writes its own report"));
+        }
+        if self.is_exporting(run_id) {
+            return Err(conflict("the run is being saved as a bundle; rebuild the report once that is done"));
         }
         if running(&self.st.borrow().rebuilding, run_id) {
             return Err(conflict("the report is already being rebuilt"));
@@ -1006,6 +1070,25 @@ impl Manager {
     }
 
     /// Whether a report rebuild is running, and why the last one failed (None if it did not).
+    /// A bundle of the run is about to be written; [`Manager::end_export`] undoes it.
+    pub fn begin_export(&self, run_id: &str) {
+        *self.st.borrow_mut().exporting.entry(run_id.into()).or_default() += 1;
+    }
+
+    pub fn end_export(&self, run_id: &str) {
+        let mut st = self.st.borrow_mut();
+        if let Some(count) = st.exporting.get_mut(run_id) {
+            *count -= 1;
+            if *count == 0 {
+                st.exporting.remove(run_id);
+            }
+        }
+    }
+
+    pub fn is_exporting(&self, run_id: &str) -> bool {
+        self.st.borrow().exporting.contains_key(run_id)
+    }
+
     pub fn rebuild_state(&self, run_id: &str) -> ReportRebuild {
         let st = self.st.borrow();
         ReportRebuild { running: running(&st.rebuilding, run_id), error: st.rebuild_errors.get(run_id).cloned() }
@@ -1024,7 +1107,7 @@ impl Manager {
             let path = self.run_path(&run.id);
             if path.join("config.json").is_file() {
                 let mut member = Member::new(&letter(i as i64), &run.id, &run.variant, &path);
-                member.immutable = self.is_example(&run.id);
+                member.immutable = self.is_read_only(&run.id);
                 members.push(member);
             }
         }
@@ -1167,8 +1250,8 @@ impl Manager {
         let Some(mut config) = config.filter(|_| has_report && source.join("personas.json").is_file()) else {
             return Err(conflict("only a finished run with a report can be checked"));
         };
-        if self.is_example(source_id) {
-            config = self.local_tool(config, "to check an example run").await?;
+        if self.is_read_only(source_id) {
+            config = self.local_tool(config, &format!("to check {}", self.kind(source_id))).await?;
         }
         let study = Study {
             id: new_study_id(None),

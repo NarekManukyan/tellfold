@@ -80,15 +80,21 @@ final class ReportPDFExporter: NSObject {
     }
 
     /// The report title as a file name: no path separators or colons, at most 80 characters, ending in `.pdf`.
-    static func suggestedFileName(title: String) -> String {
+    nonisolated static func suggestedFileName(title: String) -> String { baseName(title: title) + ".pdf" }
+
+    /// The name `baseName(title:)` gives a report without a usable title.
+    nonisolated static let fallbackName = "Tellfold report"
+
+    /// The report title cleaned for a file name, without an extension; the PDF, the share card and the run bundle all
+    /// start from it.
+    nonisolated static func baseName(title: String) -> String {
         let cleaned = title
             .components(separatedBy: CharacterSet(charactersIn: "/:\\").union(.newlines).union(.controlCharacters))
             .joined(separator: " ")
             .split(whereSeparator: \.isWhitespace)
             .joined(separator: " ")
             .trimmingCharacters(in: CharacterSet(charactersIn: ". "))
-        let name = cleaned.isEmpty ? "Tellfold report" : String(cleaned.prefix(80)).trimmingCharacters(in: .whitespaces)
-        return name + ".pdf"
+        return cleaned.isEmpty ? fallbackName : String(cleaned.prefix(80)).trimmingCharacters(in: .whitespaces)
     }
 
     // MARK: Plumbing

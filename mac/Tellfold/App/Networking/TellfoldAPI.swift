@@ -280,6 +280,38 @@ actor TellfoldAPI {
         try await sendRaw(makeRequest(["runs", runID, "report.html"]))
     }
 
+    /// Downloads the finished run as one `.tellfold` file (`GET /api/runs/{id}/bundle`) and moves it to `destination`,
+    /// replacing a file there. The bundle goes to disk as it arrives; it is never held in memory.
+    func downloadBundle(runID: String, to destination: URL) async throws {
+        var req = makeRequest(["runs", runID, "bundle"])
+        req.timeoutInterval = 300
+        let (temp, http) = try await transfer { try await session.download(for: req) }
+        defer { try? FileManager.default.removeItem(at: temp) }
+        guard (200..<300).contains(http.statusCode) else {
+            throw TellfoldAPIError.from(status: http.statusCode, body: (try? Data(contentsOf: temp)) ?? Data())
+        }
+        do {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: temp)
+        } catch {
+            throw RunBundle.FileError(message: "Could not save \(destination.lastPathComponent): \(error.localizedDescription)")
+        }
+    }
+
+    /// Sends the `.tellfold` file at `file` as a new, read-only run (`POST /api/runs/import`), streamed from disk;
+    /// returns the new run's id.
+    func importBundle(fileAt file: URL) async throws -> String {
+        var req = makeRequest(["runs", "import"], method: "POST")
+        req.setValue(RunBundle.mediaType, forHTTPHeaderField: "Content-Type")
+        req.timeoutInterval = 300
+        let (data, http) = try await transfer { try await session.upload(for: req, fromFile: file) }
+        guard (200..<300).contains(http.statusCode) else { throw TellfoldAPIError.from(status: http.statusCode, body: data) }
+        do {
+            return try Self.decoder.decode(CreatedRun.self, from: data).id
+        } catch {
+            throw TellfoldAPIError(status: 0, message: "Unexpected response from the engine: \(error)")
+        }
+    }
+
     // MARK: Studies
 
     func studies() async throws -> [StudySummary] { try await get("studies") }
@@ -385,10 +417,20 @@ actor TellfoldAPI {
     }
 
     private func sendRaw(_ request: URLRequest) async throws -> Data {
-        let data: Data
+        let (data, http) = try await transfer { try await session.data(for: request) }
+        guard (200..<300).contains(http.statusCode) else {
+            throw TellfoldAPIError.from(status: http.statusCode, body: data)
+        }
+        return data
+    }
+
+    /// One URLSession task, with transport failures as `TellfoldAPIError` (cancellation stays a `CancellationError`).
+    /// The status is left to the caller.
+    private func transfer<R>(_ task: () async throws -> (R, URLResponse)) async throws -> (R, HTTPURLResponse) {
+        let result: R
         let response: URLResponse
         do {
-            (data, response) = try await session.data(for: request)
+            (result, response) = try await task()
         } catch let error as URLError where error.code == .cancelled {
             throw CancellationError()
         } catch {
@@ -397,10 +439,7 @@ actor TellfoldAPI {
         guard let http = response as? HTTPURLResponse else {
             throw TellfoldAPIError(status: 0, message: "No HTTP response from the engine.")
         }
-        guard (200..<300).contains(http.statusCode) else {
-            throw TellfoldAPIError.from(status: http.statusCode, body: data)
-        }
-        return data
+        return (result, http)
     }
 
     static func mimeType(for url: URL) -> String {

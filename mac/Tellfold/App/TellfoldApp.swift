@@ -60,8 +60,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Keep running when the last window closes, so live simulations continue.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
-    /// Seed files dropped on the Dock icon or opened with Tellfold from Finder.
+    /// Seed files and `.tellfold` run bundles dropped on the Dock icon or opened with Tellfold from Finder.
     func application(_ application: NSApplication, open urls: [URL]) {
-        model.openSeedFiles(urls)
+        model.open(urls)
     }
 }

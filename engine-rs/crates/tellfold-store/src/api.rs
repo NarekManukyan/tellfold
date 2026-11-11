@@ -16,6 +16,9 @@ pub struct RunSummary {
     pub has_report: bool,
     /// A built-in example run: read-only.
     pub example: bool,
+    /// A run imported from a `.tellfold` bundle: read-only. Left out when false.
+    #[serde(skip_serializing_if = "is_false")]
+    pub imported: bool,
     pub study_id: Option<String>,
     pub variant: Option<String>,
     /// `RunStatus.pause`: why a running run waits for a client. Rust-only.
@@ -64,6 +67,13 @@ pub struct RunDetail {
     pub report_rebuild: ReportRebuild,
     /// A built-in example run: events, stop and report rebuild are refused.
     pub example: bool,
+    /// A run imported from a `.tellfold` bundle, refused the same changes. Left out when false.
+    #[serde(skip_serializing_if = "is_false")]
+    pub imported: bool,
+}
+
+fn is_false(value: &bool) -> bool {
+    !value
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

@@ -189,6 +189,30 @@ struct EngineIntegrationTests {
         let suggestion = try await client.rewrite(runID: id)
         #expect(try await client.savedRewrite(runID: id) == suggestion)
 
+        // A run bundle opens as someone else's read-only run, next to the original. It goes through files both ways.
+        let folder = URL.temporaryDirectory.appending(path: "tellfold-bundle-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appending(path: "run.tellfold")
+        try await client.downloadBundle(runID: id, to: file)
+        #expect(try Data(contentsOf: file).starts(with: Data("PK".utf8)))
+        let imported = try await client.importBundle(fileAt: file)
+        #expect(imported != id)
+        #expect(try await client.runs().first { $0.id == imported }?.imported == true)
+        let copy = try await client.run(imported)
+        #expect(copy.imported && !copy.example && copy.status?.state == .done)
+        #expect(copy.report == (try await client.run(id)).report)
+        #expect(copy.config.seedFiles == ["seeds/seed.md"])
+        do {
+            try await client.rebuildReport(runID: imported)
+            Issue.record("an imported run's report was rebuilt")
+        } catch let error as TellfoldAPIError {
+            #expect(error.status == 403)
+        }
+        let junk = folder.appending(path: "junk.tellfold")
+        try Data("not a bundle".utf8).write(to: junk)
+        await #expect(throws: TellfoldAPIError.self) { try await client.importBundle(fileAt: junk) }
+
         let branch = try await client.branch(runID: id, round: 1, events: [GodEvent(round: 2, content: "The owner apologises")])
         #expect(try await finished(branch.id).config.branchedFrom == id)
         let compared = try await settled(branch.studyID)

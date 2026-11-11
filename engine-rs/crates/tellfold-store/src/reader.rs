@@ -53,7 +53,8 @@ pub struct RunReader {
 }
 
 impl RunReader {
-    /// `immutable` is for runs on read-only media (the app's bundled examples): SQLite then skips all locking.
+    /// `immutable` is for runs that are never written: the app's bundled examples (on read-only media) and runs
+    /// imported from a bundle. SQLite then skips all locking and writes no side files.
     pub fn new(run_dir: &Path, run_id: Option<&str>, immutable: bool) -> Self {
         let id = run_id
             .map(str::to_string)
@@ -417,6 +418,7 @@ impl RunReader {
             created_at: status.started_at,
             has_report: self.has_report(),
             example: false,
+            imported: false,
             study_id: config.study_id,
             variant: config.variant,
             pause: status.pause,
@@ -438,6 +440,7 @@ impl RunReader {
             calls: self.calls(),
             report_rebuild: ReportRebuild::default(),
             example: false,
+            imported: false,
             config,
         })
     }

@@ -46,7 +46,7 @@ Errors are JSON in FastAPI's shape:
 |---|---|
 | 400 | a malformed id or field, or a request that does not make sense (`"add at least one seed file ..."`) |
 | 401 | missing or wrong token |
-| 403 | foreign host, cross-origin write, or a change to a read-only example run |
+| 403 | foreign host, cross-origin write, or a change to a read-only run (a built-in example or an imported run) |
 | 404 | no such run, study, agent, runtime, seed or report |
 | 409 | not possible in the run's current state (`"round 3 has already started (current round is 4)"`) |
 | 413 | an upload over the limits |
@@ -55,6 +55,12 @@ Errors are JSON in FastAPI's shape:
 | 503 | the server is shutting down |
 
 An unexpected failure is a plain-text `500 Internal Server Error`.
+
+Built-in examples and runs opened from a `.tellfold` bundle are read-only. Every route that would change one (events,
+stop, report rebuild, the cast routes) answers 403 with `"this is a built-in example run; it cannot be changed. Use Run
+again to make your own copy"` or `"this run was imported from a .tellfold bundle; it cannot be changed. Use Run again
+to make your own copy"`. They can still be read, interviewed and asked (with an AI tool set up on this machine), and
+branched or checked into new runs of your own.
 
 ## Shared shapes
 
@@ -124,7 +130,8 @@ Every run, newest first, with the built-in examples (when the server has an exam
 }
 ```
 
-A run waiting for its cast to be checked also has `"pause": "personas_ready"`.
+A run waiting for its cast to be checked also has `"pause": "personas_ready"`. A run opened from a `.tellfold` bundle
+also has `"imported": true`; the key is left out for every other run.
 
 ### `POST /api/runs`
 
@@ -181,6 +188,7 @@ The whole run (**RunDetail**):
 | `calls` | `{count, failed, seconds, agent: {count, failed, seconds}, planner: {...}}` |
 | `report_rebuild` | `{running, error}` for `POST .../report` |
 | `example` | a read-only built-in example |
+| `imported` | `true` for a read-only run opened from a `.tellfold` bundle; left out otherwise |
 
 ### `GET /api/runs/{run_id}/posts?since_id=N`
 
@@ -256,6 +264,24 @@ Rebuilds the report from what the run has (also for an interrupted run). Answers
 
 The report as Markdown (`text/markdown`) or as the standalone HTML page. 404 until the run has one.
 
+### `GET /api/runs/{run_id}/bundle`
+
+The finished run as one `.tellfold` file to send to someone else: a zip of a cleaned copy of the run folder (no
+prompt text, no process id, relative seed paths) plus `bundle.json` (`{format, run_id, question, exported_at,
+engine_version}`). Sent as `application/vnd.tellfold.run+zip` with `Content-Disposition: attachment;
+filename="<run_id>.tellfold"`. 400 when the run is not finished with a report, its calls log holds prompt text or is
+damaged (`"the run's calls log is damaged"`), the run unpacks to more than 2048 MB (`"... a bundle may unpack to at
+most 2048 MB"`), or the bundle would be over 512 MB; 409 while the run is live or its report is being rebuilt. While a bundle is being written
+the run's report cannot be rebuilt (409).
+
+### `POST /api/runs/import`
+
+Opens a `.tellfold` file, sent as the raw request body (any content type, at most 512 MB), as a new read-only run.
+Answers `{"id": "<new run id>"}`: the exported run's id, or that id with `-2`, `-3`, ... when it is taken. 400 for an
+empty body or a file that is not a valid bundle (unsafe or unexpected names, links, wrong sizes, a damaged or unsafe
+database, an unfinished run, a newer format); 413 over 512 MB. Nothing is left in the runs folder when a bundle is
+refused. The new run has `imported: true` and is read-only (see [Errors](#errors)).
+
 ### `GET /api/runs/{run_id}/seeds` and `GET /api/runs/{run_id}/seeds/{name}`
 
 The run's seed documents: a list of `{name, size}`, and one file as it was uploaded.
@@ -307,7 +333,7 @@ Newest first:
 | field | |
 |---|---|
 | `id`, `kind`, `created_at`, `planned` | |
-| `runs` | `{id, variant, letter, question, state, has_report, example, digest}` per run; `digest` is the per-run summary the comparison is built from |
+| `runs` | `{id, variant, letter, question, state, has_report, example, digest}` per run, plus `imported: true` for a run opened from a bundle; `digest` is the per-run summary the comparison is built from |
 | `compare` | for `compare` studies: `{study_id, created_at, runs: [digest], report: {headline, better_variant, why, per_variant: [{variant, summary, objections}], objections_only_in: [{variant, objections}], caveats, citation_audit}}`, or null |
 | `compare_state` | `{running, error}` |
 | `repeating` | a "Check it" series is still running |

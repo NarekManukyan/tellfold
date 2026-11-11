@@ -236,6 +236,19 @@ fn initialize_list_tools_run_and_read_the_report() {
     let error = client.call_error("inject_event", json!({"run_id": run_id, "round": 2, "content": "News"}));
     assert!(error.contains("HTTP 409"), "{error}");
 
+    // a copy opened from a .tellfold bundle is listed and reported as imported, and cannot be changed
+    let bundle = tellfold_study::bundle::bundle_bytes(&runs.join(&run_id), &run_id).unwrap();
+    let copy = tellfold_study::bundle::import_bundle(std::io::Cursor::new(bundle), &runs).unwrap();
+    let listed = client.call("list_runs", json!({}))["structuredContent"].clone();
+    let row = listed["runs"].as_array().unwrap().iter().find(|r| r["id"] == json!(copy)).unwrap().clone();
+    assert_eq!(row["imported"], true, "{row}");
+    let own = listed["runs"].as_array().unwrap().iter().find(|r| r["id"] == json!(run_id)).unwrap().clone();
+    assert!(own.get("imported").is_none(), "{own}");
+    let status = client.call("get_run_status", json!({"run_id": copy}))["structuredContent"].clone();
+    assert_eq!(status["imported"], true, "{status}");
+    let error = client.call_error("inject_event", json!({"run_id": copy, "round": 2, "content": "News"}));
+    assert!(error.contains("HTTP 403") && error.contains("imported"), "{error}");
+
     assert_eq!(client.finish(), Some(0));
 }
 

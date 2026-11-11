@@ -177,12 +177,20 @@ struct RunSidebar: View {
             }
         }
         .disabled(!run.hasReport)
-        Button("Rebuild Report") {
+        if !run.imported {
+            Button("Rebuild Report") {
+                Task {
+                    do { try await model.rebuildReport(run.id) } catch { errorMessage = error.localizedDescription }
+                }
+            }
+            .disabled(run.state.isActive || !model.engine.state.isRunning || model.exportingBundle == run.id)
+        }
+        Button("Export Run Bundle…") {
             Task {
-                do { try await model.rebuildReport(run.id) } catch { errorMessage = error.localizedDescription }
+                do { try await model.exportBundle(run.id) } catch { errorMessage = error.localizedDescription }
             }
         }
-        .disabled(run.state.isActive || !model.engine.state.isRunning)
+        .disabled(!model.canExportBundle(run.id))
         Divider()
         Button("Move to Trash…", role: .destructive) { pendingDelete = run }
             .disabled(run.state.isActive)
@@ -296,6 +304,8 @@ private struct RunRow: View {
             HStack(spacing: 6) {
                 if run.example {
                     ExampleBadge()
+                } else if run.imported {
+                    ImportedBadge()
                 } else {
                     StatusChip(state: run.state, compact: true)
                 }
@@ -317,6 +327,7 @@ private struct RunRow: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(run.example
             ? "\(run.question), example run"
+            : run.imported ? "\(run.question), imported run"
             : "\(run.question), \(run.state.title), round \(roundsDone) of \(run.totalRounds)")
     }
 }
@@ -331,6 +342,22 @@ struct ExampleBadge: View {
             .padding(.vertical, 1)
             .background(Theme.accentSoft, in: Capsule())
             .help("A finished example run that ships with Tellfold. It is read-only; Run again makes your own copy.")
+    }
+}
+
+/// The small "Imported" tag on a run opened from a `.tellfold` file.
+struct ImportedBadge: View {
+    var body: some View {
+        Label("Imported", systemImage: "arrow.down.doc")
+            .labelStyle(.titleAndIcon)
+            .font(Theme.ui(10, .semibold))
+            .foregroundStyle(Theme.secondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(Theme.hover, in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.seam, lineWidth: 1))
+            .fixedSize()
+            .help("Someone else's run, opened from a .tellfold file. It is read-only; Run again makes your own copy.")
     }
 }
 

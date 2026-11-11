@@ -90,6 +90,17 @@ pub async fn file_response(
     extra: &[(&'static str, &'static str)],
 ) -> ApiResult {
     let file = tokio::fs::File::open(path).await.map_err(ApiError::internal)?;
+    open_file_response(file, method, content_type, attachment, extra).await
+}
+
+/// [`file_response`] for a file already open (one that may have no name on disk), streamed from where it is.
+pub async fn open_file_response(
+    file: tokio::fs::File,
+    method: &Method,
+    content_type: &str,
+    attachment: Option<&str>,
+    extra: &[(&'static str, &'static str)],
+) -> ApiResult {
     let meta = file.metadata().await.map_err(ApiError::internal)?;
     let modified = meta.modified().ok();
     // streamed in chunks, and a HEAD request only stats the file

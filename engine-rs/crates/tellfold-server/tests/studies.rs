@@ -11,7 +11,9 @@ use serde_json::{json, Value};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::{Llm, LlmError};
-use tellfold_server::{create_app, AppOptions, LlmFactory, ManagerOptions, ManagerThread, RuntimeReady};
+use tellfold_server::{
+    create_app, AppOptions, BundleHook, BundleStage, LlmFactory, ManagerOptions, ManagerThread, RuntimeReady,
+};
 
 const SEED: &[u8] =
     b"# Harbour Town votes on a new ferry fare\n\nThe council proposes raising the ferry fare from 2 to \
@@ -35,6 +37,10 @@ struct Server {
 
 impl Server {
     async fn start(configure: impl FnOnce(&mut ManagerOptions, &Path)) -> Server {
+        Server::start_with(configure, AppOptions { fake_llm: true, ..Default::default() }).await
+    }
+
+    async fn start_with(configure: impl FnOnce(&mut ManagerOptions, &Path), app: AppOptions) -> Server {
         let tmp = tempfile::tempdir().unwrap();
         let runs = tmp.path().join("runs");
         let calls: Calls = Arc::default();
@@ -63,7 +69,7 @@ impl Server {
         options.shutdown_grace = Duration::from_millis(500);
         options.settings_path = Some(tmp.path().join("settings.json"));
         configure(&mut options, tmp.path());
-        let (router, manager) = create_app(options, AppOptions { fake_llm: true, ..Default::default() });
+        let (router, manager) = create_app(options, app);
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let base = format!("http://127.0.0.1:{}", listener.local_addr().unwrap().port());
         let task = tokio::spawn(async move {
@@ -264,6 +270,172 @@ async fn an_example_needs_an_ai_tool_to_interview() {
     assert_eq!(config["cast_from"], "example-demo");
     assert!(config["study_id"].as_str().is_some_and(|s| !s.is_empty()));
     assert_eq!(listing(&example), before, "nothing is written next to an example");
+    server.stop().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_bundle_opens_as_a_read_only_run() {
+    let not_ready: RuntimeReady = Arc::new(|| async { false }.boxed());
+    let server = Server::start(move |options, _| options.runtime_ready = Some(not_ready)).await;
+    let source = server.finished_run().await;
+    let res = server.http.get(format!("{}/api/runs/{source}/bundle", server.base)).send().await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    assert_eq!(res.headers()["content-type"], "application/vnd.tellfold.run+zip");
+    assert_eq!(
+        res.headers()["content-disposition"].to_str().unwrap(),
+        format!("attachment; filename=\"{source}.tellfold\"")
+    );
+    let bundle = res.bytes().await.unwrap();
+
+    let import = |body: Vec<u8>| server.http.post(format!("{}/api/runs/import", server.base)).body(body).send();
+    let res = import(bundle.to_vec()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let id = res.json::<Value>().await.unwrap()["id"].as_str().unwrap().to_string();
+    assert_eq!(id, format!("{source}-2"), "a second copy next to the first");
+
+    let runs = server.get("/api/runs").await;
+    let row = runs.as_array().unwrap().iter().find(|r| r["id"] == id.as_str()).unwrap().clone();
+    assert_eq!(
+        (row["imported"].as_bool(), row["example"].as_bool(), row["state"].as_str()),
+        (Some(true), Some(false), Some("done"))
+    );
+    let own = runs.as_array().unwrap().iter().find(|r| r["id"] == source.as_str()).unwrap().clone();
+    assert!(own.get("imported").is_none(), "left out for a run of one's own");
+    let detail = server.get(&format!("/api/runs/{id}")).await;
+    assert_eq!(detail["imported"], true);
+    assert!(detail["report"]["title"].is_string());
+
+    let before = listing(&server.runs.join(&id));
+    let read_only =
+        "this run was imported from a .tellfold bundle; it cannot be changed. Use Run again to make your own copy";
+    let (status, body) = server.post(&format!("/api/runs/{id}/events"), json!({"round": 2, "content": "News"})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) = server.post(&format!("/api/runs/{id}/report"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) =
+        server.post(&format!("/api/runs/{id}/chat"), json!({"agent_id": "a01", "message": "Hi"})).await;
+    assert_eq!(status, 409);
+    assert_eq!(body["detail"], "set up an AI tool first to interview people or ask questions in an imported run");
+    let (status, body) = server.post(&format!("/api/runs/{id}/check"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (409, Some("set up an AI tool first to check an imported run")));
+    // nor can its cast be edited, extended or confirmed
+    let people = server.get(&format!("/api/runs/{id}/personas")).await;
+    assert_eq!(people["waiting"], false);
+    let cast = json!({"personas": people["personas"].clone()});
+    let (status, body) = server.send(reqwest::Method::PUT, &format!("/api/runs/{id}/personas"), Some(cast)).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let group = json!({"description": "Night-shift nurses", "count": 2});
+    let (status, body) = server.post(&format!("/api/runs/{id}/personas/group"), group).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) = server.post(&format!("/api/runs/{id}/personas/confirm"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    assert_eq!(listing(&server.runs.join(&id)), before, "nothing is written next to an imported run");
+
+    let res = import(b"definitely not a zip".to_vec()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 400);
+    assert!(res.json::<Value>().await.unwrap()["detail"].as_str().unwrap().contains("not a Tellfold bundle"));
+    let res = import(Vec::new()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 400);
+    server.stop().await;
+}
+
+/// A bundle hook that stops each bundle request at `stage` until the test lets it go, and says when one is waiting.
+struct Gate {
+    waiting: tokio::sync::mpsc::UnboundedReceiver<()>,
+    release: std::sync::mpsc::Sender<()>,
+}
+
+fn gate(stage: BundleStage) -> (BundleHook, Gate) {
+    let (waiting_tx, waiting) = tokio::sync::mpsc::unbounded_channel();
+    let (release, release_rx) = std::sync::mpsc::channel::<()>();
+    let release_rx = Mutex::new(release_rx);
+    let hook = BundleHook(Arc::new(move |at| {
+        if at == stage {
+            let _ = waiting_tx.send(());
+            let _ = release_rx.lock().unwrap().recv_timeout(TIMEOUT);
+        }
+    }));
+    (hook, Gate { waiting, release })
+}
+
+/// Posts a report rebuild until it is accepted; panics if it is still refused after the timeout.
+async fn rebuild_accepted(server: &Server, run_id: &str) {
+    let deadline = Instant::now() + TIMEOUT;
+    loop {
+        let (status, body) = server.post(&format!("/api/runs/{run_id}/report"), json!({})).await;
+        if status == 200 {
+            break;
+        }
+        assert!(status == 409 && Instant::now() < deadline, "{status} {body}");
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    let deadline = Instant::now() + TIMEOUT;
+    while server.get(&format!("/api/runs/{run_id}")).await["report_rebuild"]["running"] == true {
+        assert!(Instant::now() < deadline, "the rebuild did not finish");
+        tokio::time::sleep(Duration::from_millis(30)).await;
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn an_export_dropped_before_its_reply_does_not_block_rebuilds() {
+    let (hook, mut gate) = gate(BundleStage::Checked);
+    let app = AppOptions { fake_llm: true, bundle_hook: Some(hook), ..Default::default() };
+    let server = Server::start_with(|_, _| (), app).await;
+    let source = server.finished_run().await;
+    // the manager has marked the run and is held before it replies; the client gives up meanwhile
+    let export = tokio::spawn(server.http.get(format!("{}/api/runs/{source}/bundle", server.base)).send());
+    gate.waiting.recv().await.unwrap();
+    export.abort();
+    let _ = export.await;
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    gate.release.send(()).unwrap();
+    // the unsent reply took the mark with it
+    rebuild_accepted(&server, &source).await;
+    server.stop().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn the_server_keeps_answering_while_a_bundle_is_made_or_opened() {
+    let (hook, mut gate) = gate(BundleStage::Work);
+    let app = AppOptions { fake_llm: true, bundle_hook: Some(hook), ..Default::default() };
+    let server = Server::start_with(|_, _| (), app).await;
+    let source = server.finished_run().await;
+    let answers = |path: String| {
+        let request = server.http.get(format!("{}{path}", server.base)).send();
+        async move { tokio::time::timeout(Duration::from_secs(10), request).await.map(|r| r.unwrap().status().as_u16()) }
+    };
+
+    // export: the bundle is being written, and the manager still answers
+    let url = format!("{}/api/runs/{source}/bundle", server.base);
+    let export = tokio::spawn(server.http.get(url).send());
+    gate.waiting.recv().await.unwrap();
+    assert_eq!(answers("/api/runs".into()).await, Ok(200));
+    assert_eq!(answers(format!("/api/runs/{source}")).await, Ok(200));
+    // the report files must not change under the bundle being written
+    let (status, body) = server.post(&format!("/api/runs/{source}/report"), json!({})).await;
+    assert_eq!(status, 409, "{body}");
+    assert!(body["detail"].as_str().unwrap().contains("being saved as a bundle"), "{body}");
+    gate.release.send(()).unwrap();
+    let bundle = export.await.unwrap().unwrap().bytes().await.unwrap();
+    // once it is written, the report can be rebuilt again
+    rebuild_accepted(&server, &source).await;
+
+    // import: the same while the bundle is checked and unpacked
+    let url = format!("{}/api/runs/import", server.base);
+    let import = tokio::spawn(server.http.post(url).body(bundle.to_vec()).send());
+    gate.waiting.recv().await.unwrap();
+    assert_eq!(answers("/api/runs".into()).await, Ok(200));
+    gate.release.send(()).unwrap();
+    let res = import.await.unwrap().unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let id = res.json::<Value>().await.unwrap()["id"].as_str().unwrap().to_string();
+
+    // a rewrite suggested here is kept in memory: the imported run stays as it arrived
+    let before = listing(&server.runs.join(&id));
+    let (status, suggestion) = server.post(&format!("/api/runs/{id}/rewrite"), json!({})).await;
+    assert_eq!(status, 200, "{suggestion}");
+    assert_eq!(server.get(&format!("/api/runs/{id}/rewrite")).await, suggestion);
+    assert_eq!(listing(&server.runs.join(&id)), before);
     server.stop().await;
 }
 

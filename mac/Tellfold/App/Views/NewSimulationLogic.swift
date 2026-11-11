@@ -161,7 +161,8 @@ nonisolated struct NewSimulationPrefill: Equatable, Sendable {
     var seedFiles: [URL] = []
     /// Names of the earlier run's seed documents the app could not get back: the sheet asks for them again.
     var missingSeedNames: [String] = []
-    /// Run again from a built-in example: keep the AI tools set up on this Mac instead of the ones the example used.
+    /// Run again from a read-only run (a built-in example or an imported run): keep the AI tools set up on this Mac
+    /// instead of the recorded ones.
     var keepsDefaultRuntimes = false
 
     var isRunAgain: Bool { config != nil }
@@ -170,7 +171,7 @@ nonisolated struct NewSimulationPrefill: Equatable, Sendable {
     /// (already downloaded to `seedFiles`). A `description.md` goes back into the Describe it box as text; every other
     /// document is attached as a file. `unavailable` names documents the engine listed but the app could not fetch.
     /// When the run has no stored documents at all (an older run) the sheet asks for them again.
-    static func runAgain(config: SimConfig, seedFiles: [URL], unavailable: [String] = [], fromExample: Bool = false,
+    static func runAgain(config: SimConfig, seedFiles: [URL], unavailable: [String] = [], fromReadOnly: Bool = false,
                          readText: (URL) -> String? = { try? String(contentsOf: $0, encoding: .utf8) }) -> NewSimulationPrefill {
         var files: [URL] = []
         var text = ""
@@ -187,7 +188,7 @@ nonisolated struct NewSimulationPrefill: Equatable, Sendable {
             missing = config.seedFiles.map { ($0 as NSString).lastPathComponent }
         }
         return NewSimulationPrefill(question: config.question, descriptionText: text, config: config, seedFiles: files,
-                                    missingSeedNames: missing, keepsDefaultRuntimes: fromExample)
+                                    missingSeedNames: missing, keepsDefaultRuntimes: fromReadOnly)
     }
 }
 

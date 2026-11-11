@@ -54,6 +54,20 @@ final class AppModel {
     var pendingSeedFiles: [URL] = []
     /// The run whose report is being exported as PDF, if any; one export at a time.
     private(set) var exportingPDF: String?
+    /// The run being saved as a `.tellfold` bundle, if any, from the save panel on; one at a time. Its report cannot be
+    /// rebuilt meanwhile (the engine refuses too).
+    private(set) var exportingBundle: String? {
+        didSet { currentStore?.isSavingBundle = currentStore?.runID == exportingBundle }
+    }
+    /// The run whose bundle is being downloaded, once its save panel was confirmed: the toolbar's progress.
+    private(set) var downloadingBundle: String?
+    /// True while `.tellfold` files are being opened; the main window shows it and takes no other drop meanwhile.
+    private(set) var isImporting = false
+    /// Why the last `.tellfold` file could not be opened; the main window shows it.
+    var importError: String?
+    /// `.tellfold` files waiting to be opened: opened before the engine was ready (a double-click that launched the
+    /// app), or while other bundles were being opened.
+    @ObservationIgnored private var pendingBundles: [URL] = []
 
     private(set) var runtimes: [RuntimeInfo] = []
     private(set) var runtimesError: String?
@@ -112,6 +126,8 @@ final class AppModel {
         guard api != nil else { return }
         Task {
             await refreshRuns()
+            // also a no-op while an import is still draining the queue: that loop takes them
+            await importBundles([])
             await loadRuntimes()
             await loadEngineSettings()
             if !prefs.agentSetupDone && !runtimesUnsupported {
@@ -242,6 +258,7 @@ final class AppModel {
             return
         }
         let store = RunStore(runID: id, api: api)
+        store.isSavingBundle = exportingBundle == id
         currentStore = store
         Task { await store.load() }
     }
@@ -253,6 +270,12 @@ final class AppModel {
     static let examplePrefix = "example-"
 
     func isExample(_ id: String) -> Bool { summary(id)?.example ?? false }
+
+    /// Someone else's run opened from a `.tellfold` file.
+    func isImported(_ id: String) -> Bool { summary(id)?.imported ?? false }
+
+    /// An example or an imported run: the engine never changes it, and new runs made from it use this Mac's AI tools.
+    func isReadOnly(_ id: String) -> Bool { isExample(id) || isImported(id) }
 
     enum RunGroup: String, CaseIterable, Identifiable {
         case running = "Running", recent = "Recent", older = "Older"
@@ -337,6 +360,93 @@ final class AppModel {
         return try await ReportPDFExporter().export(html: html, title: title, in: NSApp.keyWindow ?? NSApp.mainWindow)
     }
 
+    // MARK: Run bundles
+
+    /// Whether the run can be saved as a `.tellfold` file now: finished with a report (the engine refuses anything
+    /// else) and no other bundle being saved. Every Export Run Bundle control uses this.
+    func canExportBundle(_ id: String) -> Bool {
+        guard api != nil, exportingBundle == nil, let run = summary(id) else { return false }
+        return run.state == .done && run.hasReport
+    }
+
+    /// Saves a finished run as one `.tellfold` file to send to someone (File > Export Run Bundle…, the report toolbar,
+    /// the run's menus). The file is named after the report's title. Returns the saved file, or nil when cancelled.
+    @discardableResult
+    func exportBundle(_ id: String) async throws -> URL? {
+        guard exportingBundle == nil else { return nil }
+        guard let api else { throw TellfoldAPIError(status: 0, message: "The engine is not running.") }
+        // Taken before the save panel, so a second click while it is open does nothing.
+        exportingBundle = id
+        defer { exportingBundle = nil }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.tellfoldBundle]
+        panel.canCreateDirectories = true
+        panel.isExtensionHidden = false
+        panel.nameFieldStringValue = RunBundle.suggestedFileName(title: await reportTitle(id, api: api))
+        panel.message = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
+        let parent = NSApp.keyWindow ?? NSApp.mainWindow
+        let response = if let parent { await panel.beginSheetModal(for: parent) } else { panel.runModal() }
+        guard response == .OK, let url = panel.url else { return nil }
+        downloadingBundle = id
+        defer { downloadingBundle = nil }
+        try await api.downloadBundle(runID: id, to: url)
+        return url
+    }
+
+    /// The run's report title (the open run's, else the engine's), falling back to its question.
+    private func reportTitle(_ id: String, api: TellfoldAPI) async -> String {
+        if currentStore?.runID == id, let title = currentStore?.report?.title, !title.isEmpty { return title }
+        if let title = try? await api.run(id).report?.title, !title.isEmpty { return title }
+        return summary(id)?.question ?? id
+    }
+
+    /// Opens `.tellfold` files as read-only runs and selects the last one. Files that arrive before the engine is up, or
+    /// while others are being opened (Finder, the Dock, File > Open), wait in `pendingBundles` and are opened next.
+    /// The window itself takes no drop meanwhile (`isImporting`).
+    func importBundles(_ urls: [URL]) async {
+        pendingBundles.append(contentsOf: urls.filter { !pendingBundles.contains($0) })
+        guard api != nil, !isImporting, !pendingBundles.isEmpty else { return }
+        isImporting = true
+        defer { isImporting = false }
+        var opened: String?
+        var failures: [String] = []
+        // files queued while these are opened are taken in the next pass
+        while let api, !pendingBundles.isEmpty {
+            let batch = pendingBundles
+            pendingBundles = []
+            for url in batch {
+                do {
+                    try RunBundle.checkReadable(url)
+                    opened = try await api.importBundle(fileAt: url)
+                } catch {
+                    failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
+                }
+            }
+        }
+        await refreshRuns()
+        if let opened { selectedRunID = opened }
+        if !failures.isEmpty { importError = failures.joined(separator: "\n") }
+    }
+
+    /// Files opened from Finder, the Dock, File > Open or a drop: `.tellfold` files are imported, documents and folders go
+    /// to the New Simulation sheet.
+    func open(_ urls: [URL]) {
+        let bundles = urls.filter(RunBundle.isBundle)
+        let others = urls.filter { !RunBundle.isBundle($0) }
+        if !bundles.isEmpty {
+            NSApp.activate()
+            showMainWindow()
+            Task { await importBundles(bundles) }
+        }
+        openSeedFiles(others)
+    }
+
+    private func showMainWindow() {
+        if !NSApp.windows.contains(where: { $0.isVisible && $0.identifier?.rawValue.hasPrefix("main") == true }) {
+            openWindowAction?(id: "main")
+        }
+    }
+
     // MARK: New simulation
 
     func createRun(_ request: NewRunRequest) async throws -> String {
@@ -382,7 +492,7 @@ final class AppModel {
                 // An engine without the endpoint is treated like an older run: the sheet asks for the documents again.
             }
         }
-        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromExample: isExample(runID)))
+        newSimulation(prefill: .runAgain(config: config, seedFiles: urls, unavailable: failed, fromReadOnly: isReadOnly(runID)))
     }
 
     // MARK: Studies
@@ -434,17 +544,17 @@ final class AppModel {
         try await createVersion(request)
     }
 
-    /// The settings a new version of a run uses: the run's own, except that a built-in example uses the AI tools set up on
-    /// this Mac (the example's may not be installed here).
+    /// The settings a new version of a run uses: the run's own, except that a read-only run (a built-in example or an
+    /// imported run) uses the AI tools set up on this Mac (the recorded ones may not be installed here).
     func versionConfig(runID: String, config: SimConfig) -> SimConfig {
-        Self.versionConfig(config, isExample: isExample(runID), agentRuntime: defaultAgentRuntime,
+        Self.versionConfig(config, isReadOnly: isReadOnly(runID), agentRuntime: defaultAgentRuntime,
                            plannerRuntime: defaultPlannerRuntime) { defaultModel(runtime: $0, role: $1) }
     }
 
     /// `versionConfig(runID:config:)` without the app state, so it can be tested.
-    nonisolated static func versionConfig(_ config: SimConfig, isExample: Bool, agentRuntime: String, plannerRuntime: String,
+    nonisolated static func versionConfig(_ config: SimConfig, isReadOnly: Bool, agentRuntime: String, plannerRuntime: String,
                                           model: (_ runtime: String, _ role: String) -> String) -> SimConfig {
-        guard isExample else { return config }
+        guard isReadOnly else { return config }
         var config = config
         config.agentRuntime = agentRuntime
         config.plannerRuntime = plannerRuntime
@@ -521,9 +631,7 @@ final class AppModel {
         guard !seeds.isEmpty else { return }
         for url in seeds where !pendingSeedFiles.contains(url) { pendingSeedFiles.append(url) }
         NSApp.activate()
-        if !NSApp.windows.contains(where: { $0.isVisible && $0.identifier?.rawValue.hasPrefix("main") == true }) {
-            openWindowAction?(id: "main")
-        }
+        showMainWindow()
         isNewSimulationPresented = true
     }
 
@@ -531,10 +639,11 @@ final class AppModel {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = true
-        panel.allowedContentTypes = Self.seedContentTypes
-        panel.message = "Choose documents (.md, .txt or .pdf), or a folder of them, for a new simulation."
-        panel.prompt = "Use as Seeds"
-        if panel.runModal() == .OK { openSeedFiles(panel.urls) }
+        panel.allowedContentTypes = Self.seedContentTypes + [.tellfoldBundle]
+        panel.message = "Choose documents (.md, .txt or .pdf) or a folder of them for a new simulation, "
+            + "or a .tellfold file someone shared with you."
+        panel.prompt = "Open"
+        if panel.runModal() == .OK { open(panel.urls) }
     }
 
     // MARK: Runtimes and engine settings

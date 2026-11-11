@@ -43,6 +43,28 @@ pub struct AppState {
     allowed_hosts: Arc<HashSet<String>>,
     /// `Bearer <token>`, when `/api` needs one
     expected_auth: Option<Arc<Vec<u8>>>,
+    bundle_hook: Option<BundleHook>,
+}
+
+/// Where a bundle request is when [`BundleHook`] is called.
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BundleStage {
+    /// on the manager thread, once an export was checked and marked, before the handler hears back
+    Checked,
+    /// on the blocking worker, before a bundle is written or opened
+    Work,
+}
+
+/// Called at each [`BundleStage`] of a bundle request. Tests hold the request there: on the worker to show the server
+/// keeps answering meanwhile, on the manager to drop a request whose reply is not sent yet.
+#[derive(Clone)]
+pub struct BundleHook(pub Arc<dyn Fn(BundleStage) + Send + Sync>);
+
+impl std::fmt::Debug for BundleHook {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("BundleHook")
+    }
 }
 
 /// `create_app`'s keyword arguments.
@@ -52,11 +74,19 @@ pub struct AppOptions {
     pub token: Option<String>,
     pub allowed_hosts: Option<Vec<String>>,
     pub ping_seconds: f64,
+    #[doc(hidden)]
+    pub bundle_hook: Option<BundleHook>,
 }
 
 impl Default for AppOptions {
     fn default() -> Self {
-        AppOptions { fake_llm: false, token: None, allowed_hosts: None, ping_seconds: routes::PING_SECONDS }
+        AppOptions {
+            fake_llm: false,
+            token: None,
+            allowed_hosts: None,
+            ping_seconds: routes::PING_SECONDS,
+            bundle_hook: None,
+        }
     }
 }
 
@@ -105,6 +135,7 @@ pub fn create_app(mut manager: ManagerOptions, options: AppOptions) -> (Router, 
     // TokenAuthMiddleware's ValueError: an empty token would let a bare "Bearer " through
     assert!(options.token.as_deref() != Some(""), "an empty token would disable authentication");
     let _ = std::fs::create_dir_all(&manager.runs_dir);
+    tellfold_study::bundle::sweep_staging(&manager.runs_dir);
     let settings_path = manager.settings_path.clone();
     let thread = spawn_manager(manager);
     let hosts = options.allowed_hosts.unwrap_or_else(|| DEFAULT_HOSTS.iter().map(|h| h.to_string()).collect());
@@ -115,6 +146,7 @@ pub fn create_app(mut manager: ManagerOptions, options: AppOptions) -> (Router, 
         ping_seconds: options.ping_seconds,
         allowed_hosts: Arc::new(hosts.iter().map(|h| h.to_lowercase().trim_matches(['[', ']']).to_string()).collect()),
         expected_auth: options.token.map(|t| Arc::new(format!("Bearer {t}").into_bytes())),
+        bundle_hook: options.bundle_hook,
     };
     (router(state), thread)
 }
@@ -127,6 +159,12 @@ pub fn router(state: AppState) -> Router {
             "/api/runs",
             get(list_runs).post(post_runs).layer(DefaultBodyLimit::max(upload::MAX_FORM_BYTES + 1024 * 1024)),
         )
+        .route(
+            "/api/runs/import",
+            // the handler streams the body and holds it to MAX_BUNDLE_BYTES itself
+            post(import_bundle),
+        )
+        .route("/api/runs/{run_id}/bundle", get(export_bundle))
         .route("/api/studies", get(list_studies))
         .route("/api/studies/{study_id}", get(get_study))
         .route("/api/runs/{run_id}/branch", post(branch))

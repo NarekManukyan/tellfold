@@ -169,10 +169,12 @@ struct StudyRun: Codable, Hashable, Sendable, Identifiable {
     var state: RunState = .unknown
     var hasReport: Bool = false
     var example: Bool = false
+    /// Someone else's run opened from a `.tellfold` file (sent only when true).
+    var imported: Bool = false
     var digest: RunDigest
 
     enum CodingKeys: String, CodingKey {
-        case id, variant, letter, question, state, example, digest
+        case id, variant, letter, question, state, example, imported, digest
         case hasReport = "has_report"
     }
 }
@@ -187,6 +189,7 @@ extension StudyRun {
         state = c.value(.state, default: .unknown)
         hasReport = c.value(.hasReport, default: false)
         example = c.value(.example, default: false)
+        imported = c.value(.imported, default: false)
         digest = c.value(.digest, default: RunDigest(letter: letter, runID: id, variant: variant))
     }
 }

@@ -56,6 +56,10 @@ final class RunStore: Identifiable {
     private(set) var eventCounter = 0
     /// A user-facing error from the last action (stop, inject, rebuild, ...).
     var actionError: String?
+    /// The share card sheet (File > Share Card…, the report toolbar).
+    var showsShareCard = false
+    /// A bundle of this run is being saved (the app model sets it); the report cannot be rebuilt meanwhile.
+    var isSavingBundle = false
 
     @ObservationIgnored private var streamTask: Task<Void, Never>?
     @ObservationIgnored private var sentimentCache: [Int: [String: Double]] = [:]
@@ -85,6 +89,10 @@ final class RunStore: Identifiable {
     var config: SimConfig? { detail?.config }
     /// A built-in example run, which the engine never changes.
     var isExample: Bool { detail?.example ?? false }
+    /// Someone else's run opened from a `.tellfold` file, which the engine never changes either.
+    var isImported: Bool { detail?.imported ?? false }
+    /// An example or an imported run.
+    var isReadOnly: Bool { isExample || isImported }
     var question: String { detail?.config.question ?? "" }
     var personas: [Persona] { detail?.personas ?? [] }
     var personaByID: [String: Persona] { Dictionary(personas.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }) }

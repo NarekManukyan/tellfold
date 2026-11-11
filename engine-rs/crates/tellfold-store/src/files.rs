@@ -20,6 +20,21 @@ pub const REWRITE_FILE: &str = "rewrite.json";
 pub const CALLS_FILE: &str = "calls.jsonl";
 pub const WORLD_FILE: &str = "world.db";
 
+/// The start of a built-in example's run id. A run in the runs folder never takes such an id: the example would
+/// shadow it on every route.
+pub const EXAMPLE_PREFIX: &str = "example-";
+/// The longest run id the API accepts.
+pub const MAX_RUN_ID_LEN: usize = 200;
+
+/// Whether `id` is a run id the API accepts: ASCII letters, digits, `.`, `_` and `-`, starting with a letter or a
+/// digit, at most [`MAX_RUN_ID_LEN`] long.
+pub fn is_run_id(id: &str) -> bool {
+    let mut chars = id.chars();
+    chars.next().is_some_and(|c| c.is_ascii_alphanumeric())
+        && id.len() <= MAX_RUN_ID_LEN
+        && chars.all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
+}
+
 /// A run cannot continue for a reason the user can fix (e.g. empty seed files).
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
