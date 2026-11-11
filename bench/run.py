@@ -113,8 +113,10 @@ LEAK_WORDS = (
     "backlash", "outrage", "outcry", "u-turn", "reversed", "reversal", "backtrack", "uproar", "furious", "criticised",
     "criticized", "petition", "boycott", "walked back", "climbdown", "controversial",
 )
-# Words about the benchmark itself. A seed holds only the announcement; case metadata lives in rubric.json. Errors.
-META_WORDS = ("benchmark", "accuracy test", "control case", "training cutoff", "known to the model")
+# Phrases that can only be about the benchmark itself. A seed holds only the announcement; case metadata lives in
+# rubric.json. Errors. The bare word "benchmark" only warns, since an announcement can be about a benchmark rate.
+META_PHRASES = ("benchmark seed", "accuracy test", "control case", "training cutoff", "known to the model")
+META_WARN_WORDS = ("benchmark",)
 
 # ---------- cost estimate ----------
 # Average characters per call by purpose, measured from five real 20-agent, 6-round runs (Claude Code, haiku agents,
@@ -254,7 +256,7 @@ def _check_dates(r: dict) -> list[str]:
     try:
         announced = dt.date.fromisoformat(r.get("announced_on") or "")
         cutoff = dt.date.fromisoformat((r.get("model_cutoff") or "") + "-01")
-    except ValueError as e:
+    except (TypeError, ValueError) as e:  # TypeError: a number or list where a date string belongs
         return [f"bad date: {e}"]
     after = announced >= (cutoff.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
     if r.get("known_to_model") is not (not after):
@@ -298,9 +300,12 @@ def _check_input(path: Path) -> tuple[list[str], list[str]]:
     word_count = len(lowered.split())
     if not 120 <= word_count <= 700:
         warnings.append(f"input.md has {word_count} words (aim for 200-500)")
-    meta = [w for w in META_WORDS if w in lowered]
+    meta = [w for w in META_PHRASES if re.search(rf"\b{re.escape(w)}\b", lowered)]
     if meta:
         errors.append(f"input.md mentions {', '.join(meta)}: keep case metadata in rubric.json")
+    maybe_meta = [w for w in META_WARN_WORDS if re.search(rf"\b{re.escape(w)}\b", lowered)]
+    if maybe_meta:
+        warnings.append(f"input.md mentions {', '.join(maybe_meta)}: check it is about the announcement")
     leaks = [w for w in LEAK_WORDS if re.search(rf"\b{re.escape(w)}\b", lowered)]
     if leaks:
         warnings.append(f"input.md mentions {', '.join(leaks)}: check it does not describe the reaction")
@@ -389,6 +394,9 @@ class ClaudeModel:
                 data = reply.get("structured_output") or extract_json(reply.get("result") or "")
                 if not isinstance(data, dict):
                     raise ValueError(f"structured output is a {type(data).__name__}, not an object")
+                missing = [k for k in schema.get("required", []) if k not in data]
+                if missing:  # the free-text fallback is not checked against the schema by the CLI
+                    raise ValueError(f"reply has no {', '.join(missing)}")
                 return data
             except ValueError as e:  # json.JSONDecodeError is a ValueError
                 last_error = f"{e}; stderr: {proc.stderr[-300:]}"
@@ -421,7 +429,8 @@ class DryJudge:
     def __init__(self) -> None:
         self.usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0}
 
-    def grade(self, rubric: dict, report: dict, final_sentiment: float | None) -> dict:
+    def grade(self, case: dict, report: dict, final_sentiment: float | None) -> dict:
+        rubric = case["rubric"]
         self.usage["calls"] += 1
         text = words(json.dumps(report))
         objections = []
@@ -468,27 +477,48 @@ class LlmJudge:
     def usage(self) -> dict:
         return self.model.usage
 
-    def grade(self, rubric: dict, report: dict, final_sentiment: float | None) -> dict:
-        user = self.template.replace("{{CHECKLIST}}", json.dumps(judge_checklist(rubric), indent=2,
-                                                                  ensure_ascii=False)).replace(
-            "{{REPORT}}", json.dumps(report_for_judge(report), indent=2, ensure_ascii=False)
-        )
-        return self.model.call(self.system, user, judge_schema(rubric))
+    def grade(self, case: dict, report: dict, final_sentiment: float | None) -> dict:
+        rubric = case["rubric"]
+        has_groups = bool(rubric.get("pushback_groups"))
+        system = render_groups(self.system, has_groups)
+        user = render_groups(self.template, has_groups).replace(
+            "{{CHECKLIST}}", json.dumps(judge_checklist(case), indent=2, ensure_ascii=False)
+        ).replace("{{REPORT}}", json.dumps(report_for_judge(report), indent=2, ensure_ascii=False))
+        return self.model.call(system, user, judge_schema(rubric))
 
 
-def judge_checklist(rubric: dict) -> dict:
-    """What the judge may see of a rubric. Never the true direction or backdown: the judge classifies what the report
-    predicts blind, and `score` compares that with the rubric."""
-    return {
-        "title": rubric["title"],
+def render_groups(text: str, has_groups: bool) -> str:
+    """Keeps the prompt's `{{#groups}}...{{/groups}}` text for a case with pushback groups and cuts it otherwise."""
+    return re.sub(r"\{\{#groups\}\}(.*?)\{\{/groups\}\}", r"\1" if has_groups else "", text, flags=re.DOTALL)
+
+
+def seed_headline(case: dict) -> str:
+    """The seed's own H1, written as of the day. The rubric title is written with hindsight, so the judge never
+    sees it."""
+    for line in case["input"].read_text(encoding="utf-8").splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return ""
+
+
+def judge_checklist(case: dict) -> dict:
+    """What the judge may see of a case. Never the true direction or backdown: the judge classifies what the report
+    predicts blind, and `score` compares that with the rubric. A case without pushback groups has no groups key at
+    all, so the judge cannot read "nobody pushed back" from an empty list."""
+    rubric = case["rubric"]
+    shown = {
+        "announcement": seed_headline(case),
         "question": rubric["question"],
         "objections": [{"id": o["id"], "text": o["text"]} for o in rubric["objections"]],
-        "pushback_groups": list(rubric.get("pushback_groups", [])),
     }
+    if rubric.get("pushback_groups"):
+        shown["pushback_groups"] = list(rubric["pushback_groups"])
+    return shown
 
 
 def judge_schema(rubric: dict) -> dict:
-    """JUDGE_SCHEMA with this case's objection ids and group names as enums, so the reply can be matched exactly."""
+    """JUDGE_SCHEMA with this case's objection ids and group names as enums, so the reply can be matched exactly.
+    Without pushback groups the schema has no groups field, like the checklist and the prompt."""
     schema = json.loads(json.dumps(JUDGE_SCHEMA))
     props = schema["properties"]
     props["objections"]["items"]["properties"]["id"]["enum"] = [o["id"] for o in rubric["objections"]]
@@ -496,7 +526,8 @@ def judge_schema(rubric: dict) -> dict:
     if groups:
         props["groups"]["items"]["properties"]["group"]["enum"] = list(groups)
     else:
-        props["groups"]["maxItems"] = 0
+        del props["groups"]
+        schema["required"] = [k for k in schema["required"] if k != "groups"]
     return schema
 
 
@@ -740,8 +771,10 @@ def _zero_shot_cell(zs: dict | None) -> str:
         return ""
     if zs.get("error"):
         return f"failed: {zs['error'][:60]}"
-    sc = zs["scores"]
-    return (f"{zs['grade']['predicted_direction']}{' ✓' if sc['direction_match'] else ' ✗'}, "
+    sc = zs.get("scores") or {}
+    if not sc:
+        return "–"
+    return (f"{(zs.get('grade') or {}).get('predicted_direction', '–')}{' ✓' if sc['direction_match'] else ' ✗'}, "
             f"{pct(sc['objection_recall'])}, {sc['backdown_predicted']}")
 
 
@@ -786,25 +819,27 @@ def make_graders(args: argparse.Namespace, settings: dict) -> tuple[dict, object
     return env, judge, zero, args.label or f"{settings['planner_model']}-{settings['agent_model']}"
 
 
-def run_once(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict, judge) -> dict:
-    """One simulation of one case, graded. Raises on any failure."""
+def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, env: dict, judge) -> None:
+    """One simulation of one case, graded, filled into `run` step by step. On a failure it raises and `run` keeps
+    what was already done, so a judge failure does not lose the simulation, its call counts or its sentiment."""
     rubric = case["rubric"]
-    run_dir = run_tellfold(cmd, case, out, settings, seed, env)
-    report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
+    run_dir = run_tellfold(cmd, case, out, settings, run["seed"], env)
+    run["run_dir"] = str(run_dir.relative_to(REPO) if run_dir.is_relative_to(REPO) else run_dir)
+    run.update(count_calls(run_dir))
     final_round, final = last_sentiment(run_dir)
-    run = {
-        "run_dir": str(run_dir.relative_to(REPO) if run_dir.is_relative_to(REPO) else run_dir),
-        **count_calls(run_dir),
-        "report_confidence": report.get("confidence"),
-        "final_round": final_round,
-        "final_sentiment": final,
-        "sentiment_direction": sentiment_direction(final),
-    }
+    run.update(final_round=final_round, final_sentiment=final, sentiment_direction=sentiment_direction(final))
     if final_round is not None and final is None:
         run["sentiment_note"] = f"round {final_round}, the last, has no sentiment score"
-    run["grade"] = judge.grade(rubric, report, final)
+    report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
+    run["report_confidence"] = report.get("confidence")
+    run["grade"] = judge.grade(case, report, final)
     run["scores"] = score(rubric, run["grade"])
-    return run
+
+
+def warn_unmatched(slug: str, scores: dict, what: str) -> None:
+    if scores["unmatched"]:
+        print(f"[{slug}] warning: the {what} judge returned unknown ids or groups {scores['unmatched']}",
+              file=sys.stderr, flush=True)
 
 
 def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeats: int, env: dict, judge) -> dict:
@@ -813,21 +848,19 @@ def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeat
     entry = {"slug": case["slug"], "rubric": rubric, "runs": []}
     for seed in range(FIRST_SEED, FIRST_SEED + repeats):
         print(f"[{case['slug']}] seed {seed}: simulating...", flush=True)
+        run: dict = {"seed": seed}
         try:
-            run = {"seed": seed, **run_once(cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, seed,
-                                            env, judge)}
+            run_once(run, cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, env, judge)
         # one failed case must not stop a three-hour pass; the error goes into the results and the exit code
         except Exception as e:  # noqa: BLE001
-            run = {"seed": seed, "error": str(e)}
+            run["error"] = str(e)
             print(f"[{case['slug']}] failed: {e}", file=sys.stderr, flush=True)
         else:
             sc = run["scores"]
-            print(f"[{case['slug']}] direction {run['grade']['predicted_direction']} (actual "
+            print(f"[{case['slug']}] direction {run['grade'].get('predicted_direction')} (actual "
                   f"{rubric['direction']}), objections {pct(sc['objection_recall'])}, backdown "
                   f"{sc['backdown_predicted']} (actual {rubric['backdown']['kind']})", flush=True)
-            if sc["unmatched"]:
-                print(f"[{case['slug']}] warning: judge returned unknown ids or groups {sc['unmatched']}",
-                      file=sys.stderr, flush=True)
+            warn_unmatched(case["slug"], sc, "simulation")
         entry["runs"].append(run)
     return entry
 
@@ -841,8 +874,9 @@ def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge) -> dict:
     zs: dict = {}
     try:
         zs["answer"] = model.call(system, user, ZERO_SHOT_SCHEMA)
-        zs["grade"] = judge.grade(case["rubric"], zs["answer"], None)
+        zs["grade"] = judge.grade(case, zs["answer"], None)
         zs["scores"] = score(case["rubric"], zs["grade"])
+        warn_unmatched(case["slug"], zs["scores"], "zero-shot")
     # same as run_case: a failed baseline call is recorded and counted, not fatal
     except Exception as e:  # noqa: BLE001
         zs["error"] = str(e)

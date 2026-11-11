@@ -133,7 +133,8 @@ def read_calls(tmp_path) -> list[dict]:
 
 def test_llm_judge_grades_blind(tmp_path):
     """The real grading path with a fake CLI: what the judge is shown, the per-case schema, and the parsed reply."""
-    rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
+    (case,) = bench.load_cases(folder_root=FIXTURE_CASES)
+    rubric = case["rubric"]
     reply = {
         "predicted_direction": "negative", "direction_evidence": "q", "predicted_backdown": "partial",
         "backdown_evidence": "q", "extra_objections": [],
@@ -143,14 +144,16 @@ def test_llm_judge_grades_blind(tmp_path):
     judge = bench.LlmJudge(bench.ClaudeModel(str(fake_claude(tmp_path, reply)), "sonnet"))
     report = {"title": "T", "summary": "Regulars grumble about the coffee price.", "prediction": "P",
               "camps": [{"name": "Regulars", "summary": "s", "members": ["a1"]}], "citations": ["x"]}
-    grade = judge.grade(rubric, report, -0.5)
+    grade = judge.grade(case, report, -0.5)
     assert grade == reply
     (call,) = read_calls(tmp_path)
     shown = call["stdin"]
     # the judge never sees the answer it is grading against
     assert '"direction"' not in shown and "backdown" not in shown.split("REPORT")[0].lower()
     assert rubric["direction"] not in shown.split("REPORT")[0].split("CHECKLIST")[1]
-    assert "{{" not in shown
+    assert "{{" not in shown and "{{" not in call["argv"][call["argv"].index("--system-prompt") + 1]
+    # the seed's own headline, never the rubric title written with hindsight
+    assert "A note from Linden & Rye about our prices" in shown and rubric["title"] not in shown
     assert "Closing on Tuesdays is inconvenient for regulars" in shown and "students" in shown
     assert "Regulars grumble about the coffee price." in shown and "citations" not in shown and "a1" not in shown
     argv = call["argv"]
@@ -170,10 +173,50 @@ def test_llm_judge_grades_blind(tmp_path):
 
 
 def test_judge_checklist_has_no_answer():
-    rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
-    shown = bench.judge_checklist(rubric)
-    assert set(shown) == {"title", "question", "objections", "pushback_groups"}
+    (case,) = bench.load_cases(folder_root=FIXTURE_CASES)
+    shown = bench.judge_checklist(case)
+    assert set(shown) == {"announcement", "question", "objections", "pushback_groups"}
     assert all(set(o) == {"id", "text"} for o in shown["objections"])
+
+
+def test_a_case_without_groups_shows_no_trace_of_them(tmp_path):
+    """An empty group list would tell the blind judge that nobody pushed back, so groups vanish from the prompt."""
+    (case,) = bench.load_cases(folder_root=FIXTURE_CASES)
+    case = {**case, "rubric": {**case["rubric"], "pushback_groups": []}}
+    reply = {"predicted_direction": "positive", "predicted_backdown": "none",
+             "objections": [{"id": "o1", "verdict": "missed", "evidence": ""}]}
+    judge = bench.LlmJudge(bench.ClaudeModel(str(fake_claude(tmp_path, reply)), "sonnet"))
+    grade = judge.grade(case, {"summary": "S"}, None)
+    (call,) = read_calls(tmp_path)
+    argv = call["argv"]
+    system = argv[argv.index("--system-prompt") + 1]
+    schema = json.loads(argv[argv.index("--json-schema") + 1])
+    # the question template ("which groups will push back") and "a different group" in the objection rule are the same
+    # for every case; only the group checks must vanish
+    for text in (system, call["stdin"].replace(case["rubric"]["question"], "")):
+        assert "groups" not in text.lower() and "pushback group" not in text.lower() and "{{" not in text
+    assert "groups" not in schema["properties"] and "groups" not in schema["required"]
+    assert bench.score(case["rubric"], grade)["group_recall"] is None
+
+
+def test_claude_model_retries_a_timeout(tmp_path):
+    script = tmp_path / "claude"
+    script.write_text(
+        "#!/usr/bin/env python3\nimport json, sys, time\nfrom pathlib import Path\n"
+        "mark = Path(__file__).with_name('called')\n"
+        "if not mark.exists():\n    mark.touch()\n    time.sleep(5)\n"
+        "print(json.dumps({'structured_output': {'ok': 1}}))\n"
+    )
+    script.chmod(0o755)
+    model = bench.ClaudeModel(str(script), "haiku", timeout_s=1)
+    assert model.call("sys", "user", {"type": "object", "required": ["ok"]}) == {"ok": 1}
+
+
+def test_claude_model_retries_a_reply_missing_a_required_key(tmp_path):
+    model = bench.ClaudeModel(str(fake_claude(tmp_path, {"other": 1})), "haiku")
+    with pytest.raises(RuntimeError, match="no ok"):
+        model.call("sys", "user", {"type": "object", "required": ["ok"]})
+    assert len(read_calls(tmp_path)) == 2
 
 
 def test_claude_model_retries_a_bad_reply(tmp_path):
@@ -195,11 +238,22 @@ def test_validate_reports_null_dates_and_benchmark_words(tmp_path):
     (folder / "input.md").write_text("Written for the accuracy test. " + "word " * 300)
     (folder / "outcome.md").write_text("https://a.example https://b.example")
     rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
-    rubric.update(announced_on=None, model_cutoff=None)
-    (folder / "rubric.json").write_text(json.dumps(rubric))
-    errors, _ = bench.validate_case(bench.load_cases(folder_root=tmp_path)[0])
-    assert any("bad date" in e for e in errors)
-    assert any("accuracy test" in e for e in errors)
+    for bad in ({"announced_on": None, "model_cutoff": None}, {"announced_on": 20260801, "model_cutoff": 2026}):
+        (folder / "rubric.json").write_text(json.dumps({**rubric, **bad}))
+        errors, _ = bench.validate_case(bench.load_cases(folder_root=tmp_path)[0])
+        assert any("bad date" in e for e in errors), bad
+        assert any("accuracy test" in e for e in errors)
+
+
+def test_the_word_benchmark_only_warns(tmp_path):
+    folder = tmp_path / "corner-cafe-prices"
+    folder.mkdir()
+    (folder / "input.md").write_text("The bank cuts its benchmark rate to 3%. " + "word " * 300)
+    (folder / "outcome.md").write_text("https://a.example https://b.example")
+    (folder / "rubric.json").write_text((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
+    errors, warnings = bench.validate_case(bench.load_cases(folder_root=tmp_path)[0])
+    assert errors == []
+    assert any("benchmark" in w for w in warnings)
 
 
 def test_unknown_model_has_no_price():

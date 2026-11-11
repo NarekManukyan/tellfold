@@ -55,8 +55,10 @@ A pass with `--repeats 3` runs each case with seeds 7, 8 and 9, which shows how 
 ### Scoring
 
 One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads Tellfold's
-report and a checklist from the rubric: the title, the question, the objections and the pushback groups. It is never
-shown the true direction or backdown. It classifies the direction and backdown the report predicts blind, marks each
+report and a checklist: the seed's own headline (not the rubric title, which was written with hindsight), the
+question, the objections and the pushback groups. It is never shown the true direction or backdown. A case with no
+pushback groups leaves them out of the checklist, the prompt and the reply format altogether, because an empty list
+would tell the judge that nobody pushed back. It classifies the direction and backdown the report predicts blind, marks each
 objection and group, and is told not to use anything it may know about the event. The harness then compares its
 answer with the rubric:
 
@@ -139,8 +141,8 @@ Read the results with these in mind. Some of them we can measure; some we can on
   model press coverage, virality, organised campaigns or the decision-makers' own politics, which often decide
   whether an organisation backs down.
 - **The judge is an LLM.** Grading objection recall needs judgement, so a model does it. It can be lenient, strict or
-  inconsistent. Its prompt is public, it sees only the report and the rubric's objections and groups (never the
-  true direction or backdown), and every verdict comes with a quote
+  inconsistent. Its prompt is public, it sees only the report, the seed's headline and the rubric's objections and
+  groups (never the true direction or backdown), and every verdict comes with a quote
   from the report so it can be checked by hand. We will spot-check a sample by hand and report the agreement.
 - **Few cases.** With 20 cases, one case moves a percentage by five points. Differences of a few points
   between two passes mean nothing.

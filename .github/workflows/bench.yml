@@ -1,12 +1,13 @@
-# Checks the accuracy benchmark's case files whenever they or the harness change. Runs no model.
+# Checks the accuracy benchmark's case files and tests the harness whenever they change. Runs no model: the tests use
+# a fake Claude CLI and the Python CLI's offline model.
 name: Bench
 
 on:
   push:
     branches: [main]
-    paths: ["bench/**", "tests/test_bench.py", ".github/workflows/bench.yml"]
+    paths: ["bench/**", "tests/test_bench.py", "tests/fixtures/bench_case/**", ".github/workflows/bench.yml"]
   pull_request:
-    paths: ["bench/**", "tests/test_bench.py", ".github/workflows/bench.yml"]
+    paths: ["bench/**", "tests/test_bench.py", "tests/fixtures/bench_case/**", ".github/workflows/bench.yml"]
 
 permissions:
   contents: read
@@ -16,7 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: python3 bench/run.py --validate
+      - uses: astral-sh/setup-uv@v6
+      - name: Validate the cases
+        run: uv run --python 3.13 python bench/run.py --validate
+      - name: Test the harness
+        run: uv run --python 3.13 pytest -q tests/test_bench.py
