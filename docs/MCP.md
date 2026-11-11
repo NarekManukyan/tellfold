@@ -9,9 +9,10 @@ questions and compare two drafts.
 
 The MCP server is a subcommand of the same `tellfold` binary the Mac app bundles. When a client starts it, it starts
 the engine's [HTTP API](API.md) inside the same process, on a free port of `127.0.0.1` with a random token, and its
-tools call that API. Runs go to the same folder the Mac app uses (`~/Library/Application Support/Tellfold/runs`), so
-they show up in the app too. When the client closes the server, runs that are still going are stopped and marked
-`stopped`.
+tools call that API. Runs go to the runs folder in the app's settings, by default
+`~/Library/Application Support/Tellfold/runs`, so they show up in the app too. If you moved the folder in the app and
+it does not show your runs, pass the same folder with `--runs`. When the client closes the server, runs that are still
+going are stopped and marked `stopped`.
 
 The simulated people run on the AI tool chosen in the app's Settings › Agents (or in
 `~/Library/Application Support/Tellfold/settings.json`), for example the Claude Code CLI. That tool must be installed
@@ -104,24 +105,25 @@ Stdout carries only MCP messages. `TELLFOLD_FAKE_LLM=1` swaps in a canned offlin
 client's setup: runs finish in seconds and use no AI tool.
 
 With `--url`, runs belong to that server: they keep going when the MCP client closes, and only that server can inject
-events into them.
+events into them. A draft B that `compare_drafts` could not start at once still starts from the MCP server, so the
+session must stay open until it has (see below).
 
 ## Tools
 
 | tool | what it does |
 |---|---|
-| `start_simulation` | Starts a run from `text` (with an optional `title`) and/or `files` (paths of .md, .markdown, .txt or .pdf files or folders; relative paths start at the server's working folder). Takes `question` (required), `agents` (2-200), `rounds` (1-50), `language`, `events` (`[{round, content}]`), `agent_runtime`, `planner_runtime`, `agent_model` and `planner_model`. Answers `run_id` at once. |
-| `get_run_status` | `state`, `stage`, `round`, `total_rounds`, a rough `progress` (0-1), `finished`, `has_report`, `people`, and `error` when it failed. |
-| `wait_for_run` | Waits until the run finishes or `timeout_seconds` (default 30, at most 120) pass, then answers like `get_run_status`. Call it again while `finished` is false. |
-| `get_report` | The report: `format` `markdown` (default), `json` (also as structured content) or `both`. |
-| `list_runs` | Runs, newest first (`limit`, default 20). |
+| `start_simulation` | Starts a run from `text` (with an optional `title`; `.md` is added unless it ends in .md, .markdown or .txt) and/or `files` (paths of .md, .markdown, .txt or .pdf files or folders; folders are read recursively, symlinked folders are skipped, and relative paths start at the server's working folder). Takes `question` (required), `agents` (2-200), `rounds` (1-50), `language`, `events` (`[{round, content}]`), `agent_runtime`, `planner_runtime`, `agent_model` and `planner_model`. Answers `run_id` at once, and `documents`: the names the engine saved the seeds under. |
+| `get_run_status` | `state`, `stage`, `round`, `total_rounds`, a rough `progress` (0-1), `finished`, `has_report`, `people`, and `error` when it failed. `pause` is set while the run waits for its cast to be checked in the Tellfold app. `example` or `imported` is true for a read-only run: it can be read and asked about, not changed. |
+| `wait_for_run` | Waits until the run finishes or `timeout_seconds` (default 30, at most 120) pass, then answers like `get_run_status`. Call it again while `finished` is false. It answers at once while the run is paused for its cast check. |
+| `get_report` | The report: `format` `markdown` (default, also `md`), `json` (also as structured content) or `both`. |
+| `list_runs` | Runs, newest first (`limit`, default 20), with `example` or `imported` set on read-only ones. |
 | `list_people` | The simulated people of a run: `id`, `handle`, `name`, `bio`, `stance`. |
 | `ask_crowd` | Asks the report agent a question about the outcome of a run; the answer cites posts. |
-| `interview_person` | Asks one person (`person`: id or handle) a question; they answer in character. |
+| `interview_person` | Asks one person (`person`: id, or handle with or without `@`, in any case) a question; they answer in character. |
 | `inject_event` | Breaking news at a round that has not started, in a running run. |
 | `stop_run` | Stops a running run; what it has so far is kept. |
-| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b`, or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people as soon as draft A has them. Answers `run_a`, `run_b` and `study_id` (or only `run_a` while draft A is still making its people). |
-| `get_study` | A study by `study_id` or `run_id`: its runs, and the cited comparison (`compare_drafts`) or what held across repeats (`check_run`) once written. `wait_seconds` (at most 120) waits for it. |
+| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b` (plus the run options of `start_simulation` for draft A), or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people, with draft A's settings and events, as soon as draft A has them. Answers `run_a`, `run_b` and `study_id`, or only `run_a` while draft A is still making its people: then draft B starts later from this MCP session, which must stay open until `get_study` returns a `study_id`. If it closed first, call `compare_drafts` again with `baseline_run_id` set to `run_a`. |
+| `get_study` | A study by `study_id` or `run_id`: its runs, and the cited comparison (`compare_drafts`) or what held across repeats (`check_run`). `ready` is true once every run has ended and the result covers them all; until then `comparison` is null, even when an older comparison exists. `wait_seconds` (at most 120) waits for that, and for a draft B that has not started yet. |
 | `check_run` | Runs a finished run again with the same people and text but other random seeds (`runs` in all, 2-5) and writes what held. Answers a `study_id`. |
 
 A tool that cannot do what was asked (an unknown run, a run with no report yet, a round that has started) answers
@@ -135,7 +137,7 @@ with a tool error whose text says why, so the assistant can correct itself.
 3. `get_report`.
 4. `ask_crowd` with `"What would make the team admins accept it?"`.
 5. `compare_drafts` with `baseline_run_id` set to the run and `draft_b` set to a rewrite, then `wait_for_run` on
-   `run_b` and `get_study` with `wait_seconds: 60`.
+   `run_b` and `get_study` with `wait_seconds: 60` until `ready` is true.
 
 ## Troubleshooting
 

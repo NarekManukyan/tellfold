@@ -47,7 +47,8 @@ There are four more fictional seeds that have nothing to do with software: `exam
 
 ## Commands
 
-The command is `tellfold` (`run`, `report`, `ui`, `serve`, `mcp`, `chat`, `ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
+The command is `tellfold` (`run`, `compare`, `check`, `branch`, `rewrite`, `report`, `ui`, `serve`, `mcp`, `chat`,
+`ask`, `agents`, `doctor`, `runtimes`). The old `shoal` command still works as a deprecated alias for the same app.
 
 ### `tellfold run SEED... -q QUESTION [options]`
 

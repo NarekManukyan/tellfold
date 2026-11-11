@@ -1,6 +1,6 @@
 //! `tellfold mcp` end to end on the canned model: an MCP client on the other end of stdin/stdout initializes,
-//! lists the tools, starts a run, waits for it and reads the report, then compares two drafts on one crowd, and
-//! talks to a `tellfold serve` that is already running.
+//! lists the tools, starts a run, waits for it and reads the report, compares drafts on one crowd, stops its runs
+//! when the client goes away, and talks to a `tellfold serve` that is already running.
 
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
@@ -212,6 +212,7 @@ fn initialize_list_tools_run_and_read_the_report() {
 
     let people = client.call("list_people", json!({"run_id": run_id}))["structuredContent"].clone();
     let first = people["people"][0]["id"].as_str().unwrap().to_string();
+    let handle = people["people"][1]["handle"].as_str().unwrap().to_string();
     assert_eq!(people["people"].as_array().unwrap().len(), 4);
 
     let answer = client.call("ask_crowd", json!({"run_id": run_id, "question": "Who pushed back hardest?"}));
@@ -219,6 +220,17 @@ fn initialize_list_tools_run_and_read_the_report() {
     let reply = client
         .call("interview_person", json!({"run_id": run_id, "person": first, "message": "Would you pay $6 a month?"}));
     assert!(reply["structuredContent"]["reply"].as_str().is_some_and(|r| !r.is_empty()), "{reply}");
+    // by handle, with or without the "@", in any case
+    let by_handle = format!("@{}", handle.trim_start_matches('@').to_uppercase());
+    let reply = client.call("interview_person", json!({"run_id": run_id, "person": by_handle, "message": "Why?"}));
+    assert_eq!(reply["structuredContent"]["person"], people["people"][1]["id"], "{reply}");
+    assert!(reply["structuredContent"]["reply"].as_str().is_some_and(|r| !r.is_empty()), "{reply}");
+    let error = client.call_error("interview_person", json!({"run_id": run_id, "person": "@nobody", "message": "?"}));
+    assert!(error.contains("no person \"@nobody\""), "{error}");
+
+    // a run of no study, as after a session that closed before its draft B started
+    let error = client.call_error("get_study", json!({"run_id": run_id}));
+    assert!(error.contains(&format!("baseline_run_id set to {run_id}")), "{error}");
 
     // a finished run takes no events
     let error = client.call_error("inject_event", json!({"run_id": run_id, "round": 2, "content": "News"}));
@@ -231,7 +243,9 @@ fn initialize_list_tools_run_and_read_the_report() {
 fn compare_two_drafts_on_one_crowd() {
     let tmp = tempfile::tempdir().unwrap();
     let runs = tmp.path().join("runs");
-    let mut client = Client::start(&tmp.path().join("home"), &runs);
+    // slow enough that a new draft is still running when get_study first looks at it
+    let args = ["mcp", "--runs", runs.to_str().unwrap()];
+    let mut client = Client::spawn(&tmp.path().join("home"), &args, &[("TELLFOLD_FAKE_DELAY", "0.2")]);
     initialize(&mut client);
 
     let started = client.call(
@@ -264,7 +278,48 @@ fn compare_two_drafts_on_one_crowd() {
     assert_eq!(study["runs"].as_array().unwrap().len(), 2);
     assert!(study["comparison"].is_object(), "{study}");
 
+    // a third draft on the same crowd, started from draft B, joins its study: the A-vs-B comparison on disk is
+    // not its answer
+    let again = client.call(
+        "compare_drafts",
+        json!({"baseline_run_id": run_b, "draft_b": "# Mossbook 3.0\n\nSync is now $2 a month.\n"}),
+    );
+    let run_c = again["structuredContent"]["run_b"].as_str().unwrap().to_string();
+    assert_eq!(again["structuredContent"]["study_id"], json!(study_id));
+    let early = client.call("get_study", json!({"study_id": study_id}))["structuredContent"].clone();
+    assert_eq!(early["runs"].as_array().unwrap().len(), 3, "{early}");
+    let covers_c = |s: &Value| s["compared_runs"].as_array().unwrap().iter().any(|r| r == &json!(run_c));
+    assert_eq!(early["ready"], false, "an older comparison came back as ready: {early}");
+    assert!(early["comparison"].is_null(), "{early}");
+    assert_eq!(client.wait_for_run(&run_c)["state"], "done");
+    let study =
+        client.call("get_study", json!({"study_id": study_id, "wait_seconds": 60}))["structuredContent"].clone();
+    assert_eq!(study["ready"], true, "{study}");
+    assert!(covers_c(&study), "{study}");
+
     assert_eq!(client.finish(), Some(0));
+}
+
+#[test]
+fn runs_stop_when_the_client_goes_away() {
+    let tmp = tempfile::tempdir().unwrap();
+    let runs = tmp.path().join("runs");
+    // every canned model call takes a second, so the run is still going when the client leaves
+    let args = ["mcp", "--runs", runs.to_str().unwrap()];
+    let mut client = Client::spawn(&tmp.path().join("home"), &args, &[("TELLFOLD_FAKE_DELAY", "1")]);
+    initialize(&mut client);
+    let started = client.call(
+        "start_simulation",
+        json!({"question": "Will they accept it?", "text": CHANGELOG, "agents": 4, "rounds": 3}),
+    );
+    let run_id = started["structuredContent"]["run_id"].as_str().unwrap().to_string();
+    let status = client.call("get_run_status", json!({"run_id": run_id}))["structuredContent"].clone();
+    assert_eq!(status["finished"], false, "the run must still be going: {status}");
+
+    assert_eq!(client.finish(), Some(0));
+    let saved: Value =
+        serde_json::from_str(&std::fs::read_to_string(runs.join(&run_id).join("status.json")).unwrap()).unwrap();
+    assert_eq!(saved["state"], "stopped", "{saved}");
 }
 
 #[test]

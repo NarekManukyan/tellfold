@@ -55,6 +55,19 @@ pub(crate) fn os_error_text(e: &std::io::Error) -> String {
     }
 }
 
+/// `--examples` as a folder, or None (with a warning) when it is not one.
+pub(crate) fn examples_folder(p: &Parsed, err: &Console) -> Option<PathBuf> {
+    let dir = p.str("examples").map(|e| py_resolve(&expanduser(Path::new(&e))))?;
+    if !dir.is_dir() {
+        err.print(&format!(
+            "[yellow]warning:[/] --examples {} is not a folder; no examples will be listed",
+            dir.display()
+        ));
+        return None;
+    }
+    Some(dir)
+}
+
 /// A listening socket on 127.0.0.1 (SO_REUSEADDR, backlog 128).
 pub(crate) fn bind(port: u16) -> std::io::Result<std::net::TcpListener> {
     let socket = tokio::net::TcpSocket::new_v4()?;
@@ -152,14 +165,7 @@ pub fn serve(_con: &Console, p: &Parsed) -> Done {
         err.print(&format!("[bold red]error:[/] cannot create {}: {}", runs_dir.display(), os_error_text(&e)));
         return Err(Exit::Code(1));
     }
-    let mut examples_dir = p.str("examples").map(|e| py_resolve(&expanduser(Path::new(&e))));
-    if let Some(dir) = examples_dir.as_ref().filter(|d| !d.is_dir()) {
-        err.print(&format!(
-            "[yellow]warning:[/] --examples {} is not a folder; no examples will be listed",
-            dir.display()
-        ));
-        examples_dir = None;
-    }
+    let examples_dir = examples_folder(p, &err);
     let port = p.int("port") as u16;
     let runtime = tokio::runtime::Builder::new_multi_thread().enable_all().build().expect("a tokio runtime");
     let listener = match runtime.block_on(async { bind(port) }) {

@@ -69,7 +69,8 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-fn expand(paths: &[PathBuf]) -> Result<Vec<PathBuf>, IngestError> {
+/// The seed files `paths` stand for: files as given (checked), folders recursively, symlinked folders not followed.
+pub fn expand(paths: &[PathBuf]) -> Result<Vec<PathBuf>, IngestError> {
     let mut files = Vec::new();
     for path in paths {
         if path.is_dir() {

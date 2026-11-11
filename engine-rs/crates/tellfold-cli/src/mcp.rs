@@ -2,7 +2,7 @@
 //! Cursor) can start simulations, wait for them and read the reports.
 //!
 //! The tools talk to the engine's HTTP API (`tellfold-server`). By default the command starts that API inside its
-//! own process, on a free port of 127.0.0.1 with a random token, over the same runs folder the Mac app uses, so runs
+//! own process, on a free port of 127.0.0.1 with a random token, over the runs folder of the app's settings, so runs
 //! started here show up in the app. With `--url` (and the server's token) it talks to a server that is already
 //! running instead.
 //!
@@ -20,20 +20,21 @@ use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{tool, tool_handler, tool_router, ErrorData, ServerHandler, ServiceExt};
 use schemars::JsonSchema;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
+use tellfold_llm::ingest::{self, TEXT_SUFFIXES};
 use tellfold_runtimes::load_settings;
 use tellfold_runtimes::process::kill_live_process_groups;
 use tellfold_runtimes::settings::tellfold_home;
-use tellfold_server::upload::SEED_SUFFIXES;
+use tellfold_server::upload::{MAX_FILES, MAX_FILE_BYTES, MAX_TOTAL_BYTES};
 use tellfold_server::{create_app, log, AppOptions, ManagerOptions};
 
 use crate::args::Parsed;
 use crate::commands::{Done, Exit};
 use crate::llm::fake_mode;
 use crate::paths::py_resolve;
-use crate::serve::{bind, exit_later, expanduser, llm_factory, os_error_text, run_server};
+use crate::serve::{bind, examples_folder, exit_later, expanduser, llm_factory, os_error_text, run_server};
 use crate::ui::Console;
 use crate::VERSION;
 
@@ -45,6 +46,12 @@ const COMPARE_INLINE_WAIT: Duration = Duration::from_secs(20);
 /// How long that background task waits for them.
 const COMPARE_BACKGROUND_WAIT: Duration = Duration::from_secs(30 * 60);
 const TERMINAL_STATES: [&str; 3] = ["done", "failed", "stopped"];
+/// The longest pause between two polls of a run or a study.
+const MAX_POLL_PAUSE: Duration = Duration::from_secs(2);
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+/// Reads of runs and studies answer at once. Asking the crowd or a person waits on an AI tool, so has no limit.
+const READ_TIMEOUT: Duration = Duration::from_secs(30);
+const LOGGER: &str = "tellfold.mcp";
 
 const INSTRUCTIONS: &str = "Tellfold simulates how a crowd of AI personas reacts to an announcement (a changelog, \
 a pricing change, a launch post) and writes a cited report. Runs take minutes: start_simulation returns a run id at \
@@ -70,7 +77,8 @@ struct Seed {
 
 impl Engine {
     pub fn new(base: &str, token: Option<&str>) -> Self {
-        let http = reqwest::Client::builder().no_proxy().build().expect("an HTTP client");
+        let http =
+            reqwest::Client::builder().no_proxy().connect_timeout(CONNECT_TIMEOUT).build().expect("an HTTP client");
         Engine { base: base.trim_end_matches('/').to_string(), token: token.map(str::to_string), http }
     }
 
@@ -107,11 +115,11 @@ impl Engine {
     }
 
     pub async fn get(&self, path: &str) -> Result<Value, String> {
-        self.json(self.http.get(self.url(path))).await
+        self.json(self.http.get(self.url(path)).timeout(READ_TIMEOUT)).await
     }
 
     pub async fn get_text(&self, path: &str) -> Result<String, String> {
-        self.send(self.http.get(self.url(path))).await
+        self.send(self.http.get(self.url(path)).timeout(READ_TIMEOUT)).await
     }
 
     pub async fn post(&self, path: &str, body: &Value) -> Result<Value, String> {
@@ -143,55 +151,71 @@ fn study_path(study_id: &str) -> String {
 
 // ---------- seeds ----------
 
-fn is_seed(name: &str) -> bool {
-    let lower = name.to_lowercase();
-    SEED_SUFFIXES.iter().any(|s| lower.ends_with(s))
+/// The file name `text` is uploaded under: `title` when it ends in a text suffix, else `title.md`.
+fn text_name(title: Option<&str>) -> String {
+    let title = title.map(str::trim).filter(|t| !t.is_empty()).unwrap_or("announcement");
+    let lower = title.to_lowercase();
+    if TEXT_SUFFIXES.iter().any(|s| lower.ends_with(s)) {
+        title.to_string()
+    } else {
+        format!("{title}.md")
+    }
 }
 
-/// The seed files under `dir`, hidden ones skipped, in name order.
-fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> std::io::Result<()> {
-    let mut entries: Vec<PathBuf> = std::fs::read_dir(dir)?.filter_map(|e| e.ok().map(|e| e.path())).collect();
-    entries.sort();
-    for path in entries {
-        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-        if name.starts_with('.') {
-            continue;
+/// The upload so far, held to the server's limits before anything more is read.
+#[derive(Default)]
+struct Budget {
+    files: usize,
+    bytes: usize,
+}
+
+impl Budget {
+    fn add(&mut self, name: &str, size: u64) -> Result<(), String> {
+        let size = usize::try_from(size).unwrap_or(usize::MAX);
+        if size > MAX_FILE_BYTES {
+            return Err(format!("{name} is larger than {} MB", MAX_FILE_BYTES >> 20));
         }
-        if path.is_dir() {
-            walk(&path, out)?;
-        } else if is_seed(&name) {
-            out.push(path);
+        self.files += 1;
+        self.bytes = self.bytes.saturating_add(size);
+        if self.files > MAX_FILES {
+            return Err(format!("too many seed files: a run takes at most {MAX_FILES}"));
         }
+        if self.bytes > MAX_TOTAL_BYTES {
+            return Err(format!("the seed files add up to more than {} MB", MAX_TOTAL_BYTES >> 20));
+        }
+        Ok(())
     }
-    Ok(())
+}
+
+/// The seed files `given` stands for, by the rules `tellfold run` reads seeds with: a supported file, or the
+/// supported files under a folder (symlinked folders are not followed).
+fn seed_files(given: &str) -> Result<Vec<PathBuf>, String> {
+    let path = expanduser(Path::new(given));
+    if !path.exists() {
+        return Err(format!("{given}: no such file or folder (relative paths start at {})", cwd_text()));
+    }
+    let found = ingest::expand(std::slice::from_ref(&path)).map_err(|e| e.to_string())?;
+    if found.is_empty() {
+        return Err(format!("{given} holds no .md, .markdown, .txt or .pdf files"));
+    }
+    Ok(found)
 }
 
 /// The documents of a run: `text` (saved as `title`) and every file or folder in `files`.
 fn collect_seeds(text: Option<&str>, title: Option<&str>, files: &[String]) -> Result<Vec<Seed>, String> {
     let mut seeds = Vec::new();
+    let mut budget = Budget::default();
     if let Some(text) = text.filter(|t| !t.trim().is_empty()) {
-        let title = title.map(str::trim).filter(|t| !t.is_empty()).unwrap_or("announcement");
-        let name = if is_seed(title) { title.to_string() } else { format!("{title}.md") };
+        let name = text_name(title);
+        budget.add(&name, text.len() as u64)?;
         seeds.push(Seed { name, bytes: text.as_bytes().to_vec() });
     }
     for given in files {
-        let path = expanduser(Path::new(given));
-        let mut found = Vec::new();
-        if path.is_dir() {
-            walk(&path, &mut found).map_err(|e| format!("{given}: {}", os_error_text(&e)))?;
-            if found.is_empty() {
-                return Err(format!("{given} holds no .md, .markdown, .txt or .pdf files"));
-            }
-        } else if path.is_file() {
-            if !is_seed(given) {
-                return Err(format!("{given}: only .pdf, .md, .markdown and .txt are supported"));
-            }
-            found.push(path);
-        } else {
-            return Err(format!("{given}: no such file or folder (relative paths start at {})", cwd_text()));
-        }
-        for file in found {
-            let bytes = std::fs::read(&file).map_err(|e| format!("{}: {}", file.display(), os_error_text(&e)))?;
+        for file in seed_files(given)? {
+            let shown = file.display().to_string();
+            let size = std::fs::metadata(&file).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
+            budget.add(&shown, size)?;
+            let bytes = std::fs::read(&file).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
             let name = file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "seed.md".into());
             seeds.push(Seed { name, bytes });
         }
@@ -235,6 +259,17 @@ fn progress(state: &str, stage: &str, round: i64, total_rounds: i64) -> f64 {
     (value * 100.0).round() / 100.0
 }
 
+/// What the caller should do next with a run.
+fn next_step(state: &str, has_report: bool, pause: Option<&str>) -> &'static str {
+    match (state, has_report) {
+        ("done", _) | (_, true) => "Call get_report for the report.",
+        ("failed", _) => "The run failed; see error.",
+        ("stopped", _) => "The run was stopped.",
+        _ if pause.is_some() => "Waiting for the cast to be checked in the Tellfold app.",
+        _ => "Still running: call wait_for_run again.",
+    }
+}
+
 /// The parts of `GET /api/runs/{id}` a caller needs to follow a run.
 fn run_status(detail: &Value) -> Value {
     let status = &detail["status"];
@@ -243,14 +278,9 @@ fn run_status(detail: &Value) -> Value {
     let stage = status["stage"].as_str().unwrap_or("reading");
     let round = status["round"].as_i64().unwrap_or(0);
     let total = status["total_rounds"].as_i64().or_else(|| config["rounds"].as_i64()).unwrap_or(0);
-    let finished = TERMINAL_STATES.contains(&state);
     let has_report = !detail["report"].is_null();
-    let next = match (state, has_report) {
-        ("done", _) | (_, true) => "Call get_report for the report.",
-        ("failed", _) => "The run failed; see error.",
-        ("stopped", _) => "The run was stopped.",
-        _ => "Still running: call wait_for_run again.",
-    };
+    // set while the run waits for its cast to be confirmed in the app
+    let pause = status["pause"].as_str().filter(|p| !p.is_empty());
     let mut out = json!({
         "run_id": detail["id"],
         "question": config["question"],
@@ -260,13 +290,14 @@ fn run_status(detail: &Value) -> Value {
         "total_rounds": total,
         "progress": progress(state, stage, round, total),
         "detail": status["detail"],
-        "finished": finished,
+        "finished": TERMINAL_STATES.contains(&state),
         "has_report": has_report,
         "people": detail["personas"].as_array().map_or(0, Vec::len),
-        "posts_written_by": config["language"],
-        "next": next,
+        "next": next_step(state, has_report, pause),
     });
-    out.as_object_mut().expect("an object").remove("posts_written_by");
+    if let Some(pause) = pause {
+        out["pause"] = json!(pause);
+    }
     if let Some(error) = status["error"].as_str().filter(|e| !e.is_empty()) {
         out["error"] = json!(error);
     }
@@ -278,10 +309,40 @@ fn run_status(detail: &Value) -> Value {
             out[key] = json!(value);
         }
     }
-    if detail["example"].as_bool() == Some(true) {
-        out["example"] = json!(true);
-    }
+    copy_read_only_flags(detail, out.as_object_mut().expect("an object"));
     out
+}
+
+/// `example` and `imported`, when set: such runs can be read, not changed.
+fn copy_read_only_flags(run: &Value, out: &mut Map<String, Value>) {
+    for key in ["example", "imported"] {
+        if run[key].as_bool() == Some(true) {
+            out.insert(key.into(), json!(true));
+        }
+    }
+}
+
+/// Polls from 250 ms apart, backing off to 2 s, until a deadline.
+struct Poll {
+    deadline: Instant,
+    pause: Duration,
+}
+
+impl Poll {
+    fn until(limit: Duration) -> Self {
+        Poll { deadline: Instant::now() + limit, pause: Duration::from_millis(250) }
+    }
+
+    /// Sleeps until the next poll; false once the deadline has passed.
+    async fn wait(&mut self) -> bool {
+        let left = self.deadline.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            return false;
+        }
+        tokio::time::sleep(self.pause.min(left)).await;
+        self.pause = (self.pause * 2).min(MAX_POLL_PAUSE);
+        true
+    }
 }
 
 fn clamp_wait(seconds: Option<u64>) -> Duration {
@@ -293,30 +354,37 @@ fn clamp_wait(seconds: Option<u64>) -> Duration {
 const START_SIMULATION: &str = "Starts a simulation of how a crowd of AI personas reacts to a text \
 (announcement, changelog, pricing change, launch post) and returns its run id at once. A run takes minutes: follow it \
 with wait_for_run, then read get_report.";
-const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) of a run, without waiting.";
+const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) of a run, without waiting. pause is \
+set while the run waits for its cast to be checked in the Tellfold app. Example and imported runs (example or \
+imported true) are read-only: they can be read and asked about, not changed.";
 const WAIT_FOR_RUN: &str = "Wait until a run finishes, or until timeout_seconds pass (default 30, at most 120), and \
-return its status. Call it again while finished is false.";
+return its status. Call it again while finished is false. It answers at once while the run is paused for its cast \
+to be checked in the Tellfold app.";
 const GET_REPORT: &str = "The report of a finished run: the prediction, confidence, camps, reasons, risks and \
 recommendations, each citing the posts behind it. format: \"markdown\" (default), \"json\" or \"both\".";
-const LIST_RUNS: &str = "The runs in the runs folder, newest first, with their state and question.";
+const LIST_RUNS: &str = "The runs in the runs folder, newest first, with their state and question. Example and \
+imported runs (example or imported true) are read-only: they can be read and asked about, not changed.";
 const LIST_PEOPLE: &str = "The simulated people of a run: id, handle, name, bio and starting stance.";
 const ASK_CROWD: &str = "Ask a question about how the crowd reacted in a finished run. The report agent answers from \
 the posts and cites them.";
-const INTERVIEW_PERSON: &str = "Interview one simulated person of a run; they answer in character.";
+const INTERVIEW_PERSON: &str = "Interview one simulated person of a run, by id or handle; they answer in character.";
 const INJECT_EVENT: &str = "Inject breaking news into a running simulation at a round that has not started, e.g. a \
 competitor's response or a correction.";
 const STOP_RUN: &str = "Stop a running simulation. What it has so far is kept.";
 const COMPARE_DRAFTS: &str = "Compare two versions of a text on the same crowd: draft A runs first, then \
-draft B is shown to the same people, and a cited comparison is written once both finish. Returns the run ids at \
-once; follow with get_study (by study_id, or by the draft A run_id while draft B is still being set up).";
+draft B is shown to the same people with the same settings, and a cited comparison is written once both finish. \
+Returns the run ids at once; follow with get_study. While draft A is still making its people, run_b and study_id are \
+null and draft B starts later from this MCP session, so keep the session open until get_study (with run_id set to \
+run_a) returns a study_id.";
 const GET_STUDY: &str = "A study: the runs of compare_drafts with their cited comparison, or the repeats of check_run \
-with what held across them. wait_seconds waits for the comparison to be written.";
+with what held across them. ready is true once every run has ended and the result covers them all. wait_seconds \
+waits for that, and for a draft B that has not started yet.";
 const CHECK_RUN: &str = "Check a finished run: run it again with the same people and text but other random seeds \
 (runs in all, 2-5), then say which findings held. Returns a study id; follow with get_study.";
 
 // ---------- tool parameters ----------
 
-#[derive(Debug, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct EventIn {
     /// The round it happens at (1 to the number of rounds).
     pub round: i64,
@@ -324,21 +392,9 @@ pub struct EventIn {
     pub content: String,
 }
 
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct StartSimulation {
-    /// What you want predicted, e.g. "How will existing users react to this pricing change?"
-    pub question: String,
-    /// The text to test (an announcement, changelog, launch post, email) in Markdown or plain text. Give this,
-    /// `files`, or both.
-    #[serde(default)]
-    pub text: Option<String>,
-    /// File name for `text` (default "announcement.md").
-    #[serde(default)]
-    pub title: Option<String>,
-    /// Seed documents (.md, .markdown, .txt, .pdf) or folders of them. Relative paths start at the folder the MCP
-    /// server runs in.
-    #[serde(default)]
-    pub files: Vec<String>,
+/// How a new run is set up.
+#[derive(Debug, Default, Deserialize, JsonSchema)]
+pub struct RunOptions {
     /// Number of simulated people, 2-200 (engine default 20). Fewer is faster.
     #[serde(default)]
     pub agents: Option<i64>,
@@ -365,6 +421,42 @@ pub struct StartSimulation {
     pub planner_model: Option<String>,
 }
 
+impl RunOptions {
+    /// The options a run was started with, read back from its config.
+    fn of_run(config: &Value) -> Self {
+        let text = |key: &str| config[key].as_str().filter(|v| !v.is_empty()).map(str::to_string);
+        RunOptions {
+            agents: None,
+            rounds: config["rounds"].as_i64(),
+            language: text("language"),
+            events: serde_json::from_value(config["events"].clone()).unwrap_or_default(),
+            agent_runtime: text("agent_runtime"),
+            planner_runtime: text("planner_runtime"),
+            agent_model: text("agent_model"),
+            planner_model: text("planner_model"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct StartSimulation {
+    /// What you want predicted, e.g. "How will existing users react to this pricing change?"
+    pub question: String,
+    /// The text to test (an announcement, changelog, launch post, email) in Markdown or plain text. Give this,
+    /// `files`, or both.
+    #[serde(default)]
+    pub text: Option<String>,
+    /// File name for `text` (default "announcement.md"; ".md" is added unless it ends in .md, .markdown or .txt).
+    #[serde(default)]
+    pub title: Option<String>,
+    /// Seed documents (.md, .markdown, .txt, .pdf) or folders of them. Relative paths start at the folder the MCP
+    /// server runs in.
+    #[serde(default)]
+    pub files: Vec<String>,
+    #[serde(flatten)]
+    pub options: RunOptions,
+}
+
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct RunId {
     /// The run id start_simulation or list_runs returned.
@@ -384,7 +476,7 @@ pub struct WaitForRun {
 pub struct GetReport {
     /// The run id.
     pub run_id: String,
-    /// "markdown" (default), "json", or "both".
+    /// "markdown" (default, also "md"), "json", or "both".
     #[serde(default)]
     pub format: Option<String>,
 }
@@ -408,7 +500,7 @@ pub struct AskCrowd {
 pub struct Interview {
     /// A run that has people.
     pub run_id: String,
-    /// The person's id ("a03") or handle ("@maria"); see list_people.
+    /// The person's id ("a03") or handle ("@maria" or "maria", any case); see list_people.
     pub person: String,
     /// What to ask them. They answer in character, from what they saw and posted.
     pub message: String,
@@ -434,21 +526,16 @@ pub struct CompareDrafts {
     pub draft_a: Option<String>,
     /// The second version of the text.
     pub draft_b: String,
-    /// An existing run to use as draft A instead of starting one: draft B is shown to its people.
+    /// An existing run to use as draft A instead of starting one: draft B is shown to its people, with its
+    /// settings (the run options here are then not used).
     #[serde(default)]
     pub baseline_run_id: Option<String>,
     /// Label of draft B in the comparison (default: the next letter).
     #[serde(default)]
     pub label_b: Option<String>,
-    /// Number of simulated people for draft A, 2-200 (draft B reuses the same people).
-    #[serde(default)]
-    pub agents: Option<i64>,
-    /// Simulation rounds, 1-50.
-    #[serde(default)]
-    pub rounds: Option<i64>,
-    /// Language the people post in and the reports are written in.
-    #[serde(default)]
-    pub language: Option<String>,
+    /// How draft A is set up; draft B uses the same people and settings.
+    #[serde(flatten)]
+    pub options: RunOptions,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -459,7 +546,7 @@ pub struct GetStudy {
     /// A run of the study (for compare_drafts, the draft A run id).
     #[serde(default)]
     pub run_id: Option<String>,
-    /// Wait up to this many seconds for the comparison to be written (default 0, at most 120).
+    /// Wait up to this many seconds for the result, or for draft B to start (default 0, at most 120).
     #[serde(default)]
     pub wait_seconds: Option<u64>,
 }
@@ -475,12 +562,26 @@ pub struct CheckRun {
 
 // ---------- the MCP server ----------
 
+/// A draft B that has started.
+#[derive(Clone, Debug)]
+struct StartedB {
+    run_id: String,
+    study_id: Option<String>,
+}
+
 /// What `compare_drafts` knows about a draft B it could not start at once.
 #[derive(Clone, Debug)]
 enum PendingB {
     Waiting,
-    Started { run_id: String, study_id: Option<String> },
+    Started(StartedB),
     Failed(String),
+}
+
+/// What `get_study` found for its arguments.
+enum StudyTarget {
+    Study(String),
+    /// draft B of this draft A has not started yet
+    WaitingForB(String),
 }
 
 #[derive(Clone)]
@@ -492,23 +593,128 @@ pub struct Tellfold {
 }
 
 /// The form fields of a new run.
-fn run_fields(
-    question: &str,
-    agents: Option<i64>,
-    rounds: Option<i64>,
-    language: Option<&str>,
-) -> Vec<(String, String)> {
+fn run_fields(question: &str, options: &RunOptions) -> Vec<(String, String)> {
     let mut fields = vec![("question".to_string(), question.to_string())];
-    if let Some(n) = agents {
+    if let Some(n) = options.agents {
         fields.push(("agents".into(), n.to_string()));
     }
-    if let Some(n) = rounds {
+    if let Some(n) = options.rounds {
         fields.push(("rounds".into(), n.to_string()));
     }
-    if let Some(language) = language.filter(|l| !l.trim().is_empty()) {
-        fields.push(("language".into(), language.to_string()));
+    for (key, value) in [
+        ("language", &options.language),
+        ("agent_runtime", &options.agent_runtime),
+        ("planner_runtime", &options.planner_runtime),
+        ("agent_model", &options.agent_model),
+        ("planner_model", &options.planner_model),
+    ] {
+        if let Some(value) = value.as_deref().filter(|v| !v.trim().is_empty()) {
+            fields.push((key.into(), value.into()));
+        }
+    }
+    if !options.events.is_empty() {
+        fields.push(("events".into(), json!(options.events).to_string()));
     }
     fields
+}
+
+/// The settings of a run that the tools do not offer (batch size, concurrency, random seed, thinking), as form
+/// fields, so a draft B started from it differs only in the text.
+fn hidden_fields(config: &Value) -> Vec<(String, String)> {
+    let mut fields = Vec::new();
+    for (field, key) in [("batch", "batch_size"), ("concurrency", "concurrency"), ("seed", "seed")] {
+        if let Some(n) = config[key].as_i64() {
+            fields.push((field.into(), n.to_string()));
+        }
+    }
+    if config["think"].as_bool() == Some(true) {
+        fields.push(("think".into(), "true".into()));
+    }
+    fields
+}
+
+/// Draft A has its people and topic map, and no cast check in the app is pending, so draft B can copy them.
+fn cast_ready(detail: &Value) -> bool {
+    detail["personas"].as_array().is_some_and(|p| !p.is_empty())
+        && !detail["graph"].is_null()
+        && detail["status"]["pause"].is_null()
+}
+
+/// The persona `wanted` names: an id, or a handle with or without "@", in any case.
+fn find_person<'a>(detail: &'a Value, wanted: &str) -> Option<&'a Value> {
+    let wanted = wanted.trim();
+    let handle = wanted.trim_start_matches('@').to_lowercase();
+    let people = detail["personas"].as_array()?;
+    people.iter().find(|p| p["id"].as_str() == Some(wanted)).or_else(|| {
+        people.iter().find(|p| p["handle"].as_str().is_some_and(|h| h.trim_start_matches('@').to_lowercase() == handle))
+    })
+}
+
+/// The run ids a study's comparison was written from.
+fn compared_runs(study: &Value) -> Vec<&str> {
+    study["compare"]["runs"].as_array().into_iter().flatten().filter_map(|r| r["run_id"].as_str()).collect()
+}
+
+/// Whether a study's result is final: every run has ended, nothing is being written, and the result covers every
+/// run with a report. The server keeps an older comparison until a run added later (another draft B on the same
+/// draft A) has finished and been compared, so a comparison alone is not enough.
+fn study_ready(study: &Value) -> bool {
+    let runs = study["runs"].as_array().map(Vec::as_slice).unwrap_or_default();
+    let ended = |r: &Value| TERMINAL_STATES.contains(&r["state"].as_str().unwrap_or(""));
+    if runs.is_empty() || !runs.iter().all(ended) {
+        return false;
+    }
+    if study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true) {
+        return false;
+    }
+    let reported: Vec<&str> =
+        runs.iter().filter(|r| r["has_report"] == json!(true)).filter_map(|r| r["id"].as_str()).collect();
+    if study["kind"] == "repeat" {
+        return study["agreement"]["runs"].as_u64().is_some_and(|n| n as usize >= reported.len());
+    }
+    let compared = compared_runs(study);
+    !study["compare"].is_null() && reported.iter().all(|id| compared.contains(id))
+}
+
+/// What `get_study` answers for a study.
+fn study_answer(study_id: &str, study: &Value, ready: bool) -> Value {
+    let runs: Vec<Value> = study["runs"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|r| {
+            json!({"run_id": r["id"], "variant": r["variant"], "letter": r["letter"], "state": r["state"],
+                   "has_report": r["has_report"]})
+        })
+        .collect();
+    let repeat = study["kind"] == "repeat";
+    let mut out = json!({"study_id": study_id, "kind": study["kind"], "ready": ready, "runs": runs});
+    // an older result than the runs is left out, so it is never mistaken for the answer
+    if repeat {
+        out["agreement"] = if ready { study["agreement"].clone() } else { Value::Null };
+    } else {
+        out["comparison"] = if ready { study["compare"]["report"].clone() } else { Value::Null };
+        out["compared_runs"] = if ready { json!(compared_runs(study)) } else { json!([]) };
+    }
+    if let Some(error) = study["compare_state"]["error"].as_str().filter(|e| !e.is_empty()) {
+        out["error"] = json!(error);
+    }
+    if !ready {
+        let writing = study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true);
+        out["next"] = json!(if writing {
+            "Being written: call get_study again with wait_seconds."
+        } else {
+            "Written once every run has finished: wait for the runs, then call get_study again."
+        });
+    }
+    out
+}
+
+fn no_study(run_id: &str) -> String {
+    format!(
+        "run {run_id} belongs to no study. If it is draft A of compare_drafts and the MCP session closed before \
+         draft B started, call compare_drafts again with baseline_run_id set to {run_id}."
+    )
 }
 
 impl Tellfold {
@@ -534,39 +740,37 @@ impl Tellfold {
         Ok(listed.and_then(|study| study["id"].as_str()).map(str::to_string))
     }
 
-    /// Starts draft B on draft A's people: `cast_from` A, with A's question.
-    async fn start_b(
-        &self,
-        run_a: &str,
-        draft_b: &str,
-        label: Option<&str>,
-    ) -> Result<(String, Option<String>), String> {
+    /// The names the engine saved a run's seeds under (it renames clashes), else the names they were sent with.
+    async fn saved_seeds(&self, run_id: &str, sent: Vec<String>) -> Vec<String> {
+        match self.engine.get(&run_path(run_id, "/seeds")).await {
+            Ok(Value::Array(files)) => files.iter().filter_map(|f| f["name"].as_str().map(str::to_string)).collect(),
+            _ => sent,
+        }
+    }
+
+    /// Starts draft B on draft A's people: `cast_from` A, with A's question and settings.
+    async fn start_b(&self, run_a: &str, draft_b: &str, label: Option<&str>) -> Result<StartedB, String> {
         let detail = self.detail(run_a).await?;
         let config = &detail["config"];
         let question = config["question"].as_str().unwrap_or_default();
-        let mut fields = run_fields(question, None, config["rounds"].as_i64(), config["language"].as_str());
-        // the same AI tools and models as draft A, so only the text differs
-        for key in ["agent_runtime", "planner_runtime", "agent_model", "planner_model"] {
-            if let Some(value) = config[key].as_str().filter(|v| !v.is_empty()) {
-                fields.push((key.into(), value.into()));
-            }
-        }
+        let mut fields = run_fields(question, &RunOptions::of_run(config));
+        fields.extend(hidden_fields(config));
         fields.push(("cast_from".into(), run_a.to_string()));
         if let Some(label) = label.filter(|l| !l.trim().is_empty()) {
             fields.push(("variant".into(), label.to_string()));
         }
         let seeds = vec![Seed { name: "draft-b.md".into(), bytes: draft_b.as_bytes().to_vec() }];
-        let run_b = self.engine.create_run(&fields, seeds).await?;
-        let study_id = self.detail(&run_b).await?["config"]["study_id"].as_str().map(str::to_string);
-        Ok((run_b, study_id))
+        let run_id = self.engine.create_run(&fields, seeds).await?;
+        let study_id = self.detail(&run_id).await?["config"]["study_id"].as_str().map(str::to_string);
+        Ok(StartedB { run_id, study_id })
     }
 
     /// Waits until run A has its people (`Ok(true)`), ends without them (an error), or `limit` passes (`Ok(false)`).
     async fn wait_for_people(&self, run_a: &str, limit: Duration) -> Result<bool, String> {
-        let deadline = Instant::now() + limit;
+        let mut poll = Poll::until(limit);
         loop {
             let detail = self.detail(run_a).await?;
-            if detail["personas"].as_array().is_some_and(|p| !p.is_empty()) && !detail["graph"].is_null() {
+            if cast_ready(&detail) {
                 return Ok(true);
             }
             let state = detail["status"]["state"].as_str().unwrap_or("");
@@ -574,10 +778,56 @@ impl Tellfold {
                 let error = detail["status"]["error"].as_str().unwrap_or("").to_string();
                 return Err(format!("draft A ended ({state}) before it had people. {error}").trim().to_string());
             }
-            if Instant::now() >= deadline {
+            if !poll.wait().await {
                 return Ok(false);
             }
-            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    /// Starts draft B once draft A has its people, in the background; `get_study` reads the outcome.
+    fn start_b_later(&self, run_a: &str, draft_b: String, label: Option<String>) {
+        self.pending.lock().expect("not poisoned").insert(run_a.to_string(), PendingB::Waiting);
+        let me = self.clone();
+        let run_a = run_a.to_string();
+        tokio::spawn(async move {
+            let outcome = match me.wait_for_people(&run_a, COMPARE_BACKGROUND_WAIT).await {
+                Ok(true) => me.start_b(&run_a, &draft_b, label.as_deref()).await,
+                Ok(false) => Err("draft A took too long to make its people".into()),
+                Err(e) => Err(e),
+            };
+            let state = match outcome {
+                Ok(started) => PendingB::Started(started),
+                Err(e) => PendingB::Failed(e),
+            };
+            me.pending.lock().expect("not poisoned").insert(run_a, state);
+        });
+    }
+
+    /// The study `get_study` asked for: by id, or by a run of it, waiting (until `poll` ends) for a draft B
+    /// that `compare_drafts` left to start in the background.
+    async fn study_target(&self, p: &GetStudy, poll: &mut Poll) -> Result<StudyTarget, String> {
+        if let Some(study_id) = p.study_id.as_deref().filter(|s| !s.is_empty()) {
+            return Ok(StudyTarget::Study(study_id.to_string()));
+        }
+        let Some(run_id) = p.run_id.as_deref().filter(|r| !r.is_empty()) else {
+            return Err("give study_id or run_id".into());
+        };
+        loop {
+            let pending = self.pending.lock().expect("not poisoned").get(run_id).cloned();
+            let member = match pending {
+                Some(PendingB::Waiting) if poll.wait().await => continue,
+                Some(PendingB::Waiting) => return Ok(StudyTarget::WaitingForB(run_id.to_string())),
+                Some(PendingB::Failed(e)) => return Err(format!("draft B could not start: {e}")),
+                Some(PendingB::Started(StartedB { study_id: Some(study_id), .. })) => {
+                    return Ok(StudyTarget::Study(study_id))
+                }
+                Some(PendingB::Started(b)) => b.run_id,
+                None => run_id.to_string(),
+            };
+            return match self.study_of(&member).await? {
+                Some(study_id) => Ok(StudyTarget::Study(study_id)),
+                None => Err(no_study(run_id)),
+            };
         }
     }
 }
@@ -593,30 +843,18 @@ impl Tellfold {
             Ok(seeds) => seeds,
             Err(e) => return fail(e),
         };
-        let mut fields = run_fields(&p.question, p.agents, p.rounds, p.language.as_deref());
-        for (key, value) in [
-            ("agent_runtime", &p.agent_runtime),
-            ("planner_runtime", &p.planner_runtime),
-            ("agent_model", &p.agent_model),
-            ("planner_model", &p.planner_model),
-        ] {
-            if let Some(value) = value.as_deref().filter(|v| !v.trim().is_empty()) {
-                fields.push((key.into(), value.into()));
-            }
-        }
-        if !p.events.is_empty() {
-            let events: Vec<Value> = p.events.iter().map(|e| json!({"round": e.round, "content": e.content})).collect();
-            fields.push(("events".into(), Value::Array(events).to_string()));
-        }
-        let documents: Vec<String> = seeds.iter().map(|s| s.name.clone()).collect();
-        match self.engine.create_run(&fields, seeds).await {
-            Ok(run_id) => ok(json!({
-                "run_id": run_id,
-                "documents": documents,
-                "next": "Call wait_for_run with this run_id until finished is true, then get_report.",
-            })),
-            Err(e) => fail(e),
-        }
+        let fields = run_fields(&p.question, &p.options);
+        let sent: Vec<String> = seeds.iter().map(|s| s.name.clone()).collect();
+        let run_id = match self.engine.create_run(&fields, seeds).await {
+            Ok(run_id) => run_id,
+            Err(e) => return fail(e),
+        };
+        let documents = self.saved_seeds(&run_id, sent).await;
+        ok(json!({
+            "run_id": run_id,
+            "documents": documents,
+            "next": "Call wait_for_run with this run_id until finished is true, then get_report.",
+        }))
     }
 
     #[tool(description = GET_RUN_STATUS)]
@@ -629,18 +867,17 @@ impl Tellfold {
 
     #[tool(description = WAIT_FOR_RUN)]
     async fn wait_for_run(&self, Parameters(p): Parameters<WaitForRun>) -> Result<CallToolResult, ErrorData> {
-        let deadline = Instant::now() + clamp_wait(p.timeout_seconds);
-        let mut pause = Duration::from_millis(250);
+        let mut poll = Poll::until(clamp_wait(p.timeout_seconds));
         loop {
             let status = match self.detail(&p.run_id).await {
                 Ok(detail) => run_status(&detail),
                 Err(e) => return fail(e),
             };
-            if status["finished"].as_bool() == Some(true) || Instant::now() >= deadline {
+            // a paused run waits for a person in the app, not for time
+            let settled = status["finished"] == json!(true) || status.get("pause").is_some();
+            if settled || !poll.wait().await {
                 return ok(status);
             }
-            tokio::time::sleep(pause.min(deadline.saturating_duration_since(Instant::now()))).await;
-            pause = (pause * 2).min(Duration::from_secs(2));
         }
     }
 
@@ -697,9 +934,7 @@ impl Tellfold {
                         out.insert(key.into(), run[key].clone());
                     }
                 }
-                if run["example"].as_bool() == Some(true) {
-                    out.insert("example".into(), json!(true));
-                }
+                copy_read_only_flags(&run, &mut out);
                 Value::Object(out)
             })
             .collect();
@@ -736,9 +971,22 @@ impl Tellfold {
 
     #[tool(description = INTERVIEW_PERSON)]
     async fn interview_person(&self, Parameters(p): Parameters<Interview>) -> Result<CallToolResult, ErrorData> {
-        let body = json!({"agent_id": p.person, "message": p.message, "history": []});
+        let detail = match self.detail(&p.run_id).await {
+            Ok(detail) => detail,
+            Err(e) => return fail(e),
+        };
+        // the chat route takes ids only
+        let Some(person) = find_person(&detail, &p.person) else {
+            return fail(format!(
+                "run {} has no person {:?}; list_people gives their ids and handles",
+                p.run_id, p.person
+            ));
+        };
+        let body = json!({"agent_id": person["id"], "message": p.message, "history": []});
         match self.engine.post(&run_path(&p.run_id, "/chat"), &body).await {
-            Ok(reply) => ok(json!({"run_id": p.run_id, "person": p.person, "reply": reply["reply"]})),
+            Ok(reply) => ok(json!({
+                "run_id": p.run_id, "person": person["id"], "handle": person["handle"], "reply": reply["reply"],
+            })),
             Err(e) => fail(e),
         }
     }
@@ -774,7 +1022,7 @@ impl Tellfold {
                 let Some(draft_a) = p.draft_a.as_deref().filter(|d| !d.trim().is_empty()) else {
                     return fail("draft_a is required (or give baseline_run_id)");
                 };
-                let fields = run_fields(question, p.agents, p.rounds, p.language.as_deref());
+                let fields = run_fields(question, &p.options);
                 let seeds = vec![Seed { name: "draft-a.md".into(), bytes: draft_a.as_bytes().to_vec() }];
                 match self.engine.create_run(&fields, seeds).await {
                     Ok(run_id) => run_id,
@@ -786,8 +1034,8 @@ impl Tellfold {
             Err(e) => return fail(e),
             Ok(true) => {
                 return match self.start_b(&run_a, &p.draft_b, p.label_b.as_deref()).await {
-                    Ok((run_b, study_id)) => ok(json!({
-                        "run_a": run_a, "run_b": run_b, "study_id": study_id,
+                    Ok(b) => ok(json!({
+                        "run_a": run_a, "run_b": b.run_id, "study_id": b.study_id,
                         "next": "Call wait_for_run on both runs, then get_study with wait_seconds for the comparison.",
                     })),
                     Err(e) => fail(e),
@@ -795,103 +1043,38 @@ impl Tellfold {
             }
             Ok(false) => {}
         }
-        // Draft A is still working out its people: start draft B in the background once it has them.
-        self.pending.lock().expect("not poisoned").insert(run_a.clone(), PendingB::Waiting);
-        let me = self.clone();
-        let (a, draft_b, label) = (run_a.clone(), p.draft_b.clone(), p.label_b.clone());
-        tokio::spawn(async move {
-            let outcome = match me.wait_for_people(&a, COMPARE_BACKGROUND_WAIT).await {
-                Ok(true) => me.start_b(&a, &draft_b, label.as_deref()).await,
-                Ok(false) => Err("draft A took too long to make its people".into()),
-                Err(e) => Err(e),
-            };
-            let state = match outcome {
-                Ok((run_id, study_id)) => PendingB::Started { run_id, study_id },
-                Err(e) => PendingB::Failed(e),
-            };
-            me.pending.lock().expect("not poisoned").insert(a, state);
-        });
+        // Draft A is still working out its people (or waits for its cast to be checked in the app)
+        self.start_b_later(&run_a, p.draft_b, p.label_b);
         ok(json!({
             "run_a": run_a, "run_b": null, "study_id": null,
-            "next": "Draft B starts as soon as draft A has its people. Call get_study with run_id set to run_a.",
+            "next": "Draft B starts from this MCP session as soon as draft A has its people, so keep it open. Call \
+                     get_study with run_id set to run_a and wait_seconds until it returns a study_id.",
         }))
     }
 
     #[tool(description = GET_STUDY)]
     async fn get_study(&self, Parameters(p): Parameters<GetStudy>) -> Result<CallToolResult, ErrorData> {
-        let deadline = Instant::now() + Duration::from_secs(p.wait_seconds.unwrap_or(0).min(MAX_WAIT_SECONDS));
-        let study_id = match (p.study_id.as_deref().filter(|s| !s.is_empty()), p.run_id.as_deref()) {
-            (Some(study_id), _) => study_id.to_string(),
-            (None, Some(run_id)) => {
-                let pending = self.pending.lock().expect("not poisoned").get(run_id).cloned();
-                match pending {
-                    Some(PendingB::Waiting) => {
-                        return ok(json!({
-                            "study_id": null, "ready": false, "run_a": run_id, "run_b": null,
-                            "next": "Draft B starts once draft A has its people; ask again shortly.",
-                        }))
-                    }
-                    Some(PendingB::Failed(e)) => return fail(format!("draft B could not start: {e}")),
-                    Some(PendingB::Started { study_id: Some(study_id), .. }) => study_id,
-                    started => {
-                        let member = match &started {
-                            Some(PendingB::Started { run_id: run_b, .. }) => run_b.as_str(),
-                            _ => run_id,
-                        };
-                        match self.study_of(member).await {
-                            Ok(Some(study_id)) => study_id,
-                            Ok(None) => return fail(format!("run {run_id} belongs to no study")),
-                            Err(e) => return fail(e),
-                        }
-                    }
-                }
+        let mut poll = Poll::until(Duration::from_secs(p.wait_seconds.unwrap_or(0).min(MAX_WAIT_SECONDS)));
+        let study_id = match self.study_target(&p, &mut poll).await {
+            Ok(StudyTarget::Study(study_id)) => study_id,
+            Ok(StudyTarget::WaitingForB(run_a)) => {
+                return ok(json!({
+                    "study_id": null, "ready": false, "run_a": run_a, "run_b": null,
+                    "next": "Draft B starts once draft A has its people; call get_study again with wait_seconds.",
+                }))
             }
-            (None, None) => return fail("give study_id or run_id"),
+            Err(e) => return fail(e),
         };
-        let mut pause = Duration::from_millis(250);
         loop {
             let study = match self.engine.get(&study_path(&study_id)).await {
                 Ok(study) => study,
                 Err(e) => return fail(e),
             };
-            let repeat = study["kind"] == "repeat";
-            let result = if repeat { &study["agreement"] } else { &study["compare"] };
-            let error = study["compare_state"]["error"].as_str().filter(|e| !e.is_empty());
-            let ready = !result.is_null();
-            if ready || error.is_some() || Instant::now() >= deadline {
-                let runs: Vec<Value> = study["runs"]
-                    .as_array()
-                    .map(|runs| {
-                        runs.iter()
-                            .map(|r| {
-                                json!({"run_id": r["id"], "variant": r["variant"], "letter": r["letter"],
-                                       "state": r["state"], "has_report": r["has_report"]})
-                            })
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                let mut out = json!({"study_id": study_id, "kind": study["kind"], "ready": ready, "runs": runs});
-                if repeat {
-                    out["agreement"] = study["agreement"].clone();
-                } else {
-                    out["comparison"] = study["compare"]["report"].clone();
-                }
-                if let Some(error) = error {
-                    out["error"] = json!(error);
-                }
-                if !ready {
-                    out["next"] = json!(if study["compare_state"]["running"].as_bool() == Some(true)
-                        || study["repeating"].as_bool() == Some(true)
-                    {
-                        "Being written: call get_study again with wait_seconds."
-                    } else {
-                        "Written once every run has finished: wait for the runs, then call get_study again."
-                    });
-                }
-                return ok(out);
+            let ready = study_ready(&study);
+            let failed = study["compare_state"]["error"].as_str().is_some_and(|e| !e.is_empty());
+            if ready || failed || !poll.wait().await {
+                return ok(study_answer(&study_id, &study, ready));
             }
-            tokio::time::sleep(pause.min(deadline.saturating_duration_since(Instant::now()))).await;
-            pause = (pause * 2).min(Duration::from_secs(2));
         }
     }
 
@@ -966,7 +1149,9 @@ async fn serve_stdio(engine: Engine) -> Result<(), String> {
         .serve(rmcp::transport::stdio())
         .await
         .map_err(|e| format!("the MCP session did not start: {e}"))?;
-    let _ = service.waiting().await;
+    if let Err(e) = service.waiting().await {
+        log::warning(LOGGER, &format!("the MCP session ended with an error: {e}"));
+    }
     Ok(())
 }
 
@@ -976,7 +1161,7 @@ async fn embedded(p: &Parsed, token: Option<String>, err: &Console) -> Result<()
     let runs_dir = runs_folder(p);
     std::fs::create_dir_all(&runs_dir)
         .map_err(|e| format!("cannot create {}: {}", runs_dir.display(), os_error_text(&e)))?;
-    let examples_dir = p.str("examples").map(|e| py_resolve(&expanduser(Path::new(&e)))).filter(|d| d.is_dir());
+    let examples_dir = examples_folder(p, err);
     let listener = bind(0).map_err(|e| format!("cannot bind 127.0.0.1: {}", os_error_text(&e)))?;
     let port = listener.local_addr().map(|a| a.port()).map_err(|e| e.to_string())?;
     let token = token.unwrap_or_else(|| Alphanumeric.sample_string(&mut rand::thread_rng(), 32));
@@ -1016,11 +1201,14 @@ mod tests {
     }
 
     #[test]
-    fn text_seeds_get_a_markdown_name() {
+    fn text_seeds_get_a_text_name() {
         let seeds = collect_seeds(Some("# v2"), Some("changelog"), &[]).unwrap();
         assert_eq!(seeds[0].name, "changelog.md");
         let seeds = collect_seeds(Some("hi"), Some("notes.txt"), &[]).unwrap();
         assert_eq!(seeds[0].name, "notes.txt");
+        // text is never uploaded as a PDF
+        let seeds = collect_seeds(Some("hi"), Some("deck.PDF"), &[]).unwrap();
+        assert_eq!(seeds[0].name, "deck.PDF.md");
         assert!(collect_seeds(Some("  "), None, &[]).is_err());
         assert!(collect_seeds(None, None, &["/no/such/file.md".into()]).is_err());
     }
@@ -1030,12 +1218,191 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         std::fs::write(tmp.path().join("b.md"), "b").unwrap();
         std::fs::write(tmp.path().join("a.txt"), "a").unwrap();
-        std::fs::write(tmp.path().join(".hidden.md"), "h").unwrap();
         std::fs::write(tmp.path().join("image.png"), "p").unwrap();
+        std::fs::create_dir(tmp.path().join("more")).unwrap();
+        std::fs::write(tmp.path().join("more/c.markdown"), "c").unwrap();
         let seeds = collect_seeds(None, None, &[tmp.path().to_string_lossy().into_owned()]).unwrap();
         let names: Vec<&str> = seeds.iter().map(|s| s.name.as_str()).collect();
-        assert_eq!(names, ["a.txt", "b.md"]);
+        assert_eq!(names, ["a.txt", "b.md", "c.markdown"]);
         let png = tmp.path().join("image.png").to_string_lossy().into_owned();
         assert!(collect_seeds(None, None, &[png]).is_err());
+        let empty = tempfile::tempdir().unwrap();
+        let error = collect_seeds(None, None, &[empty.path().to_string_lossy().into_owned()]).err().unwrap();
+        assert!(error.contains("holds no"), "{error}");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_folders_are_not_followed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let outside = tempfile::tempdir().unwrap();
+        std::fs::write(outside.path().join("secret.md"), "s").unwrap();
+        std::fs::write(tmp.path().join("a.md"), "a").unwrap();
+        std::os::unix::fs::symlink(outside.path(), tmp.path().join("link")).unwrap();
+        let seeds = collect_seeds(None, None, &[tmp.path().to_string_lossy().into_owned()]).unwrap();
+        let names: Vec<&str> = seeds.iter().map(|s| s.name.as_str()).collect();
+        assert_eq!(names, ["a.md"]);
+    }
+
+    #[test]
+    fn the_upload_limits_apply_before_reading() {
+        let mut budget = Budget::default();
+        let error = budget.add("big.pdf", MAX_FILE_BYTES as u64 + 1).err().unwrap();
+        assert!(error.contains("big.pdf is larger than 20 MB"), "{error}");
+        let mut budget = Budget::default();
+        for _ in 0..MAX_FILES {
+            budget.add("a.md", 1).unwrap();
+        }
+        assert!(budget.add("a.md", 1).err().unwrap().contains("at most 100"));
+        let mut budget = Budget::default();
+        for _ in 0..5 {
+            budget.add("a.pdf", MAX_FILE_BYTES as u64).unwrap();
+        }
+        assert!(budget.add("a.md", 1).err().unwrap().contains("more than 100 MB"));
+    }
+
+    #[test]
+    fn a_pause_is_reported_and_holds_back_draft_b() {
+        let mut detail = json!({
+            "id": "r1", "config": {"question": "Q", "rounds": 3},
+            "status": {"state": "running", "stage": "personas", "pause": "personas_ready"},
+            "personas": [{"id": "a01", "handle": "@maria"}], "graph": {}, "report": null,
+        });
+        let status = run_status(&detail);
+        assert_eq!(status["pause"], "personas_ready");
+        assert_eq!(status["next"], "Waiting for the cast to be checked in the Tellfold app.");
+        assert!(!cast_ready(&detail));
+        detail["status"]["pause"] = Value::Null;
+        assert!(run_status(&detail).get("pause").is_none());
+        assert!(cast_ready(&detail));
+    }
+
+    #[test]
+    fn read_only_runs_say_so() {
+        let detail = json!({"id": "r1", "config": {}, "status": {"state": "done"}, "imported": true});
+        let status = run_status(&detail);
+        assert_eq!(status["imported"], true);
+        assert!(status.get("example").is_none());
+    }
+
+    #[test]
+    fn people_are_found_by_id_or_handle() {
+        let detail = json!({"personas": [{"id": "a01", "handle": "@Maria"}, {"id": "a02", "handle": "tom"}]});
+        for wanted in ["a01", "@maria", "maria", " MARIA "] {
+            assert_eq!(find_person(&detail, wanted).unwrap()["id"], "a01", "{wanted}");
+        }
+        assert_eq!(find_person(&detail, "@tom").unwrap()["id"], "a02");
+        assert!(find_person(&detail, "@nobody").is_none());
+        assert!(find_person(&json!({}), "a01").is_none());
+    }
+
+    #[test]
+    fn draft_b_keeps_draft_a_settings() {
+        let config = json!({
+            "question": "Q", "rounds": 4, "language": "German", "batch_size": 3, "concurrency": 2, "seed": 11,
+            "think": true, "events": [{"round": 2, "content": "News"}], "agent_runtime": "codex", "agent_model": "",
+        });
+        let mut fields = run_fields("Q", &RunOptions::of_run(&config));
+        fields.extend(hidden_fields(&config));
+        let get = |key: &str| fields.iter().find(|(k, _)| k == key).map(|(_, v)| v.as_str());
+        assert_eq!(get("rounds"), Some("4"));
+        assert_eq!(get("language"), Some("German"));
+        assert_eq!(get("batch"), Some("3"));
+        assert_eq!(get("concurrency"), Some("2"));
+        assert_eq!(get("seed"), Some("11"));
+        assert_eq!(get("think"), Some("true"));
+        assert_eq!(get("agent_runtime"), Some("codex"));
+        assert_eq!(get("agent_model"), None);
+        assert_eq!(get("agents"), None, "the people come from cast_from");
+        let events: Value = serde_json::from_str(get("events").unwrap()).unwrap();
+        assert_eq!(events, json!([{"round": 2, "content": "News"}]));
+    }
+
+    fn study(runs: Value, compared: &[&str]) -> Value {
+        let compare = if compared.is_empty() {
+            Value::Null
+        } else {
+            json!({"runs": compared.iter().map(|id| json!({"run_id": id})).collect::<Vec<_>>(), "report": {"x": 1}})
+        };
+        json!({"kind": "compare", "runs": runs, "compare": compare, "compare_state": {"running": false}})
+    }
+
+    #[test]
+    fn an_older_comparison_is_not_ready() {
+        let done = |id: &str| json!({"id": id, "state": "done", "has_report": true});
+        // a second draft B joined the study: the comparison on disk is still A against the first B
+        let stale = study(json!([done("a"), done("b1"), {"id": "b2", "state": "running"}]), &["a", "b1"]);
+        assert!(!study_ready(&stale));
+        let answer = study_answer("s1", &stale, false);
+        assert!(answer["comparison"].is_null(), "{answer}");
+        let finished = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1"]);
+        assert!(!study_ready(&finished), "B2 has finished but is not compared yet");
+        let fresh = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1", "b2"]);
+        assert!(study_ready(&fresh));
+        assert_eq!(study_answer("s1", &fresh, true)["compared_runs"], json!(["a", "b1", "b2"]));
+        // a run that failed without a report is not waited for
+        let failed = study(json!([done("a"), done("b1"), {"id": "b2", "state": "failed"}]), &["a", "b1"]);
+        assert!(study_ready(&failed));
+        let mut writing = fresh.clone();
+        writing["compare_state"]["running"] = json!(true);
+        assert!(!study_ready(&writing));
+    }
+
+    #[test]
+    fn repeats_are_ready_once_they_all_agree() {
+        let done = |id: &str| json!({"id": id, "state": "done", "has_report": true});
+        let mut repeat = json!({"kind": "repeat", "runs": [done("a"), done("b"), done("c")],
+                                "agreement": {"runs": 2}, "repeating": false});
+        assert!(!study_ready(&repeat));
+        repeat["agreement"]["runs"] = json!(3);
+        assert!(study_ready(&repeat));
+        repeat["repeating"] = json!(true);
+        assert!(!study_ready(&repeat));
+    }
+
+    /// A server whose engine is not reachable: only the pending map can answer.
+    fn offline() -> Tellfold {
+        Tellfold::new(Engine::new("http://127.0.0.1:9", None))
+    }
+
+    async fn study_by_run(server: &Tellfold, run_id: &str, wait_seconds: u64) -> Value {
+        let p = GetStudy { study_id: None, run_id: Some(run_id.into()), wait_seconds: Some(wait_seconds) };
+        serde_json::to_value(server.get_study(Parameters(p)).await.unwrap()).unwrap()
+    }
+
+    #[tokio::test]
+    async fn a_waiting_draft_b_is_not_a_study_yet() {
+        let server = offline();
+        server.pending.lock().unwrap().insert("a1".into(), PendingB::Waiting);
+        let answer = study_by_run(&server, "a1", 0).await;
+        assert_eq!(answer["structuredContent"]["ready"], false, "{answer}");
+        assert!(answer["structuredContent"]["study_id"].is_null());
+    }
+
+    #[tokio::test]
+    async fn get_study_waits_for_draft_b_to_start() {
+        let server = offline();
+        server.pending.lock().unwrap().insert("a1".into(), PendingB::Waiting);
+        let pending = server.pending.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            let started = StartedB { run_id: "b1".into(), study_id: Some("s1".into()) };
+            pending.lock().unwrap().insert("a1".into(), PendingB::Started(started));
+        });
+        let start = Instant::now();
+        let answer = study_by_run(&server, "a1", 5).await;
+        // it went on to read study s1, which the offline engine cannot serve
+        assert_eq!(answer["isError"], true, "{answer}");
+        assert!(answer["content"][0]["text"].as_str().unwrap().contains("cannot reach"), "{answer}");
+        assert!((Duration::from_millis(250)..Duration::from_secs(4)).contains(&start.elapsed()));
+    }
+
+    #[tokio::test]
+    async fn a_draft_b_that_failed_says_why() {
+        let server = offline();
+        server.pending.lock().unwrap().insert("a1".into(), PendingB::Failed("draft A took too long".into()));
+        let answer = study_by_run(&server, "a1", 0).await;
+        assert_eq!(answer["isError"], true);
+        assert_eq!(answer["content"][0]["text"], "draft B could not start: draft A took too long");
     }
 }

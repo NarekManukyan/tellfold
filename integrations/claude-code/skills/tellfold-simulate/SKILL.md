@@ -60,8 +60,15 @@ Follow-ups that need no new run: `ask_crowd` for a question about the outcome ("
 
 When the user has two versions, or you have just rewritten the text, call `compare_drafts` with `question`, `draft_a`
 and `draft_b` (or `baseline_run_id` set to a finished run plus `draft_b`). Draft B is shown to the same people as
-draft A, so the difference comes from the text. Wait for both runs with `wait_for_run`, then call `get_study` with the
-`study_id` and `wait_seconds: 60` until `ready` is true, and summarise which draft landed better and why.
+draft A, so the difference comes from the text.
+
+If `run_b` and `study_id` come back null, draft A is still making its people and draft B starts once it has them.
+Call `get_study` with `run_id` set to `run_a` and `wait_seconds: 60`, again until it returns a `study_id` and the
+runs. Then wait for both runs with `wait_for_run`, call `get_study` with the `study_id` and `wait_seconds: 60` until
+`ready` is true, and summarise which draft landed better and why.
+
+If a run's status has `pause` set, it is waiting for its cast to be checked in the Tellfold app: tell the user to
+open the app and confirm the cast, then keep waiting.
 
 ## Checking a result that matters
 
