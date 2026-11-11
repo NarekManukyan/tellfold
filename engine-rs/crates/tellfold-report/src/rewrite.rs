@@ -53,7 +53,9 @@ pub fn editable_seed(run_dir: &Path) -> Result<(String, String), ReportError> {
         ));
     };
     let bytes = std::fs::read(chosen)?;
-    let text = py_strip(&String::from_utf8_lossy(&bytes)).to_string();
+    // `read_text` decodes in universal-newline mode: `\r\n` and a lone `\r` both become `\n`.
+    let decoded = String::from_utf8_lossy(&bytes).replace("\r\n", "\n").replace('\r', "\n");
+    let text = py_strip(&decoded).to_string();
     if text.is_empty() {
         return Err(ReportError::Rewrite(format!("{} is empty", name_of(chosen))));
     }

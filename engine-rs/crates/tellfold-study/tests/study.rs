@@ -119,6 +119,29 @@ fn normalized_event(name: &str, payload: &Value) -> Value {
     json!([name, payload])
 }
 
+/// Timings are normalised (`seconds`/`llm_seconds`, rust-port.md § Golden tests), also inside JSON held as text,
+/// such as `round_stats.data`. A slow machine otherwise rounds a fake call's time up to 0.01.
+fn zero_timings(value: Value) -> Value {
+    match value {
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| match k.as_str() {
+                    "llm_seconds" | "seconds" => (k, json!(0.0)),
+                    _ => (k, zero_timings(v)),
+                })
+                .collect(),
+        ),
+        Value::Array(items) => Value::Array(items.into_iter().map(zero_timings).collect()),
+        Value::String(text) if text.starts_with('{') && text.contains("seconds") => {
+            match serde_json::from_str::<Value>(&text) {
+                Ok(inner) => Value::String(zero_timings(inner).to_string()),
+                Err(_) => Value::String(text),
+            }
+        }
+        other => other,
+    }
+}
+
 fn files_under(dir: &Path) -> Vec<String> {
     fn walk(base: &Path, dir: &Path, out: &mut Vec<String>) {
         for entry in std::fs::read_dir(dir).unwrap() {
@@ -188,15 +211,15 @@ fn studies_match_python() {
         "tables": tables(&target.join("world.db")),
         "files": files_under(&target),
     });
-    assert_eq!(norm(prepared, &root), want_branch["prepared"]);
+    assert_eq!(zero_timings(norm(prepared, &root)), zero_timings(want_branch["prepared"].clone()));
     let llm = FakeLlm::new(fake_responder);
     let events: RefCell<Vec<Value>> = RefCell::new(Vec::new());
     let on_event = |name: &str, payload: &Value| events.borrow_mut().push(normalized_event(name, payload));
     let seeds: Vec<PathBuf> = new.seed_files.iter().map(PathBuf::from).collect();
     block_on(run_pipeline(&llm, &target, &new, &seeds, Some(&on_event), None, None, &ReportWriter)).unwrap();
     assert_eq!(norm(calls(&llm), &root), want_branch["calls"]);
-    assert_eq!(norm(json!(events.into_inner()), &root), want_branch["events"]);
-    assert_eq!(norm(tables(&target.join("world.db")), &root), want_branch["tables"]);
+    assert_eq!(zero_timings(norm(json!(events.into_inner()), &root)), zero_timings(want_branch["events"].clone()));
+    assert_eq!(zero_timings(norm(tables(&target.join("world.db")), &root)), zero_timings(want_branch["tables"].clone()));
     assert_eq!(std::fs::read_to_string(target.join("report.json")).unwrap(), s(&want_branch["report_json"]));
     let branch_members =
         [Member::new("A", "c", "Original", &c), Member::new("B", "branch", "Branch at round 1", &target)];
@@ -295,7 +318,7 @@ fn studies_match_python() {
     });
     let want_pack = &want["pack"];
     for key in ["files", "config_json", "status", "report_html", "tables", "journal_mode"] {
-        assert_eq!(norm(got[key].clone(), &root), want_pack[key], "pack {key}");
+        assert_eq!(zero_timings(norm(got[key].clone(), &root)), zero_timings(want_pack[key].clone()), "pack {key}");
     }
     let mut pack_errors = serde_json::Map::new();
     let mut expect_example = |label: &str, result: Result<PathBuf, Error>| match result {
@@ -323,4 +346,29 @@ fn match_camps_and_bands_match_python() {
         let input: Vec<Vec<(i64, Option<f64>)>> = serde_json::from_value(case[0].clone()).unwrap();
         assert_eq!(serde_json::to_value(bands(&input)).unwrap(), case[1], "{input:?}");
     }
+}
+
+#[test]
+fn read_only_files_copy_like_copy2() {
+    use std::os::unix::fs::PermissionsExt;
+    let tmp = tempfile::tempdir().unwrap();
+    let runs = tmp.path().join("runs");
+    let (a, a_config) = study_run(&runs, "a", |_| {});
+    let seed = std::fs::read_dir(a.join("seeds")).unwrap().next().unwrap().unwrap().path();
+    std::fs::set_permissions(&seed, std::fs::Permissions::from_mode(0o444)).unwrap();
+    let modified = std::fs::metadata(&seed).unwrap().modified().unwrap();
+
+    let target = runs.join("branch");
+    std::fs::create_dir(&target).unwrap();
+    prepare_branch(&a, &target, &a_config, 1, &[], BranchOptions::default()).unwrap();
+    let copied = target.join("seeds").join(seed.file_name().unwrap());
+    let meta = std::fs::metadata(&copied).unwrap();
+    assert_eq!(meta.permissions().mode() & 0o777, 0o444);
+    assert_eq!(meta.modified().unwrap(), modified);
+    assert_eq!(std::fs::read(&copied).unwrap(), std::fs::read(&seed).unwrap());
+
+    let packed = tmp.path().join("examples").join("a");
+    pack_example(&a, &packed).unwrap();
+    let packed_seed = packed.join("seeds").join(seed.file_name().unwrap());
+    assert_eq!(std::fs::metadata(&packed_seed).unwrap().permissions().mode() & 0o777, 0o444);
 }

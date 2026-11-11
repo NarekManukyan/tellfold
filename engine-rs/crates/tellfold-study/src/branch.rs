@@ -123,7 +123,8 @@ pub(crate) fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
     for entry in std::fs::read_dir(from)? {
         let entry = entry?;
         let target = to.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
+        // `copytree(symlinks=False)` follows a link to a directory and copies what it points at.
+        if entry.path().is_dir() {
             copy_tree(&entry.path(), &target)?;
         } else {
             copy_file(&entry.path(), &target)?;
@@ -132,11 +133,16 @@ pub(crate) fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// `shutil.copy2`: the bytes, the permissions and the modification time.
+/// `shutil.copy2`: the bytes, the access and modification times, then the permissions. The times are set while
+/// the copy is still writable, so a read-only source copies like any other.
 pub(crate) fn copy_file(from: &Path, to: &Path) -> std::io::Result<()> {
-    std::fs::copy(from, to)?;
-    let modified = std::fs::metadata(from)?.modified()?;
-    std::fs::File::options().write(true).open(to)?.set_modified(modified)
+    let mut source = std::fs::File::open(from)?;
+    let meta = source.metadata()?;
+    let mut target = std::fs::File::create(to)?;
+    std::io::copy(&mut source, &mut target)?;
+    target.set_times(std::fs::FileTimes::new().set_accessed(meta.accessed()?).set_modified(meta.modified()?))?;
+    drop(target);
+    std::fs::set_permissions(to, meta.permissions())
 }
 
 /// Opens `path` read-only through a `file:` URI, like `sqlite3.connect(f"{uri}?mode=ro", uri=True)`.

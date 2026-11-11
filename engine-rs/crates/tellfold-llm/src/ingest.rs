@@ -58,8 +58,11 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.is_dir() {
+        // `rglob` does not descend into symlinked directories (`recurse_symlinks=False`).
+        if entry.file_type().is_ok_and(|t| t.is_dir()) {
             walk(&path, out);
+        } else if path.is_dir() {
+            continue;
         } else if SUPPORTED_SUFFIXES.contains(&suffix(&path).as_str()) {
             out.push(path);
         }
@@ -85,10 +88,22 @@ fn expand(paths: &[PathBuf]) -> Result<Vec<PathBuf>, IngestError> {
     Ok(files)
 }
 
-/// Each page's text, pages joined by a blank line.
+/// Each page's text, pages joined by a blank line. pdf-extract panics on some malformed documents instead of
+/// returning an error; that becomes `Unreadable` too, like PyMuPDF's exception.
 fn read_pdf(path: &Path) -> Result<String, IngestError> {
     let bytes = fs::read(path).map_err(|e| unreadable(path, e))?;
-    let pages = pdf_extract::extract_text_from_mem_by_pages(&bytes).map_err(|e| unreadable(path, e))?;
+    let extracted = std::panic::catch_unwind(|| pdf_extract::extract_text_from_mem_by_pages(&bytes));
+    let pages = match extracted {
+        Ok(result) => result.map_err(|e| unreadable(path, e))?,
+        Err(panic) => {
+            let message = panic
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| panic.downcast_ref::<&str>().map(|s| s.to_string()))
+                .unwrap_or_else(|| "the PDF could not be parsed".into());
+            return Err(unreadable(path, message));
+        }
+    };
     Ok(pages.join(JOINER))
 }
 

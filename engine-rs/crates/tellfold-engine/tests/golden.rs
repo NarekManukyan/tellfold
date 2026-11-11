@@ -219,6 +219,29 @@ fn normalized(name: &str, payload: &Value) -> Value {
     json!([name, payload])
 }
 
+/// Timings are normalised (`seconds`/`llm_seconds`, rust-port.md § Golden tests), also inside JSON held as text,
+/// such as `round_stats.data`. A slow machine otherwise rounds a fake call's time up to 0.01.
+fn zero_timings(value: Value) -> Value {
+    match value {
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| match k.as_str() {
+                    "llm_seconds" | "seconds" => (k, json!(0.0)),
+                    _ => (k, zero_timings(v)),
+                })
+                .collect(),
+        ),
+        Value::Array(items) => Value::Array(items.into_iter().map(zero_timings).collect()),
+        Value::String(text) if text.starts_with('{') && text.contains("seconds") => {
+            match serde_json::from_str::<Value>(&text) {
+                Ok(inner) => Value::String(zero_timings(inner).to_string()),
+                Err(_) => Value::String(text),
+            }
+        }
+        other => other,
+    }
+}
+
 const TABLES: &[(&str, &str)] = &[
     ("posts", "SELECT id, round, author_id, content, parent_id, repost_of, likes, dislikes, reposts, replies FROM posts ORDER BY id"),
     ("reactions", "SELECT agent_id, post_id, kind FROM reactions ORDER BY agent_id, post_id"),
@@ -287,12 +310,12 @@ fn a_whole_run_matches_python() {
     assert_eq!(read("personas.json"), s(&expected["personas_json"]));
     let got_tables = tables(&run_dir.join("world.db"));
     for (name, want) in expected["tables"].as_object().unwrap() {
-        assert_eq!(got_tables[name], *want, "table {name}");
+        assert_eq!(zero_timings(got_tables[name].clone()), zero_timings(want.clone()), "table {name}");
     }
     let events = events.into_inner();
     let want_events = expected["events"].as_array().unwrap();
     for (i, (got, want)) in events.iter().zip(want_events).enumerate() {
-        assert_eq!(got, want, "event {i}");
+        assert_eq!(zero_timings(got.clone()), zero_timings(want.clone()), "event {i}");
     }
     assert_eq!(events.len(), want_events.len(), "events");
     let mut status: Value = serde_json::from_str(&read("status.json")).unwrap();

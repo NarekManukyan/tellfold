@@ -401,6 +401,12 @@ fn rewrites_match_python() {
             Err(e) => panic!("{files}: {e}"),
         }
     }
+    // `read_text` turns `\r\n` and `\r` into `\n` before the text is stripped and measured.
+    let crlf = tmp.path().join("seeds_crlf");
+    std::fs::create_dir_all(crlf.join("seeds")).unwrap();
+    std::fs::write(crlf.join("seeds/description.md"), "\r\n# Title\r\n\r\nOne\rTwo\r\n").unwrap();
+    let (_, text) = editable_seed(&crlf).unwrap();
+    assert_eq!(text, "# Title\n\nOne\nTwo");
     let llm = FakeLlm::new(|_: &str, _: &str, _: Option<&tellfold_llm::Schema>| json!({"revised_text": "x"}));
     match block_on(build_rewrite(&llm, &tmp.path().join("seeds_long.txt"), &f.config, &report, "sonnet", false)) {
         Err(ReportError::Rewrite(e)) => assert_eq!(e, s(&f.want["rewrite_too_long"])),
