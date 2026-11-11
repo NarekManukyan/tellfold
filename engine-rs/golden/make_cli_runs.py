@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -89,6 +90,8 @@ RUN_FILES = ["config.json", "status.json", "graph.json", "personas.json", "repor
              "rewrite.json", "rewrite.md"]
 STUDY_FILES = ["study.json", "compare.json", "agreement.json"]
 
+FORCED = {"TERMINAL_WIDTH", "GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS", "_TYPER_FORCE_DISABLE_TERMINAL",
+          "UNICODE_VERSION", "TTY_COMPATIBLE", "TTY_INTERACTIVE", "JUPYTER_COLUMNS"}
 TIMING = re.compile(r"\b\d+\.\ds\b")
 PID = re.compile(r'"pid": \d+')
 STAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)?")
@@ -119,6 +122,8 @@ def normalise(text: str, cwd: Path, runs: list[str], studies: list[str]) -> str:
     names += [(name, f"{{study:{i}}}") for i, name in enumerate(studies)]
     for name, placeholder in sorted(names, key=lambda n: -len(n[0])):
         text = text.replace(name, placeholder)
+    # doctor's Python row: the patch release differs between machines
+    text = text.replace(f"│ {platform.python_version()} ", f"│ {'3.13.x':<{len(platform.python_version())}} ")
     return PID.sub('"pid": 0', STAMP.sub("<time>", TIMING.sub("<t>s", text)))
 
 
@@ -137,7 +142,8 @@ def main() -> None:
         cwd = Path(tmp) / "work"
         cwd.mkdir()
         setup(cwd)
-        env = {k: v for k, v in os.environ.items() if not k.startswith(("TELLFOLD_", "SHOAL_"))}
+        # typer forces colour under GITHUB_ACTIONS / FORCE_COLOR: the fixtures are for a plain, colourless console
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("TELLFOLD_", "SHOAL_")) and k not in FORCED}
         env.update(TELLFOLD_FAKE_LLM="1", TELLFOLD_HOME=str(Path(tmp) / "home"), COLUMNS="100", LINES="40",
                    PYTHONIOENCODING="utf-8")
         made: list[str] = []
