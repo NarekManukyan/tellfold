@@ -87,12 +87,12 @@ final class AudienceStore {
 
     func audience(_ id: String) -> SavedAudience? { audiences.first { $0.id == id } }
 
-    /// Saves `personas` (and the topic map they came from) as a new audience; returns it.
+    /// Saves `personas` (and the topic map and audience material they came from) as a new audience; returns it.
     @discardableResult
     func save(name: String, question: String, personas: [Persona], graph: KnowledgeGraph?,
-              now: Date = .now) throws -> SavedAudience {
+              material: MaterialSummary? = nil, now: Date = .now) throws -> SavedAudience {
         let audience = SavedAudience(id: UUID().uuidString.lowercased(), name: Self.cleanName(name), createdAt: now,
-                                     question: question, personas: personas, graph: graph)
+                                     question: question, personas: personas, graph: graph, material: material)
         let file = directory.appending(path: "\(audience.id).json")
         generation += 1
         try write(audience, to: file)

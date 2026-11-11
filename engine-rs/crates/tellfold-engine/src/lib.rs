@@ -6,8 +6,10 @@
 
 pub mod engine;
 pub mod graph;
+pub mod material;
 pub mod personas;
 pub mod pytext;
+pub mod redact;
 pub mod rng;
 pub mod runner;
 mod unicode_tables;

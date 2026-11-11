@@ -165,6 +165,10 @@ pub async fn post_runs(State(app): State<AppState>, request: Request) -> ApiResu
     create_run(app, request).await
 }
 
+pub async fn post_material_preview(State(app): State<AppState>, request: Request) -> ApiResult {
+    crate::upload::preview_material(app, request).await
+}
+
 pub async fn get_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
     on_manager(&app.handle, move |m| async move {
         run_dir_of(&m, &run_id)?;

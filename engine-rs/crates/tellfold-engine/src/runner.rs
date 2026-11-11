@@ -31,7 +31,8 @@ use tellfold_store::world::{World, WorldError};
 
 use crate::engine::{Engine, EngineError};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
-use crate::personas::generate_cast;
+use crate::material::{cluster, load_material, read_items};
+use crate::personas::{generate_cast, generate_grounded_cast, Ground};
 
 /// `status.pause` while a `review_cast` run waits for its cast to be confirmed.
 pub const PAUSE_PERSONAS: &str = "personas_ready";
@@ -432,21 +433,74 @@ async fn pipeline(
                 track.finish_stopped()?;
                 return Ok(None);
             }
-            track.stage(
-                RunStage::Personas,
-                &format!("creating {} personas", config.num_agents),
-                json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
-            )?;
-            personas = generate_cast(
-                llm,
-                &graph,
-                &config.question,
-                config.num_agents.max(0) as usize,
-                &config.planner_model,
-                &config.language,
-                config.fair_turns,
-            )
-            .await?;
+            let n = config.num_agents.max(0) as usize;
+            if config.material.is_some() {
+                let material = load_material(run_dir).map_err(|e| PipelineError::Other(e.0))?;
+                track.stage(
+                    RunStage::Personas,
+                    &format!("reading {} items of your audience material", material.items.len()),
+                    json!({
+                        "entities": graph.entities.len(),
+                        "relations": graph.relations.len(),
+                        "material_items": material.items.len(),
+                    }),
+                )?;
+                let read =
+                    read_items(llm, &material.items, &config.question, &config.planner_model, &config.language).await;
+                let clusters = cluster(&read);
+                if stopping() {
+                    track.finish_stopped()?;
+                    return Ok(None);
+                }
+                if read.is_empty() {
+                    log::warning(
+                        LOGGER,
+                        "no item of the audience material could be read; the cast is planned without it",
+                    );
+                    track.detail(
+                        &format!("could not read your material: creating {} personas without it", config.num_agents),
+                        json!({"material_read": 0}),
+                    )?;
+                } else {
+                    track.detail(
+                        &format!(
+                            "creating {} personas from {} items in {} groups of your material",
+                            config.num_agents,
+                            read.len(),
+                            clusters.len()
+                        ),
+                        json!({"material_read": read.len(), "clusters": clusters.len()}),
+                    )?;
+                }
+                let ground = Ground { items: &material.items, clusters: &clusters };
+                personas = generate_grounded_cast(
+                    llm,
+                    &graph,
+                    &config.question,
+                    n,
+                    &config.planner_model,
+                    &config.language,
+                    config.fair_turns,
+                    ground,
+                )
+                .await?;
+            } else {
+                track.stage(
+                    RunStage::Personas,
+                    &format!("creating {} personas", config.num_agents),
+                    json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
+                )?;
+                personas = generate_cast(
+                    llm,
+                    &graph,
+                    &config.question,
+                    n,
+                    &config.planner_model,
+                    &config.language,
+                    config.fair_turns,
+                )
+                .await?;
+            }
             write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
         }
         if stopping() {

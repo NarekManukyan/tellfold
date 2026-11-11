@@ -23,6 +23,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
+use tellfold_engine::material::{MAX_MATERIAL_FILES, MAX_MATERIAL_FILE_BYTES};
 use tellfold_llm::ingest::{self, TEXT_SUFFIXES};
 use tellfold_runtimes::load_settings;
 use tellfold_runtimes::process::kill_live_process_groups;
@@ -168,6 +169,16 @@ impl Engine {
 
     /// `POST /api/runs` with the form fields and the seed files.
     async fn create_run(&self, fields: &[(String, String)], seeds: Vec<Seed>) -> Result<String, String> {
+        self.create_grounded_run(fields, seeds, None).await
+    }
+
+    /// [`Engine::create_run`] with audience material for the cast.
+    async fn create_grounded_run(
+        &self,
+        fields: &[(String, String)],
+        seeds: Vec<Seed>,
+        material: Option<MaterialUpload>,
+    ) -> Result<String, String> {
         let mut form = reqwest::multipart::Form::new();
         for (key, value) in fields {
             form = form.text(key.clone(), value.clone());
@@ -175,9 +186,69 @@ impl Engine {
         for seed in seeds {
             form = form.part("files", reqwest::multipart::Part::bytes(seed.bytes).file_name(seed.name));
         }
+        if let Some(material) = material {
+            form = material.into_form(form);
+        }
         let created = self.json(self.http.post(self.url("/api/runs")).multipart(form).timeout(UPLOAD_TIMEOUT)).await?;
         created["id"].as_str().map(str::to_string).ok_or_else(|| "the engine did not return a run id".into())
     }
+
+    /// `POST /api/material/preview`: what the engine would send of this material.
+    async fn preview_material(&self, material: MaterialUpload, agents: Option<i64>) -> Result<Value, String> {
+        let mut form = material.into_form(reqwest::multipart::Form::new());
+        if let Some(agents) = agents {
+            form = form.text("agents", agents.to_string());
+        }
+        self.json(self.http.post(self.url("/api/material/preview")).multipart(form).timeout(UPLOAD_TIMEOUT)).await
+    }
+}
+
+/// Audience material read from disk, ready for a form: the files, what each holds, and the extra words to hide.
+struct MaterialUpload {
+    files: Vec<Seed>,
+    spec: Vec<Value>,
+    hide: Vec<String>,
+}
+
+impl MaterialUpload {
+    fn into_form(self, mut form: reqwest::multipart::Form) -> reqwest::multipart::Form {
+        for file in self.files {
+            form = form.part("material", reqwest::multipart::Part::bytes(file.bytes).file_name(file.name));
+        }
+        form = form.text("material_spec", Value::Array(self.spec).to_string());
+        if !self.hide.is_empty() {
+            form = form.text("material_hide", self.hide.join("\n"));
+        }
+        form
+    }
+}
+
+/// The material files given to a tool, read; None without any.
+fn collect_material(given: &[MaterialIn], hide: &[String]) -> Result<Option<MaterialUpload>, String> {
+    if given.is_empty() {
+        return Ok(None);
+    }
+    if given.len() > MAX_MATERIAL_FILES {
+        return Err(format!("at most {MAX_MATERIAL_FILES} files of audience material"));
+    }
+    let mut files = Vec::new();
+    let mut spec = Vec::new();
+    for entry in given {
+        let path = expanduser(Path::new(&entry.file));
+        if !path.is_file() {
+            return Err(format!("{}: no such file (relative paths start at {})", entry.file, cwd_text()));
+        }
+        let shown = path.display().to_string();
+        let size = std::fs::metadata(&path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
+        if size > MAX_MATERIAL_FILE_BYTES as u64 {
+            return Err(format!("{shown} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20));
+        }
+        let bytes = std::fs::read(&path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
+        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "material.txt".into());
+        files.push(Seed { name, bytes });
+        spec.push(json!({"kind": entry.kind, "column": entry.column}));
+    }
+    Ok(Some(MaterialUpload { files, spec, hide: hide.to_vec() }))
 }
 
 fn run_path(run_id: &str, rest: &str) -> String {
@@ -350,6 +421,9 @@ fn run_status(detail: &Value) -> Value {
             out[key] = json!(value);
         }
     }
+    if let Ok(material) = serde_json::from_value::<tellfold_models::MaterialSummary>(config["material"].clone()) {
+        out["grounded_in"] = json!(tellfold_models::material_counts_text(&material.counts));
+    }
     copy_read_only_flags(detail, out.as_object_mut().expect("an object"));
     out
 }
@@ -405,6 +479,10 @@ fn clamp_wait(seconds: Option<u64>) -> Duration {
 const START_SIMULATION: &str = "Starts a simulation of how a crowd of AI personas reacts to a text \
 (announcement, changelog, pricing change, launch post) and returns its run id at once. A run takes minutes: follow it \
 with wait_for_run, then read get_report.";
+const PREVIEW_MATERIAL: &str = "Show exactly what start_simulation would send of your audience material: every item \
+after names, email addresses, phone numbers, street addresses and order or account numbers were removed on this \
+computer, what was hidden, warnings when the material is thin, and the extra model calls reading it costs. Show it \
+to the user before starting a run with it.";
 const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) of a run, without waiting. pause is \
 set while the run waits for its cast to be checked in the Tellfold app. Example and imported runs (example or \
 imported true) are read-only: they can be read and asked about, not changed.";
@@ -505,8 +583,40 @@ pub struct StartSimulation {
     /// server runs in.
     #[serde(default)]
     pub files: Vec<String>,
+    /// Optional: your own audience material to build the crowd from (reviews, survey answers, support emails,
+    /// social comments, meeting notes). It is redacted on this computer before anything is sent; check it first
+    /// with preview_material.
+    #[serde(default)]
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide in the material (staff, pupils, customers).
+    #[serde(default)]
+    pub hide: Vec<String>,
     #[serde(flatten)]
     pub options: RunOptions,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct MaterialIn {
+    /// A .txt, .md, .csv, .tsv or .eml file. Relative paths start at the folder the MCP server runs in.
+    pub file: String,
+    /// "reviews", "survey", "emails", "comments" or "notes". Optional for .eml (emails) and .csv/.tsv (survey).
+    #[serde(default)]
+    pub kind: Option<String>,
+    /// For a spreadsheet: the column to read, by header or 1-based number (default: the column with the most text).
+    #[serde(default)]
+    pub column: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PreviewMaterial {
+    /// The material files, as for start_simulation.
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide.
+    #[serde(default)]
+    pub hide: Vec<String>,
+    /// People in the planned crowd, to warn when the material is thin for it.
+    #[serde(default)]
+    pub agents: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -992,9 +1102,13 @@ impl Tellfold {
             Ok(seeds) => seeds,
             Err(e) => return fail(e),
         };
+        let material = match collect_material(&p.material, &p.hide) {
+            Ok(material) => material,
+            Err(e) => return fail(e),
+        };
         let fields = run_fields(&p.question, &p.options);
         let sent: Vec<String> = seeds.iter().map(|s| s.name.clone()).collect();
-        let run_id = match self.engine.create_run(&fields, seeds).await {
+        let run_id = match self.engine.create_grounded_run(&fields, seeds, material).await {
             Ok(run_id) => run_id,
             Err(e) => return fail(e),
         };
@@ -1004,6 +1118,19 @@ impl Tellfold {
             "documents": documents,
             "next": "Call wait_for_run with this run_id until finished is true, then get_report.",
         }))
+    }
+
+    #[tool(description = PREVIEW_MATERIAL)]
+    async fn preview_material(&self, Parameters(p): Parameters<PreviewMaterial>) -> Result<CallToolResult, ErrorData> {
+        let material = match collect_material(&p.material, &p.hide) {
+            Ok(Some(material)) => material,
+            Ok(None) => return fail("give at least one material file"),
+            Err(e) => return fail(e),
+        };
+        match self.engine.preview_material(material, p.agents).await {
+            Ok(preview) => ok(preview),
+            Err(e) => fail(e),
+        }
     }
 
     #[tool(description = GET_RUN_STATUS)]
@@ -1103,8 +1230,13 @@ impl Tellfold {
             .map(|all| {
                 all.iter()
                     .map(|p| {
-                        json!({"id": p["id"], "handle": p["handle"], "name": p["name"], "bio": p["bio"],
-                               "stance": p["stance"]})
+                        let mut person = json!({"id": p["id"], "handle": p["handle"], "name": p["name"],
+                                                "bio": p["bio"], "stance": p["stance"]});
+                        if let Ok(g) = serde_json::from_value::<tellfold_models::Grounding>(p["grounding"].clone()) {
+                            person["based_on"] = json!(tellfold_models::material_counts_text(&g.counts));
+                            person["theme"] = json!(g.theme);
+                        }
+                        person
                     })
                     .collect()
             })

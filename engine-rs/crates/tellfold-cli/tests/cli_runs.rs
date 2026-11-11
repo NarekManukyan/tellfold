@@ -204,6 +204,9 @@ fn a_session_of_commands_matches_python() {
             }
             continue;
         }
+        // typer's `run --help` never had the Rust-only options, which `run` lists last
+        let stdout =
+            if step.args.first().is_some_and(|a| a == "run") { without_rust_only_options(&stdout) } else { stdout };
         assert_eq!(stdout, step.stdout, "stdout of `{label}`");
         assert_eq!(stderr, step.stderr, "stderr of `{label}`");
     }
@@ -234,4 +237,22 @@ fn a_session_of_commands_matches_python() {
     for (name, want) in &session.files {
         assert_eq!(&files[name], want, "{name}");
     }
+}
+
+/// A `run --help` screen without the rows of the Rust-only options (`--material`, `--hide`): the box keeps its
+/// widths, since both are shorter than the longest option.
+fn without_rust_only_options(screen: &str) -> String {
+    let mut out = Vec::new();
+    let mut skipping = false;
+    for line in screen.split_inclusive('\n') {
+        if line.starts_with("│    --material ") {
+            skipping = true;
+        } else if line.starts_with("│    --help ") {
+            skipping = false;
+        }
+        if !skipping {
+            out.push(line);
+        }
+    }
+    out.concat()
 }

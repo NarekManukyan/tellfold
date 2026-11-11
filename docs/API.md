@@ -89,12 +89,21 @@ each of those after checking the citations.
 `memory_size`, `agent_model`, `planner_model`, `concurrency`, `language`, `events` (list of `{round, content}`),
 `seed`, `think`, `agent_runtime`, `planner_runtime`, `cast_from`, `study_id`, `variant`, `branched_from`,
 `branch_round`, and, only when set, `review_cast` (true), `fair_turns` (true: every opinion camp gets a turn and
-strongly held views are not left idle) and `audience` (the name of the saved audience the people came from).
+strongly held views are not left idle), `audience` (the name of the saved audience the people came from) and
+`material` (a **MaterialSummary** of the audience material the people were built from).
+
+**MaterialSummary**: `items` (how many items were kept), `counts` (items by kind, e.g. `{"reviews": 14, "survey": 3}`;
+kinds are `reviews`, `survey`, `emails`, `comments` and `notes`), `dropped` (items left out by the cap), `redacted`
+(how many of each were hidden: `names`, `emails`, `phones`, `addresses`, `numbers`, `links`) and `files` (the file
+names). The cleaned items themselves are in the run's `material.json`.
 
 **Persona**: `id` (`"a03"`), `handle`, `name`, `bio`, `background`, `stance`, `traits`, `activity` (0-1),
 `influence` (0-1), `entity_id`, and, only when known, `camp` (`strong_support`, `lean_support`, `undecided`,
 `indifferent`, `lean_critical` or `strong_critical`) and `source` (`cast`: written by the engine, `group`: from a
-group described in words, `edited`: changed before the run).
+group described in words, `edited`: changed before the run, `material`: built from the user's audience material).
+A person built from audience material also has `grounding`: `{theme, counts, quotes}`, where `theme` is the
+cluster of the material the person stands for, `counts` how many items of each kind that cluster holds, and `quotes`
+up to six of those items, already redacted.
 
 **Post**: `id`, `round`, `author_id`, `content`, `parent_id`, `repost_of`, `likes`, `dislikes`, `reposts`,
 `replies`. The API adds `author_handle` and `sentiment` (-1 to 1, or null).
@@ -158,11 +167,74 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 | `variant` | needs `cast_from` | label of this run in the study (default: the next letter) |
 | `review_cast` | `1`/`true`/`yes`/`on` | pause once the people are written, for the cast to be checked (see [below](#checking-the-cast-before-the-run)) |
 | `fair_turns` | `1`/`true`/`yes`/`on` | every opinion camp gets a turn to post, and strongly held views are never idle more than two rounds in a row |
-| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}}` (1-200 people): the run uses these people and topic map and skips the graph and persona stages |
+| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}, "material": MaterialSummary}` (1-200 people; `material` optional): the run uses these people and topic map and skips the graph and persona stages |
+| `material` or `material[]` | optional, repeatable, not with `cast_from` or `audience` | audience material to build the people from: `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml`, at most 10 MB each and 20 files (see [Audience material](#audience-material)) |
+| `material_spec` | JSON list, needs `material` | one `{"kind": ..., "column": ...}` per material file, in order; both keys optional |
+| `material_hide` | text, needs `material` | other names or words to hide, one per line or separated by commas, at most 200 |
 
 With `cast_from`, `agents` and `fair_turns` are taken from the source run, so a new version differs only in the
-text. `cast_from` answers 409 when the source's cast was never checked: a `review_cast` run that is still waiting,
-or was stopped there. With `audience`, `agents` is the number of people in it.
+text, and the source's `material` summary is kept. `cast_from` answers 409 when the source's cast was never checked:
+a `review_cast` run that is still waiting, or was stopped there. With `audience`, `agents` is the number of people in
+it.
+
+### Audience material
+
+Material is what real people said: customer reviews, survey answers, support emails, social comments, meeting notes.
+It is separate from the seed documents. With it, the persona stage builds the crowd from that material instead of
+from the seeds alone:
+
+1. **Read and redact, on this computer.** Each file is split into items (paragraphs, bullets, or lines of a review
+   or comment list; one message per `.eml`, quoted replies and signatures cut; one cell per row of a spreadsheet
+   column). Names, email addresses, phone numbers, street addresses, links
+   and order or account numbers are replaced by `[name]`, `[email]`, `[phone]`, `[address]`, `[link]` and
+   `[number]` before anything is sent anywhere. This step is local and deterministic. Only the redacted items are
+   saved, in the run's `material.json`; the uploaded files are not kept.
+2. **Sort.** The planner reads the items in batches of 40 and gives each a camp and a short theme. The engine then
+   groups the items into clusters locally, by camp and by shared theme words.
+3. **Write people.** The camps of the crowd follow how the items spread across camps. Each person stands for one
+   cluster and is written from up to three of its items; quotes are not repeated until a cluster runs out.
+
+`kind` is one of `reviews`, `survey`, `emails`, `comments` or `notes`. It can be left out for `.eml` (emails) and
+`.csv`/`.tsv` (survey answers); a `.txt` or `.md` file without one is refused with 400. For a spreadsheet, `column`
+picks the column to read, by header or by 1-based number; without it the column with the most text is read. No other
+column is ever read.
+
+Limits: 300 items at most (a larger set is sampled evenly, and `dropped` says how many were left out), 600 characters
+per item, and items under 12 characters are skipped. Fewer than 30 items adds a warning (a few voices will shape the
+whole crowd), and so do fewer items than people (some people share quotes).
+
+```sh
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/api/runs \
+  -F files=@pricing.md -F question="How will customers take the new price?" \
+  -F material=@reviews.txt -F material=@survey.csv \
+  -F 'material_spec=[{"kind": "reviews"}, {"column": "What would make you cancel?"}]' \
+  -F 'material_hide=Mossbook'
+```
+
+### `POST /api/material/preview`
+
+Exactly what a run with this material would send to the model, without starting one. Takes the same `material`,
+`material_spec` and `material_hide` fields as `POST /api/runs`, and optionally `agents` (to warn when the material is
+thin for that many people). 400 without a material file, or for a file that cannot be read; the message says why.
+
+```json
+{
+  "summary": {"items": 8, "counts": {"reviews": 5, "survey": 3}, "dropped": 0,
+              "redacted": {"names": 2, "emails": 1, "phones": 1, "addresses": 0, "numbers": 1, "links": 0},
+              "files": ["reviews.txt", "survey.csv"]},
+  "files": [{"name": "reviews.txt", "kind": "reviews", "items": 5},
+            {"name": "survey.csv", "kind": "survey", "items": 3,
+             "columns": ["Name", "Email", "What would make you cancel?"], "column": "What would make you cancel?"}],
+  "items": [{"id": "m002", "kind": "reviews", "file": "reviews.txt",
+             "text": "The price doubled overnight and nobody warned us. My order #[number] was charged twice."}],
+  "warnings": ["Only 5 reviews and 3 survey answers: a few voices will shape the whole crowd. ..."],
+  "thin": true,
+  "estimated_calls": 1
+}
+```
+
+`estimated_calls` is the number of extra planner calls the material costs (one per 40 items). The usage estimate of
+a run counts them too.
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/api/runs \

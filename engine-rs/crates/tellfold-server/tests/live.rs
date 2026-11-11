@@ -281,6 +281,7 @@ fn make_external_run(runs_dir: &Path, run_id: &str, with_report: bool, status: O
             entity_id: None,
             camp: None,
             source: None,
+            grounding: None,
         })
         .collect();
     write_json(&run_dir.join("personas.json"), &people).unwrap();
@@ -862,4 +863,93 @@ async fn a_saved_audience_skips_casting() {
     assert_eq!(handles, ["parent_one", "parent_one_2"]);
     assert_eq!(server.factory.count("personas.batch") + server.factory.count("graph.extract"), 0);
     server.shutdown().await;
+}
+
+impl Server {
+    /// A multipart form of a new run with `material` files (name, bytes) and extra fields.
+    async fn post_material(&self, path: &str, files: &[(&str, &str)], fields: &[(&str, String)]) -> (u16, Value) {
+        let mut form = reqwest::multipart::Form::new()
+            .text("question", "Will Harbour Town accept the ferry fare rise?")
+            .text("agents", "4")
+            .text("rounds", "1")
+            .text("batch", "2")
+            .part("files[]", reqwest::multipart::Part::bytes(SEED_TEXT.as_bytes()).file_name("harbour.md"));
+        for (name, text) in files {
+            form = form.part(
+                "material",
+                reqwest::multipart::Part::bytes(text.as_bytes().to_vec()).file_name(name.to_string()),
+            );
+        }
+        for (key, value) in fields {
+            form = form.text(key.to_string(), value.clone());
+        }
+        let res = self.http.post(self.url(path)).multipart(form).send().await.unwrap();
+        (res.status().as_u16(), res.json().await.unwrap_or(Value::Null))
+    }
+}
+
+const FERRY_REVIEWS: &str = "The fare went up twice this year, ticket TK-889120 still not refunded. — Tamsin G.\n\n\
+The new boats are lovely and always on time.\n\n\
+Hi, my name is Brennan Hollis and I ring 07700 900123 every week about the late sailings.\n";
+const FERRY_SURVEY: &str =
+    "Name,Email,Comment\nOrla Finch,orla@example.com,I would drive instead if it costs more than the bus\n";
+
+#[tokio::test(flavor = "multi_thread")]
+async fn audience_material_is_previewed_redacted_and_grounds_the_cast() {
+    let server = Server::start().await;
+    let files = [("reviews.txt", FERRY_REVIEWS), ("survey.csv", FERRY_SURVEY)];
+    let spec = || ("material_spec", json!([{"kind": "reviews"}, {"column": "Comment"}]).to_string());
+    let hide = || ("material_hide", "Harbour Town\nbrennan".to_string());
+
+    let (status, preview) = server.post_material("/api/material/preview", &files, &[spec(), hide()]).await;
+    assert_eq!(status, 200, "{preview}");
+    assert_eq!(preview["summary"]["counts"], json!({"reviews": 3, "survey": 1}));
+    assert_eq!(preview["files"][1]["column"], "Comment");
+    assert_eq!(preview["files"][1]["columns"], json!(["Name", "Email", "Comment"]));
+    assert_eq!(preview["estimated_calls"], 1);
+    assert_eq!(preview["thin"], true);
+    let sent = preview["items"].to_string();
+    for leak in ["Tamsin", "TK-889120", "Brennan", "Hollis", "07700", "Orla", "orla@"] {
+        assert!(!sent.contains(leak), "{leak} would be sent: {sent}");
+    }
+    // a file of unknown kind, a missing column, and material with a saved audience are refused
+    let (status, error) = server.post_material("/api/material/preview", &files[..1], &[]).await;
+    assert_eq!(status, 400, "{error}");
+    assert!(error["detail"].as_str().unwrap().contains("say what it holds"), "{error}");
+    let bad_column = ("material_spec", json!([{"kind": "reviews"}, {"column": "Age"}]).to_string());
+    let (status, error) = server.post_material("/api/material/preview", &files, &[bad_column]).await;
+    assert_eq!(status, 400);
+    assert!(error["detail"].as_str().unwrap().contains("the columns are: Name, Email, Comment"), "{error}");
+    let audience = json!({"name": "a", "personas": [{"id": "x", "handle": "h", "name": "H", "bio": "", "background": "",
+                                                       "stance": ""}]});
+    let (status, _) = server.post_material("/api/runs", &files, &[spec(), ("audience", audience.to_string())]).await;
+    assert_eq!(status, 400);
+
+    let (status, created) = server.post_material("/api/runs", &files, &[spec(), hide()]).await;
+    assert_eq!(status, 200, "{created}");
+    let run_id = created["id"].as_str().unwrap().to_string();
+    let d = server.wait_state(&run_id, &["done"]).await;
+    assert_eq!(d["config"]["material"]["counts"], json!({"reviews": 3, "survey": 1}));
+    assert_eq!(server.factory.count("material.read"), 1);
+    let personas = d["personas"].as_array().unwrap();
+    let grounded: Vec<&Value> = personas.iter().filter(|p| p["source"] == "material").collect();
+    assert!(!grounded.is_empty(), "{personas:?}");
+    for p in &grounded {
+        assert!(p["grounding"]["counts"].as_object().is_some_and(|c| !c.is_empty()), "{p}");
+        assert!(p["grounding"]["quotes"].as_array().is_some_and(|q| !q.is_empty()), "{p}");
+        assert!(p["camp"].is_string(), "{p}");
+    }
+    let caveats = d["report"]["caveats"].to_string();
+    assert!(caveats.contains("based on 3 reviews and 1 survey answer"), "{caveats}");
+    // the run folder holds the redacted items only: no file of the user's, no name from it
+    let (_tmp, runs) = server.shutdown().await;
+    let folder = runs.join(&run_id);
+    assert!(folder.join("material.json").is_file());
+    assert!(!folder.join("seeds/reviews.txt").exists() && !folder.join("seeds/survey.csv").exists());
+    for entry in std::fs::read_dir(&folder).unwrap().flatten().filter(|e| e.path().is_file()) {
+        let text = String::from_utf8_lossy(&std::fs::read(entry.path()).unwrap()).into_owned();
+        for leak in ["Tamsin", "Brennan", "Orla", "TK-889120", "07700 900123"] {
+            assert!(!text.contains(leak), "{leak} in {}", entry.path().display());
+        }
+    }
 }

@@ -211,15 +211,24 @@ nonisolated enum NewSimulationRules {
 
     /// Why "Start simulation" is disabled, in one short line; nil when it can start.
     static func disabledReason(question: String, description: String, fileCount: Int, engineRunning: Bool,
-                               runtimeProblem: Bool = false, modelsChosen: Bool = true) -> String? {
+                               runtimeProblem: Bool = false, modelsChosen: Bool = true,
+                               materialProblem: Bool = false) -> String? {
         if !engineRunning { return "Waiting for the engine to start" }
         if trimmed(question).isEmpty { return "Add a question" }
         if !hasMaterial(description: description, fileCount: fileCount) {
             return trimmed(description).isEmpty ? "Describe it or add a file" : "Describe it a little more, or add a file"
         }
+        if materialProblem { return "Fix the audience material" }
         if runtimeProblem { return "Fix the runtime above" }
         if !modelsChosen { return "Choose a model in Advanced" }
         return nil
+    }
+
+    /// On "Run again…" of a run built from audience material: Tellfold keeps only the cleaned text in the run, not the
+    /// files, so the user adds them again.
+    static func materialAgainNote(_ material: MaterialSummary) -> String {
+        "The last run was built from \(MaterialText.counts(material.counts)). Add the material again to build the crowd "
+            + "from it."
     }
 
     /// Under the People picker when a saved audience is chosen.
@@ -247,17 +256,19 @@ nonisolated enum NewSimulationRules {
     }
 
     /// "About 24 model calls on Claude Code: 20 for the crowd (haiku), 4 for planning (sonnet)." The estimate assumes
-    /// no retries; when the two roles use different tools each part names its own.
-    static func costLine(agentCalls: Int, plannerCalls: Int, agentRuntime: String, agentModel: String,
-                         plannerRuntime: String, plannerModel: String) -> String {
+    /// no retries; when the two roles use different tools each part names its own. `materialCalls` of the planning
+    /// calls read the user's audience material, and the line says so.
+    static func costLine(agentCalls: Int, plannerCalls: Int, materialCalls: Int = 0, agentRuntime: String,
+                         agentModel: String, plannerRuntime: String, plannerModel: String) -> String {
         let total = agentCalls + plannerCalls
         let head = "About \(total) model \(total == 1 ? "call" : "calls")"
+        let reading = materialCalls > 0 ? ", \(materialCalls) of them to read your material" : ""
         if agentRuntime == plannerRuntime {
             return "\(head) on \(agentRuntime): \(agentCalls) for the crowd (\(agentModel)), "
-                + "\(plannerCalls) for planning (\(plannerModel))."
+                + "\(plannerCalls) for planning (\(plannerModel))\(reading)."
         }
         return "\(head): \(agentCalls) on \(agentRuntime) for the crowd (\(agentModel)), "
-            + "\(plannerCalls) on \(plannerRuntime) for planning (\(plannerModel))."
+            + "\(plannerCalls) on \(plannerRuntime) for planning (\(plannerModel))\(reading)."
     }
 
     /// One note about the engine or the chosen runtimes, with the fix; nil when everything is ready. `anyReady` says

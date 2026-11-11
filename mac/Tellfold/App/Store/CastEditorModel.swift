@@ -153,9 +153,12 @@ final class CastEditorModel {
     }
 
     /// Saves the cast as shown (edits included) as a reusable audience.
-    func saveAudience(name: String, question: String, graph: KnowledgeGraph?, to store: AudienceStore) -> SavedAudience? {
+    func saveAudience(name: String, question: String, graph: KnowledgeGraph?, material: MaterialSummary? = nil,
+                      to store: AudienceStore) -> SavedAudience? {
         do {
-            return try store.save(name: name, question: question, personas: people, graph: graph)
+            // grounded people keep their grounding; the summary lets a run with them name its material
+            let grounded = people.contains { $0.grounding != nil } ? material : nil
+            return try store.save(name: name, question: question, personas: people, graph: graph, material: grounded)
         } catch {
             errorMessage = "Could not save the audience: \(error.localizedDescription)"
             return nil

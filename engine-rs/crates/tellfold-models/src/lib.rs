@@ -87,6 +87,71 @@ pub struct Persona {
     /// described), "edited" (changed by the user before the run). None for older runs. Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+    /// The slice of the user's audience material this persona was written from (`source` "material"). Kept when
+    /// the user edits the persona or saves the cast as an audience. Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grounding: Option<Grounding>,
+}
+
+/// What a persona drawn from the user's own material was based on. Rust-only, like [`MaterialSummary`].
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Grounding {
+    /// The worry or hope the persona's cluster of material shares, in a few words.
+    #[serde(default)]
+    pub theme: String,
+    /// How many items of each kind ("reviews", "survey", ...) that cluster holds, in [`MATERIAL_KINDS`] order.
+    #[serde(default)]
+    pub counts: IndexMap<String, i64>,
+    /// The redacted quotes the persona's background and stance were written from.
+    #[serde(default)]
+    pub quotes: Vec<String>,
+}
+
+/// The kinds of audience material, in the order they are listed everywhere.
+pub const MATERIAL_KINDS: [&str; 5] = ["reviews", "survey", "emails", "comments", "notes"];
+
+/// "review" / "reviews" for an item count of one kind of material.
+pub fn material_noun(kind: &str, n: i64) -> String {
+    let (one, many) = match kind {
+        "reviews" => ("review", "reviews"),
+        "survey" => ("survey answer", "survey answers"),
+        "emails" => ("support email", "support emails"),
+        "comments" => ("social comment", "social comments"),
+        "notes" => ("meeting note", "meeting notes"),
+        _ => ("item", "items"),
+    };
+    format!("{n} {}", if n == 1 { one } else { many })
+}
+
+/// "14 reviews and 3 survey answers": the counts in words, kinds with none left out.
+pub fn material_counts_text(counts: &IndexMap<String, i64>) -> String {
+    let parts: Vec<String> = counts.iter().filter(|(_, n)| **n > 0).map(|(kind, n)| material_noun(kind, *n)).collect();
+    match parts.as_slice() {
+        [] => "no material".into(),
+        [one] => one.clone(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
+}
+
+/// The audience material a run's crowd is built from (`SimConfig.material`). The redacted items themselves are in
+/// the run folder's `material.json`; the user's files never are. Rust-only.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct MaterialSummary {
+    /// Items that will be sent to the planner model, after redaction and the size cap.
+    #[serde(default)]
+    pub items: i64,
+    /// Items by kind, in [`MATERIAL_KINDS`] order.
+    #[serde(default)]
+    pub counts: IndexMap<String, i64>,
+    /// Items found but left out by the size cap.
+    #[serde(default)]
+    pub dropped: i64,
+    /// What was hidden before anything left the Mac: "names", "emails", "phones", "addresses", "numbers", "links".
+    #[serde(default)]
+    pub redacted: IndexMap<String, i64>,
+    /// The files the material came from, by name.
+    #[serde(default)]
+    pub files: Vec<String>,
 }
 
 impl Persona {
@@ -105,6 +170,7 @@ impl Persona {
             entity_id: None,
             camp: None,
             source: None,
+            grounding: None,
         }
     }
 }
@@ -330,6 +396,10 @@ pub struct SimConfig {
     /// folder before the run starts, so the graph and persona stages are skipped.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
+    /// The user's own audience material the cast is grounded in (its redacted items are in `material.json`).
+    /// Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub material: Option<MaterialSummary>,
 }
 
 fn is_false(b: &bool) -> bool {
@@ -364,6 +434,7 @@ impl SimConfig {
             review_cast: false,
             fair_turns: false,
             audience: None,
+            material: None,
         }
     }
 }

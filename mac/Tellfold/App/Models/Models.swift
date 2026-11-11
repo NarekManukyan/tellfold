@@ -190,9 +190,11 @@ struct Persona: Codable, Hashable, Sendable, Identifiable {
     var camp: String?
     /// Where the person came from (`PersonaSource`), nil for older runs.
     var source: String?
+    /// The slice of the user's audience material the person was written from; kept through edits and audiences.
+    var grounding: Grounding?
 
     enum CodingKeys: String, CodingKey {
-        case id, handle, name, bio, background, stance, traits, activity, influence, camp, source
+        case id, handle, name, bio, background, stance, traits, activity, influence, camp, source, grounding
         case entityID = "entity_id"
     }
 }
@@ -212,6 +214,7 @@ extension Persona {
         entityID = c.optional(.entityID)
         camp = c.optional(.camp)
         source = c.optional(.source)
+        grounding = c.optional(.grounding)
     }
 }
 
@@ -404,9 +407,11 @@ struct SimConfig: Codable, Hashable, Sendable {
     var fairTurns = false
     /// The saved audience this run's people came from (its name).
     var audience: String?
+    /// The user's own audience material the people were built from.
+    var material: MaterialSummary?
 
     enum CodingKeys: String, CodingKey {
-        case question, rounds, concurrency, language, events, seed, think, variant, audience
+        case question, rounds, concurrency, language, events, seed, think, variant, audience, material
         case reviewCast = "review_cast"
         case fairTurns = "fair_turns"
         case castFrom = "cast_from"
@@ -461,6 +466,7 @@ extension SimConfig {
         reviewCast = c.value(.reviewCast, default: false)
         fairTurns = c.value(.fairTurns, default: false)
         audience = c.optional(.audience)
+        material = c.optional(.material)
     }
 }
 

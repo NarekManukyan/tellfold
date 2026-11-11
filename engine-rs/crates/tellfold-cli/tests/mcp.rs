@@ -126,6 +126,53 @@ const CHANGELOG: &str = "# Mossbook 3.0\n\nMossbook is now a subscription: $6 a 
 bought before stays yours. Sync and the new AI summaries need the subscription.\n";
 
 #[test]
+fn preview_material_then_a_grounded_run() {
+    let tmp = tempfile::tempdir().unwrap();
+    let runs = tmp.path().join("runs");
+    let reviews = tmp.path().join("reviews.txt");
+    std::fs::write(
+        &reviews,
+        "Price went up again, order #A12345 still not refunded.\n\nLove the offline mode. — Sarah K.\n\n\
+         Sync is broken, email me at tam@example.com.\n",
+    )
+    .unwrap();
+    let survey = tmp.path().join("survey.csv");
+    std::fs::write(&survey, "Name,Answer\nOlu Ade,If the yearly plan passes 30 pounds I leave\n").unwrap();
+    let mut client = Client::start(&tmp.path().join("home"), &runs);
+    initialize(&mut client);
+    let material = json!([
+        {"file": reviews.to_string_lossy(), "kind": "reviews"},
+        {"file": survey.to_string_lossy(), "column": "Answer"},
+    ]);
+
+    let preview =
+        client.call("preview_material", json!({"material": material, "agents": 4}))["structuredContent"].clone();
+    assert_eq!(preview["summary"]["counts"], json!({"reviews": 3, "survey": 1}), "{preview}");
+    let sent = preview["items"].to_string();
+    for leak in ["A12345", "Sarah", "tam@example.com", "Olu"] {
+        assert!(!sent.contains(leak), "{leak} in {sent}");
+    }
+    assert_eq!(preview["thin"], true);
+    assert_eq!(preview["estimated_calls"], 1);
+    let error = client.call_error("preview_material", json!({"material": [{"file": reviews.to_string_lossy()}]}));
+    assert!(error.contains("say what it holds"), "{error}");
+
+    let started = client.call(
+        "start_simulation",
+        json!({"question": "Will they stay?", "text": CHANGELOG, "agents": 4, "rounds": 1, "material": material}),
+    );
+    let run_id = started["structuredContent"]["run_id"].as_str().unwrap().to_string();
+    let done = client.wait_for_run(&run_id);
+    assert_eq!(done["state"], "done", "{done}");
+    assert_eq!(done["grounded_in"], "3 reviews and 1 survey answer");
+    let stored = std::fs::read_to_string(runs.join(&run_id).join("material.json")).unwrap();
+    assert!(!stored.contains("Sarah") && !stored.contains("A12345"), "{stored}");
+    let people = client.call("list_people", json!({"run_id": run_id}))["structuredContent"].clone();
+    let grounded = people["people"].as_array().unwrap().iter().filter(|p| p["based_on"].is_string()).count();
+    assert!(grounded > 0, "{people}");
+}
+
+#[test]
 fn initialize_list_tools_run_and_read_the_report() {
     let tmp = tempfile::tempdir().unwrap();
     let runs = tmp.path().join("runs");
@@ -153,6 +200,7 @@ fn initialize_list_tools_run_and_read_the_report() {
             "interview_person",
             "list_people",
             "list_runs",
+            "preview_material",
             "start_simulation",
             "stop_run",
             "wait_for_run",
