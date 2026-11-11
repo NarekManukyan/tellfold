@@ -119,6 +119,29 @@ fn normalized_event(name: &str, payload: &Value) -> Value {
     json!([name, payload])
 }
 
+/// Timings are normalised (`seconds`/`llm_seconds`, rust-port.md § Golden tests), also inside JSON held as text,
+/// such as `round_stats.data`. A slow machine otherwise rounds a fake call's time up to 0.01.
+fn zero_timings(value: Value) -> Value {
+    match value {
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| match k.as_str() {
+                    "llm_seconds" | "seconds" => (k, json!(0.0)),
+                    _ => (k, zero_timings(v)),
+                })
+                .collect(),
+        ),
+        Value::Array(items) => Value::Array(items.into_iter().map(zero_timings).collect()),
+        Value::String(text) if text.starts_with('{') && text.contains("seconds") => {
+            match serde_json::from_str::<Value>(&text) {
+                Ok(inner) => Value::String(zero_timings(inner).to_string()),
+                Err(_) => Value::String(text),
+            }
+        }
+        other => other,
+    }
+}
+
 fn files_under(dir: &Path) -> Vec<String> {
     fn walk(base: &Path, dir: &Path, out: &mut Vec<String>) {
         for entry in std::fs::read_dir(dir).unwrap() {
@@ -188,15 +211,18 @@ fn studies_match_python() {
         "tables": tables(&target.join("world.db")),
         "files": files_under(&target),
     });
-    assert_eq!(norm(prepared, &root), want_branch["prepared"]);
+    assert_eq!(zero_timings(norm(prepared, &root)), zero_timings(want_branch["prepared"].clone()));
     let llm = FakeLlm::new(fake_responder);
     let events: RefCell<Vec<Value>> = RefCell::new(Vec::new());
     let on_event = |name: &str, payload: &Value| events.borrow_mut().push(normalized_event(name, payload));
     let seeds: Vec<PathBuf> = new.seed_files.iter().map(PathBuf::from).collect();
     block_on(run_pipeline(&llm, &target, &new, &seeds, Some(&on_event), None, None, &ReportWriter)).unwrap();
     assert_eq!(norm(calls(&llm), &root), want_branch["calls"]);
-    assert_eq!(norm(json!(events.into_inner()), &root), want_branch["events"]);
-    assert_eq!(norm(tables(&target.join("world.db")), &root), want_branch["tables"]);
+    assert_eq!(zero_timings(norm(json!(events.into_inner()), &root)), zero_timings(want_branch["events"].clone()));
+    assert_eq!(
+        zero_timings(norm(tables(&target.join("world.db")), &root)),
+        zero_timings(want_branch["tables"].clone())
+    );
     assert_eq!(std::fs::read_to_string(target.join("report.json")).unwrap(), s(&want_branch["report_json"]));
     let branch_members =
         [Member::new("A", "c", "Original", &c), Member::new("B", "branch", "Branch at round 1", &target)];
@@ -295,7 +321,7 @@ fn studies_match_python() {
     });
     let want_pack = &want["pack"];
     for key in ["files", "config_json", "status", "report_html", "tables", "journal_mode"] {
-        assert_eq!(norm(got[key].clone(), &root), want_pack[key], "pack {key}");
+        assert_eq!(zero_timings(norm(got[key].clone(), &root)), zero_timings(want_pack[key].clone()), "pack {key}");
     }
     let mut pack_errors = serde_json::Map::new();
     let mut expect_example = |label: &str, result: Result<PathBuf, Error>| match result {
