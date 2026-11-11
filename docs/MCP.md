@@ -23,7 +23,7 @@ waits at most 120 seconds per call, then answers with the progress so far.
 
 ## The binary
 
-The `mcp` command ships in the Tellfold releases after 0.4.0, inside the app:
+The `mcp` command ships in Tellfold 0.5.0 and later, inside the app:
 
 ```
 /Applications/Tellfold.app/Contents/Resources/engine/tellfold

@@ -112,7 +112,7 @@ is `keep`, `change`, `add`, `drop` or `test`), `citation_audit`.
 ### `GET /api/health`
 
 ```json
-{"ok": true, "fake_llm": false, "version": "0.4.0"}
+{"ok": true, "fake_llm": false, "version": "0.5.0"}
 ```
 
 ### `GET /api/runs`
