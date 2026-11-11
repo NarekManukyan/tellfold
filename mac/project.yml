@@ -19,7 +19,7 @@ packages:
 settings:
   base:
     # The release script sets both; CURRENT_PROJECT_VERSION must grow with every release for Sparkle to see it.
-    MARKETING_VERSION: "0.3.1"
+    MARKETING_VERSION: "0.4.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
