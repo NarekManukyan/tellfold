@@ -110,6 +110,36 @@
   "output": null
  },
  {
+  "input": "{\"i\": \"++5\"}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": \"+-5\"}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": \"--5\"}",
+  "output": null
+ },
+ {
+  "input": "{\"i\": \"+5.0\"}",
+  "output": {
+   "i": 5,
+   "f": 0.0,
+   "b": false,
+   "s": "",
+   "o": null
+  }
+ },
+ {
+  "input": "{\"f\": \"++5\"}",
+  "output": null
+ },
+ {
+  "input": "{\"f\": \"+-5\"}",
+  "output": null
+ },
+ {
   "input": "{\"f\": true}",
   "output": {
    "i": 0,

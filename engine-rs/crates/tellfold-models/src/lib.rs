@@ -6,6 +6,7 @@
 
 pub mod json;
 pub mod lax;
+pub mod log;
 pub mod text;
 
 use indexmap::IndexMap;

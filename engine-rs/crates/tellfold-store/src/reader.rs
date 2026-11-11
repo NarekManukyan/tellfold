@@ -174,11 +174,12 @@ impl RunReader {
     // ---------- database ----------
 
     fn db(&self) -> Option<&Connection> {
+        // A database that does not exist yet is looked for again next time; only an open or failed one is kept.
+        if self.conn.get().is_none() && !self.db_path().is_file() {
+            return None;
+        }
         self.conn
             .get_or_init(|| {
-                if !self.db_path().is_file() {
-                    return None;
-                }
                 let conn = open_read_only(&self.db_path(), self.immutable).ok()?;
                 // fails here, not later, when the file is not a database
                 let probe = conn

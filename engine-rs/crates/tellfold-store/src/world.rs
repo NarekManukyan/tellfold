@@ -481,10 +481,13 @@ impl World {
                 ((engaged.contains_key(&post.id), tier, -score, self.tiebreak(agent_id, post.id)), post)
             })
             .collect();
+        // An infinite influence can make a score NaN (inf x 0). Python's sort tolerates it; here it sorts last, and
+        // `+ 0.0` keeps -0.0 equal to 0.0 under the total order.
+        let score_key = |x: f64| if x.is_nan() { f64::INFINITY } else { x + 0.0 };
         ranked.sort_by(|(a, _), (b, _)| {
             a.0.cmp(&b.0)
                 .then(a.1.cmp(&b.1))
-                .then(a.2.partial_cmp(&b.2).expect("scores are finite"))
+                .then(score_key(a.2).total_cmp(&score_key(b.2)))
                 .then(a.3.cmp(&b.3))
         });
         Ok(ranked.into_iter().take(k).map(|(_, p)| p).collect())

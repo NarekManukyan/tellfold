@@ -6,7 +6,7 @@
 //! must carry `Authorization: Bearer <token>`.
 
 pub mod error;
-pub mod log;
+pub use tellfold_models::log;
 pub mod manager;
 pub mod routes;
 pub mod upload;

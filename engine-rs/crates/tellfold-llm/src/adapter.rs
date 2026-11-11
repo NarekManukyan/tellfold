@@ -398,13 +398,13 @@ impl<A: Adapter> AdapterLlm<A> {
                 let _permit = self.semaphore.acquire().await.expect("semaphore never closed");
                 tokio::time::timeout(self.timeout, self.adapter.send(request)).await
             };
-            let failure = match outcome {
+            let (message, rate_limited) = match outcome {
                 Ok(Ok(reply)) => {
                     pending.with(|r| r.output_tokens += reply.output_tokens);
                     return Ok(reply);
                 }
-                Err(_) => AdapterError::transient(format!("timed out after {:.0}s", self.timeout.as_secs_f64())),
-                Ok(Err(e @ AdapterError::Transient { .. })) => e,
+                Err(_) => (format!("timed out after {:.0}s", self.timeout.as_secs_f64()), false),
+                Ok(Err(AdapterError::Transient { message, rate_limited })) => (message, rate_limited),
                 Ok(Err(AdapterError::Fatal(m))) => return Err(Err(LlmError(format!("{purpose}: {id}: {m}")))),
                 Ok(Err(AdapterError::BadOutput { message, reply_text })) => return Err(Ok((message, reply_text))),
                 Ok(Err(AdapterError::Llm(e))) => return Err(Err(e)),
@@ -412,7 +412,6 @@ impl<A: Adapter> AdapterLlm<A> {
                     return Err(Err(LlmError(format!("{purpose}: {id}: {kind}: {}", py_prefix(&message, 300)))));
                 }
             };
-            let AdapterError::Transient { message, rate_limited } = failure else { unreachable!() };
             if attempt == self.retries {
                 return Err(Err(LlmError(format!("{purpose}: {id} failed after {} attempts: {message}", attempt + 1))));
             }
@@ -426,7 +425,9 @@ impl<A: Adapter> AdapterLlm<A> {
 
     /// The reply as a validated value, or BadOutput (problem, reply text).
     fn parse(reply: &AdapterReply, schema: &Schema, pending: &Pending<'_, A>) -> Result<Value, (String, String)> {
-        let structured_chars = reply.structured.as_ref().map(|v| py_dumps_ascii(v).chars().count()).unwrap_or(0);
+        // A JSON null is Python's None: no structured output, so the text's length counts.
+        let structured_chars =
+            reply.structured.as_ref().filter(|v| !v.is_null()).map(|v| py_dumps_ascii(v).chars().count()).unwrap_or(0);
         let output_chars = if structured_chars > 0 { structured_chars } else { reply.text.chars().count() };
         pending.with(|r| r.output_chars = output_chars);
         let reply_text = || {

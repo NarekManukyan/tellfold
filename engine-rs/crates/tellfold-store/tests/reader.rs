@@ -152,3 +152,16 @@ fn pids() {
     assert!(!pid_alive(None) && !pid_alive(Some(0)) && !pid_alive(Some(-4)));
     assert!(!pid_alive(Some(dead_pid())));
 }
+
+#[test]
+fn a_database_created_later_is_found() {
+    let tmp = tempfile::tempdir().unwrap();
+    let reader = RunReader::new(tmp.path(), None, false);
+    assert!(reader.posts(0).is_empty());
+    let people = vec![Persona::new("a01", "ann", "Ann", "b", "bg", "s")];
+    let world = World::open(&tmp.path().join("world.db"), 7).unwrap();
+    world.add_personas(&people).unwrap();
+    world.apply(0, &Action::new("a01", ActionType::Post).content("hello")).unwrap();
+    world.close().unwrap();
+    assert_eq!(reader.posts(0).len(), 1);
+}

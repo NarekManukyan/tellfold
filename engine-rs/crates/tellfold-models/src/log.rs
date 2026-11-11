@@ -1,7 +1,8 @@
-//! Server logging on stderr in the Python server's format (`%(asctime)s %(levelname)s %(name)s: %(message)s`),
-//! filtered by `--log-level`.
+//! Python `logging` on stderr. `tellfold serve` configures it (`set_level`): every record at or above the level, in
+//! the server's format (`%(asctime)s %(levelname)s %(name)s: %(message)s`). Unconfigured, as in the other commands,
+//! it behaves like Python's last-resort handler: warnings and errors only, the message alone.
 
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 pub const DEBUG: u8 = 10;
 pub const INFO: u8 = 20;
@@ -9,6 +10,7 @@ pub const WARNING: u8 = 30;
 pub const ERROR: u8 = 40;
 
 static LEVEL: AtomicU8 = AtomicU8::new(WARNING);
+static CONFIGURED: AtomicBool = AtomicBool::new(false);
 
 /// `debug`, `info`, `warning` or `error` (any case); None for anything else.
 pub fn parse_level(name: &str) -> Option<u8> {
@@ -23,6 +25,7 @@ pub fn parse_level(name: &str) -> Option<u8> {
 
 pub fn set_level(level: u8) {
     LEVEL.store(level, Ordering::Relaxed);
+    CONFIGURED.store(true, Ordering::Relaxed);
 }
 
 pub fn enabled(level: u8) -> bool {
@@ -31,6 +34,10 @@ pub fn enabled(level: u8) -> bool {
 
 pub fn log(level: u8, name: &str, message: &str) {
     if !enabled(level) {
+        return;
+    }
+    if !CONFIGURED.load(Ordering::Relaxed) {
+        eprintln!("{message}");
         return;
     }
     let label = match level {
@@ -53,4 +60,8 @@ pub fn info(name: &str, message: &str) {
 
 pub fn warning(name: &str, message: &str) {
     log(WARNING, name, message);
+}
+
+pub fn error(name: &str, message: &str) {
+    log(ERROR, name, message);
 }

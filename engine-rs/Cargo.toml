@@ -5,7 +5,7 @@ members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-l
 [workspace.package]
 version = "0.3.0"
 edition = "2021"
-rust-version = "1.80"
+rust-version = "1.88"
 license = "LicenseRef-Proprietary"
 publish = false
 

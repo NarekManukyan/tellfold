@@ -161,7 +161,10 @@ pub async fn build_report(
                 report = finalize(draft, &ev, config);
                 audit = audit_citations(&report, &ev.posts, handles.iter().map(String::as_str));
             }
-            Err(e) => eprintln!("citation repair call failed; marking the unmatched citations instead: {e}"),
+            Err(e) => tellfold_models::log::warning(
+                "tellfold.report",
+                &format!("citation repair call failed; marking the unmatched citations instead\n{e}"),
+            ),
         }
     }
     Ok(mark_unverified(report, audit, &ev, repaired))

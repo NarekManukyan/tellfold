@@ -42,6 +42,20 @@ jobs:
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
 
+  # The oldest Rust the workspace declares (rust-version in engine-rs/Cargo.toml) still builds the locked tree.
+  msrv:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.88
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine-rs
+      - run: cargo check --workspace --all-targets --locked
+
   # The fixtures must be what the Python engine produces today: regenerate them and fail on any difference.
   golden:
     runs-on: ubuntu-latest

@@ -29,10 +29,9 @@ fn clean_number(text: &str) -> Option<String> {
 
 pub fn parse_int(text: &str) -> Option<i64> {
     let s = clean_number(text)?;
-    if let Ok(v) = s.strip_prefix('+').unwrap_or(&s).parse::<i64>() {
-        if !s.starts_with("+-") {
-            return Some(v);
-        }
+    // like int(): one optional sign, so "++5" and "+-5" fall through to float(), which refuses them too
+    if let Ok(v) = s.parse::<i64>() {
+        return Some(v);
     }
     let f = parse_float(&s)?;
     int_from_float(f)
