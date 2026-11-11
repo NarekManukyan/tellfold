@@ -23,11 +23,6 @@ impl PyRandom {
         PyRandom::from_big_endian(&bytes)
     }
 
-    /// `random.Random(n)` for a non-negative integer.
-    pub fn from_int_seed(n: u64) -> PyRandom {
-        PyRandom::from_big_endian(&n.to_be_bytes())
-    }
-
     /// Seeds with the integer whose big-endian bytes are `bytes` (CPython splits it into 32-bit words, least
     /// significant first).
     fn from_big_endian(bytes: &[u8]) -> PyRandom {

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError};
+use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
 use tellfold_llm::Llm;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{GodEvent, KnowledgeGraph, Persona, Report, SimConfig, Study, StudyKind, StudyRun};
@@ -207,7 +207,14 @@ fn run_live(
     let render_view = view.clone();
     let mut live = con.live(Arc::new(move || render_view.lock().expect("not poisoned").render()));
     let listener = |name: &str, data: &serde_json::Value| on_event(&view, config, name, data);
-    let outcome = block_on(run_pipeline(llm, run_dir, config, seeds, Some(&listener), None, None, &ReportWriter));
+    let outcome = block_on(run_pipeline(
+        llm,
+        run_dir,
+        config,
+        seeds,
+        &ReportWriter,
+        RunOptions { on_event: Some(&listener), ..Default::default() },
+    ));
     live.stop();
     outcome
 }
@@ -423,7 +430,8 @@ pub fn check(con: &Console, p: &Parsed) -> Done {
         let llm = make_llm(Some(&new_dir), new.concurrency, new.think, Some(&new))
             .map_err(|e| fail(con, &format!("{variant} failed: {e}")))?;
         let status = con.status(&format!("{variant} of {runs} (seed {})...", new.seed));
-        let outcome = block_on(run_pipeline(llm.as_ref(), &new_dir, &new, &files, None, None, None, &ReportWriter));
+        let outcome =
+            block_on(run_pipeline(llm.as_ref(), &new_dir, &new, &files, &ReportWriter, RunOptions::default()));
         drop(status);
         let done = match outcome {
             Outcome::Interrupted => {

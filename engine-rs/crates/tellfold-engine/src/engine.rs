@@ -57,6 +57,11 @@ pub enum EngineError {
 
 pub type Result<T> = std::result::Result<T, EngineError>;
 
+/// The persona's entity, if it has one: Python tests `if p.entity_id`, so an empty id is none.
+fn entity(p: &Persona) -> Option<&str> {
+    p.entity_id.as_deref().filter(|e| !e.is_empty())
+}
+
 // ---------- LLM response schemas ----------
 
 /// `target_post_id` accepts "#12" and "12" as well as numbers; other strings become null.
@@ -454,7 +459,7 @@ impl<'a> Engine<'a> {
     }
 
     fn view(&self, persona: &Persona, r: i64) -> Result<AgentView> {
-        let feed = self.world.feed_for(&persona.id, r, self.config.feed_size.max(0) as usize)?;
+        let feed = self.world.feed_for(&persona.id, r, self.config.feed_size)?;
         let mut view = AgentView::new(persona.clone(), feed);
         for post in &view.feed {
             view.allowed_posts.insert(post.id);
@@ -725,7 +730,7 @@ pub fn sample_active(personas: &[Persona], r: i64, seed: i64, news: bool) -> Res
 pub fn pick_opening_authors(personas: &[Persona], seed: i64) -> Vec<Persona> {
     let mut rng = PyRandom::from_str_seed(&format!("shoal:opening:{seed}"));
     let m = py_round_int(personas.len() as f64 * OPENING_SHARE).max(1) as usize;
-    let weight = |p: &Persona| (0.1 + p.activity + p.influence) * if p.entity_id.is_some() { 2.0 } else { 1.0 };
+    let weight = |p: &Persona| (0.1 + p.activity + p.influence) * if entity(p).is_some() { 2.0 } else { 1.0 };
     let mut chosen = weighted_sample(&by_id(personas), weight, m, &mut rng);
     chosen.sort_by(|a, b| a.id.cmp(&b.id));
     chosen
@@ -750,16 +755,16 @@ pub fn build_follow_graph(personas: &[Persona], graph: &KnowledgeGraph, seed: i6
         if others.is_empty() {
             break;
         }
-        let wanted = if follower.entity_id.is_some() {
+        let wanted = if entity(follower).is_some() {
             1 + py_round_int(follower.activity * 3.0)
         } else {
             2 + py_round_int(follower.activity * 6.0)
         };
         let follower_traits = lower_traits(follower);
         let weight = |t: &Persona| -> f64 {
-            let mut w = (0.15 + t.influence).powi(2) * if t.entity_id.is_some() { 2.5 } else { 1.0 };
-            if let (Some(f), Some(e)) = (&follower.entity_id, &t.entity_id) {
-                if related.contains(&(f.as_str(), e.as_str())) {
+            let mut w = (0.15 + t.influence).powi(2) * if entity(t).is_some() { 2.5 } else { 1.0 };
+            if let (Some(f), Some(e)) = (entity(follower), entity(t)) {
+                if related.contains(&(f, e)) {
                     w *= 3.0;
                 }
             }
@@ -849,7 +854,7 @@ fn activity_label(activity: f64) -> &'static str {
 pub fn persona_block(p: &Persona, memory: &AgentMemory) -> String {
     let mut lines = vec![
         format!("=== {} @{} ===", p.id, p.handle),
-        format!("Name: {}{}", p.name, if p.entity_id.is_some() { " (organisation / public account)" } else { "" }),
+        format!("Name: {}{}", p.name, if entity(p).is_some() { " (organisation / public account)" } else { "" }),
         format!("Public bio: {}", p.bio),
         format!("Private background: {}", p.background),
         format!("Starting stance on the topic: {}", p.stance),

@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use common::fixture;
 use indexmap::IndexMap;
 use serde_json::{json, Value};
-use tellfold_engine::runner::run_pipeline;
+use tellfold_engine::runner::{run_pipeline, RunOptions};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::Schema;
@@ -59,7 +59,7 @@ fn study_run(runs: &Path, name: &str, change: impl FnOnce(&mut SimConfig)) -> (P
     config.batch_size = 3;
     change(&mut config);
     let llm = FakeLlm::new(fake_responder);
-    block_on(run_pipeline(&llm, &run_dir, &config, &seeds, None, None, None, &ReportWriter)).unwrap().unwrap();
+    block_on(run_pipeline(&llm, &run_dir, &config, &seeds, &ReportWriter, RunOptions::default())).unwrap().unwrap();
     (run_dir, config)
 }
 
@@ -216,10 +216,21 @@ fn studies_match_python() {
     let events: RefCell<Vec<Value>> = RefCell::new(Vec::new());
     let on_event = |name: &str, payload: &Value| events.borrow_mut().push(normalized_event(name, payload));
     let seeds: Vec<PathBuf> = new.seed_files.iter().map(PathBuf::from).collect();
-    block_on(run_pipeline(&llm, &target, &new, &seeds, Some(&on_event), None, None, &ReportWriter)).unwrap();
+    block_on(run_pipeline(
+        &llm,
+        &target,
+        &new,
+        &seeds,
+        &ReportWriter,
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
+    ))
+    .unwrap();
     assert_eq!(norm(calls(&llm), &root), want_branch["calls"]);
     assert_eq!(zero_timings(norm(json!(events.into_inner()), &root)), zero_timings(want_branch["events"].clone()));
-    assert_eq!(zero_timings(norm(tables(&target.join("world.db")), &root)), zero_timings(want_branch["tables"].clone()));
+    assert_eq!(
+        zero_timings(norm(tables(&target.join("world.db")), &root)),
+        zero_timings(want_branch["tables"].clone())
+    );
     assert_eq!(std::fs::read_to_string(target.join("report.json")).unwrap(), s(&want_branch["report_json"]));
     let branch_members =
         [Member::new("A", "c", "Original", &c), Member::new("B", "branch", "Branch at round 1", &target)];

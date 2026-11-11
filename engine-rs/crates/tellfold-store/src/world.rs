@@ -447,7 +447,8 @@ impl World {
     /// reposted sink to the bottom. Among fresh posts (this round or the previous one), replies to the agent's own
     /// posts come first, then posts by followed accounts, then the rest. Older posts get no tier bonus and compete
     /// on score alone: engagement x author reach x recency, then a seeded tie-break.
-    pub fn feed_for(&self, agent_id: &str, round: i64, k: usize) -> Result<Vec<Post>> {
+    /// The first `k` posts by rank; a negative `k` drops that many from the end, like Python's `[:k]`.
+    pub fn feed_for(&self, agent_id: &str, round: i64, k: i64) -> Result<Vec<Post>> {
         let columns: Vec<String> = POST_COLUMNS.split(", ").map(|c| format!("p.{c}")).collect();
         let sql = format!(
             "SELECT {}, parent.author_id AS parent_author FROM posts p LEFT JOIN posts parent ON p.parent_id = parent.id \
@@ -485,12 +486,10 @@ impl World {
         // `+ 0.0` keeps -0.0 equal to 0.0 under the total order.
         let score_key = |x: f64| if x.is_nan() { f64::INFINITY } else { x + 0.0 };
         ranked.sort_by(|(a, _), (b, _)| {
-            a.0.cmp(&b.0)
-                .then(a.1.cmp(&b.1))
-                .then(score_key(a.2).total_cmp(&score_key(b.2)))
-                .then(a.3.cmp(&b.3))
+            a.0.cmp(&b.0).then(a.1.cmp(&b.1)).then(score_key(a.2).total_cmp(&score_key(b.2))).then(a.3.cmp(&b.3))
         });
-        Ok(ranked.into_iter().take(k).map(|(_, p)| p).collect())
+        let keep = if k >= 0 { k } else { (ranked.len() as i64 + k).max(0) };
+        Ok(ranked.into_iter().take(keep as usize).map(|(_, p)| p).collect())
     }
 
     /// Post id -> how this agent already engaged with it ("liked", "disliked", "replied", "reposted").

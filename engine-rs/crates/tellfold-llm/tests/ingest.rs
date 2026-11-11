@@ -59,8 +59,11 @@ fn directories_skip_symlinked_folders_like_rglob() {
 #[test]
 fn a_broken_pdf_is_unreadable_not_a_panic() {
     let tmp = tempfile::tempdir().unwrap();
-    for (name, body) in [("empty.pdf", &b""[..]), ("truncated.pdf", b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog"),
-                         ("no-root.pdf", b"%PDF-1.4\ntrailer\n<< /Size 1 >>\n%%EOF\n")] {
+    for (name, body) in [
+        ("empty.pdf", &b""[..]),
+        ("truncated.pdf", b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog"),
+        ("no-root.pdf", b"%PDF-1.4\ntrailer\n<< /Size 1 >>\n%%EOF\n"),
+    ] {
         let path = tmp.path().join(name);
         fs::write(&path, body).unwrap();
         match load_documents(&[path]) {

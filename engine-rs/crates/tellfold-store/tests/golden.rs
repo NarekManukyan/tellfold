@@ -87,7 +87,7 @@ fn feeds_and_follows_match_python_for_the_examples() {
             Ok(rounds) => assert_eq!(json!(rounds), want["memory_rounds"]),
             Err(_) => assert!(want["memory_rounds"].is_null()),
         }
-        let k = want["feed_size"].as_u64().unwrap() as usize;
+        let k = want["feed_size"].as_i64().unwrap();
         for (key, ids) in want["feeds"].as_object().unwrap() {
             let (agent, round) = key.split_once('@').unwrap();
             let feed: Vec<i64> =

@@ -30,7 +30,7 @@ use serde_json::{json, Value};
 use tokio::sync::{mpsc, oneshot, watch, Notify};
 use tokio::task::JoinHandle;
 
-use tellfold_engine::runner::run_pipeline;
+use tellfold_engine::runner::{run_pipeline, RunOptions};
 use tellfold_llm::{Llm, LlmError};
 use tellfold_models::json::{py_dumps_compact, to_string as model_json};
 use tellfold_models::{
@@ -502,10 +502,8 @@ impl Manager {
             &run_dir,
             &config,
             &seeds,
-            Some(&on_event),
-            Some(&stop),
-            cast_dir.as_deref(),
             &ReportWriter,
+            RunOptions { on_event: Some(&on_event), stop: Some(&stop), cast_dir: cast_dir.as_deref() },
         )
         .await;
         if let Err(e) = result {

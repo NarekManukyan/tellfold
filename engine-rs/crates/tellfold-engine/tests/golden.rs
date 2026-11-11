@@ -34,7 +34,7 @@ use serde_json::Value;
 use tellfold_engine::engine::{self, AgentView, ProposedAction};
 use tellfold_engine::graph::{self, Extraction};
 use tellfold_engine::personas::{self, Slot};
-use tellfold_engine::runner::{run_pipeline, PipelineError, ReportStage};
+use tellfold_engine::runner::{run_pipeline, PipelineError, ReportStage, RunOptions};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::ingest::{chunk_text_default, load_documents};
@@ -294,7 +294,14 @@ fn a_whole_run_matches_python() {
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
     let seed = fixture_path("engine/run/seed.md");
     let report = runtime
-        .block_on(run_pipeline(&llm, &run_dir, &config, &[seed], Some(&on_event), None, None, &NoReport))
+        .block_on(run_pipeline(
+            &llm,
+            &run_dir,
+            &config,
+            &[seed],
+            &NoReport,
+            RunOptions { on_event: Some(&on_event), ..Default::default() },
+        ))
         .unwrap();
     assert!(report.is_some());
 

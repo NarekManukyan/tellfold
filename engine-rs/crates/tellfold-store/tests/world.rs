@@ -122,6 +122,9 @@ fn feed_ranking() {
     assert_eq!(ids(world.feed_for("a01", 2, 2).unwrap()), [reply, followed]);
     assert_eq!(world.feed_for("a01", 2, 10).unwrap(), world.feed_for("a01", 2, 10).unwrap()); // deterministic
     assert!(!ids(world.feed_for("a01", 1, 10).unwrap()).contains(&reply)); // future posts hidden
+                                                                           // a negative size slices like Python's [:k]: all but the last |k|
+    assert_eq!(ids(world.feed_for("a01", 2, -2).unwrap()), feed[..feed.len() - 2]);
+    assert!(world.feed_for("a01", 2, -100).unwrap().is_empty());
 }
 
 #[test]

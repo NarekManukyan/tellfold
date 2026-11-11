@@ -12,7 +12,7 @@ use std::task::Poll;
 use async_trait::async_trait;
 use futures::FutureExt;
 use serde_json::{json, Value};
-use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, ReportStage};
+use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, ReportStage, RunOptions};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::{Llm, LlmError, Schema};
@@ -122,10 +122,8 @@ fn status_transitions_through_every_stage() {
         &run_dir,
         &make_config(),
         &[example()],
-        Some(&on_event),
-        None,
-        None,
         &REPORT,
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
     ));
     assert!(report.unwrap().is_some());
 
@@ -192,10 +190,8 @@ fn stop_between_rounds_still_writes_report() {
         &run_dir,
         &config,
         &[example()],
-        Some(&on_event),
-        Some(&stop),
-        None,
         &REPORT,
+        RunOptions { on_event: Some(&on_event), stop: Some(&stop), ..Default::default() },
     ));
     assert!(report.unwrap().is_some() && run_dir.join("report.json").exists());
     let status = read_status(&run_dir).unwrap();
@@ -227,10 +223,8 @@ fn stop_before_any_round_returns_none() {
         &run_dir,
         &make_config(),
         &[example()],
-        Some(&on_event),
-        Some(&stop),
-        None,
         &REPORT,
+        RunOptions { on_event: Some(&on_event), stop: Some(&stop), ..Default::default() },
     ));
     assert!(result.unwrap().is_none() && !run_dir.join("report.json").exists());
     let status = read_status(&run_dir).unwrap();
@@ -254,7 +248,15 @@ fn event_injected_mid_run() {
             ui.close().unwrap();
         }
     };
-    block_on(run_pipeline(&llm, &run_dir, &config, &[example()], Some(&on_event), None, None, &REPORT)).unwrap();
+    block_on(run_pipeline(
+        &llm,
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
+    ))
+    .unwrap();
 
     assert_eq!(rec.of("event_injected"), [json!({"round": 2, "content": "A rival halves its price"})]);
     let calls = llm.calls.lock().unwrap().clone();
@@ -271,7 +273,7 @@ fn event_injected_mid_run() {
 fn per_post_sentiment_stored() {
     let (_tmp, run_dir) = run_dir();
     let config = SimConfig { rounds: 2, ..make_config() };
-    block_on(run_pipeline(&fake(None), &run_dir, &config, &[example()], None, None, None, &REPORT)).unwrap();
+    block_on(run_pipeline(&fake(None), &run_dir, &config, &[example()], &REPORT, RunOptions::default())).unwrap();
     let world = World::open(&run_dir.join("world.db"), 7).unwrap();
     let scores = world.post_sentiments().unwrap();
     let posts = world.posts(None).unwrap();
@@ -293,10 +295,8 @@ fn failure_marks_run_failed_and_returns_the_error() {
         &run_dir,
         &config,
         &[example()],
-        Some(&on_event),
-        None,
-        None,
         &StubReport { fail: true },
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
     ))
     .unwrap_err();
     assert!(err.to_string().contains("report.write"));
@@ -320,10 +320,8 @@ fn failed_batches_persist_in_status() {
         &run_dir,
         &config,
         &[example()],
-        Some(&on_event),
-        None,
-        None,
         &REPORT,
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
     ))
     .unwrap();
     let announced = rec.of("batch_failed");
@@ -352,8 +350,8 @@ fn unreadable_seeds_fail_with_run_error() {
     let (tmp, run_dir) = run_dir();
     let empty = tmp.path().join("empty.md");
     std::fs::write(&empty, "   \n").unwrap();
-    let err =
-        block_on(run_pipeline(&fake(None), &run_dir, &make_config(), &[empty], None, None, None, &REPORT)).unwrap_err();
+    let err = block_on(run_pipeline(&fake(None), &run_dir, &make_config(), &[empty], &REPORT, RunOptions::default()))
+        .unwrap_err();
     assert!(matches!(err, PipelineError::Run(_)), "{err:?}");
     assert_eq!(read_status(&run_dir).unwrap().state, RunState::Failed);
 }
@@ -372,7 +370,14 @@ fn cancellation_marks_run_stopped() {
     let config = make_config();
     let seeds = [example()];
     block_on(async {
-        let mut run = pin!(run_pipeline(&llm, &run_dir, &config, &seeds, Some(&on_event), None, None, &REPORT));
+        let mut run = pin!(run_pipeline(
+            &llm,
+            &run_dir,
+            &config,
+            &seeds,
+            &REPORT,
+            RunOptions { on_event: Some(&on_event), ..Default::default() }
+        ));
         // drop the run (like a cancelled task) as soon as round 1 is done
         poll_fn(|cx| {
             if cancel.load(Ordering::SeqCst) {
@@ -394,8 +399,14 @@ fn broken_listener_does_not_break_the_run() {
     let (_tmp, run_dir) = run_dir();
     let explode = |_: &str, _: &Value| panic!("listener bug");
     let config = SimConfig { rounds: 1, ..make_config() };
-    let report =
-        block_on(run_pipeline(&fake(None), &run_dir, &config, &[example()], Some(&explode), None, None, &REPORT));
+    let report = block_on(run_pipeline(
+        &fake(None),
+        &run_dir,
+        &config,
+        &[example()],
+        &REPORT,
+        RunOptions { on_event: Some(&explode), ..Default::default() },
+    ));
     assert!(report.unwrap().is_some());
     assert_eq!(read_status(&run_dir).unwrap().state, RunState::Done);
 }
@@ -464,10 +475,51 @@ fn language_reaches_every_writing_prompt() {
     let (_tmp, run_dir) = run_dir();
     let llm = Spy { inner: fake(None), systems: Mutex::new(Vec::new()) };
     let config = SimConfig { language: "French".into(), ..make_config() };
-    block_on(run_pipeline(&llm, &run_dir, &config, &[example()], None, None, None, &REPORT)).unwrap();
+    block_on(run_pipeline(&llm, &run_dir, &config, &[example()], &REPORT, RunOptions::default())).unwrap();
     let calls = llm.inner.calls.lock().unwrap().clone();
     let persona_prompts: Vec<&String> = calls.iter().filter(|c| c.0 == "personas.batch").map(|c| &c.2).collect();
     assert!(!persona_prompts.is_empty() && persona_prompts.iter().all(|p| p.contains("in French")));
     let systems = llm.systems.lock().unwrap().clone();
     assert!(systems.iter().any(|(purpose, s)| purpose.starts_with("engine.") && s.contains("in French")));
+}
+
+struct PanickingReport;
+
+#[async_trait(?Send)]
+impl ReportStage for PanickingReport {
+    async fn write_report(
+        &self,
+        _: &dyn Llm,
+        _: &Path,
+        _: &World,
+        _: &KnowledgeGraph,
+        _: &SimConfig,
+    ) -> Result<Report, PipelineError> {
+        panic!("report writer bug");
+    }
+}
+
+#[test]
+fn a_panic_marks_the_run_failed_not_stopped() {
+    let tmp = tempfile::tempdir().unwrap();
+    let run_dir = tmp.path().join("run");
+    let events: RefCell<Vec<String>> = RefCell::new(Vec::new());
+    let on_event = |name: &str, _: &Value| events.borrow_mut().push(name.to_string());
+    let config = SimConfig { rounds: 1, ..make_config() };
+    let crashed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        block_on(run_pipeline(
+            &fake(None),
+            &run_dir,
+            &config,
+            &[example()],
+            &PanickingReport,
+            RunOptions { on_event: Some(&on_event), ..Default::default() },
+        ))
+    }));
+    assert!(crashed.is_err());
+    let status = read_status(&run_dir).unwrap();
+    assert_eq!(status.state, RunState::Failed);
+    assert_eq!(status.error.as_deref(), Some("the engine crashed (panic)"));
+    assert!(events.borrow().iter().any(|e| e == "run_failed"));
+    assert!(!events.borrow().iter().any(|e| e == "run_stopped"));
 }

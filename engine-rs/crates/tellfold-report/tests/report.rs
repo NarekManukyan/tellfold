@@ -11,7 +11,7 @@ use std::path::Path;
 use common::{examples_dir, fixture, fixture_path, golden_responder};
 use indexmap::IndexMap;
 use serde_json::{json, Value};
-use tellfold_engine::runner::run_pipeline;
+use tellfold_engine::runner::{run_pipeline, RunOptions};
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::LlmError;
 use tellfold_models::{
@@ -475,7 +475,8 @@ fn the_golden_run_writes_python_reports() {
     let run_dir = tmp.path().join("run");
     let llm = FakeLlm::new(golden_responder);
     let seed = fixture_path("engine/run/seed.md");
-    let report = block_on(run_pipeline(&llm, &run_dir, &config, &[seed], None, None, None, &ReportWriter)).unwrap();
+    let report =
+        block_on(run_pipeline(&llm, &run_dir, &config, &[seed], &ReportWriter, RunOptions::default())).unwrap();
     assert!(report.is_some());
     let report_calls: Vec<Value> = llm
         .calls

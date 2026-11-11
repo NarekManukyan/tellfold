@@ -10,7 +10,7 @@
 use std::path::PathBuf;
 
 use serde_json::Value;
-use tellfold_engine::runner::run_pipeline;
+use tellfold_engine::runner::{run_pipeline, RunOptions};
 use tellfold_models::SimConfig;
 use tellfold_report::ReportWriter;
 use tellfold_runtimes::{build_llm, load_settings, LlmOptions};
@@ -43,8 +43,14 @@ fn main() {
     };
     let started = std::time::Instant::now();
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("runtime");
-    let result =
-        runtime.block_on(run_pipeline(&llm, &run_dir, &config, &[seed], Some(&on_event), None, None, &ReportWriter));
+    let result = runtime.block_on(run_pipeline(
+        &llm,
+        &run_dir,
+        &config,
+        &[seed],
+        &ReportWriter,
+        RunOptions { on_event: Some(&on_event), ..Default::default() },
+    ));
     println!("result after {:.0}s: {:?}", started.elapsed().as_secs_f64(), result.map(|r| r.is_some()));
     println!("run folder: {}", run_dir.display());
 }

@@ -17,6 +17,7 @@ use async_trait::async_trait;
 use serde_json::{json, Map, Value};
 use tellfold_llm::ingest::{chunk_text_default, load_documents};
 use tellfold_llm::{Llm, LlmError};
+use tellfold_models::log;
 use tellfold_models::text::py_prefix;
 use tellfold_models::{BatchRef, FailedBatch, KnowledgeGraph, Report, RunStage, RunState, RunStatus, SimConfig};
 use tellfold_store::estimate::estimate_calls;
@@ -33,6 +34,9 @@ use crate::personas::generate_personas;
 /// characters of a failed batch's error kept in status.json
 const FAILED_BATCH_ERROR_MAX: usize = 500;
 
+/// Python's `logging.getLogger("tellfold.runner")`.
+const LOGGER: &str = "tellfold.runner";
+
 /// Why a run failed. The text is what `status.json` and the `run_failed` event carry.
 #[derive(Debug, thiserror::Error)]
 pub enum PipelineError {
@@ -48,6 +52,30 @@ pub enum PipelineError {
     Io(#[from] std::io::Error),
     #[error("{0}")]
     Other(String),
+}
+
+impl PipelineError {
+    /// `type(e).__name__` of the matching Python exception, recorded when the message is empty.
+    fn type_name(&self) -> &'static str {
+        match self {
+            PipelineError::Run(_) => "RunError",
+            PipelineError::Llm(_) => "LLMError",
+            PipelineError::Engine(EngineError::Value(_)) => "ValueError",
+            PipelineError::Engine(EngineError::World(_)) | PipelineError::World(_) => "Error",
+            PipelineError::Io(_) => "OSError",
+            PipelineError::Other(_) => "Exception",
+        }
+    }
+}
+
+/// What a caller may add to a run: progress events, a stop flag, and where a `cast_from` run's files are.
+#[derive(Clone, Copy, Default)]
+pub struct RunOptions<'a> {
+    pub on_event: Option<OnEvent<'a>>,
+    /// checked between stages and between rounds
+    pub stop: Option<&'a AtomicBool>,
+    /// default: the sibling run folder named `config.cast_from`
+    pub cast_dir: Option<&'a Path>,
 }
 
 /// Writes the report of a finished (or stopped) run: `build_report` then `write_report` in Python.
@@ -87,6 +115,9 @@ struct Tracker<'a> {
     run_dir: PathBuf,
     on_event: Option<OnEvent<'a>>,
     status: RefCell<RunStatus>,
+    /// A status write that failed inside an engine or graph callback, which cannot return it. The pipeline
+    /// returns it once the call that ran the callback is back, so the run fails as Python's does.
+    deferred: RefCell<Option<std::io::Error>>,
 }
 
 impl<'a> Tracker<'a> {
@@ -107,14 +138,25 @@ impl<'a> Tracker<'a> {
                 updated_at: now,
                 failed_batches: Vec::new(),
             }),
+            deferred: RefCell::new(None),
         }
+    }
+
+    fn defer(&self, result: std::io::Result<()>) {
+        if let Err(e) = result {
+            self.deferred.borrow_mut().get_or_insert(e);
+        }
+    }
+
+    fn take_deferred(&self) -> std::io::Result<()> {
+        self.deferred.borrow_mut().take().map_or(Ok(()), Err)
     }
 
     fn emit(&self, name: &str, payload: Value) {
         if let Some(f) = self.on_event {
             // a broken listener must never break the run
             if std::panic::catch_unwind(AssertUnwindSafe(|| f(name, &payload))).is_err() {
-                eprintln!("on_event listener failed for {name}");
+                log::error(LOGGER, &format!("on_event listener failed for {name}"));
             }
         }
     }
@@ -151,24 +193,18 @@ impl<'a> Tracker<'a> {
     }
 
     fn engine_event(&self, name: &str, payload: Value) {
-        // a failed status write inside an engine callback is logged, like Python's listener guard
-        let logged = |r: std::io::Result<()>| {
-            if let Err(e) = r {
-                eprintln!("could not update run status: {e}");
-            }
-        };
         match name {
             "stage" => {
                 // the engine's own seeding steps become details of the SEEDING stage
                 let step = payload.get("stage").and_then(Value::as_str).unwrap_or("").to_string();
-                logged(self.detail(&engine_step(&step), json!({"step": step})));
+                self.defer(self.detail(&engine_step(&step), json!({"step": step})));
                 return;
             }
             "round_start" => {
                 let r = payload.get("round").cloned().unwrap_or(Value::Null);
                 let total = self.status.borrow().total_rounds;
                 let batches = payload.get("batches").cloned().unwrap_or(json!(0));
-                logged(self.update(|s| s.detail = format!("round {r} of {total}: {batches} batches deciding")));
+                self.defer(self.update(|s| s.detail = format!("round {r} of {total}: {batches} batches deciding")));
             }
             "batch_failed" => self.record_failed_batch(&payload),
             _ => {}
@@ -194,8 +230,9 @@ impl<'a> Tracker<'a> {
             _ => String::new(),
         };
         let batch = FailedBatch { round, batch, agents, error: py_prefix(&error, FAILED_BATCH_ERROR_MAX).into() };
+        // the one status write Python guards: a failed batch is already tolerated, so is failing to record it
         if let Err(e) = self.update(|s| s.failed_batches.push(batch)) {
-            eprintln!("could not update run status: {e}");
+            log::warning(LOGGER, &format!("could not record failed batch {payload}: {e}"));
         }
     }
 
@@ -208,9 +245,21 @@ impl<'a> Tracker<'a> {
         self.emit("run_stopped", json!({}));
         Ok(())
     }
+
+    fn finish_failed(&self, message: &str) {
+        if let Err(e) = self.update(|s| {
+            s.state = RunState::Failed;
+            s.error = Some(message.to_string());
+            s.detail = "failed".into();
+        }) {
+            log::error(LOGGER, &format!("could not update run status: {e}"));
+        }
+        self.emit("run_failed", json!({"error": message}));
+    }
 }
 
-/// Marks the run stopped when the pipeline future is dropped mid-run (Python's cancellation branch).
+/// Marks the run stopped when the pipeline future is dropped mid-run (Python's cancellation branch), and failed
+/// when a panic unwinds through it (any other exception in Python).
 struct CancelGuard<'t, 'a> {
     tracker: &'t Tracker<'a>,
     armed: bool,
@@ -218,10 +267,13 @@ struct CancelGuard<'t, 'a> {
 
 impl Drop for CancelGuard<'_, '_> {
     fn drop(&mut self) {
-        if self.armed {
-            if let Err(e) = self.tracker.finish_stopped() {
-                eprintln!("could not update run status: {e}");
-            }
+        if !self.armed {
+            return;
+        }
+        if std::thread::panicking() {
+            self.tracker.finish_failed("the engine crashed (panic)");
+        } else if let Err(e) = self.tracker.finish_stopped() {
+            log::error(LOGGER, &format!("could not update run status: {e}"));
         }
     }
 }
@@ -231,55 +283,44 @@ impl Drop for CancelGuard<'_, '_> {
 /// With `config.cast_from` set, the graph and persona stages are skipped: their files are copied from `cast_dir`
 /// (default: the sibling run folder named `cast_from`), and both stages are still announced as done.
 ///
-/// Returns the report, or None when the run was stopped before a single round completed. `stop` is checked
+/// Returns the report, or None when the run was stopped before a single round completed. `options.stop` is checked
 /// between stages and between rounds: the current round always finishes, then the run is marked `stopped` and the
 /// report is still written if at least one round completed. On an error the run is marked `failed`, `run_failed`
 /// is emitted and the error is returned; when the future is dropped (cancelled) the run is marked `stopped`.
-#[allow(clippy::too_many_arguments)]
 pub async fn run_pipeline(
     llm: &dyn Llm,
     run_dir: &Path,
     config: &SimConfig,
     seeds: &[PathBuf],
-    on_event: Option<OnEvent<'_>>,
-    stop: Option<&AtomicBool>,
-    cast_dir: Option<&Path>,
     report: &dyn ReportStage,
+    options: RunOptions<'_>,
 ) -> Result<Option<Report>, PipelineError> {
     std::fs::create_dir_all(run_dir)?;
     if !run_dir.join(CONFIG_FILE).exists() {
         write_json(&run_dir.join(CONFIG_FILE), config)?;
     }
-    let track = Tracker::new(run_dir, config, on_event);
+    let track = Tracker::new(run_dir, config, options.on_event);
     let mut guard = CancelGuard { tracker: &track, armed: true };
-    let result = pipeline(llm, run_dir, config.clone(), seeds, stop, cast_dir, report, &track).await;
+    let result = pipeline(llm, run_dir, config.clone(), seeds, report, options, &track).await;
     guard.armed = false;
     if let Err(e) = &result {
         let message = e.to_string();
-        let message = if message.is_empty() { "Exception".to_string() } else { message };
-        if let Err(write_error) = track.update(|s| {
-            s.state = RunState::Failed;
-            s.error = Some(message.clone());
-            s.detail = "failed".into();
-        }) {
-            eprintln!("could not update run status: {write_error}");
-        }
-        track.emit("run_failed", json!({"error": message}));
+        let message = if message.is_empty() { e.type_name().to_string() } else { message };
+        track.finish_failed(&message);
     }
     result
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn pipeline(
     llm: &dyn Llm,
     run_dir: &Path,
     mut config: SimConfig,
     seeds: &[PathBuf],
-    stop: Option<&AtomicBool>,
-    cast_dir: Option<&Path>,
     report: &dyn ReportStage,
+    options: RunOptions<'_>,
     track: &Tracker<'_>,
 ) -> Result<Option<Report>, PipelineError> {
+    let RunOptions { stop, cast_dir, .. } = options;
     let stopping = || stop.is_some_and(|s| s.load(Ordering::SeqCst));
     let plural = if seeds.len() != 1 { "s" } else { "" };
     track.stage(RunStage::Reading, &format!("reading {} seed file{plural}", seeds.len()), json!({}))?;
@@ -358,12 +399,9 @@ async fn pipeline(
                 &detail,
                 json!({"chunks": chunks.len(), "estimated_calls": estimate_calls(&config, n_chunks)}),
             )?;
-            let progress = |message: &str| {
-                if let Err(e) = track.detail(message, json!({})) {
-                    eprintln!("could not update run status: {e}");
-                }
-            };
+            let progress = |message: &str| track.defer(track.detail(message, json!({})));
             graph = extract_graph(llm, &selected, &config.question, &config.planner_model, Some(&progress)).await?;
+            track.take_deferred()?;
             write_json(&run_dir.join(GRAPH_FILE), &graph)?;
             if stopping() {
                 track.finish_stopped()?;
@@ -394,6 +432,7 @@ async fn pipeline(
         track.stage(RunStage::Seeding, "seeding follows and opening posts", json!({"personas": personas.len()}))?;
         let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))));
         engine.seed_world(&graph).await?;
+        track.take_deferred()?;
         track.update(|s| s.round = 0)?;
     }
 
@@ -404,6 +443,7 @@ async fn pipeline(
             break;
         }
         engine.run_round(r).await?;
+        track.take_deferred()?;
         track.update(|s| {
             s.round = r;
             s.detail = format!("round {r} of {} done", config.rounds);
