@@ -1,0 +1,19 @@
+{
+  "slug": "xbox-cloud-gaming-monthly-caps-2026",
+  "title": "Xbox caps Game Pass cloud gaming at 5-15 hours a month",
+  "category": "product-change",
+  "announced_on": "2026-09-03",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Xbox Game Pass subscribers react to this over the first two weeks, which groups will push back and why, and is Microsoft likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Members lose something they already pay for, and heavy streamers will pay more", "source": "https://aftermath.site/microsoft-xbox-game-pass-cloud-gaming-time-limits.md"},
+    {"id": "o2", "text": "It is another cost-cutting step degrading Game Pass, linked to Microsoft's AI spending", "source": "https://aftermath.site/microsoft-xbox-game-pass-cloud-gaming-time-limits.md"},
+    {"id": "o3", "text": "The 4% figure understates the impact on mobile and cloud-only players and ends the 'play anywhere' push", "source": "https://www.pocketgamer.com/xbox-game-pass/new-playtime-limits-show-its-mobile-push-is-over/"},
+    {"id": "o4", "text": "Paying per hour to stream games you do not own undermines cloud gaming's value", "source": "https://fortune.com/2026/10/26/microsoft-xbox-pay-as-you-go-feature-cloud-gaming-subscription/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Caps kept and paid top-ups added; existing auto-renewing members in some countries were exempted from the start, apparently because of local consumer law", "source": "https://fortune.com/2026/10/26/microsoft-xbox-pay-as-you-go-feature-cloud-gaming-subscription/"},
+  "pushback_groups": ["heavy cloud streamers on Game Pass Ultimate", "mobile and cloud-only players", "gaming press and YouTubers"],
+  "notes": "The regional exemption for existing subscribers (Australia, Brazil, Germany, Poland, etc.) was sent by email within a day or two of the announcement and appears to reflect local consumer law, not a response to backlash. Do not credit a prediction of 'partial reversal' based on it."
+}

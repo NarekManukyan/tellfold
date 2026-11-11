@@ -1,0 +1,20 @@
+{
+  "slug": "barclays-three-day-office-2026",
+  "title": "Barclays requires UK staff in the office three days a week from October 2026",
+  "category": "workplace",
+  "announced_on": "2026-08-17",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Barclays' UK employees react to this over the first two weeks, which groups will push back and why, and is Barclays likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Extra office days raise travel, parking and childcare costs, especially for long commuters.", "source": "https://www.ibtimes.co.uk/barclays-staff-oppose-three-day-office-rule-1820488"},
+    {"id": "o2", "text": "The bank gave no evidence-based reason; hybrid working was already delivering results.", "source": "https://www.investmentnews.com/practice-management/barclays-faces-staff-revolt-over-tightened-return-to-office-rules/268236"},
+    {"id": "o3", "text": "Staff wanted exemptions for commutes over 40 minutes or 35 miles and a one-off payment for costs.", "source": "https://www.bankingdive.com/news/barclays-3-days-week-officer-return-workers-union-demands-commute-childcare-payment/830915/"},
+    {"id": "o4", "text": "Carers and parents need more flexibility, including off-peak travel and school holidays.", "source": "https://www.fstech.co.uk/fst/Barclays_Staff_Push_Back_Against_Tighter_Return_to_Office_Rules.php"},
+    {"id": "o5", "text": "The change should be delayed until consultation with the union is finished.", "source": "https://www.fstech.co.uk/fst/Barclays_Staff_Push_Back_Against_Tighter_Return_to_Office_Rules.php"}
+  ],
+  "backdown": {"happened": true, "kind": "partial", "date": "2026-09-30", "summary": "Barclays delayed the three-day requirement for UK staff from 5 October 2026 to early 2027 and allowed deferral with line-manager approval, but kept the policy and did not grant Unite's payment or exemption demands.", "source": "https://fstech.co.uk/fst/Barclays_Delays_Three_Day_Office_Mandate_After_Staff_Backlash.php"},
+  "pushback_groups": ["Unite union", "operations and technology staff", "carers and parents", "long-distance commuters"],
+  "notes": "Staff were told in July 2026 (exact date not reported); announced_on is the first public report found (17 Aug 2026). Organised pushback peaked in mid-September, a month after first coverage, so the strict two-week window shows only an initial union statement. A delay rather than reversal: score as partial."
+}

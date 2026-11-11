@@ -1,0 +1,20 @@
+{
+  "slug": "olathe-school-closures-2026",
+  "title": "Olathe Public Schools recommends closing five elementary schools and one middle school",
+  "category": "school",
+  "announced_on": "2026-09-03",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will parents, students and staff at the affected Olathe schools react to this over the first two weeks, which groups will push back and why, and is the Olathe Board of Education likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Families felt blindsided and said the district communicated poorly before the announcement.", "source": "https://www.kctv5.com/2026/09/04/olathe-district-recommends-closing-six-schools-citing-declining-enrollment/"},
+    {"id": "o2", "text": "Parents questioned the data and why schools with larger enrolments were picked.", "source": "https://www.kctv5.com/2026/09/23/olathe-school-district-community-questions-speaks-out-against-potential-school-closures/"},
+    {"id": "o3", "text": "Parents wanted boundary scenarios and a school-by-school impact analysis before the vote, and asked for a delay.", "source": "https://spectrumlocalnews.com/mo/kansas-city/news/2026/09/23/olathe-community-shares-concerns-over-school-closures"},
+    {"id": "o4", "text": "Closing Black Bob would disrupt its dual-language immersion programme and its cohorts.", "source": "https://www.kcur.org/education/2026-10-02/olathe-public-schools-closures"},
+    {"id": "o5", "text": "Concern about students with special needs and about transport and logistics for displaced pupils.", "source": "https://www.kctv5.com/2026/09/23/olathe-school-district-community-questions-speaks-out-against-potential-school-closures/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Board approved all six closures 7-0 on 1 October 2026 without changes. A parent petition for an advisory state review passed its signature threshold in early November; the review cannot force a reversal.", "source": "https://www.kcur.org/education/2026-10-02/olathe-public-schools-closures"},
+  "pushback_groups": ["parents at the six affected schools", "PTO leaders", "Olathe Families United parent group", "families in the Black Bob language immersion programme"],
+  "notes": "Recommendation presented at the 3 Sep board meeting; most press coverage is dated 4 Sep. Objections focused on process and data rather than rejecting all closures. The state-review petition outcome was pending as of 11 Nov 2026."
+}

@@ -1,0 +1,20 @@
+{
+  "slug": "ut-austin-ethnic-gender-majors-2026",
+  "title": "UT Austin stops new enrolment in African diaspora, Mexican American/Latino and women's and gender studies majors",
+  "category": "school",
+  "announced_on": "2026-09-16",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will UT Austin students and faculty react to this over the first two weeks, which groups will push back and why, and is the University of Texas at Austin likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "It is censorship and an attack on academic freedom.", "source": "https://www.kut.org/education/2026-09-16/university-of-texas-austin-cuts-ethnic-gender-studies-majors-dei"},
+    {"id": "o2", "text": "Faculty were not consulted and communication was poor; even the dean apparently did not know.", "source": "https://www.texastribune.org/2026/09/17/university-texas-austin-cuts-race-gender-majors/"},
+    {"id": "o3", "text": "The decision reflects political pressure, not student demand.", "source": "https://www.texastribune.org/2026/09/17/university-texas-austin-cuts-race-gender-majors/"},
+    {"id": "o4", "text": "It narrows students' learning and career prospects in these fields.", "source": "https://www.kut.org/education/2026-09-16/university-of-texas-austin-cuts-ethnic-gender-studies-majors-dei"},
+    {"id": "o5", "text": "Course enrolment is already falling and faculty jobs may be at risk.", "source": "https://www.austinchronicle.com/news/ut-workers-and-students-march-against-changes-to-academic-programs/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "University kept the decision; faculty may propose a new major by the end of the semester.", "source": "https://www.texastribune.org/2026/09/17/university-texas-austin-cuts-race-gender-majors/"},
+  "pushback_groups": ["faculty in the affected departments", "campus AAUP chapter", "Texas State Employees Union", "students in or considering these majors"],
+  "notes": "University category (filed under school). The decision surfaced via a leaked faculty email confirmed by a spokesperson, not a formal announcement. Reaction is negative on campus but politically split off campus (conservative outlets supportive); campus protest was small (~50). A model that predicts loud faculty opposition, modest student mobilisation and no reversal is right."
+}
