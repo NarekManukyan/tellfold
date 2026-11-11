@@ -308,11 +308,25 @@ fn runs_stop_when_the_client_goes_away() {
     let args = ["mcp", "--runs", runs.to_str().unwrap()];
     let mut client = Client::spawn(&tmp.path().join("home"), &args, &[("TELLFOLD_FAKE_DELAY", "1")]);
     initialize(&mut client);
+    // two seeds of the same name, from two folders: the engine renames one, and documents says what it saved
+    for folder in ["web", "app"] {
+        std::fs::create_dir_all(tmp.path().join(folder)).unwrap();
+        std::fs::write(tmp.path().join(folder).join("CHANGELOG.md"), CHANGELOG).unwrap();
+    }
+    let files: Vec<String> =
+        ["web", "app"].iter().map(|f| tmp.path().join(f).join("CHANGELOG.md").to_string_lossy().into_owned()).collect();
     let started = client.call(
         "start_simulation",
-        json!({"question": "Will they accept it?", "text": CHANGELOG, "agents": 4, "rounds": 3}),
+        json!({"question": "Will they accept it?", "files": files, "agents": 4, "rounds": 3}),
     );
     let run_id = started["structuredContent"]["run_id"].as_str().unwrap().to_string();
+    let mut saved: Vec<String> = std::fs::read_dir(runs.join(&run_id).join("seeds"))
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    saved.sort();
+    assert_eq!(saved, ["CHANGELOG-2.md", "CHANGELOG.md"]);
+    assert_eq!(started["structuredContent"]["documents"], json!(saved));
     let status = client.call("get_run_status", json!({"run_id": run_id}))["structuredContent"].clone();
     assert_eq!(status["finished"], false, "the run must still be going: {status}");
 

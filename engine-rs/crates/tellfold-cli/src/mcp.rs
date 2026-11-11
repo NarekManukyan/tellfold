@@ -49,8 +49,11 @@ const TERMINAL_STATES: [&str; 3] = ["done", "failed", "stopped"];
 /// The longest pause between two polls of a run or a study.
 const MAX_POLL_PAUSE: Duration = Duration::from_secs(2);
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
-/// Reads of runs and studies answer at once. Asking the crowd or a person waits on an AI tool, so has no limit.
-const READ_TIMEOUT: Duration = Duration::from_secs(30);
+/// Reads of runs and studies, and the quick actions (stop, events, check), answer at once. Asking the crowd or a
+/// person waits on an AI tool, so has no limit.
+const QUICK_TIMEOUT: Duration = Duration::from_secs(30);
+/// Uploading the seeds of a new run (at most 100 MB, to this machine).
+const UPLOAD_TIMEOUT: Duration = Duration::from_secs(120);
 const LOGGER: &str = "tellfold.mcp";
 
 const INSTRUCTIONS: &str = "Tellfold simulates how a crowd of AI personas reacts to an announcement (a changelog, \
@@ -115,14 +118,25 @@ impl Engine {
     }
 
     pub async fn get(&self, path: &str) -> Result<Value, String> {
-        self.json(self.http.get(self.url(path)).timeout(READ_TIMEOUT)).await
+        self.get_within(path, QUICK_TIMEOUT).await
+    }
+
+    /// `get` with its own time-out, so a poll does not outlast its caller's deadline.
+    async fn get_within(&self, path: &str, timeout: Duration) -> Result<Value, String> {
+        self.json(self.http.get(self.url(path)).timeout(timeout)).await
     }
 
     pub async fn get_text(&self, path: &str) -> Result<String, String> {
-        self.send(self.http.get(self.url(path)).timeout(READ_TIMEOUT)).await
+        self.send(self.http.get(self.url(path)).timeout(QUICK_TIMEOUT)).await
     }
 
+    /// A quick action: stop a run, add an event, start a check.
     pub async fn post(&self, path: &str, body: &Value) -> Result<Value, String> {
+        self.json(self.http.post(self.url(path)).json(body).timeout(QUICK_TIMEOUT)).await
+    }
+
+    /// A question the engine answers with an AI tool (`/ask`, `/chat`): no time-out.
+    pub async fn post_slow(&self, path: &str, body: &Value) -> Result<Value, String> {
         self.json(self.http.post(self.url(path)).json(body)).await
     }
 
@@ -135,7 +149,7 @@ impl Engine {
         for seed in seeds {
             form = form.part("files", reqwest::multipart::Part::bytes(seed.bytes).file_name(seed.name));
         }
-        let created = self.json(self.http.post(self.url("/api/runs")).multipart(form)).await?;
+        let created = self.json(self.http.post(self.url("/api/runs")).multipart(form).timeout(UPLOAD_TIMEOUT)).await?;
         created["id"].as_str().map(str::to_string).ok_or_else(|| "the engine did not return a run id".into())
     }
 }
@@ -194,7 +208,8 @@ fn seed_files(given: &str) -> Result<Vec<PathBuf>, String> {
     if !path.exists() {
         return Err(format!("{given}: no such file or folder (relative paths start at {})", cwd_text()));
     }
-    let found = ingest::expand(std::slice::from_ref(&path)).map_err(|e| e.to_string())?;
+    // the walk stops at one file more than a run takes, which is enough to say the limit is broken
+    let found = ingest::expand_at_most(std::slice::from_ref(&path), MAX_FILES).map_err(|e| e.to_string())?;
     if found.is_empty() {
         return Err(format!("{given} holds no .md, .markdown, .txt or .pdf files"));
     }
@@ -343,6 +358,12 @@ impl Poll {
         self.pause = (self.pause * 2).min(MAX_POLL_PAUSE);
         true
     }
+
+    /// The time-out of one poll's request: what is left of the wait (at least a second, for the last poll), at most
+    /// `QUICK_TIMEOUT`, so a slow engine cannot stretch the wait.
+    fn request_timeout(&self) -> Duration {
+        self.deadline.saturating_duration_since(Instant::now()).clamp(Duration::from_secs(1), QUICK_TIMEOUT)
+    }
 }
 
 fn clamp_wait(seconds: Option<u64>) -> Duration {
@@ -358,8 +379,8 @@ const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) o
 set while the run waits for its cast to be checked in the Tellfold app. Example and imported runs (example or \
 imported true) are read-only: they can be read and asked about, not changed.";
 const WAIT_FOR_RUN: &str = "Wait until a run finishes, or until timeout_seconds pass (default 30, at most 120), and \
-return its status. Call it again while finished is false. It answers at once while the run is paused for its cast \
-to be checked in the Tellfold app.";
+return its status. Call it again while finished is false. While pause is set, the run waits for someone to check its \
+cast in the Tellfold app: tell the user before waiting again.";
 const GET_REPORT: &str = "The report of a finished run: the prediction, confidence, camps, reasons, risks and \
 recommendations, each citing the posts behind it. format: \"markdown\" (default), \"json\" or \"both\".";
 const LIST_RUNS: &str = "The runs in the runs folder, newest first, with their state and question. Example and \
@@ -377,8 +398,9 @@ Returns the run ids at once; follow with get_study. While draft A is still makin
 null and draft B starts later from this MCP session, so keep the session open until get_study (with run_id set to \
 run_a) returns a study_id.";
 const GET_STUDY: &str = "A study: the runs of compare_drafts with their cited comparison, or the repeats of check_run \
-with what held across them. ready is true once every run has ended and the result covers them all. wait_seconds \
-waits for that, and for a draft B that has not started yet.";
+with what held across them. ready is true once every run has ended and the result covers them all; error says why \
+a result will not be written (e.g. fewer than two runs have a report). wait_seconds waits for either, and for a draft \
+B that has not started yet.";
 const CHECK_RUN: &str = "Check a finished run: run it again with the same people and text but other random seeds \
 (runs in all, 2-5), then say which findings held. Returns a study id; follow with get_study.";
 
@@ -577,6 +599,15 @@ enum PendingB {
     Failed(String),
 }
 
+/// How waiting for draft A's people ended.
+enum People {
+    Ready,
+    /// the wait ran out; `paused` while the cast waits to be checked in the app
+    NotYet {
+        paused: bool,
+    },
+}
+
 /// What `get_study` found for its arguments.
 enum StudyTarget {
     Study(String),
@@ -655,29 +686,56 @@ fn compared_runs(study: &Value) -> Vec<&str> {
     study["compare"]["runs"].as_array().into_iter().flatten().filter_map(|r| r["run_id"].as_str()).collect()
 }
 
-/// Whether a study's result is final: every run has ended, nothing is being written, and the result covers every
-/// run with a report. The server keeps an older comparison until a run added later (another draft B on the same
-/// draft A) has finished and been compared, so a comparison alone is not enough.
-fn study_ready(study: &Value) -> bool {
+/// Where a study's result stands.
+#[derive(Debug, PartialEq)]
+enum StudyOutcome {
+    /// runs are still going, or the result is being written or is older than the runs
+    Waiting,
+    Ready,
+    /// it will not be written; the reason
+    Failed(String),
+}
+
+/// Whether a study's result is final. It is ready once every run has ended, nothing is being written, and the
+/// result covers every run with a report: the server keeps an older comparison until a run added later (another
+/// draft on the same crowd) has finished and been compared, so a comparison alone is not enough. It has failed when,
+/// with every run ended, writing it failed or fewer than two runs have a report. An error while runs are still going
+/// is the previous attempt's: a new one starts once they end.
+fn study_outcome(study: &Value) -> StudyOutcome {
     let runs = study["runs"].as_array().map(Vec::as_slice).unwrap_or_default();
     let ended = |r: &Value| TERMINAL_STATES.contains(&r["state"].as_str().unwrap_or(""));
-    if runs.is_empty() || !runs.iter().all(ended) {
-        return false;
-    }
-    if study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true) {
-        return false;
+    let writing = study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true);
+    if runs.is_empty() || !runs.iter().all(ended) || writing {
+        return StudyOutcome::Waiting;
     }
     let reported: Vec<&str> =
         runs.iter().filter(|r| r["has_report"] == json!(true)).filter_map(|r| r["id"].as_str()).collect();
-    if study["kind"] == "repeat" {
-        return study["agreement"]["runs"].as_u64().is_some_and(|n| n as usize >= reported.len());
+    let repeat = study["kind"] == "repeat";
+    let covered = if repeat {
+        study["agreement"]["runs"].as_u64().is_some_and(|n| n as usize >= reported.len())
+    } else {
+        let compared = compared_runs(study);
+        !study["compare"].is_null() && reported.iter().all(|id| compared.contains(id))
+    };
+    if covered && reported.len() >= 2 {
+        return StudyOutcome::Ready;
     }
-    let compared = compared_runs(study);
-    !study["compare"].is_null() && reported.iter().all(|id| compared.contains(id))
+    if let Some(error) = study["compare_state"]["error"].as_str().filter(|e| !e.is_empty()) {
+        return StudyOutcome::Failed(error.to_string());
+    }
+    if reported.len() < 2 {
+        let what = if repeat { "a check" } else { "a comparison" };
+        let n = reported.len();
+        return StudyOutcome::Failed(format!(
+            "only {n} run{} finished with a report; {what} needs two",
+            if n == 1 { "" } else { "s" }
+        ));
+    }
+    StudyOutcome::Waiting
 }
 
 /// What `get_study` answers for a study.
-fn study_answer(study_id: &str, study: &Value, ready: bool) -> Value {
+fn study_answer(study_id: &str, study: &Value, outcome: &StudyOutcome) -> Value {
     let runs: Vec<Value> = study["runs"]
         .as_array()
         .into_iter()
@@ -687,6 +745,7 @@ fn study_answer(study_id: &str, study: &Value, ready: bool) -> Value {
                    "has_report": r["has_report"]})
         })
         .collect();
+    let ready = *outcome == StudyOutcome::Ready;
     let repeat = study["kind"] == "repeat";
     let mut out = json!({"study_id": study_id, "kind": study["kind"], "ready": ready, "runs": runs});
     // an older result than the runs is left out, so it is never mistaken for the answer
@@ -696,16 +755,24 @@ fn study_answer(study_id: &str, study: &Value, ready: bool) -> Value {
         out["comparison"] = if ready { study["compare"]["report"].clone() } else { Value::Null };
         out["compared_runs"] = if ready { json!(compared_runs(study)) } else { json!([]) };
     }
-    if let Some(error) = study["compare_state"]["error"].as_str().filter(|e| !e.is_empty()) {
-        out["error"] = json!(error);
-    }
-    if !ready {
-        let writing = study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true);
-        out["next"] = json!(if writing {
-            "Being written: call get_study again with wait_seconds."
-        } else {
-            "Written once every run has finished: wait for the runs, then call get_study again."
-        });
+    match outcome {
+        StudyOutcome::Ready => {}
+        StudyOutcome::Failed(error) => {
+            out["error"] = json!(error);
+            out["next"] = json!(if repeat {
+                "No result will be written. Call check_run again on a finished run."
+            } else {
+                "No comparison will be written. Call compare_drafts with baseline_run_id set to a finished run."
+            });
+        }
+        StudyOutcome::Waiting => {
+            let writing = study["compare_state"]["running"] == json!(true) || study["repeating"] == json!(true);
+            out["next"] = json!(if writing {
+                "Being written: call get_study again with wait_seconds."
+            } else {
+                "Written once every run has finished: wait for the runs, then call get_study again."
+            });
+        }
     }
     out
 }
@@ -726,6 +793,11 @@ impl Tellfold {
         self.engine.get(&run_path(run_id, "")).await
     }
 
+    /// `detail` for one poll of `poll`.
+    async fn poll_detail(&self, run_id: &str, poll: &Poll) -> Result<Value, String> {
+        self.engine.get_within(&run_path(run_id, ""), poll.request_timeout()).await
+    }
+
     /// The study a run belongs to: its own `study_id`, else the study that lists it (a draft A has no
     /// `study_id` of its own).
     async fn study_of(&self, run_id: &str) -> Result<Option<String>, String> {
@@ -744,7 +816,14 @@ impl Tellfold {
     async fn saved_seeds(&self, run_id: &str, sent: Vec<String>) -> Vec<String> {
         match self.engine.get(&run_path(run_id, "/seeds")).await {
             Ok(Value::Array(files)) => files.iter().filter_map(|f| f["name"].as_str().map(str::to_string)).collect(),
-            _ => sent,
+            other => {
+                let why = other.err().unwrap_or_else(|| "not a list".into());
+                log::warning(
+                    LOGGER,
+                    &format!("cannot read the seeds of {run_id} back ({why}); listing the names sent"),
+                );
+                sent
+            }
         }
     }
 
@@ -765,13 +844,13 @@ impl Tellfold {
         Ok(StartedB { run_id, study_id })
     }
 
-    /// Waits until run A has its people (`Ok(true)`), ends without them (an error), or `limit` passes (`Ok(false)`).
-    async fn wait_for_people(&self, run_a: &str, limit: Duration) -> Result<bool, String> {
+    /// Waits until run A has its people, ends without them (an error), or `limit` passes.
+    async fn wait_for_people(&self, run_a: &str, limit: Duration) -> Result<People, String> {
         let mut poll = Poll::until(limit);
         loop {
-            let detail = self.detail(run_a).await?;
+            let detail = self.poll_detail(run_a, &poll).await?;
             if cast_ready(&detail) {
-                return Ok(true);
+                return Ok(People::Ready);
             }
             let state = detail["status"]["state"].as_str().unwrap_or("");
             if TERMINAL_STATES.contains(&state) {
@@ -779,7 +858,7 @@ impl Tellfold {
                 return Err(format!("draft A ended ({state}) before it had people. {error}").trim().to_string());
             }
             if !poll.wait().await {
-                return Ok(false);
+                return Ok(People::NotYet { paused: !detail["status"]["pause"].is_null() });
             }
         }
     }
@@ -791,8 +870,12 @@ impl Tellfold {
         let run_a = run_a.to_string();
         tokio::spawn(async move {
             let outcome = match me.wait_for_people(&run_a, COMPARE_BACKGROUND_WAIT).await {
-                Ok(true) => me.start_b(&run_a, &draft_b, label.as_deref()).await,
-                Ok(false) => Err("draft A took too long to make its people".into()),
+                Ok(People::Ready) => me.start_b(&run_a, &draft_b, label.as_deref()).await,
+                Ok(People::NotYet { paused: true }) => Err(format!(
+                    "draft A's cast is still waiting to be checked in the Tellfold app. Confirm it there, then call \
+                     compare_drafts again with baseline_run_id set to {run_a}."
+                )),
+                Ok(People::NotYet { paused: false }) => Err("draft A took too long to make its people".into()),
                 Err(e) => Err(e),
             };
             let state = match outcome {
@@ -869,13 +952,12 @@ impl Tellfold {
     async fn wait_for_run(&self, Parameters(p): Parameters<WaitForRun>) -> Result<CallToolResult, ErrorData> {
         let mut poll = Poll::until(clamp_wait(p.timeout_seconds));
         loop {
-            let status = match self.detail(&p.run_id).await {
+            let status = match self.poll_detail(&p.run_id, &poll).await {
                 Ok(detail) => run_status(&detail),
                 Err(e) => return fail(e),
             };
-            // a paused run waits for a person in the app, not for time
-            let settled = status["finished"] == json!(true) || status.get("pause").is_some();
-            if settled || !poll.wait().await {
+            // a run paused for its cast check keeps being waited for: the pause ends when someone confirms it
+            if status["finished"] == json!(true) || !poll.wait().await {
                 return ok(status);
             }
         }
@@ -963,7 +1045,7 @@ impl Tellfold {
 
     #[tool(description = ASK_CROWD)]
     async fn ask_crowd(&self, Parameters(p): Parameters<AskCrowd>) -> Result<CallToolResult, ErrorData> {
-        match self.engine.post(&run_path(&p.run_id, "/ask"), &json!({"question": p.question})).await {
+        match self.engine.post_slow(&run_path(&p.run_id, "/ask"), &json!({"question": p.question})).await {
             Ok(reply) => ok(json!({"run_id": p.run_id, "answer": reply["reply"]})),
             Err(e) => fail(e),
         }
@@ -983,7 +1065,7 @@ impl Tellfold {
             ));
         };
         let body = json!({"agent_id": person["id"], "message": p.message, "history": []});
-        match self.engine.post(&run_path(&p.run_id, "/chat"), &body).await {
+        match self.engine.post_slow(&run_path(&p.run_id, "/chat"), &body).await {
             Ok(reply) => ok(json!({
                 "run_id": p.run_id, "person": person["id"], "handle": person["handle"], "reply": reply["reply"],
             })),
@@ -1032,7 +1114,7 @@ impl Tellfold {
         };
         match self.wait_for_people(&run_a, COMPARE_INLINE_WAIT).await {
             Err(e) => return fail(e),
-            Ok(true) => {
+            Ok(People::Ready) => {
                 return match self.start_b(&run_a, &p.draft_b, p.label_b.as_deref()).await {
                     Ok(b) => ok(json!({
                         "run_a": run_a, "run_b": b.run_id, "study_id": b.study_id,
@@ -1041,7 +1123,7 @@ impl Tellfold {
                     Err(e) => fail(e),
                 };
             }
-            Ok(false) => {}
+            Ok(People::NotYet { .. }) => {}
         }
         // Draft A is still working out its people (or waits for its cast to be checked in the app)
         self.start_b_later(&run_a, p.draft_b, p.label_b);
@@ -1066,14 +1148,13 @@ impl Tellfold {
             Err(e) => return fail(e),
         };
         loop {
-            let study = match self.engine.get(&study_path(&study_id)).await {
+            let study = match self.engine.get_within(&study_path(&study_id), poll.request_timeout()).await {
                 Ok(study) => study,
                 Err(e) => return fail(e),
             };
-            let ready = study_ready(&study);
-            let failed = study["compare_state"]["error"].as_str().is_some_and(|e| !e.is_empty());
-            if ready || failed || !poll.wait().await {
-                return ok(study_answer(&study_id, &study, ready));
+            let outcome = study_outcome(&study);
+            if outcome != StudyOutcome::Waiting || !poll.wait().await {
+                return ok(study_answer(&study_id, &study, &outcome));
             }
         }
     }
@@ -1245,6 +1326,18 @@ mod tests {
     }
 
     #[test]
+    fn a_huge_folder_is_not_walked_to_the_end() {
+        let tmp = tempfile::tempdir().unwrap();
+        for i in 0..MAX_FILES + 30 {
+            std::fs::write(tmp.path().join(format!("{i:03}.md")), "x").unwrap();
+        }
+        let found = ingest::expand_at_most(&[tmp.path().to_path_buf()], MAX_FILES).unwrap();
+        assert_eq!(found.len(), MAX_FILES + 1);
+        let error = collect_seeds(None, None, &[tmp.path().to_string_lossy().into_owned()]).err().unwrap();
+        assert!(error.contains("at most 100"), "{error}");
+    }
+
+    #[test]
     fn the_upload_limits_apply_before_reading() {
         let mut budget = Budget::default();
         let error = budget.add("big.pdf", MAX_FILE_BYTES as u64 + 1).err().unwrap();
@@ -1327,37 +1420,76 @@ mod tests {
         json!({"kind": "compare", "runs": runs, "compare": compare, "compare_state": {"running": false}})
     }
 
+    fn done(id: &str) -> Value {
+        json!({"id": id, "state": "done", "has_report": true})
+    }
+
     #[test]
     fn an_older_comparison_is_not_ready() {
-        let done = |id: &str| json!({"id": id, "state": "done", "has_report": true});
-        // a second draft B joined the study: the comparison on disk is still A against the first B
+        use StudyOutcome::*;
+        // a third draft joined the study: the comparison on disk is still A against B1
         let stale = study(json!([done("a"), done("b1"), {"id": "b2", "state": "running"}]), &["a", "b1"]);
-        assert!(!study_ready(&stale));
-        let answer = study_answer("s1", &stale, false);
+        assert_eq!(study_outcome(&stale), Waiting);
+        let answer = study_answer("s1", &stale, &Waiting);
         assert!(answer["comparison"].is_null(), "{answer}");
         let finished = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1"]);
-        assert!(!study_ready(&finished), "B2 has finished but is not compared yet");
+        assert_eq!(study_outcome(&finished), Waiting, "B2 has finished but is not compared yet");
         let fresh = study(json!([done("a"), done("b1"), done("b2")]), &["a", "b1", "b2"]);
-        assert!(study_ready(&fresh));
-        assert_eq!(study_answer("s1", &fresh, true)["compared_runs"], json!(["a", "b1", "b2"]));
+        assert_eq!(study_outcome(&fresh), Ready);
+        assert_eq!(study_answer("s1", &fresh, &Ready)["compared_runs"], json!(["a", "b1", "b2"]));
         // a run that failed without a report is not waited for
         let failed = study(json!([done("a"), done("b1"), {"id": "b2", "state": "failed"}]), &["a", "b1"]);
-        assert!(study_ready(&failed));
+        assert_eq!(study_outcome(&failed), Ready);
         let mut writing = fresh.clone();
         writing["compare_state"]["running"] = json!(true);
-        assert!(!study_ready(&writing));
+        assert_eq!(study_outcome(&writing), Waiting);
+    }
+
+    #[test]
+    fn a_study_with_one_report_fails_instead_of_waiting() {
+        let short = study(json!([done("a"), {"id": "b", "state": "failed", "has_report": false}]), &[]);
+        let outcome = study_outcome(&short);
+        assert_eq!(outcome, StudyOutcome::Failed("only 1 run finished with a report; a comparison needs two".into()));
+        let answer = study_answer("s1", &short, &outcome);
+        assert_eq!((answer["ready"].as_bool(), answer["error"].as_str().is_some()), (Some(false), true), "{answer}");
+        assert!(answer["next"].as_str().unwrap().contains("compare_drafts"), "{answer}");
+        let none = study(json!([{"id": "a", "state": "stopped"}, {"id": "b", "state": "failed"}]), &[]);
+        assert!(matches!(study_outcome(&none), StudyOutcome::Failed(e) if e.starts_with("only 0 runs")));
+        // a check cut off by a restart
+        let cut = json!({"kind": "repeat", "runs": [done("a"), {"id": "b", "state": "stopped"}], "agreement": null});
+        assert_eq!(
+            study_outcome(&cut),
+            StudyOutcome::Failed("only 1 run finished with a report; a check needs two".into())
+        );
+    }
+
+    #[test]
+    fn an_old_compare_error_waits_for_the_new_runs() {
+        let mut errored = study(json!([done("a"), done("b1"), {"id": "b2", "state": "running"}]), &["a", "b1"]);
+        errored["compare_state"]["error"] = json!("the model timed out");
+        assert_eq!(study_outcome(&errored), StudyOutcome::Waiting, "the error is from before b2 joined");
+        assert!(study_answer("s1", &errored, &StudyOutcome::Waiting).get("error").is_none());
+        errored["runs"][2] = done("b2");
+        assert_eq!(study_outcome(&errored), StudyOutcome::Failed("the model timed out".into()));
     }
 
     #[test]
     fn repeats_are_ready_once_they_all_agree() {
-        let done = |id: &str| json!({"id": id, "state": "done", "has_report": true});
         let mut repeat = json!({"kind": "repeat", "runs": [done("a"), done("b"), done("c")],
                                 "agreement": {"runs": 2}, "repeating": false});
-        assert!(!study_ready(&repeat));
+        assert_eq!(study_outcome(&repeat), StudyOutcome::Waiting);
         repeat["agreement"]["runs"] = json!(3);
-        assert!(study_ready(&repeat));
+        assert_eq!(study_outcome(&repeat), StudyOutcome::Ready);
         repeat["repeating"] = json!(true);
-        assert!(!study_ready(&repeat));
+        assert_eq!(study_outcome(&repeat), StudyOutcome::Waiting);
+    }
+
+    #[test]
+    fn a_poll_request_never_outlasts_the_wait() {
+        let poll = Poll::until(Duration::from_secs(5));
+        assert!(poll.request_timeout() <= Duration::from_secs(5));
+        assert_eq!(Poll::until(Duration::ZERO).request_timeout(), Duration::from_secs(1));
+        assert_eq!(Poll::until(Duration::from_secs(600)).request_timeout(), QUICK_TIMEOUT);
     }
 
     /// A server whose engine is not reachable: only the pending map can answer.
