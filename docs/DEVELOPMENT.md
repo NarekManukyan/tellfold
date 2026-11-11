@@ -169,7 +169,7 @@ cd mac && xcodegen generate
 xcodebuild build -scheme Tellfold -configuration Release -derivedDataPath build/dd
 ```
 
-The first build compiles the engine with link-time optimisation (a few minutes); later builds reuse `engine-rs/target` and only rebuild what changed. The bundled engine is about 13 MB and Apple silicon only. A Developer ID signing identity signs it with the hardened runtime, ready for notarization.
+The first build compiles the engine (a few minutes). Later builds reuse `engine-rs/target` and recompile only the crates that changed. Release builds then redo the link-time optimisation, which takes a minute or two; Debug builds use the `app-debug` profile without it. The app builds and runs on Apple silicon only. The bundled engine is about 13 MB. A Developer ID signing identity signs it with the hardened runtime, ready for notarization.
 
 ### Releasing
 

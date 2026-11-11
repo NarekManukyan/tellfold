@@ -50,9 +50,11 @@ The second example runs a whole simulation with the report and prints every even
 run folders.
 
 Every Mac app build compiles this engine for `aarch64-apple-darwin` with `MACOSX_DEPLOYMENT_TARGET=15.0` and puts
-it in `Resources/engine/tellfold`. Setting an engine path in the app's Settings runs the Python package through `uv`
-instead. `scripts/uv-shim.sh` stands in for `uv` and starts `target/release/tellfold` with the same arguments, which
-lets a custom engine path still run a local Rust build (see "Parity soak" in the plan).
+it in `Resources/engine/tellfold` (the `release` profile, or `app-debug` without link-time optimisation for Debug).
+Setting an engine path in the app's Settings runs the Python package through `uv` instead. To point the app at a
+local build without rebuilding it, run `cargo build --release -p tellfold-cli`, set the engine path to the
+repository and the uv path to `scripts/uv-shim.sh`. The shim takes the `uv run --project <path> tellfold ...`
+command and starts `target/release/tellfold` with the same arguments (see "Parity soak" in the plan).
 
 `schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
 the prompts, so Rust embeds them as they are.

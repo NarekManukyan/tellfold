@@ -304,10 +304,12 @@ engine) and a release build of `tellfold-cli`.
 method the app uses: a run with an event, its reads, seeds, the report HTML, chat, ask, refused writes on a finished
 run, a report rebuild, rewrite, a branch and its comparison, Check it, runtimes, the runtime test and settings. Both
 engine tests pass against Python (`uv run`) and against the Rust binary. For the latter,
-`engine-rs/scripts/uv-shim.sh` stands in for `uv` and starts the binary with the arguments the app passes:
+`engine-rs/scripts/uv-shim.sh` stands in for `uv` and starts the binary with the arguments the app passes. Since
+milestone 10 the app only runs `uv` when an engine path is set, so the command needs both:
 
     TEST_RUNNER_TELLFOLD_REAL_ENGINE=1 TEST_RUNNER_TELLFOLD_HOME=/private/tmp/tellfold-mac-home \
-    TEST_RUNNER_TELLFOLD_UV_PATH=$PWD/engine-rs/scripts/uv-shim.sh xcodebuild test ...
+    TEST_RUNNER_TELLFOLD_ENGINE_PATH=$PWD TEST_RUNNER_TELLFOLD_UV_PATH=$PWD/engine-rs/scripts/uv-shim.sh \
+    xcodebuild test ...
 
 **Real runs.** The same small run (the corner cafe example, 3 people, 1 round, agents and planner on one runtime)
 went through `tellfold serve` and the HTTP API, followed by the runtime test, chat and ask:
@@ -339,7 +341,7 @@ built binary takes several seconds on macOS while the system scans it; later lau
 `mac/scripts/bundle-engine.sh` now runs `cargo build --release --locked --target aarch64-apple-darwin -p
 tellfold-cli` with `MACOSX_DEPLOYMENT_TARGET=15.0`, checks the binary's `minos`, copies it to
 `Resources/engine/tellfold` and signs it: ad hoc for local builds, and with the hardened runtime and a timestamp for a
-Developer ID identity. The engine needs no entitlements, so `engine.entitlements` (which the bundled Python needed
+real identity outside Debug. Debug builds use the `app-debug` profile, which skips link-time optimisation. The engine needs no entitlements, so `engine.entitlements` (which the bundled Python needed
 for its extension modules) is gone. The script then starts `tellfold serve --help` from the bundle as a smoke test.
 
 The build phase runs for every configuration, so Debug builds run the same engine as releases. `EngineCommand`
@@ -351,8 +353,13 @@ tests do the same with `TEST_RUNNER_TELLFOLD_ENGINE_PATH`. Building the app now 
 Checked on 11 November 2026: a Release build is 28 MB (the engine 13 MB), passes `codesign --verify --deep
 --strict`, and its engine is arm64 with `minos 15.0`, linking only system libraries. The same binary signed with the
 hardened runtime starts, answers `/api/health` and exits when stdin closes. The Mac unit suite passes, and the
-engine tests pass against the bundled binary and, with an engine path, against the Python package. Notarisation
-itself needs the release Mac's Developer ID and runs in `mac/scripts/release.sh`.
+engine tests pass against the bundled binary and, with an engine path, against the Python package.
+
+Notarisation was not run for this milestone: this Mac has no Developer ID certificate. The first notarised build
+comes from `mac/scripts/release.sh`. The path is the same one 0.2.1 took: its archive is signed with an Apple
+Development identity, and the Developer ID export re-signs the loose Mach-O files in `Contents/Resources`. The
+installed 0.2.1 shows this, with its `engine/python/bin/python3` signed by Developer ID with the hardened runtime and
+a timestamp, inside a notarised app.
 
 ## Risks
 

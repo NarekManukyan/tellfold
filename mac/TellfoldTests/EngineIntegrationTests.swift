@@ -26,6 +26,11 @@ struct EngineIntegrationTests {
         prefs.logLevel = .info
         if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
         if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
+        // uv only runs with an engine path; without one the uv path would be ignored and the bundled binary tested.
+        if !prefs.uvPath.isEmpty, prefs.bundledEngineFolder != nil {
+            Issue.record("TEST_RUNNER_TELLFOLD_UV_PATH needs TEST_RUNNER_TELLFOLD_ENGINE_PATH as well")
+            return
+        }
 
         let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
         engine.start()
@@ -103,6 +108,10 @@ struct EngineIntegrationTests {
         prefs.offlineTestModel = true
         if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
         if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
+        if !prefs.uvPath.isEmpty, prefs.bundledEngineFolder != nil {
+            Issue.record("TEST_RUNNER_TELLFOLD_UV_PATH needs TEST_RUNNER_TELLFOLD_ENGINE_PATH as well")
+            return
+        }
         let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
         engine.start()
         defer { engine.shutdownNow() }

@@ -48,3 +48,11 @@ tellfold-server = { path = "crates/tellfold-server" }
 lto = true
 codegen-units = 1
 strip = true
+
+# Debug builds of the Mac app (mac/scripts/bundle-engine.sh): optimised like a release, without the slow
+# link-time optimisation, so a Rust edit does not stall the Swift edit-build loop.
+[profile.app-debug]
+inherits = "release"
+lto = false
+codegen-units = 16
+incremental = true

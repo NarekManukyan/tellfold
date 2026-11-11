@@ -6,7 +6,9 @@
 # The app starts it as `engine/tellfold serve ...`. It links only system libraries, so nothing else goes next to it.
 #
 # Usage: bundle-engine.sh <repo root> <destination engine folder> [codesign identity]
-# Cargo keeps its build in <repo root>/engine-rs/target, so a build with unchanged sources does no work.
+# Cargo keeps its build in <repo root>/engine-rs/target, so a build with unchanged sources does no work. Xcode's
+# Debug configuration uses the `app-debug` profile (no link-time optimisation); everything else uses `release`.
+# The engine, like the Release app, is for Apple silicon only.
 set -euo pipefail
 
 REPO=$(cd "$1" && pwd)
@@ -31,8 +33,10 @@ export PATH
 
 # The target directory stays inside this checkout: another worktree's build must never land in this app.
 unset CARGO_TARGET_DIR
-"$CARGO" build --manifest-path "$REPO/engine-rs/Cargo.toml" --release --locked --target "$TARGET" -p tellfold-cli
-BINARY="$REPO/engine-rs/target/$TARGET/release/tellfold"
+if [ "${CONFIGURATION:-}" = "Debug" ]; then PROFILE=app-debug; else PROFILE=release; fi
+"$CARGO" build --manifest-path "$REPO/engine-rs/Cargo.toml" --profile "$PROFILE" --locked --target "$TARGET" \
+    -p tellfold-cli
+BINARY="$REPO/engine-rs/target/$TARGET/$PROFILE/tellfold"
 
 MINOS=$(vtool -show-build "$BINARY" | awk '$1 == "minos" { print $2 }')
 if [ "$MINOS" != "$MACOSX_DEPLOYMENT_TARGET" ]; then
@@ -44,10 +48,11 @@ rm -rf "${DEST:?}"
 mkdir -p "$DEST"
 cp "$BINARY" "$DEST/tellfold"
 
-# The app's own signature then seals the folder. A Developer ID identity gets the hardened runtime, which
-# notarization requires; the engine needs no entitlements under it.
-if [ "$IDENTITY" = "-" ]; then
-    codesign --force --sign - "$DEST/tellfold"
+# The app's own signature then seals the folder. Outside Debug, a real identity gets the hardened runtime and a
+# timestamp, which notarization requires; the engine needs no entitlements under it. Debug builds skip both, so
+# they never wait on Apple's timestamp server.
+if [ "$IDENTITY" = "-" ] || [ "${CONFIGURATION:-}" = "Debug" ]; then
+    codesign --force --timestamp=none --sign "$IDENTITY" "$DEST/tellfold"
 else
     codesign --force --timestamp --options runtime --sign "$IDENTITY" "$DEST/tellfold"
 fi
