@@ -1,7 +1,5 @@
 # NatWest ends its "remote first" category and sets a two-day office minimum
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 20 October 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the employer is
 
 NatWest Group is one of the UK's largest banks, with operations including NatWest, Royal Bank of Scotland and Ulster Bank in Northern Ireland and the Republic of Ireland. In 2021 it set up flexible working categories: about a third of staff were classed as "remote first", working mainly from home and coming into an office about two days a month, while others were hybrid. Its 2025 pay agreement with the union Unite included a jointly agreed process for consulting staff and the union on future changes to office attendance. Elsewhere in UK banking, Barclays had recently pushed back a planned move to three office days a week for some UK staff.

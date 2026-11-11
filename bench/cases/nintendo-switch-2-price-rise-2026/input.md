@@ -1,7 +1,5 @@
 # Nintendo raises the recommended price of Switch 2
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-05-08, written for the Tellfold accuracy test. Not the original text. CONTROL CASE: announced before the model's June 2026 training cutoff.*
-
 ## Who is announcing
 
 Nintendo makes the Switch family of games consoles and its own games (Mario, Zelda, Pokémon with partners and others). The Switch 2 launched worldwide on 5 June 2025 at $449.99 in the US, €469.99 in Europe, C$629.99 in Canada and ¥49,980 in Japan. It has sold close to 20 million units. Over the past year Sony and Microsoft have raised PlayStation 5 and Xbox Series console prices several times, and the original Switch also got more expensive in the US. Memory chips and other components have become more expensive and harder to get across the electronics industry.

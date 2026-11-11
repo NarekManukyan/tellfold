@@ -1,7 +1,5 @@
 # Iron County School District approves a four-day school week from 2027-28
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 25 August 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the district is
 
 Iron County School District serves Cedar City and the surrounding rural county in southern Utah, with nine elementary and eight secondary schools. It ranks near the bottom of Utah districts for per-pupil spending, and recent bond measures to build new schools for a growing population have failed. Several other rural Utah districts, including neighbouring Garfield County and Piute and Wayne counties, already run four-day weeks. Most Iron County schools already finish early on Fridays, between about 12:30 and 1:30 pm.

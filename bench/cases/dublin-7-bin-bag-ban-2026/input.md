@@ -1,9 +1,5 @@
 # Dublin City Council extends its bin-bag ban to Dublin 7
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 7 May 2026, written for the Tellfold accuracy test. Not the original text.*
-
-**Control case: announced before the model's training cutoff (June 2026).**
-
 ## Who the body is
 
 Dublin City Council is the local authority for Ireland's capital. Household waste in Dublin is collected by private companies that residents pay directly, not by the council, but the council sets the bylaws on how waste is presented for collection. Bylaws from 2016 require waste to be put out in bins, but more than 900 streets were given exemptions (derogations) to keep using plastic bags because wheelie bins did not suit their properties.

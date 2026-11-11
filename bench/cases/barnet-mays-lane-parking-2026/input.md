@@ -1,7 +1,5 @@
 # Barnet Council cuts paid parking hours outside Mays Lane shops to one hour a day
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 23 July 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the body is
 
 The London Borough of Barnet is the local council for a large outer-London borough. It runs on-street parking, including controlled parking zones (CPZs). Mays Lane in Chipping Barnet (EN5) has a small parade of local shops, including a pet shop, used by nearby residents, many of them older.

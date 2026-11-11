@@ -1,7 +1,5 @@
 # CD Projekt Red announces The Witcher 3: Wild Hunt Remastered as a free upgrade
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-08-25, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 CD Projekt Red (CDPR) is a Polish game studio, known for The Witcher series and Cyberpunk 2077. The Witcher 3: Wild Hunt (2015), with its two expansions Hearts of Stone and Blood and Wine, has sold tens of millions of copies. It got a free "next-gen" update in 2022. The studio is currently making The Witcher 4. In recent years remasters of older games from many publishers have often been sold as new products, typically for $40–50, or with a paid upgrade of $10 or more for existing owners.

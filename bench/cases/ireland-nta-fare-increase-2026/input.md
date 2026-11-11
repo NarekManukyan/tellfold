@@ -1,7 +1,5 @@
 # National Transport Authority sets new public transport fares from January 2027
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 3 September 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the body is
 
 The National Transport Authority (NTA) is the Irish state agency that plans and funds public transport and sets fares on state-subsidised (Public Service Obligation, PSO) services under the Transport for Ireland (TFI) brand. These include Dublin Bus, Bus Éireann, Irish Rail (including DART and commuter rail), Luas, Go-Ahead Ireland and TFI Local Link. Fares were cut in 2022 and have not had a general increase since 2018. The government provided a record €940 million in PSO funding in 2026. The Transport Minister is Darragh O'Brien.

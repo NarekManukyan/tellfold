@@ -1,7 +1,5 @@
 # MBTA announces three fare pilots and extends commuter rail discounts
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 28 July 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the body is
 
 The Massachusetts Bay Transportation Authority (MBTA, "the T") runs subway, bus, commuter rail and ferry services in the Boston region. It is a state agency; its general manager, Phillip Eng, reports to the state government led by Governor Maura Healey. During summer 2026 the T ran temporary commuter rail promotions: half-price monthly passes, a $1 weekend companion fare and free "Summer Fridays". Today riders get up to two free transfers within two hours, but only between different modes or different bus routes, and express buses cost up to $4.25 a ride against $1.70 for a local bus.

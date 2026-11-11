@@ -1,7 +1,5 @@
 # Barclays raises minimum office attendance for UK staff
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 17 August 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the employer is
 
 Barclays is a UK-headquartered bank with about 45,000 employees in the UK, working in retail branches, operations, technology and the investment bank. Since the pandemic most office-based staff have worked hybrid. Requirements already differ by business: branch staff have always worked on site, and client-facing investment banking roles are often in the office four or five days a week. For many full-time UK staff in operations and technology, the current minimum is two office days a week. The union Unite represents roughly 36,000 of the bank's UK staff.

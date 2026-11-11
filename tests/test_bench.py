@@ -93,5 +93,116 @@ def test_dry_run_end_to_end(tmp_path):
     assert all("scores" in r and "error" not in r for r in runs)
     assert result["summary"]["all"]["graded"] == 2
     assert result["zero_shot_summary"]["all"]["graded"] == 1
-    assert "simulation_calls" in result["usage"]  # the offline model writes no calls.jsonl
+    assert result["usage"]["simulation_calls"] == 0  # the Python CLI's offline model writes no calls.jsonl
     assert "Dry run" in out.with_suffix(".md").read_text()
+
+
+def test_dry_run_results_stay_out_of_bench_results():
+    args = bench.parse_args(["--dry-run"])
+    assert args.results_dir == bench.DRY_RESULTS_DIR
+    assert bench.parse_args([]).results_dir == bench.RESULTS_DIR
+
+
+FAKE_CLAUDE = """#!/usr/bin/env python3
+import json, sys
+from pathlib import Path
+log = Path(__file__).with_name("calls.jsonl")
+calls = log.read_text().splitlines() if log.exists() else []
+with log.open("a") as fh:
+    fh.write(json.dumps({"argv": sys.argv[1:], "stdin": sys.stdin.read()}) + "\\n")
+if not calls and Path(__file__).with_name("fail-first").exists():
+    print("[]")  # not an object: the harness must retry
+    sys.exit(0)
+print(json.dumps({"structured_output": %s, "usage": {"input_tokens": 10, "output_tokens": 5},
+                  "total_cost_usd": 0.01}))
+"""
+
+
+def fake_claude(tmp_path, reply: dict, fail_first: bool = False) -> Path:
+    script = tmp_path / "claude"
+    script.write_text(FAKE_CLAUDE % repr(reply))
+    script.chmod(0o755)
+    if fail_first:
+        (tmp_path / "fail-first").touch()
+    return script
+
+
+def read_calls(tmp_path) -> list[dict]:
+    return [json.loads(line) for line in (tmp_path / "calls.jsonl").read_text().splitlines()]
+
+
+def test_llm_judge_grades_blind(tmp_path):
+    """The real grading path with a fake CLI: what the judge is shown, the per-case schema, and the parsed reply."""
+    rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
+    reply = {
+        "predicted_direction": "negative", "direction_evidence": "q", "predicted_backdown": "partial",
+        "backdown_evidence": "q", "extra_objections": [],
+        "objections": [{"id": "O1", "verdict": "covered", "evidence": "q"}],
+        "groups": [{"group": "Regular  customers", "named": True}, {"group": "teachers", "named": True}],
+    }
+    judge = bench.LlmJudge(bench.ClaudeModel(str(fake_claude(tmp_path, reply)), "sonnet"))
+    report = {"title": "T", "summary": "Regulars grumble about the coffee price.", "prediction": "P",
+              "camps": [{"name": "Regulars", "summary": "s", "members": ["a1"]}], "citations": ["x"]}
+    grade = judge.grade(rubric, report, -0.5)
+    assert grade == reply
+    (call,) = read_calls(tmp_path)
+    shown = call["stdin"]
+    # the judge never sees the answer it is grading against
+    assert '"direction"' not in shown and "backdown" not in shown.split("REPORT")[0].lower()
+    assert rubric["direction"] not in shown.split("REPORT")[0].split("CHECKLIST")[1]
+    assert "{{" not in shown
+    assert "Closing on Tuesdays is inconvenient for regulars" in shown and "students" in shown
+    assert "Regulars grumble about the coffee price." in shown and "citations" not in shown and "a1" not in shown
+    argv = call["argv"]
+    system = argv[argv.index("--system-prompt") + 1]
+    assert system.startswith("You are a strict, literal grader")
+    schema = json.loads(argv[argv.index("--json-schema") + 1])
+    item = schema["properties"]["objections"]["items"]["properties"]
+    assert item["id"]["enum"] == ["o1", "o2", "o3"]
+    assert schema["properties"]["groups"]["items"]["properties"]["group"]["enum"] == rubric["pushback_groups"]
+    assert argv[argv.index("--model") + 1] == "sonnet"
+    assert judge.usage == {"calls": 1, "input_tokens": 10, "output_tokens": 5, "cost_usd": 0.01}
+    # ids and groups match ignoring case and spacing; what matches nothing is reported
+    s = bench.score(rubric, grade)
+    assert s["objection_verdicts"] == ["covered", "missed", "missed"]
+    assert s["group_recall"] == 0.5
+    assert s["unmatched"] == ["teachers"]
+
+
+def test_judge_checklist_has_no_answer():
+    rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
+    shown = bench.judge_checklist(rubric)
+    assert set(shown) == {"title", "question", "objections", "pushback_groups"}
+    assert all(set(o) == {"id", "text"} for o in shown["objections"])
+
+
+def test_claude_model_retries_a_bad_reply(tmp_path):
+    model = bench.ClaudeModel(str(fake_claude(tmp_path, {"ok": 1}, fail_first=True)), "haiku")
+    assert model.call("sys", "user", {"type": "object"}) == {"ok": 1}
+    assert len(read_calls(tmp_path)) == 2
+
+
+def test_results_path_keeps_dotted_labels(tmp_path):
+    first = bench.results_path(tmp_path, "sonnet-5.5", "2026-11-11")
+    assert first.name == "2026-11-11-sonnet-5.5.json"
+    first.write_text("{}")
+    assert bench.results_path(tmp_path, "sonnet-5.5", "2026-11-11").name == "2026-11-11-sonnet-5.5-2.json"
+
+
+def test_validate_reports_null_dates_and_benchmark_words(tmp_path):
+    folder = tmp_path / "corner-cafe-prices"
+    folder.mkdir()
+    (folder / "input.md").write_text("Written for the accuracy test. " + "word " * 300)
+    (folder / "outcome.md").write_text("https://a.example https://b.example")
+    rubric = json.loads((FIXTURE_CASES / "corner-cafe-prices" / "rubric.json").read_text())
+    rubric.update(announced_on=None, model_cutoff=None)
+    (folder / "rubric.json").write_text(json.dumps(rubric))
+    errors, _ = bench.validate_case(bench.load_cases(folder_root=tmp_path)[0])
+    assert any("bad date" in e for e in errors)
+    assert any("accuracy test" in e for e in errors)
+
+
+def test_unknown_model_has_no_price():
+    assert bench.price_for("claude-haiku-5-5") == bench.PRICES["haiku"]
+    with pytest.raises(SystemExit):
+        bench.price_for("gpt-9")

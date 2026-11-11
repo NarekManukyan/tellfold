@@ -1,7 +1,5 @@
 # OpenAI restructures ChatGPT Pro: new Pro 500 tier, reduced Pro 200 allowance
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-09-29, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 OpenAI makes ChatGPT and the Codex coding agent. Its consumer plans are ChatGPT Plus ($20/month) and a set of Pro plans for heavy users. The **Pro 100** ($100/month) gives 5x the Plus usage allowance, and **Pro 200** ($200/month) has until now given 20x. Pro usage covers ChatGPT Work (agent tasks), Codex coding sessions and messages to the top GPT-6 Pro model. Many Pro 200 subscribers are developers and professionals who run long, token-heavy coding and agent jobs. In mid-September 2026 OpenAI paused new Pro 200 sign-ups, citing demand for its new GPT-6 Astra model.

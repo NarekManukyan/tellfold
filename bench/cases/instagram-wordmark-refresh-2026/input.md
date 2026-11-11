@@ -1,7 +1,5 @@
 # Instagram refreshes its wordmark for the first time in about ten years
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-08-13, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 Instagram is Meta's photo and video sharing app, used by well over two billion people. Its visual identity has been stable since 2016, when it introduced the pink-to-orange gradient camera icon and a cursive script wordmark, the "Instagram" text at the top of the app. Instagram's head, Adam Mosseri, regularly announces product changes directly to users in short videos and posts on Instagram and Threads.

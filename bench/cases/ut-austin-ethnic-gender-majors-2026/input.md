@@ -1,7 +1,5 @@
 # UT Austin stops new enrolment in three ethnic and gender studies majors
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 16 September 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the body is
 
 The University of Texas at Austin is the flagship public university of the University of Texas System, with a large College of Liberal Arts. In February 2026 the university announced it would consolidate seven ethnic and gender studies departments in the college into two new departments, saying the college had become overly fragmented and needed more intellectual coherence. One of the new units is the Department of Social and Cultural Analysis, which houses six majors, nine minors and certificates and four graduate programmes, including African and African Diaspora Studies, Mexican American and Latina/o Studies, Women's and Gender Studies, American Studies and Urban Studies. Officials said at the time that most majors could be consolidated before fall 2027.

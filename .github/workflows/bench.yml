@@ -1,0 +1,22 @@
+# Checks the accuracy benchmark's case files whenever they or the harness change. Runs no model.
+name: Bench
+
+on:
+  push:
+    branches: [main]
+    paths: ["bench/**", "tests/test_bench.py", ".github/workflows/bench.yml"]
+  pull_request:
+    paths: ["bench/**", "tests/test_bench.py", ".github/workflows/bench.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 bench/run.py --validate

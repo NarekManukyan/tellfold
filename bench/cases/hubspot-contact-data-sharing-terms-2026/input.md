@@ -1,7 +1,5 @@
 # HubSpot updates its customer terms ahead of Contact Discovery
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-07-01, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 HubSpot is a customer relationship management (CRM) and marketing software company. Its customers are mostly small and mid-sized businesses, plus marketing and sales agencies. They use it to store contacts, run email campaigns, manage sales pipelines and handle customer service. HubSpot offers an optional **data enrichment** feature that fills in missing details on contact and company records, such as job titles or company information. It also sells AI tools under the Breeze brand.

@@ -1,7 +1,5 @@
 # Hillsborough County Public Schools updates student dress code for 2026-27
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 14 July 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the district is
 
 Hillsborough County Public Schools serves Tampa and the surrounding county in Florida and is one of the largest school districts in the United States. Its dress code sits inside the student code of conduct, which the elected school board approves. The 2026-27 school year starts on Monday 10 August 2026.

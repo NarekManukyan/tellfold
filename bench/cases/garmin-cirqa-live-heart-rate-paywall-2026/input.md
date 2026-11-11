@@ -1,7 +1,5 @@
 # Garmin launches the CIRQA screen-free smart band
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-07-21, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 Garmin makes GPS sports watches, fitness trackers and outdoor devices. Its customers range from serious runners, cyclists and triathletes to casual health trackers. All Garmin wearables sync to the free Garmin Connect app. In March 2025 Garmin added an optional paid tier, **Garmin Connect+** ($6.99 a month or $69.99 a year), with extra features such as AI-based insights, an advanced performance dashboard, nutrition tools and other premium coaching features. Core Garmin data has stayed free.

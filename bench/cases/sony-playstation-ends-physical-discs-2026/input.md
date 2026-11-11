@@ -1,7 +1,5 @@
 # Sony to end physical disc production for new PlayStation games from January 2028
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-07-01, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 Sony Interactive Entertainment runs the PlayStation games business: the PlayStation 5 and PlayStation 4 consoles, the PlayStation Store and the PlayStation Network. The PS5 has shipped close to 94 million units and the network reports around 125 million monthly active users. The PS5 is sold in two versions: a standard model with a disc drive and a cheaper Digital Edition without one. Games have been sold both as discs in retail shops and as downloads from the PlayStation Store.

@@ -23,8 +23,15 @@ For each one there are three files:
   three to five objections people actually raised, whether the organisation backed down (none, partial or full), and
   which groups pushed back.
 
-Every fact in `outcome.md` and `rubric.json` comes from a source we opened and linked. A case we couldn't confirm in
-at least two independent sources was dropped.
+Every fact in `outcome.md` and `rubric.json` links to its source, and we dropped any case whose announcement and
+reaction we couldn't confirm in at least two independent reports. Some details rest on less, and the case says so
+in `outcome.md` or its `notes`: Barnet's coverage is thin (a civic society and the council's own notice) and one of
+its objections is inferred from the traders' earlier campaign; Instagram cites a headline and a social-listening
+analysis we could not open, marked unverified; Garmin's backdown is scored "partial" on our judgement, because only
+the live heart-rate part was reversed.
+
+`input.md` holds only the announcement. It says nothing about the benchmark, the model's cutoff or whether the case
+is a control, so the simulation is not nudged to recall; `--validate` rejects a seed that does.
 
 We chose cases announced **from 1 July 2026**, after the training cutoff of the models under test (Claude Sonnet 5.5
 and Claude Haiku 5.5, both June 2026), so the model can't simply remember how the story ended. Each rubric records
@@ -47,9 +54,11 @@ A pass with `--repeats 3` runs each case with seeds 7, 8 and 9, which shows how 
 
 ### Scoring
 
-One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads the rubric
-and Tellfold's report, and nothing else. It is told to judge only what the report says and not to use anything it may
-know about the event. From its answer the harness computes:
+One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads Tellfold's
+report and a checklist from the rubric: the title, the question, the objections and the pushback groups. It is never
+shown the true direction or backdown. It classifies the direction and backdown the report predicts blind, marks each
+objection and group, and is told not to use anything it may know about the event. The harness then compares its
+answer with the rubric:
 
 | score | what it measures |
 |---|---|
@@ -57,7 +66,7 @@ know about the event. From its answer the harness computes:
 | **objection recall** | share of the rubric's objections the report raises: covered 1, partial 0.5, missed 0 |
 | **backdown** | the report predicts a change (partial or full) exactly when one happened. A report that doesn't say gets no credit |
 | **groups named** | share of the rubric's pushback groups the report names |
-| **direction from sentiment** | a judge-free check: the last round's mean sentiment read as negative (below −0.2), mixed or positive (above 0.2) |
+| **direction from sentiment** | a judge-free check: the last round's mean sentiment read as negative (below −0.2), mixed or positive (above 0.2). A run whose last round has no sentiment score gets none; an earlier round is never used instead |
 
 Two baselines sit next to the scores, because a number means little on its own:
 
@@ -97,7 +106,7 @@ The set leans negative: well-sourced positive reactions were hard to find, becau
 
 ## Results
 
-No real pass has run yet. The table will be filled from `bench/results/<date>-<model>.json`, every case listed,
+No real pass has run yet. The table will be filled from `bench/results/<date>-<label>.json`, every case listed,
 failures included.
 
 | | cases | direction | objection recall | backdown | groups named | direction from sentiment |
@@ -130,9 +139,10 @@ Read the results with these in mind. Some of them we can measure; some we can on
   model press coverage, virality, organised campaigns or the decision-makers' own politics, which often decide
   whether an organisation backs down.
 - **The judge is an LLM.** Grading objection recall needs judgement, so a model does it. It can be lenient, strict or
-  inconsistent. Its prompt is public, it sees only the rubric and the report, and every verdict comes with a quote
+  inconsistent. Its prompt is public, it sees only the report and the rubric's objections and groups (never the
+  true direction or backdown), and every verdict comes with a quote
   from the report so it can be checked by hand. We will spot-check a sample by hand and report the agreement.
-- **Few cases.** With 15 to 20 cases, one case moves a percentage by five points or more. Differences of a few points
+- **Few cases.** With 20 cases, one case moves a percentage by five points. Differences of a few points
   between two passes mean nothing.
 - **"Direction" is a judgement too.** Reporting rarely says "62% of people were against". The rubric's direction is
   our reading of the coverage, and mixed reactions are the hardest to call.

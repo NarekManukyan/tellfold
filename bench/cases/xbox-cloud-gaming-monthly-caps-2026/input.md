@@ -1,7 +1,5 @@
 # Xbox introduces monthly hour allowances for cloud gaming on Game Pass
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-09-03, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 Microsoft's Xbox division runs Xbox Game Pass, a subscription service with three tiers: Essential, Premium and Ultimate. It gives members a rotating library of games to download and play on Xbox consoles and PC. Xbox Cloud Gaming lets members stream many of those games instead of downloading them, to phones, tablets, smart TVs, browsers, cheaper hardware and consoles. Until now, streaming has been included in eligible Game Pass tiers with no time limit. Microsoft has promoted cloud gaming as part of a strategy of letting people play Xbox games on any screen.

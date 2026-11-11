@@ -8,8 +8,9 @@
 
 A case is a folder with `input.md` (what was known on the day, the only seed), `outcome.md` (what happened, with
 sources; never shown to the simulation or the judge) and `rubric.json` (direction, objections, backdown, groups).
-Every report is graded by one judge call (`bench/judge_prompt.md`). Results go to
-`bench/results/<date>-<model>.json` with a Markdown summary next to it. Standard library only.
+Every report is graded by one judge call (`bench/judge_prompt.md`) that never sees the true direction or backdown.
+Results go to `bench/results/<date>-<label>.json` (dry runs to `bench/runs/results/`) with a Markdown summary next
+to it. Standard library only.
 """
 
 from __future__ import annotations
@@ -32,6 +33,7 @@ REPO = BENCH.parent
 CASES_DIR = BENCH / "cases"
 RESULTS_DIR = BENCH / "results"
 RUNS_DIR = BENCH / "runs"  # ignored by git (`runs/` in .gitignore)
+DRY_RESULTS_DIR = RUNS_DIR / "results"  # dry-run numbers mean nothing, so they stay out of bench/results
 
 DIRECTIONS = ("negative", "mixed", "positive")
 BACKDOWNS = ("none", "partial", "full")
@@ -111,6 +113,8 @@ LEAK_WORDS = (
     "backlash", "outrage", "outcry", "u-turn", "reversed", "reversal", "backtrack", "uproar", "furious", "criticised",
     "criticized", "petition", "boycott", "walked back", "climbdown", "controversial",
 )
+# Words about the benchmark itself. A seed holds only the announcement; case metadata lives in rubric.json. Errors.
+META_WORDS = ("benchmark", "accuracy test", "control case", "training cutoff", "known to the model")
 
 # ---------- cost estimate ----------
 # Average characters per call by purpose, measured from five real 20-agent, 6-round runs (Claude Code, haiku agents,
@@ -158,8 +162,16 @@ def call_cost(purpose: str, model: str, calls: int) -> tuple[int, int, float]:
     chars_in, chars_out = CALL_CHARS[purpose]
     tokens_in = calls * (chars_in // CHARS_PER_TOKEN + OVERHEAD_TOKENS)
     tokens_out = calls * (chars_out // CHARS_PER_TOKEN + (REPORT_THINKING_TOKENS if purpose == "report.write" else 0))
-    price_in, price_out = PRICES.get(model, PRICES["sonnet"])
+    price_in, price_out = price_for(model)
     return tokens_in, tokens_out, (tokens_in * price_in + tokens_out * price_out) / 1e6
+
+
+def price_for(model: str) -> tuple[float, float]:
+    """List price for a model alias or full id ("sonnet", "claude-sonnet-5-5"); an unknown model is an error."""
+    for family, price in PRICES.items():
+        if family in model.lower():
+            return price
+    raise SystemExit(f"no price for model {model!r}: use one of {', '.join(PRICES)} or a full id containing one")
 
 
 def estimate(cases: list[dict], settings: dict, repeats: int, zero_shot: bool, judge_model: str) -> dict:
@@ -223,17 +235,9 @@ def load_cases(only: list[str] | None = None, folder_root: Path = CASES_DIR) -> 
     return cases
 
 
-def validate_case(case: dict) -> tuple[list[str], list[str]]:
-    """(errors, warnings) for one case folder."""
-    errors: list[str] = []
-    warnings: list[str] = []
-    folder, r = case["dir"], case["rubric"]
-    for name in ("input.md", "outcome.md", "rubric.json"):
-        if not (folder / name).exists():
-            errors.append(f"missing {name}")
-    if not r:
-        return errors, warnings
-    if r.get("slug") != case["slug"]:
+def _check_rubric_fields(r: dict, slug: str) -> list[str]:
+    errors = []
+    if r.get("slug") != slug:
         errors.append(f"rubric slug {r.get('slug')!r} is not the folder name")
     for key in ("title", "question", "announced_on", "model_cutoff"):
         if not isinstance(r.get(key), str) or not r.get(key):
@@ -242,14 +246,24 @@ def validate_case(case: dict) -> tuple[list[str], list[str]]:
         errors.append(f"rubric.category {r.get('category')!r} not one of {CATEGORIES}")
     if r.get("direction") not in DIRECTIONS:
         errors.append(f"rubric.direction {r.get('direction')!r} not one of {DIRECTIONS}")
+    return errors
+
+
+def _check_dates(r: dict) -> list[str]:
+    """known_to_model must agree with the announcement date and the model's cutoff month."""
     try:
-        announced = dt.date.fromisoformat(r.get("announced_on", ""))
-        cutoff = dt.date.fromisoformat(r.get("model_cutoff", "") + "-01")
-        after = announced >= (cutoff.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
-        if r.get("known_to_model") is not (not after):
-            errors.append(f"rubric.known_to_model should be {not after} for {announced} and cutoff {cutoff:%Y-%m}")
+        announced = dt.date.fromisoformat(r.get("announced_on") or "")
+        cutoff = dt.date.fromisoformat((r.get("model_cutoff") or "") + "-01")
     except ValueError as e:
-        errors.append(f"bad date: {e}")
+        return [f"bad date: {e}"]
+    after = announced >= (cutoff.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+    if r.get("known_to_model") is not (not after):
+        return [f"rubric.known_to_model should be {not after} for {announced} and cutoff {cutoff:%Y-%m}"]
+    return []
+
+
+def _check_objections(r: dict) -> list[str]:
+    errors = []
     objections = r.get("objections") or []
     if not 3 <= len(objections) <= 5:
         errors.append(f"{len(objections)} objections; the rubric needs 3-5")
@@ -261,24 +275,49 @@ def validate_case(case: dict) -> tuple[list[str], list[str]]:
             errors.append(f"objection {o.get('id')} has no text")
         if not str(o.get("source", "")).startswith("http"):
             errors.append(f"objection {o.get('id')} has no source URL")
+    return errors
+
+
+def _check_backdown(r: dict) -> list[str]:
     b = r.get("backdown") or {}
     if b.get("kind") not in BACKDOWNS:
-        errors.append(f"backdown.kind {b.get('kind')!r} not one of {BACKDOWNS}")
-    elif b.get("happened") is not (b["kind"] != "none"):
-        errors.append("backdown.happened must be true exactly when kind is partial or full")
-    elif b["kind"] != "none" and not str(b.get("source") or "").startswith("http"):
-        errors.append("a backdown needs a source URL")
-    if not r.get("pushback_groups"):
-        warnings.append("no pushback_groups")
-    if case["input"].exists():
-        text = case["input"].read_text(encoding="utf-8")
-        words = len(text.split())
-        if not 120 <= words <= 700:
-            warnings.append(f"input.md has {words} words (aim for 200-500)")
-        lowered = text.lower()
-        leaks = [w for w in LEAK_WORDS if re.search(rf"\b{re.escape(w)}\b", lowered)]
-        if leaks:
-            warnings.append(f"input.md mentions {', '.join(leaks)}: check it does not describe the reaction")
+        return [f"backdown.kind {b.get('kind')!r} not one of {BACKDOWNS}"]
+    if b.get("happened") is not (b["kind"] != "none"):
+        return ["backdown.happened must be true exactly when kind is partial or full"]
+    if b["kind"] != "none" and not str(b.get("source") or "").startswith("http"):
+        return ["a backdown needs a source URL"]
+    return []
+
+
+def _check_input(path: Path) -> tuple[list[str], list[str]]:
+    """The seed must be the announcement only: nothing about the benchmark, ideally nothing about the reaction."""
+    if not path.exists():
+        return [], []
+    lowered = path.read_text(encoding="utf-8").lower()
+    errors, warnings = [], []
+    word_count = len(lowered.split())
+    if not 120 <= word_count <= 700:
+        warnings.append(f"input.md has {word_count} words (aim for 200-500)")
+    meta = [w for w in META_WORDS if w in lowered]
+    if meta:
+        errors.append(f"input.md mentions {', '.join(meta)}: keep case metadata in rubric.json")
+    leaks = [w for w in LEAK_WORDS if re.search(rf"\b{re.escape(w)}\b", lowered)]
+    if leaks:
+        warnings.append(f"input.md mentions {', '.join(leaks)}: check it does not describe the reaction")
+    return errors, warnings
+
+
+def validate_case(case: dict) -> tuple[list[str], list[str]]:
+    """(errors, warnings) for one case folder."""
+    folder, r = case["dir"], case["rubric"]
+    errors = [f"missing {name}" for name in ("input.md", "outcome.md", "rubric.json") if not (folder / name).exists()]
+    if not r:
+        return errors, []
+    errors += _check_rubric_fields(r, case["slug"]) + _check_dates(r) + _check_objections(r) + _check_backdown(r)
+    warnings = [] if r.get("pushback_groups") else ["no pushback_groups"]
+    input_errors, input_warnings = _check_input(case["input"])
+    errors += input_errors
+    warnings += input_warnings
     outcome = folder / "outcome.md"
     if outcome.exists() and len(re.findall(r"https?://", outcome.read_text(encoding="utf-8"))) < 2:
         errors.append("outcome.md cites fewer than two sources")
@@ -304,9 +343,12 @@ def validate_all(cases: list[dict]) -> bool:
 def split_prompt(path: Path) -> tuple[str, str]:
     """The `## System` and `## User` sections of a prompt file."""
     text = path.read_text(encoding="utf-8")
-    system = text.split("## System", 1)[1].split("## User", 1)[0].strip()
-    user = text.split("## User", 1)[1].strip()
-    return system, user
+    # headings only: the files' introductions mention "## System" and "## User" in running text too
+    parts = re.split(r"^## (System|User)[ \t]*$", text, flags=re.MULTILINE)
+    sections = dict(zip(parts[1::2], (s.strip() for s in parts[2::2])))
+    if set(sections) != {"System", "User"} or len(parts) != 5:
+        raise ValueError(f"{path.name} needs exactly one '## System' and one '## User' heading")
+    return sections["System"], sections["User"]
 
 
 def extract_json(text: str) -> dict:
@@ -332,17 +374,25 @@ class ClaudeModel:
         ]
         last_error = ""
         for _ in range(2):
-            proc = subprocess.run(argv, input=user, capture_output=True, text=True, timeout=self.timeout_s)
+            try:
+                proc = subprocess.run(argv, input=user, capture_output=True, text=True, timeout=self.timeout_s)
+            except subprocess.TimeoutExpired:
+                last_error = f"no reply within {self.timeout_s:.0f}s"
+                continue
             try:
                 reply = json.loads(proc.stdout)
+                if not isinstance(reply, dict):
+                    raise ValueError(f"reply is a {type(reply).__name__}, not an object")
                 if reply.get("is_error"):
                     raise ValueError(str(reply.get("result"))[:300])
                 self._count(reply)
                 data = reply.get("structured_output") or extract_json(reply.get("result") or "")
+                if not isinstance(data, dict):
+                    raise ValueError(f"structured output is a {type(data).__name__}, not an object")
                 return data
-            except (ValueError, json.JSONDecodeError) as e:
+            except ValueError as e:  # json.JSONDecodeError is a ValueError
                 last_error = f"{e}; stderr: {proc.stderr[-300:]}"
-        raise RuntimeError(f"judge call failed: {last_error}")
+        raise RuntimeError(f"claude call failed ({self.model}): {last_error}")
 
     def _count(self, reply: dict) -> None:
         usage = reply.get("usage") or {}
@@ -368,7 +418,8 @@ class DryJudge:
     """Offline stand-in for the judge in `--dry-run`: word overlap, no model. Its grades mean nothing; it only lets
     the harness run end to end for free."""
 
-    usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0}
+    def __init__(self) -> None:
+        self.usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0}
 
     def grade(self, rubric: dict, report: dict, final_sentiment: float | None) -> dict:
         self.usage["calls"] += 1
@@ -418,12 +469,35 @@ class LlmJudge:
         return self.model.usage
 
     def grade(self, rubric: dict, report: dict, final_sentiment: float | None) -> dict:
-        shown = {k: rubric[k] for k in ("title", "question", "direction", "objections", "backdown", "pushback_groups")}
-        shown["objections"] = [{"id": o["id"], "text": o["text"]} for o in rubric["objections"]]
-        user = self.template.replace("{{RUBRIC}}", json.dumps(shown, indent=2, ensure_ascii=False)).replace(
+        user = self.template.replace("{{CHECKLIST}}", json.dumps(judge_checklist(rubric), indent=2,
+                                                                  ensure_ascii=False)).replace(
             "{{REPORT}}", json.dumps(report_for_judge(report), indent=2, ensure_ascii=False)
         )
-        return self.model.call(self.system, user, JUDGE_SCHEMA)
+        return self.model.call(self.system, user, judge_schema(rubric))
+
+
+def judge_checklist(rubric: dict) -> dict:
+    """What the judge may see of a rubric. Never the true direction or backdown: the judge classifies what the report
+    predicts blind, and `score` compares that with the rubric."""
+    return {
+        "title": rubric["title"],
+        "question": rubric["question"],
+        "objections": [{"id": o["id"], "text": o["text"]} for o in rubric["objections"]],
+        "pushback_groups": list(rubric.get("pushback_groups", [])),
+    }
+
+
+def judge_schema(rubric: dict) -> dict:
+    """JUDGE_SCHEMA with this case's objection ids and group names as enums, so the reply can be matched exactly."""
+    schema = json.loads(json.dumps(JUDGE_SCHEMA))
+    props = schema["properties"]
+    props["objections"]["items"]["properties"]["id"]["enum"] = [o["id"] for o in rubric["objections"]]
+    groups = rubric.get("pushback_groups", [])
+    if groups:
+        props["groups"]["items"]["properties"]["group"]["enum"] = list(groups)
+    else:
+        props["groups"]["maxItems"] = 0
+    return schema
 
 
 def report_for_judge(report: dict) -> dict:
@@ -448,18 +522,20 @@ def sentiment_direction(value: float | None) -> str | None:
     return "negative" if value < -SENTIMENT_BAND else "positive" if value > SENTIMENT_BAND else "mixed"
 
 
-def last_sentiment(run_dir: Path) -> float | None:
+def last_sentiment(run_dir: Path) -> tuple[int | None, float | None]:
+    """(last round, its mean sentiment). The sentiment is None when that round has no score: an earlier round's
+    score is never used in its place."""
     db = run_dir / "world.db"
     if not db.exists():
-        return None
+        return None, None
     con = sqlite3.connect(db)
     try:
-        rows = con.execute("SELECT data FROM round_stats ORDER BY round").fetchall()
+        row = con.execute("SELECT round, data FROM round_stats ORDER BY round DESC LIMIT 1").fetchone()
     finally:
         con.close()
-    values = [json.loads(d).get("sentiment") for (d,) in rows]
-    values = [v for v in values if v is not None]
-    return values[-1] if values else None
+    if row is None:
+        return None, None
+    return row[0], json.loads(row[1]).get("sentiment")
 
 
 def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict) -> Path:
@@ -500,14 +576,21 @@ def count_calls(run_dir: Path) -> dict:
 VERDICT_POINTS = {"covered": 1.0, "partial": 0.5, "missed": 0.0}
 
 
+def _key(value) -> str:
+    return " ".join(str(value or "").lower().split())
+
+
 def score(rubric: dict, grade: dict) -> dict:
-    by_id = {o.get("id"): o for o in grade.get("objections", [])}
-    verdicts = [by_id.get(o["id"], {}).get("verdict", "missed") for o in rubric["objections"]]
+    """Compares the judge's blind classification with the rubric. Ids and group names are matched ignoring case and
+    spacing; anything the judge returned that matches nothing in the rubric is listed in `unmatched`."""
+    by_id = {_key(o.get("id")): o for o in grade.get("objections", [])}
+    verdicts = [by_id.get(_key(o["id"]), {}).get("verdict", "missed") for o in rubric["objections"]]
     recall = sum(VERDICT_POINTS.get(v, 0.0) for v in verdicts) / len(verdicts)
-    groups = grade.get("groups", [])
     wanted = rubric.get("pushback_groups", [])
-    named = {g.get("group"): bool(g.get("named")) for g in groups}
-    group_recall = sum(named.get(g, False) for g in wanted) / len(wanted) if wanted else None
+    named = {_key(g.get("group")): bool(g.get("named")) for g in grade.get("groups", [])}
+    group_recall = sum(named.get(_key(g), False) for g in wanted) / len(wanted) if wanted else None
+    known = {_key(o["id"]) for o in rubric["objections"]} | {_key(g) for g in wanted}
+    unmatched = [k for k in [*by_id, *named] if k not in known]
     predicted = grade.get("predicted_direction")
     actual = rubric["direction"]
     distance = abs(DIRECTIONS.index(predicted) - DIRECTIONS.index(actual)) if predicted in DIRECTIONS else None
@@ -523,6 +606,7 @@ def score(rubric: dict, grade: dict) -> dict:
         "backdown_match": grade.get("predicted_backdown") != "unclear" and predicted_change == actual_change,
         "backdown_kind_match": grade.get("predicted_backdown") == rubric["backdown"]["kind"],
         "group_recall": None if group_recall is None else round(group_recall, 3),
+        "unmatched": unmatched,
     }
 
 
@@ -531,22 +615,28 @@ def mean(values: list) -> float | None:
     return round(sum(values) / len(values), 3) if values else None
 
 
+def graded_entries(case: dict, key: str) -> list[dict]:
+    """A case's simulation runs (`runs`, a list) or its zero-shot answer (`zero_shot`, one entry), when graded."""
+    entries = case.get(key) or []
+    if isinstance(entries, dict):
+        entries = [entries]
+    return [e for e in entries if e.get("scores")]
+
+
 def summarise(cases: list[dict], key: str = "runs") -> dict:
     """Averages over every graded run (or zero-shot answer), overall and split by whether the model could know."""
 
     def block(selected: list[dict]) -> dict:
-        graded = [r for c in selected for r in (c[key] if key == "runs" else [c[key]] if c.get(key) else [])
-                  if r.get("scores")]
-        scores = [r["scores"] for r in graded]
+        scores = [e["scores"] for c in selected for e in graded_entries(c, key)]
         return {
-            "graded": len(graded),
+            "graded": len(scores),
             "direction_accuracy": mean([float(s["direction_match"]) for s in scores]),
             "objection_recall": mean([s["objection_recall"] for s in scores]),
             "backdown_accuracy": mean([float(s["backdown_match"]) for s in scores]),
             "group_recall": mean([s["group_recall"] for s in scores]),
             "sentiment_direction_accuracy": mean(
-                [float(r["sentiment_direction"] == c["rubric"]["direction"]) for c in selected
-                 for r in (c[key] if key == "runs" else []) if r.get("sentiment_direction")]
+                [float(e["sentiment_direction"] == c["rubric"]["direction"]) for c in selected
+                 for e in graded_entries(c, key) if e.get("sentiment_direction")]
             ),
         }
 
@@ -617,13 +707,19 @@ def write_markdown(path: Path, result: dict) -> None:
     if b:
         lines += [
             "",
-            f"Ignoring the announcement: always \"negative\" gets the direction right {pct(b['always_negative_direction'])}"
-            f" of the time; always \"no backdown\" gets the backdown right {pct(b['always_no_backdown'])}.",
+            "Ignoring the announcement: always \"negative\" gets the direction right "
+            f"{pct(b['always_negative_direction'])} of the time; always \"no backdown\" gets the backdown right {pct(b['always_no_backdown'])}.",
         ]
-    lines += ["", "## Cases", "", "| case | actual | predicted | objections | backdown (actual / predicted) | error |",
-              "|---|---|---|---|---|---|"]
+    failed_runs, failed_zero = count_failures(result["cases"])
+    if failed_runs or failed_zero:
+        lines += ["", f"**Failures:** {failed_runs} simulation run(s) and {failed_zero} zero-shot answer(s) failed; "
+                      "the case table shows each error. Failed entries are left out of the averages."]
+    lines += ["", "## Cases", "",
+              "| case | actual | predicted | objections | backdown (actual / predicted) | zero-shot | error |",
+              "|---|---|---|---|---|---|---|"]
     for c in result["cases"]:
         r = c["rubric"]
+        zero = _zero_shot_cell(c.get("zero_shot"))
         for run in c["runs"]:
             sc = run.get("scores") or {}
             pred = (run.get("grade") or {}).get("predicted_direction", "–")
@@ -631,17 +727,29 @@ def write_markdown(path: Path, result: dict) -> None:
             mark = "" if not sc else (" ✓" if sc["direction_match"] else " ✗")
             lines.append(
                 f"| {c['slug']} (seed {run['seed']}) | {r['direction']} | {pred}{mark} | {recall} | "
-                f"{r['backdown']['kind']} / {sc.get('backdown_predicted', '–')} | {run.get('error', '')[:80]} |"
+                f"{r['backdown']['kind']} / {sc.get('backdown_predicted', '–')} | {zero} | "
+                f"{run.get('error', '')[:80]} |"
             )
     lines += ["", f"Usage: {json.dumps(result['usage'])}", ""]
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _zero_shot_cell(zs: dict | None) -> str:
+    """One case's zero-shot answer for the case table: direction, recall and backdown, or its error."""
+    if not zs:
+        return ""
+    if zs.get("error"):
+        return f"failed: {zs['error'][:60]}"
+    sc = zs["scores"]
+    return (f"{zs['grade']['predicted_direction']}{' ✓' if sc['direction_match'] else ' ✗'}, "
+            f"{pct(sc['objection_recall'])}, {sc['backdown_predicted']}")
+
+
 def results_path(folder: Path, label: str, date: str) -> Path:
-    base = folder / f"{date}-{label}"
-    path, n = base.with_suffix(".json"), 2
+    """`<date>-<label>.json`, or `<date>-<label>-2.json` and up when that exists. Labels may contain dots."""
+    path, n = folder / f"{date}-{label}.json", 2
     while path.exists():
-        path, n = folder / f"{base.name}-{n}.json", n + 1
+        path, n = folder / f"{date}-{label}-{n}.json", n + 1
     return path
 
 
@@ -666,98 +774,87 @@ def default_tellfold() -> list[str]:
 # ---------- main ----------
 
 
-def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--dry-run", action="store_true", help="offline model and word-overlap judge; costs nothing")
-    p.add_argument("--estimate", action="store_true", help="print the calls and cost of this pass, run nothing")
-    p.add_argument("--validate", action="store_true", help="check the case files, run nothing")
-    p.add_argument("--cases", help="comma-separated slugs (default: every case)")
-    p.add_argument("--repeats", type=int, default=1, help="runs per case, seeds 7, 8, 9...")
-    p.add_argument("--zero-shot", action="store_true", help="also grade one direct planner-model answer per case")
-    p.add_argument("--tellfold", help='command that runs the CLI, e.g. "uv run tellfold" (default: engine-rs build)')
-    p.add_argument("--claude", default="claude", help="Claude Code CLI for the judge and zero-shot calls")
-    p.add_argument("--judge-model", default="sonnet")
-    p.add_argument("--agent-model", default=SETTINGS["agent_model"])
-    p.add_argument("--planner-model", default=SETTINGS["planner_model"])
-    p.add_argument("--label", help="results file label (default: <planner>-<agent>, or dry-run)")
-    p.add_argument("--cases-dir", type=Path, default=CASES_DIR)
-    p.add_argument("--results-dir", type=Path, default=RESULTS_DIR)
-    p.add_argument("--runs-dir", type=Path, default=RUNS_DIR)
-    args = p.parse_args(argv)
-
-    only = [s.strip() for s in args.cases.split(",") if s.strip()] if args.cases else None
-    cases = load_cases(only, args.cases_dir)
-    settings = {**SETTINGS, "agent_model": args.agent_model, "planner_model": args.planner_model}
-    if args.validate:
-        return 0 if validate_all(cases) else 1
-    if args.estimate:
-        print_estimate(estimate(cases, settings, args.repeats, args.zero_shot, args.judge_model))
-        return 0
-    if not validate_all(cases):
-        return 1
-
-    cmd = shlex.split(args.tellfold) if args.tellfold else default_tellfold()
+def make_graders(args: argparse.Namespace, settings: dict) -> tuple[dict, object, object | None, str]:
+    """(environment for the CLI, judge, zero-shot model or None, results label) for a dry or a live pass."""
     env = dict(os.environ)
     if args.dry_run:
         env["TELLFOLD_FAKE_LLM"] = "1"
-        judge = DryJudge()
-        label = args.label or "dry-run"
-        zero_model = DryModel() if args.zero_shot else None
-    else:
-        env.pop("TELLFOLD_FAKE_LLM", None)
-        judge = LlmJudge(ClaudeModel(args.claude, args.judge_model))
-        label = args.label or f"{settings['planner_model']}-{settings['agent_model']}"
-        zero_model = ClaudeModel(args.claude, settings["planner_model"]) if args.zero_shot else None
-    date = dt.date.today().isoformat()
-    args.results_dir.mkdir(parents=True, exist_ok=True)
-    out_json = results_path(args.results_dir, label, date)
-    runs_root = args.runs_dir / out_json.stem
+        return env, DryJudge(), DryModel() if args.zero_shot else None, args.label or "dry-run"
+    env.pop("TELLFOLD_FAKE_LLM", None)
+    judge = LlmJudge(ClaudeModel(args.claude, args.judge_model))
+    zero = ClaudeModel(args.claude, settings["planner_model"]) if args.zero_shot else None
+    return env, judge, zero, args.label or f"{settings['planner_model']}-{settings['agent_model']}"
 
-    results = []
-    for case in cases:
-        rubric = case["rubric"]
-        entry = {"slug": case["slug"], "rubric": rubric, "runs": []}
-        for i in range(args.repeats):
-            seed = FIRST_SEED + i
-            run = {"seed": seed}
-            print(f"[{case['slug']}] seed {seed}: simulating...", flush=True)
-            try:
-                run_dir = run_tellfold(cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, seed, env)
-                run["run_dir"] = str(run_dir.relative_to(REPO) if run_dir.is_relative_to(REPO) else run_dir)
-                report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
-                final = last_sentiment(run_dir)
-                run.update(count_calls(run_dir))
-                run["report_confidence"] = report.get("confidence")
-                run["final_sentiment"] = final
-                run["sentiment_direction"] = sentiment_direction(final)
-                run["grade"] = judge.grade(rubric, report, final)
-                run["scores"] = score(rubric, run["grade"])
-                sc = run["scores"]
-                print(f"[{case['slug']}] direction {run['grade']['predicted_direction']} (actual "
-                      f"{rubric['direction']}), objections {pct(sc['objection_recall'])}, backdown "
-                      f"{sc['backdown_predicted']} (actual {rubric['backdown']['kind']})", flush=True)
-            except Exception as e:  # noqa: BLE001 - one failed case must not stop the pass
-                run["error"] = str(e)
-                print(f"[{case['slug']}] failed: {e}", file=sys.stderr, flush=True)
-            entry["runs"].append(run)
-        if zero_model is not None:
-            zs: dict = {}
-            try:
-                system, template = split_prompt(BENCH / "zero_shot_prompt.md")
-                user = template.replace("{{SEED}}", case["input"].read_text(encoding="utf-8")).replace(
-                    "{{QUESTION}}", rubric["question"]
-                )
-                zs["answer"] = zero_model.call(system, user, ZERO_SHOT_SCHEMA)
-                zs["grade"] = judge.grade(rubric, zs["answer"], None)
-                zs["scores"] = score(rubric, zs["grade"])
-            except Exception as e:  # noqa: BLE001
-                zs["error"] = str(e)
-            entry["zero_shot"] = zs
-        results.append(entry)
 
-    result = {
+def run_once(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict, judge) -> dict:
+    """One simulation of one case, graded. Raises on any failure."""
+    rubric = case["rubric"]
+    run_dir = run_tellfold(cmd, case, out, settings, seed, env)
+    report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
+    final_round, final = last_sentiment(run_dir)
+    run = {
+        "run_dir": str(run_dir.relative_to(REPO) if run_dir.is_relative_to(REPO) else run_dir),
+        **count_calls(run_dir),
+        "report_confidence": report.get("confidence"),
+        "final_round": final_round,
+        "final_sentiment": final,
+        "sentiment_direction": sentiment_direction(final),
+    }
+    if final_round is not None and final is None:
+        run["sentiment_note"] = f"round {final_round}, the last, has no sentiment score"
+    run["grade"] = judge.grade(rubric, report, final)
+    run["scores"] = score(rubric, run["grade"])
+    return run
+
+
+def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeats: int, env: dict, judge) -> dict:
+    """Every seed of one case. A failed run is recorded with its error and the pass goes on."""
+    rubric = case["rubric"]
+    entry = {"slug": case["slug"], "rubric": rubric, "runs": []}
+    for seed in range(FIRST_SEED, FIRST_SEED + repeats):
+        print(f"[{case['slug']}] seed {seed}: simulating...", flush=True)
+        try:
+            run = {"seed": seed, **run_once(cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, seed,
+                                            env, judge)}
+        # one failed case must not stop a three-hour pass; the error goes into the results and the exit code
+        except Exception as e:  # noqa: BLE001
+            run = {"seed": seed, "error": str(e)}
+            print(f"[{case['slug']}] failed: {e}", file=sys.stderr, flush=True)
+        else:
+            sc = run["scores"]
+            print(f"[{case['slug']}] direction {run['grade']['predicted_direction']} (actual "
+                  f"{rubric['direction']}), objections {pct(sc['objection_recall'])}, backdown "
+                  f"{sc['backdown_predicted']} (actual {rubric['backdown']['kind']})", flush=True)
+            if sc["unmatched"]:
+                print(f"[{case['slug']}] warning: judge returned unknown ids or groups {sc['unmatched']}",
+                      file=sys.stderr, flush=True)
+        entry["runs"].append(run)
+    return entry
+
+
+def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge) -> dict:
+    """The no-crowd baseline for one case: one direct call with the same seed and question, graded the same way."""
+    system, template = prompt
+    user = template.replace("{{SEED}}", case["input"].read_text(encoding="utf-8")).replace(
+        "{{QUESTION}}", case["rubric"]["question"]
+    )
+    zs: dict = {}
+    try:
+        zs["answer"] = model.call(system, user, ZERO_SHOT_SCHEMA)
+        zs["grade"] = judge.grade(case["rubric"], zs["answer"], None)
+        zs["scores"] = score(case["rubric"], zs["grade"])
+    # same as run_case: a failed baseline call is recorded and counted, not fatal
+    except Exception as e:  # noqa: BLE001
+        zs["error"] = str(e)
+        print(f"[{case['slug']}] zero-shot failed: {e}", file=sys.stderr, flush=True)
+    return zs
+
+
+def build_result(args: argparse.Namespace, settings: dict, cmd: list[str], label: str, date: str,
+                 results: list[dict], judge, zero_model) -> dict:
+    return {
         "benchmark": "tellfold-accuracy",
-        "version": 1,
+        "version": 2,
         "label": label,
         "date": date,
         "dry_run": args.dry_run,
@@ -777,11 +874,75 @@ def main(argv: list[str] | None = None) -> int:
         },
         "cases": results,
     }
+
+
+def count_failures(results: list[dict]) -> tuple[int, int]:
+    """(failed simulation runs, failed zero-shot answers)."""
+    runs = sum(1 for c in results for r in c["runs"] if r.get("error"))
+    zero = sum(1 for c in results if (c.get("zero_shot") or {}).get("error"))
+    return runs, zero
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--dry-run", action="store_true", help="offline model and word-overlap judge; costs nothing")
+    p.add_argument("--estimate", action="store_true", help="print the calls and cost of this pass, run nothing")
+    p.add_argument("--validate", action="store_true", help="check the case files, run nothing")
+    p.add_argument("--cases", help="comma-separated slugs (default: every case)")
+    p.add_argument("--repeats", type=int, default=1, help="runs per case, seeds 7, 8, 9...")
+    p.add_argument("--zero-shot", action="store_true", help="also grade one direct planner-model answer per case")
+    p.add_argument("--tellfold", help='command that runs the CLI, e.g. "uv run tellfold" (default: engine-rs build)')
+    p.add_argument("--claude", default="claude", help="Claude Code CLI for the judge and zero-shot calls")
+    p.add_argument("--judge-model", default="sonnet")
+    p.add_argument("--agent-model", default=SETTINGS["agent_model"])
+    p.add_argument("--planner-model", default=SETTINGS["planner_model"])
+    p.add_argument("--label", help="results file label (default: <planner>-<agent>, or dry-run)")
+    p.add_argument("--cases-dir", type=Path, default=CASES_DIR)
+    p.add_argument("--results-dir", type=Path, help="default: bench/results, or bench/runs/results for a dry run")
+    p.add_argument("--runs-dir", type=Path, default=RUNS_DIR)
+    args = p.parse_args(argv)
+    # the CLI runs with cwd=REPO, so every path it is given must be absolute
+    args.cases_dir = args.cases_dir.resolve()
+    args.runs_dir = args.runs_dir.resolve()
+    args.results_dir = (args.results_dir or (DRY_RESULTS_DIR if args.dry_run else RESULTS_DIR)).resolve()
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    only = [s.strip() for s in args.cases.split(",") if s.strip()] if args.cases else None
+    cases = load_cases(only, args.cases_dir)
+    settings = {**SETTINGS, "agent_model": args.agent_model, "planner_model": args.planner_model}
+    if args.validate:
+        return 0 if validate_all(cases) else 1
+    if args.estimate:
+        print_estimate(estimate(cases, settings, args.repeats, args.zero_shot, args.judge_model))
+        return 0
+    if not validate_all(cases):
+        return 1
+
+    cmd = shlex.split(args.tellfold) if args.tellfold else default_tellfold()
+    env, judge, zero_model, label = make_graders(args, settings)
+    zero_prompt = split_prompt(BENCH / "zero_shot_prompt.md") if zero_model is not None else None
+    date = dt.date.today().isoformat()
+    args.results_dir.mkdir(parents=True, exist_ok=True)
+    out_json = results_path(args.results_dir, label, date)
+    runs_root = args.runs_dir / out_json.stem
+
+    results = []
+    for case in cases:
+        entry = run_case(case, cmd, runs_root, settings, args.repeats, env, judge)
+        if zero_model is not None:
+            entry["zero_shot"] = run_zero_shot(case, zero_prompt, zero_model, judge)
+        results.append(entry)
+
+    result = build_result(args, settings, cmd, label, date, results, judge, zero_model)
     out_json.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     write_markdown(out_json.with_suffix(".md"), result)
-    failed = sum(1 for c in results for r in c["runs"] if r.get("error"))
-    print(f"wrote {out_json} and {out_json.with_suffix('.md').name}; {failed} failed run(s)")
-    return 1 if failed else 0
+    failed_runs, failed_zero = count_failures(results)
+    print(f"wrote {out_json} and {out_json.with_suffix('.md').name}; {failed_runs} failed run(s), "
+          f"{failed_zero} failed zero-shot answer(s)")
+    return 1 if failed_runs or failed_zero else 0
 
 
 if __name__ == "__main__":

@@ -1,7 +1,5 @@
 # Meta updates its Commercial Terms and Self-Serve Ad Terms, effective 30 October 2026
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-10-15, written for the Tellfold accuracy test. Not the original text. (Meta notified business users in early October 2026; the exact day of the notice is not confirmed in sources.)*
-
 ## Who is announcing
 
 Meta runs Facebook, Instagram, WhatsApp and Threads. Millions of businesses, including retailers, brands, small firms, news publishers and creators, use Meta's business products: Facebook and Instagram Pages, ads, product catalogues, Meta Business Suite and WhatsApp Business. Using them requires accepting Meta's Commercial Terms, plus supplementary terms such as the Self-Serve Ad Terms. The Commercial Terms in force date from March 2024. Since May 2024, Meta's generative-AI ad terms have allowed it to crawl URLs that advertisers submit, for ad purposes.

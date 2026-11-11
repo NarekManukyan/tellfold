@@ -1,7 +1,5 @@
 # Apple Music unveils a new brand identity, moving from red to black and white
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 2026-10-21, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who is announcing
 
 Apple Music is Apple's music streaming service, launched in 2015 and available on iPhone, iPad, Mac, Apple TV, Android, Windows and the web. Its app icon, white musical notes on a red-to-pink gradient (the "beamed eighth note"), has been in use for about 13 years, going back to the iTunes era. Red and pink accents have been part of the app's interface throughout. In November 2025 Apple refreshed the Apple TV brand with a similar behind-the-scenes "making of" approach. Since 2025 Apple's software has used the translucent "Liquid Glass" design language.

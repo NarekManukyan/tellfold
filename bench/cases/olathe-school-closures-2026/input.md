@@ -1,7 +1,5 @@
 # Olathe Public Schools recommends closing six schools
 
-*Benchmark seed: a neutral summary of the announcement as it stood on 3 September 2026, written for the Tellfold accuracy test. Not the original text.*
-
 ## Who the district is
 
 Olathe Public Schools is a large suburban K-12 district in Johnson County, Kansas, in the Kansas City metro area. It runs 33 elementary schools plus middle and high schools and enrols about 28,000 students. Enrolment peaked at roughly 30,300 in 2019-20 and has fallen since. Earlier in 2026 the district had already agreed to merge two pairs of elementary schools.
