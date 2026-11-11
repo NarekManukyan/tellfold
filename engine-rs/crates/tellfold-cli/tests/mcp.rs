@@ -376,3 +376,74 @@ fn use_a_server_that_is_already_running() {
         std::thread::sleep(Duration::from_millis(50));
     }
 }
+
+/// A run started with `review_cast` (as the Mac app starts it) waits at `personas_ready`: the MCP status shows the
+/// pause, and once the run is stopped there, its unchecked cast is not lent to a draft B (the engine's 409).
+#[test]
+fn a_cast_waiting_for_its_check_is_reported_and_not_lent() {
+    const TOKEN: &str = "test-token-0123456789abcdef";
+    let tmp = tempfile::tempdir().unwrap();
+    let home = tmp.path().join("home");
+    let runs = tmp.path().join("runs");
+    let mut server = tellfold(&home, &["serve", "--runs", runs.to_str().unwrap()])
+        .env("TELLFOLD_SERVE_TOKEN", TOKEN)
+        .spawn()
+        .unwrap();
+    let mut line = String::new();
+    BufReader::new(server.stdout.as_mut().unwrap()).read_line(&mut line).unwrap();
+    let port = serde_json::from_str::<Value>(&line).unwrap()["port"].as_u64().unwrap();
+    let url = format!("http://127.0.0.1:{port}");
+
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let http = reqwest::Client::new();
+    let form = reqwest::multipart::Form::new()
+        .text("question", "Will they accept it?")
+        .text("agents", "3")
+        .text("rounds", "1")
+        .text("review_cast", "true")
+        .part("files", reqwest::multipart::Part::bytes(CHANGELOG.as_bytes()).file_name("CHANGELOG.md"));
+    let created: Value = runtime.block_on(async {
+        http.post(format!("{url}/api/runs"))
+            .bearer_auth(TOKEN)
+            .multipart(form)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap()
+    });
+    let run_id = created["id"].as_str().unwrap().to_string();
+
+    let mut client = Client::spawn(&home, &["mcp"], &[("TELLFOLD_URL", &url), ("TELLFOLD_SERVE_TOKEN", TOKEN)]);
+    initialize(&mut client);
+    let deadline = Instant::now() + Duration::from_secs(60);
+    let status = loop {
+        let status = client.call("get_run_status", json!({"run_id": run_id}))["structuredContent"].clone();
+        if status["pause"] == "personas_ready" {
+            break status;
+        }
+        assert!(Instant::now() < deadline, "the run did not pause: {status}");
+        std::thread::sleep(Duration::from_millis(50));
+    };
+    assert_eq!((status["state"].as_str(), status["finished"].as_bool()), (Some("running"), Some(false)));
+    assert_eq!(status["next"], "Waiting for the cast to be checked in the Tellfold app.");
+
+    runtime.block_on(async {
+        let res = http.post(format!("{url}/api/runs/{run_id}/stop")).bearer_auth(TOKEN).send().await.unwrap();
+        assert!(res.status().is_success());
+    });
+    let stopped = client.wait_for_run(&run_id);
+    assert_eq!(stopped["state"], "stopped");
+    assert!(stopped.get("pause").is_none(), "a stopped run waits for nothing: {stopped}");
+    let error = client.call_error("compare_drafts", json!({"baseline_run_id": run_id, "draft_b": "# Another text\n"}));
+    assert!(error.contains("HTTP 409") && error.contains("stopped before its cast was checked"), "{error}");
+    assert_eq!(client.finish(), Some(0));
+
+    drop(server.stdin.take());
+    let deadline = Instant::now() + Duration::from_secs(20);
+    while server.try_wait().unwrap().is_none() {
+        assert!(Instant::now() < deadline, "tellfold serve did not exit");
+        std::thread::sleep(Duration::from_millis(50));
+    }
+}
