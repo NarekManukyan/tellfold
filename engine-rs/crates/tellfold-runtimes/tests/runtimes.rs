@@ -926,6 +926,8 @@ fn runtime_infos_serialize_like_python() {
 #[test]
 fn expand_user_matches_os_path_expanduser() {
     use tellfold_runtimes::settings::{expand_user, home_dir};
+    // other tests point HOME at a temp folder; holding the environment lock keeps it fixed while this one reads it
+    let _iso = Isolated::new();
     let home = home_dir();
     assert_eq!(expand_user("~"), home);
     assert_eq!(expand_user("~/a/b"), home.join("a/b"));
