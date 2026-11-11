@@ -280,6 +280,23 @@ actor TellfoldAPI {
         try await sendRaw(makeRequest(["runs", runID, "report.html"]))
     }
 
+    /// The finished run as one `.tellfold` file (`GET /api/runs/{id}/bundle`) to send to someone else.
+    func bundle(runID: String) async throws -> Data {
+        var req = makeRequest(["runs", runID, "bundle"])
+        req.timeoutInterval = 120
+        return try await sendRaw(req)
+    }
+
+    /// Opens a `.tellfold` file as a new, read-only run (`POST /api/runs/import`); returns its id.
+    func importBundle(_ data: Data) async throws -> String {
+        var req = makeRequest(["runs", "import"], method: "POST")
+        req.setValue("application/zip", forHTTPHeaderField: "Content-Type")
+        req.httpBody = data
+        req.timeoutInterval = 120
+        let created: CreatedRun = try await send(req)
+        return created.id
+    }
+
     // MARK: Studies
 
     func studies() async throws -> [StudySummary] { try await get("studies") }

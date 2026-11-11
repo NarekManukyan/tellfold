@@ -267,6 +267,61 @@ async fn an_example_needs_an_ai_tool_to_interview() {
     server.stop().await;
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_bundle_opens_as_a_read_only_run() {
+    let not_ready: RuntimeReady = Arc::new(|| async { false }.boxed());
+    let server = Server::start(move |options, _| options.runtime_ready = Some(not_ready)).await;
+    let source = server.finished_run().await;
+    let res = server.http.get(format!("{}/api/runs/{source}/bundle", server.base)).send().await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    assert_eq!(res.headers()["content-type"], "application/zip");
+    assert_eq!(
+        res.headers()["content-disposition"].to_str().unwrap(),
+        format!("attachment; filename=\"{source}.tellfold\"")
+    );
+    let bundle = res.bytes().await.unwrap();
+
+    let import = |body: Vec<u8>| server.http.post(format!("{}/api/runs/import", server.base)).body(body).send();
+    let res = import(bundle.to_vec()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let id = res.json::<Value>().await.unwrap()["id"].as_str().unwrap().to_string();
+    assert_eq!(id, format!("{source}-2"), "a second copy next to the first");
+
+    let runs = server.get("/api/runs").await;
+    let row = runs.as_array().unwrap().iter().find(|r| r["id"] == id.as_str()).unwrap().clone();
+    assert_eq!(
+        (row["imported"].as_bool(), row["example"].as_bool(), row["state"].as_str()),
+        (Some(true), Some(false), Some("done"))
+    );
+    let own = runs.as_array().unwrap().iter().find(|r| r["id"] == source.as_str()).unwrap().clone();
+    assert!(own.get("imported").is_none(), "left out for a run of one's own");
+    let detail = server.get(&format!("/api/runs/{id}")).await;
+    assert_eq!(detail["imported"], true);
+    assert!(detail["report"]["title"].is_string());
+
+    let before = listing(&server.runs.join(&id));
+    let read_only =
+        "this run was imported from a .tellfold bundle; it cannot be changed. Use Run again to make your own copy";
+    let (status, body) = server.post(&format!("/api/runs/{id}/events"), json!({"round": 2, "content": "News"})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) = server.post(&format!("/api/runs/{id}/report"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (403, Some(read_only)));
+    let (status, body) =
+        server.post(&format!("/api/runs/{id}/chat"), json!({"agent_id": "a01", "message": "Hi"})).await;
+    assert_eq!(status, 409);
+    assert_eq!(body["detail"], "set up an AI tool first to interview people or ask questions in an imported run");
+    let (status, body) = server.post(&format!("/api/runs/{id}/check"), json!({})).await;
+    assert_eq!((status, body["detail"].as_str()), (409, Some("set up an AI tool first to check an imported run")));
+    assert_eq!(listing(&server.runs.join(&id)), before, "nothing is written next to an imported run");
+
+    let res = import(b"definitely not a zip".to_vec()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 400);
+    assert!(res.json::<Value>().await.unwrap()["detail"].as_str().unwrap().contains("not a Tellfold bundle"));
+    let res = import(Vec::new()).await.unwrap();
+    assert_eq!(res.status().as_u16(), 400);
+    server.stop().await;
+}
+
 /// Every file under `dir` with its size and modification time.
 fn listing(dir: &Path) -> Vec<(PathBuf, u64, std::time::SystemTime)> {
     let mut out = Vec::new();

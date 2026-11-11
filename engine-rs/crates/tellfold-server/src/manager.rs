@@ -14,6 +14,10 @@
 //! An optional read-only examples root (the Mac app's bundled example runs) is listed next to the normal runs. Each
 //! example's id is `example-<folder name>`; examples can be read, streamed and (with an AI tool set up) interviewed,
 //! but never changed: they are opened with SQLite's `immutable` flag and nothing is ever written next to them.
+//!
+//! Runs imported from a `.tellfold` bundle (an `imported.json` in the run folder) are treated the same way: someone
+//! else's finished run, read with the AI tool set up on this machine and never changed, except that a suggested
+//! rewrite is kept in its folder.
 
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
@@ -63,6 +67,8 @@ pub const EXAMPLE_PREFIX: &str = "example-";
 pub const QUEUE_SIZE: usize = 2000;
 pub const EXAMPLE_READ_ONLY: &str =
     "this is a built-in example run; it cannot be changed. Use Run again to make your own copy";
+pub const IMPORTED_READ_ONLY: &str =
+    "this run was imported from a .tellfold bundle; it cannot be changed. Use Run again to make your own copy";
 const LOGGER: &str = "tellfold.server.manager";
 
 /// `llm_factory(run_dir, concurrency, think)`: the model backend for a run folder (None: no call log).
@@ -505,6 +511,16 @@ impl Manager {
         run_id.starts_with(EXAMPLE_PREFIX) && self.examples().contains_key(run_id)
     }
 
+    /// A run imported from a `.tellfold` bundle.
+    pub fn is_imported(&self, run_id: &str) -> bool {
+        !self.is_example(run_id) && tellfold_study::bundle::is_imported(&self.runs_dir.join(run_id))
+    }
+
+    /// An example or an imported run: read with this machine's AI tool, never changed.
+    pub fn is_read_only(&self, run_id: &str) -> bool {
+        self.is_example(run_id) || self.is_imported(run_id)
+    }
+
     /// The folder of a run: an example's folder for an example id, else `runs_dir/run_id`.
     pub fn run_path(&self, run_id: &str) -> PathBuf {
         if run_id.starts_with(EXAMPLE_PREFIX) {
@@ -519,12 +535,15 @@ impl Manager {
         if self.is_example(run_id) {
             return RunReader::new(&self.run_path(run_id), Some(run_id), true);
         }
-        RunReader::new(&self.runs_dir.join(run_id), None, false)
+        RunReader::new(&self.runs_dir.join(run_id), None, self.is_imported(run_id))
     }
 
     fn writable(&self, run_id: &str) -> Result<(), ManagerError> {
         if self.is_example(run_id) {
             return Err(ManagerError::ReadOnly(EXAMPLE_READ_ONLY.into()));
+        }
+        if self.is_imported(run_id) {
+            return Err(ManagerError::ReadOnly(IMPORTED_READ_ONLY.into()));
         }
         Ok(())
     }
@@ -802,7 +821,7 @@ impl Manager {
         let Some(config) = config.filter(|_| db.is_file()) else {
             return Err(conflict("this run has no simulated world yet"));
         };
-        let world = if self.is_example(run_id) {
+        let world = if self.is_read_only(run_id) {
             World::open_read_only(&db, config.seed)
         } else {
             World::open(&db, config.seed)
@@ -813,14 +832,24 @@ impl Manager {
 
     /// The model for interviews and follow-up questions, and the config that names its models.
     ///
-    /// A normal run uses its own runtimes. An example uses the AI tool set up on this machine (its recorded runtime
-    /// may not be installed here), logs no calls (its folder is read-only), and needs a tool at all.
+    /// A normal run uses its own runtimes. An example or an imported run uses the AI tool set up on this machine (its
+    /// recorded runtime may not be installed here), logs no calls (they are not the run's own), and needs a tool at all.
     async fn talker(&self, run_id: &str, config: SimConfig) -> Result<(Arc<dyn Llm>, SimConfig), ManagerError> {
-        if !self.is_example(run_id) {
+        if !self.is_read_only(run_id) {
             return Ok((self.llm(Some(&self.runs_dir.join(run_id)), 1, false)?, config));
         }
-        let config = self.local_tool(config, "to interview people or ask questions in an example run").await?;
+        let config =
+            self.local_tool(config, &format!("to interview people or ask questions in {}", self.kind(run_id))).await?;
         Ok((self.llm(None, 1, false)?, config))
+    }
+
+    /// "an example run" or "an imported run", for messages.
+    fn kind(&self, run_id: &str) -> &'static str {
+        if self.is_example(run_id) {
+            "an example run"
+        } else {
+            "an imported run"
+        }
     }
 
     /// An example's config with the AI tool and models set up on this machine instead of the recorded ones.
@@ -890,9 +919,9 @@ impl Manager {
         let Some(mut source) = self.reader(source_id).config() else {
             return Err(conflict("this run has no settings to branch from"));
         };
-        let example = self.is_example(source_id);
+        let example = self.is_read_only(source_id);
         if example {
-            source = self.local_tool(source, "to branch an example run").await?;
+            source = self.local_tool(source, &format!("to branch {}", self.kind(source_id))).await?;
         }
         let label = format!("Branch at round {round}");
         let (study, label) =
@@ -934,13 +963,19 @@ impl Manager {
         drop(reader);
         let (llm, config) = self.talker(run_id, config).await?;
         let example = self.is_example(run_id);
-        let suggestion =
-            build_rewrite(llm.as_ref(), &self.run_path(run_id), &config, &report, &config.planner_model, example)
-                .await
-                .map_err(|e| match e {
-                    ReportError::Rewrite(message) => ManagerError::BadRequest(message),
-                    other => report_error(other),
-                })?;
+        let suggestion = build_rewrite(
+            llm.as_ref(),
+            &self.run_path(run_id),
+            &config,
+            &report,
+            &config.planner_model,
+            self.is_read_only(run_id),
+        )
+        .await
+        .map_err(|e| match e {
+            ReportError::Rewrite(message) => ManagerError::BadRequest(message),
+            other => report_error(other),
+        })?;
         if example {
             self.st.borrow_mut().example_rewrites.insert(run_id.into(), suggestion.clone());
         } else {
@@ -1024,7 +1059,7 @@ impl Manager {
             let path = self.run_path(&run.id);
             if path.join("config.json").is_file() {
                 let mut member = Member::new(&letter(i as i64), &run.id, &run.variant, &path);
-                member.immutable = self.is_example(&run.id);
+                member.immutable = self.is_read_only(&run.id);
                 members.push(member);
             }
         }
@@ -1167,8 +1202,8 @@ impl Manager {
         let Some(mut config) = config.filter(|_| has_report && source.join("personas.json").is_file()) else {
             return Err(conflict("only a finished run with a report can be checked"));
         };
-        if self.is_example(source_id) {
-            config = self.local_tool(config, "to check an example run").await?;
+        if self.is_read_only(source_id) {
+            config = self.local_tool(config, &format!("to check {}", self.kind(source_id))).await?;
         }
         let study = Study {
             id: new_study_id(None),

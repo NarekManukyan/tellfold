@@ -28,6 +28,19 @@ struct MainView: View {
         .sheet(item: $model.anotherVersionSource) { source in
             AnotherVersionSheet(source: source)
         }
+        .dropDestination(for: URL.self) { urls, _ in
+            // A shared `.tellfold` run dropped on the window opens it; documents go to the New Simulation sheet.
+            guard urls.contains(where: { RunBundle.isBundle($0) || AppModel.isSeedFile($0) || AppModel.isFolder($0) })
+            else { return false }
+            model.open(urls)
+            return true
+        }
+        .alert("Could Not Open the Run", isPresented: Binding(get: { model.importError != nil },
+                                                             set: { if !$0 { model.importError = nil } })) {
+            Button("OK", role: .cancel) { model.importError = nil }
+        } message: {
+            Text(model.importError ?? "")
+        }
         .onAppear { model.openWindowAction = openWindow }
     }
 
@@ -86,6 +99,9 @@ private struct RunDetailContainer: View {
         .sheet(isPresented: $store.showsCastEditor) {
             CastEditorSheet(store: store)
                 .interactiveDismissDisabled()
+        }
+        .sheet(isPresented: $store.showsShareCard) {
+            ShareCardSheet(store: store)
         }
         .alert("Action Failed", isPresented: Binding(get: { store.actionError != nil },
                                                      set: { if !$0 { store.actionError = nil } })) {

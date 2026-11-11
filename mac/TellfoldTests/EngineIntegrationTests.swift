@@ -189,6 +189,24 @@ struct EngineIntegrationTests {
         let suggestion = try await client.rewrite(runID: id)
         #expect(try await client.savedRewrite(runID: id) == suggestion)
 
+        // A run bundle opens as someone else's read-only run, next to the original.
+        let bundle = try await client.bundle(runID: id)
+        #expect(bundle.starts(with: Data("PK".utf8)))
+        let imported = try await client.importBundle(bundle)
+        #expect(imported != id)
+        #expect(try await client.runs().first { $0.id == imported }?.imported == true)
+        let copy = try await client.run(imported)
+        #expect(copy.imported && !copy.example && copy.status?.state == .done)
+        #expect(copy.report == (try await client.run(id)).report)
+        #expect(copy.config.seedFiles == ["seeds/seed.md"])
+        do {
+            try await client.rebuildReport(runID: imported)
+            Issue.record("an imported run's report was rebuilt")
+        } catch let error as TellfoldAPIError {
+            #expect(error.status == 403)
+        }
+        await #expect(throws: TellfoldAPIError.self) { try await client.importBundle(Data("not a bundle".utf8)) }
+
         let branch = try await client.branch(runID: id, round: 1, events: [GodEvent(round: 2, content: "The owner apologises")])
         #expect(try await finished(branch.id).config.branchedFrom == id)
         let compared = try await settled(branch.studyID)

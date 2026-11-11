@@ -172,6 +172,24 @@ struct RunDetailView: View {
                 }
                 .disabled(store.report == nil || app.exportingPDF != nil)
 
+                Button {
+                    store.showsShareCard = true
+                } label: {
+                    Label("Share Card…", systemImage: "photo")
+                }
+                .disabled(store.report == nil)
+
+                Button {
+                    Task {
+                        do { try await app.exportBundle(store.runID, title: store.report?.title ?? store.question) } catch {
+                            store.actionError = error.localizedDescription
+                        }
+                    }
+                } label: {
+                    Label("Export Run Bundle…", systemImage: "shippingbox")
+                }
+                .disabled(store.report == nil || store.isLive || app.exportingBundle != nil)
+
                 if !store.isExample {
                     Button {
                         app.revealInFinder(store.runID)

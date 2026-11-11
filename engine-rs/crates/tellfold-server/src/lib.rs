@@ -127,6 +127,11 @@ pub fn router(state: AppState) -> Router {
             "/api/runs",
             get(list_runs).post(post_runs).layer(DefaultBodyLimit::max(upload::MAX_FORM_BYTES + 1024 * 1024)),
         )
+        .route(
+            "/api/runs/import",
+            post(import_bundle).layer(DefaultBodyLimit::max(tellfold_study::bundle::MAX_BUNDLE_BYTES as usize)),
+        )
+        .route("/api/runs/{run_id}/bundle", get(export_bundle))
         .route("/api/studies", get(list_studies))
         .route("/api/studies/{study_id}", get(get_study))
         .route("/api/runs/{run_id}/branch", post(branch))

@@ -37,6 +37,9 @@ minijinja = { version = "2", default-features = false, features = ["builtins", "
 minijinja-contrib = { version = "2", features = ["pycompat"] }
 sha2 = "0.10"
 unicode-normalization = "0.1"
+# .tellfold run bundles: deflate only, through flate2's pure-Rust backend
+zip = { version = "9", default-features = false, features = ["deflate-flate2"] }
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 tellfold-models = { path = "crates/tellfold-models" }
 tellfold-store = { path = "crates/tellfold-store" }
 tellfold-llm = { path = "crates/tellfold-llm" }

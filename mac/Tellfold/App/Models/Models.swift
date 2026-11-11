@@ -780,6 +780,8 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     var hasReport: Bool
     /// A built-in example run shipped with the app: read-only.
     var example: Bool = false
+    /// Someone else's run opened from a `.tellfold` file: read-only, like an example.
+    var imported: Bool = false
     /// The study the run was made for ("Try another version…"). A source run joins its study without this field.
     var studyID: String?
     /// Its label in that study.
@@ -794,7 +796,7 @@ struct RunSummary: Codable, Hashable, Sendable, Identifiable {
     var progress: Double { totalRounds > 0 ? min(1, Double(round) / Double(totalRounds)) : 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, question, state, stage, round, agents, example, variant, pause
+        case id, question, state, stage, round, agents, example, imported, variant, pause
         case studyID = "study_id"
         case totalRounds = "total_rounds"
         case createdAt = "created_at"
@@ -815,6 +817,7 @@ extension RunSummary {
         createdAt = c.value(.createdAt, default: "")
         hasReport = c.value(.hasReport, default: false)
         example = c.value(.example, default: false)
+        imported = c.value(.imported, default: false)
         studyID = c.optional(.studyID)
         variant = c.optional(.variant)
         pause = c.optional(.pause)
@@ -881,6 +884,8 @@ struct RunDetail: Codable, Hashable, Sendable, Identifiable {
     var reportRebuild: ReportRebuild = .init()
     /// A built-in example run: the engine refuses events, stop and report rebuilds.
     var example: Bool = false
+    /// A run opened from a `.tellfold` file, refused the same changes.
+    var imported: Bool = false
 
     var followEdges: [FollowEdge] {
         follows.compactMap { $0.count >= 2 ? FollowEdge(follower: $0[0], followee: $0[1]) : nil }
@@ -891,7 +896,7 @@ struct RunDetail: Codable, Hashable, Sendable, Identifiable {
     var currentRound: Int { status?.round ?? stats.map(\.round).max() ?? 0 }
 
     enum CodingKeys: String, CodingKey {
-        case id, config, status, live, personas, graph, stats, events, follows, report, calls, example
+        case id, config, status, live, personas, graph, stats, events, follows, report, calls, example, imported
         case reportRebuild = "report_rebuild"
     }
 }
@@ -912,6 +917,7 @@ extension RunDetail {
         calls = c.value(.calls, default: CallsSummary())
         reportRebuild = c.value(.reportRebuild, default: ReportRebuild())
         example = c.value(.example, default: false)
+        imported = c.value(.imported, default: false)
     }
 }
 

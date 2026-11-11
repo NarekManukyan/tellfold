@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The full report in a readable column: verdict, prediction with its confidence, the narrative sections, what to do
 /// next, key voices, risks and caveats, with `@handle` and `#id` citations as links; plus an "Ask about this outcome" field, Rebuild, the
-/// standalone page, PDF export and the run folder.
+/// standalone page, PDF export, the share card, the run bundle and the run folder.
 struct ReportView: View {
     let store: RunStore
 
@@ -72,6 +72,7 @@ struct ReportView: View {
         VStack(alignment: .leading, spacing: Theme.space3) {
             HStack(spacing: Theme.space2) {
                 StatusChip(state: store.status?.state ?? .unknown)
+                if store.isImported { ImportedBadge() }
                 Spacer(minLength: Theme.space3)
                 actionButtons
             }
@@ -142,6 +143,28 @@ struct ReportView: View {
             .buttonStyle(.console(.secondary, compact: true))
             .disabled(app.exportingPDF != nil)
             .help("Save the report as a PDF to share or print")
+
+            Button {
+                store.showsShareCard = true
+            } label: {
+                Label("Share card…", systemImage: "photo")
+            }
+            .buttonStyle(.console(.secondary, compact: true))
+            .help("An image of the headline, confidence, sentiment and two cited posts, to post or paste")
+
+            Button {
+                Task {
+                    do { try await app.exportBundle(store.runID, title: store.report?.title ?? store.runID) } catch {
+                        actionError = error.localizedDescription
+                    }
+                }
+            } label: {
+                Label("Export run bundle…", systemImage: "shippingbox")
+                    .labelStyle(.iconOnly)
+            }
+            .buttonStyle(.console(.secondary, compact: true))
+            .disabled(store.isLive || app.exportingBundle != nil)
+            .help("Save the whole run as one .tellfold file that anyone with Tellfold can open")
 
             Button {
                 app.revealInFinder(store.runID)

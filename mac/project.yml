@@ -82,7 +82,8 @@ targets:
         NSDocumentsFolderUsageDescription: Tellfold reads seed documents and keeps runs in folders you choose.
         NSDownloadsFolderUsageDescription: Tellfold reads seed documents you choose from Downloads.
         NSDesktopFolderUsageDescription: Tellfold reads seed documents you choose from the Desktop.
-        # Lets the app accept seed files dropped on its Dock icon and opened with File > Open.
+        # Lets the app accept seed files dropped on its Dock icon and opened with File > Open, and open the `.tellfold`
+        # run bundles it exports (double-click, File > Open, a drop on the Dock icon or the window).
         CFBundleDocumentTypes:
           - CFBundleTypeName: Seed document
             CFBundleTypeRole: Viewer
@@ -91,6 +92,22 @@ targets:
               - net.daringfireball.markdown
               - public.plain-text
               - com.adobe.pdf
+          - CFBundleTypeName: Tellfold run
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - dev.tellfold.run-bundle
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: dev.tellfold.run-bundle
+            UTTypeDescription: Tellfold run
+            UTTypeConformsTo:
+              - public.zip-archive
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - tellfold
+              public.mime-type:
+                - application/vnd.tellfold.run+zip
     entitlements:
       path: Tellfold/App/Tellfold.entitlements
       properties:

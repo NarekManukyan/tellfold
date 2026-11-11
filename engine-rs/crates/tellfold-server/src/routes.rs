@@ -144,7 +144,8 @@ pub async fn list_runs(State(app): State<AppState>) -> ApiResult {
                 if !entry.path().is_dir() || !py_match(run_id_pattern(), &name) || examples.contains_key(&name) {
                     continue;
                 }
-                if let Some(summary) = m.reader(&name).summary(live.contains(&name)) {
+                if let Some(mut summary) = m.reader(&name).summary(live.contains(&name)) {
+                    summary.imported = m.is_imported(&name);
                     out.push(summary);
                 }
             }
@@ -169,6 +170,7 @@ pub async fn get_run(State(app): State<AppState>, UrlPath(run_id): UrlPath<Strin
         }
         detail.report_rebuild = m.rebuild_state(&run_id);
         detail.example = m.is_example(&run_id);
+        detail.imported = m.is_imported(&run_id);
         Ok(ok_json(&detail))
     })
     .await
@@ -469,6 +471,48 @@ pub async fn report_markdown(
         })
         .await??;
     web::file_response(&path, &method, "text/markdown; charset=utf-8", None, &[("cache-control", "no-cache")]).await
+}
+
+// ---------- .tellfold bundles ----------
+
+fn bundle_error(e: tellfold_study::Error) -> ApiError {
+    match e {
+        tellfold_study::Error::Bundle(m) | tellfold_study::Error::Example(m) => ApiError::new(400, m),
+        other => ApiError::internal(other),
+    }
+}
+
+/// The finished run as one `.tellfold` file (a zip of its cleaned folder) to send to someone else.
+pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>) -> ApiResult {
+    on_manager(&app.handle, move |m| async move {
+        let dir = run_dir_of(&m, &run_id)?;
+        if m.is_live(&run_id) {
+            return Err(ApiError::new(409, "the run is still in progress; share it once it has finished"));
+        }
+        let bytes = tellfold_study::bundle::bundle_bytes(&dir, &run_id).map_err(bundle_error)?;
+        let mut response = Response::new(Body::from(bytes));
+        let headers = response.headers_mut();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/zip"));
+        let name = format!("attachment; filename=\"{run_id}.{}\"", tellfold_study::bundle::EXTENSION);
+        if let Ok(value) = HeaderValue::from_str(&name) {
+            headers.insert(header::CONTENT_DISPOSITION, value);
+        }
+        Ok(response)
+    })
+    .await
+}
+
+/// Opens a `.tellfold` file sent as the request body: a new, read-only run in the runs folder. `{"id": new run id}`.
+pub async fn import_bundle(State(app): State<AppState>, body: Bytes) -> ApiResult {
+    if body.is_empty() {
+        return Err(ApiError::new(400, "send the .tellfold file as the request body"));
+    }
+    on_manager(&app.handle, move |m| async move {
+        let id =
+            tellfold_study::bundle::import_bundle(std::io::Cursor::new(body), &m.runs_dir).map_err(bundle_error)?;
+        Ok(ok_json(&json!({"id": id})))
+    })
+    .await
 }
 
 /// Unsubscribes its client when the response stream is dropped (the client went away, or the stream ended).

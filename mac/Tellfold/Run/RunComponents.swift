@@ -53,11 +53,12 @@ extension RunStore {
     /// Rounds that actually completed: the recorded data wins over a stale status.
     var roundsCompleted: Int { latestRound }
 
-    /// The run's report text can be rebuilt (not while it runs, not before any round completed, never for an example).
+    /// The run's report text can be rebuilt (not while it runs, not before any round completed, never for an example or
+    /// an imported run).
     var canRebuildReport: Bool { controls.rebuildReport && !isLive && api != nil && (latestRound > 0 || report != nil) }
 
     /// Which run-changing controls appear for this run.
-    var controls: RunControls { RunControls(isLive: isLive, isExample: isExample) }
+    var controls: RunControls { RunControls(isLive: isLive, isExample: isReadOnly) }
 
     /// A finished, stopped or failed run whose settings can seed a new simulation.
     var canRunAgain: Bool { !isLive && config != nil && (status?.state.isTerminal ?? false) }
@@ -66,8 +67,8 @@ extension RunStore {
     var canTryAnotherVersion: Bool { canRunAgain && report != nil && !personas.isEmpty }
 }
 
-/// The controls that change a run. A built-in example is read-only, so it shows none of them: no Stop, no Inject event
-/// and no Rebuild report. "Run again…" stays, since it makes a new run of the user's own.
+/// The controls that change a run. A built-in example or an imported run is read-only (`isExample`), so it shows none of
+/// them: no Stop, no Inject event and no Rebuild report. "Run again…" stays, since it makes a new run of the user's own.
 struct RunControls: Equatable {
     var stop: Bool
     var injectEvent: Bool

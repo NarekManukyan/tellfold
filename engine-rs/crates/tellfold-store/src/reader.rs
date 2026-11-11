@@ -417,6 +417,7 @@ impl RunReader {
             created_at: status.started_at,
             has_report: self.has_report(),
             example: false,
+            imported: false,
             study_id: config.study_id,
             variant: config.variant,
             pause: status.pause,
@@ -438,6 +439,7 @@ impl RunReader {
             calls: self.calls(),
             report_rebuild: ReportRebuild::default(),
             example: false,
+            imported: false,
             config,
         })
     }

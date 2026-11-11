@@ -80,7 +80,7 @@ final class ReportPDFExporter: NSObject {
     }
 
     /// The report title as a file name: no path separators or colons, at most 80 characters, ending in `.pdf`.
-    static func suggestedFileName(title: String) -> String {
+    nonisolated static func suggestedFileName(title: String) -> String {
         let cleaned = title
             .components(separatedBy: CharacterSet(charactersIn: "/:\\").union(.newlines).union(.controlCharacters))
             .joined(separator: " ")
