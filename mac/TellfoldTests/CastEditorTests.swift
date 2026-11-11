@@ -227,25 +227,83 @@ struct CastEditorTests {
         #expect(!model.people.contains { $0.stance == "An edit of the old a03" })
     }
 
-    @Test func laterSendsTheEditsSoReopeningShowsThem() async throws {
+    /// What the stub engine of `fakeEngine` saw and holds.
+    final class EngineState: Sendable {
         let calls = Mutex<[String]>([])
-        let people = [Self.person("a01"), Self.person("a02")]
-        let (session, _) = StubURLProtocol.session { request in
-            calls.withLock { $0.append("\(request.httpMethod ?? "") \(request.url?.path ?? "")") }
-            return .init(body: try! Self.castJSON([people[1]]))
+        let held: Mutex<[Persona]>
+        init(_ start: [Persona]) { held = Mutex(start) }
+    }
+
+    /// A stub engine that holds the waiting cast: PUT replaces it (renumbered), GET serves it, a group adds one person.
+    nonisolated private static func fakeEngine(_ start: [Persona]) -> (URLSession, String, EngineState) {
+        let state = EngineState(start)
+        let (session, key) = StubURLProtocol.session { request in
+            let line = "\(request.httpMethod ?? "") \(request.url?.path ?? "")"
+            state.calls.withLock { $0.append(line) }
+            switch line {
+            case "PUT /api/runs/r1/personas":
+                let sent = try! JSONDecoder().decode(CastResponse.self, from: Data(
+                    #"{"waiting": true, "#.utf8 + request.httpBody!.dropFirst()))
+                state.held.withLock { $0 = renumbered(sent.personas) }
+            case "POST /api/runs/r1/personas/group":
+                state.held.withLock { $0 = renumbered($0 + [person("g1", camp: "undecided", stance: "New member")]) }
+            default:
+                break
+            }
+            return .init(body: try! castJSON(state.held.withLock { $0 }))
         }
+        return (session, key, state)
+    }
+
+    @Test func laterSendsTheEditsSoReopeningShowsThem() async throws {
+        let people = [Self.person("a01"), Self.person("a02")]
+        let (session, key, engine) = Self.fakeEngine(people)
         let api = TellfoldAPI(port: 1, token: "t", session: session)
         let model = CastEditorModel(runID: "r1", api: api, people: people)
         #expect(await model.saveForLater(), "nothing to send is fine")
-        #expect(calls.withLock { $0 }.isEmpty)
+        #expect(engine.calls.withLock { $0 }.isEmpty)
         model.remove("a01")
         #expect(await model.saveForLater())
-        #expect(calls.withLock { $0 } == ["PUT /api/runs/r1/personas"])
+        #expect(engine.calls.withLock { $0 } == ["PUT /api/runs/r1/personas"])
         #expect(!model.hasLocalEdits)
-        // a new editor (the sheet opened again) loads what the engine holds
+        let put = try #require(StubURLProtocol.requests(key).first { $0.httpMethod == "PUT" })
+        let sent = try JSONDecoder().decode(CastResponse.self, from: Data(
+            #"{"waiting": true, "#.utf8 + (try #require(put.httpBody)).dropFirst()))
+        #expect(sent.personas.map(\.handle) == ["user_a02"])
+        // a new editor (the sheet opened again) loads what the engine now holds
         let reopened = CastEditorModel(runID: "r1", api: api)
         await reopened.load()
-        #expect(reopened.people.map(\.id) == ["a02"])
+        #expect(reopened.people.map(\.handle) == ["user_a02"])
+        #expect(reopened.people.map(\.id) == ["a01"], "renumbered by the engine")
+    }
+
+    @Test func laterWaitsForAnOpenRowEditor() async {
+        let people = [Self.person("a01")]
+        let (session, _, engine) = Self.fakeEngine(people)
+        let model = CastEditorModel(runID: "r1", api: TellfoldAPI(port: 1, token: "t", session: session), people: people)
+        model.toggleEditing("a01")
+        #expect(!model.canClose)
+        #expect(!(await model.saveForLater()), "the open draft would be lost")
+        #expect(engine.calls.withLock { $0 }.isEmpty)
+        model.toggleEditing("a01")
+        #expect(model.canClose)
+    }
+
+    /// Removing everyone must not trap the user: the engine keeps an empty cast while the run waits, so Later closes
+    /// and a group can be added; only starting the run needs people.
+    @Test func anEmptiedCastCanStillCloseOrGrow() async {
+        let people = [Self.person("a01"), Self.person("a02")]
+        let (session, _, engine) = Self.fakeEngine(people)
+        let model = CastEditorModel(runID: "r1", api: TellfoldAPI(port: 1, token: "t", session: session), people: people)
+        model.remove("a01")
+        model.remove("a02")
+        #expect(!model.canContinue)
+        #expect(await model.saveForLater())
+        #expect(engine.held.withLock { $0 }.isEmpty)
+        #expect(await model.addGroup(description: "one new member", count: 1))
+        #expect(engine.calls.withLock { $0 } == ["PUT /api/runs/r1/personas", "POST /api/runs/r1/personas/group"])
+        #expect(model.people.map(\.stance) == ["New member"])
+        #expect(model.canContinue)
     }
 
     @Test func aFailedGroupKeepsTheCastAndSaysWhy() async throws {
@@ -344,6 +402,37 @@ struct CastEditorTests {
         #expect(!FileManager.default.fileExists(atPath: file.path))
         #expect(FileManager.default.fileExists(atPath: outside.path))
         #expect(store.audiences.isEmpty)
+    }
+
+    /// A file copied in Finder keeps the id inside it: each copy is still its own audience, and deleting one leaves
+    /// the other.
+    @Test func aDuplicatedAudienceFileIsItsOwnAudience() async throws {
+        let dir = URL.temporaryDirectory.appending(path: "tellfold-audiences-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = AudienceStore(directory: dir)
+        let saved = try store.save(name: "Original", question: "", personas: [Self.person("a01")], graph: nil)
+        let copy = dir.appending(path: "\(saved.id) copy.json")
+        try FileManager.default.copyItem(at: dir.appending(path: "\(saved.id).json"), to: copy)
+        await store.reload()
+        #expect(store.audiences.count == 2)
+        #expect(Set(store.audiences.map(\.id)).count == 2, "list ids stay unique")
+        #expect(store.audience(saved.id) != nil, "the first file keeps its id")
+        let other = try #require(store.audiences.first { $0.id != saved.id })
+        try store.delete(other.id)
+        #expect(store.audiences.map(\.id) == [saved.id])
+        #expect(FileManager.default.fileExists(atPath: dir.appending(path: "\(saved.id).json").path))
+        #expect(!FileManager.default.fileExists(atPath: copy.path))
+    }
+
+    @Test func aSaveDuringAReloadIsKept() async throws {
+        let dir = URL.temporaryDirectory.appending(path: "tellfold-audiences-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = AudienceStore(directory: dir)
+        let reading = Task { await store.reload() }
+        await Task.yield()
+        let saved = try store.save(name: "Mid-read", question: "", personas: [Self.person("a01")], graph: nil)
+        await reading.value
+        #expect(store.audiences.map(\.id) == [saved.id])
     }
 
     @Test func savingFromTheEditorKeepsTheEdits() throws {

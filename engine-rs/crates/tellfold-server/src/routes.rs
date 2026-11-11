@@ -266,7 +266,8 @@ pub async fn get_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<Stri
     .await
 }
 
-/// Replaces the cast of a waiting run with `{personas: [Persona] (1-200)}`; returns `{waiting, personas}` as tidied.
+/// Replaces the cast of a waiting run with `{personas: [Persona] (0-200)}`; returns `{waiting, personas}` as tidied.
+/// An empty cast is kept while the run waits, so a group can still be added; the confirm needs at least one person.
 pub async fn put_cast(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, body: Bytes) -> ApiResult {
     let value = parse_body(&body, true)?.unwrap_or(Value::Null);
     let mut checker = Checker::new();

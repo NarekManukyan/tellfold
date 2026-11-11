@@ -16,6 +16,7 @@ struct CastEditorSheet: View {
     @State private var audienceName = ""
     @State private var savedNote: String?
     @State private var confirmStop = false
+    @State private var confirmDiscard = false
 
     init(store: RunStore) {
         self.store = store
@@ -45,6 +46,11 @@ struct CastEditorSheet: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Saved audiences can start a new simulation without casting it again.")
+        }
+        .confirmationDialog("Close without sending your changes?", isPresented: $confirmDiscard) {
+            Button("Discard Changes and Close", role: .destructive) { close() }
+        } message: {
+            Text("The engine could not take them. The simulation keeps waiting with the cast it had.")
         }
         .confirmationDialog("Stop this simulation?", isPresented: $confirmStop) {
             Button("Stop Simulation", role: .destructive) { Task { await store.stop() } }
@@ -196,16 +202,18 @@ struct CastEditorSheet: View {
             Button("Later") {
                 // the edits go to the waiting run first, so they are there when the editor opens again
                 Task {
-                    if await model.saveForLater() { store.showsCastEditor = false; dismiss() }
+                    if await model.saveForLater() { close() } else { confirmDiscard = true }
                 }
             }
             .buttonStyle(.console)
             .keyboardShortcut(.cancelAction)
-            .disabled(model.isBusy)
-            .help("Close this; the simulation keeps waiting. Check the Cast in the toolbar opens it again.")
+            .disabled(!model.canClose)
+            .help(model.editingID == nil
+                  ? "Close this; the simulation keeps waiting. Check the Cast in the toolbar opens it again."
+                  : "Save or close the open edit first")
             Button {
                 Task {
-                    if await model.confirm() { store.showsCastEditor = false; dismiss() }
+                    if await model.confirm() { close() }
                 }
             } label: {
                 if model.isContinuing {
@@ -222,6 +230,11 @@ struct CastEditorSheet: View {
         }
         .padding(.horizontal, Theme.space5)
         .padding(.vertical, Theme.space4)
+    }
+
+    private func close() {
+        store.showsCastEditor = false
+        dismiss()
     }
 
     private func saveAudience() {

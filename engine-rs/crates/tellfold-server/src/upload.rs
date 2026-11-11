@@ -17,7 +17,7 @@ use tellfold_engine::personas::{tidy_cast, MAX_CAST};
 use tellfold_models::text::{py_split, py_strip};
 use tellfold_models::{GodEvent, KnowledgeGraph, Persona, SimConfig};
 use tellfold_runtimes::load_settings;
-use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE};
+use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE, WORLD_FILE};
 use tellfold_store::study::{join_study, plan_variant};
 
 use crate::error::{ok_json, ApiError, ApiResult};
@@ -411,9 +411,15 @@ fn cast_source(m: &Manager, run_id: &str) -> Result<SimConfig, ApiError> {
     if !path.join(PERSONAS_FILE).is_file() || !path.join(GRAPH_FILE).is_file() {
         return Err(ApiError::new(400, format!("cast_from: {run_id} has no people yet")));
     }
-    if m.awaits_cast(run_id) {
-        // its personas.json is the cast before the check, not the one it will run with
-        return Err(ApiError::new(409, format!("cast_from: {run_id} is waiting for its cast to be checked")));
+    // A review_cast run writes personas.json before the check and seeds world.db only after it: without the world,
+    // the file holds a cast nobody confirmed (the run waits, or was stopped or orphaned at the pause).
+    if config.review_cast && !path.join(WORLD_FILE).exists() {
+        let why = if m.awaits_cast(run_id) {
+            "is waiting for its cast to be checked"
+        } else {
+            "stopped before its cast was checked"
+        };
+        return Err(ApiError::new(409, format!("cast_from: {run_id} {why}")));
     }
     Ok(config)
 }

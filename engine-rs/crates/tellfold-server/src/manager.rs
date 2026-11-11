@@ -275,6 +275,20 @@ struct CastHold {
     /// set when a client confirms the cast
     go: Cell<bool>,
     wake: Notify,
+    /// places held for groups the model is still writing, so an edit meanwhile cannot fill them
+    reserved: Cell<usize>,
+}
+
+/// Room held in a [`CastHold`] while a group is written; given back when dropped, also when the request is cancelled.
+struct Reservation {
+    hold: Rc<CastHold>,
+    count: usize,
+}
+
+impl Drop for Reservation {
+    fn drop(&mut self) {
+        self.hold.reserved.set(self.hold.reserved.get() - self.count);
+    }
 }
 
 /// The run's side of a [`CastHold`]: waits until the cast is confirmed or the run is stopped.
@@ -720,16 +734,21 @@ impl Manager {
     /// Replaces the cast of a waiting run (tidied: ids renumbered, handles made unique) and returns it.
     ///
     /// The edit stays in the hold: the runner writes personas.json once the cast is confirmed, so the file has one
-    /// writer. A cast over [`MAX_CAST`] is refused, not cut.
+    /// writer. An empty cast is fine while the run waits (a group can still be added); only the confirm needs
+    /// people. A cast over [`MAX_CAST`], counting the places held for groups being written, is refused, not cut.
     pub fn replace_cast(&self, run_id: &str, personas: Vec<Persona>) -> Result<Vec<Persona>, ManagerError> {
         let (hold, _, _) = self.waiting(run_id)?;
         if personas.len() > MAX_CAST {
             return Err(ManagerError::BadRequest(format!("a cast holds at most {MAX_CAST} people")));
         }
-        let personas = tidy_cast(personas);
-        if personas.is_empty() {
-            return Err(ManagerError::BadRequest("the cast needs at least one person".into()));
+        let reserved = hold.reserved.get();
+        if personas.len() + reserved > MAX_CAST {
+            return Err(conflict(format!(
+                "a group of {reserved} is being written: the cast has room for {} more people now",
+                MAX_CAST - reserved
+            )));
         }
+        let personas = tidy_cast(personas);
         *hold.personas.borrow_mut() = Some(personas.clone());
         Ok(personas)
     }
@@ -737,29 +756,39 @@ impl Manager {
     /// Lets a waiting run go on with its (possibly edited) cast.
     pub fn confirm_cast(&self, run_id: &str) -> Result<(), ManagerError> {
         let (hold, _, _) = self.waiting(run_id)?;
+        if hold.reserved.get() > 0 {
+            return Err(conflict("a group is still being written: wait for it before starting the run"));
+        }
+        if hold.personas.borrow().as_ref().is_none_or(Vec::is_empty) {
+            return Err(ManagerError::BadRequest("the cast needs at least one person".into()));
+        }
         hold.go.set(true);
         hold.wake.notify_one();
         Ok(())
     }
 
     /// Writes `count` people for a group described in words, adds them to the waiting cast, and returns the cast.
-    /// A group that would take the cast past [`MAX_CAST`] is refused before the model is called.
+    ///
+    /// A group that would take the cast past [`MAX_CAST`] is refused before the model is called. Its places are held
+    /// while the model writes, so an edit meanwhile cannot take them and the paid-for group always fits.
     pub async fn add_group(&self, run_id: &str, description: &str, count: usize) -> Result<Vec<Persona>, ManagerError> {
         let (hold, run_dir, config) = self.waiting(run_id)?;
         let existing = hold.personas.borrow().clone().unwrap_or_default();
-        let room = MAX_CAST.saturating_sub(existing.len());
+        let room = MAX_CAST.saturating_sub(existing.len() + hold.reserved.get());
         if count > room {
             return Err(ManagerError::BadRequest(format!(
                 "a cast holds at most {MAX_CAST} people: this one has room for {room} more"
             )));
         }
+        hold.reserved.set(hold.reserved.get() + count);
+        let reservation = Reservation { hold: hold.clone(), count };
         let graph: KnowledgeGraph = read_model(&run_dir.join(GRAPH_FILE)).unwrap_or_default();
         let llm = self.llm(Some(&run_dir), config.concurrency, config.think)?;
         let group = generate_group(llm.as_ref(), &graph, &config, description, count, &existing)
             .await
             .map_err(|e| ManagerError::Llm(e.0))?;
-        // the cast may have been edited while the model wrote
-        let (hold, _, _) = self.waiting(run_id)?;
+        // the cast may have been edited while the model wrote, within the room left for this group
+        drop(reservation);
         let mut personas = hold.personas.borrow().clone().unwrap_or_default();
         personas.extend(group);
         self.replace_cast(run_id, personas)

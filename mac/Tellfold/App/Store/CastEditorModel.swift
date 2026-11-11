@@ -35,6 +35,8 @@ final class CastEditorModel {
 
     var isBusy: Bool { isLoading || isAddingGroup || isContinuing || isSaving }
     var canContinue: Bool { !people.isEmpty && !isBusy }
+    /// "Later" waits while a row editor is open: its unsaved draft lives in the row and would be lost.
+    var canClose: Bool { !isBusy && editingID == nil }
 
     /// How many people each camp has, in `CastCamp` order; people without a planned camp are left out.
     var campCounts: [(camp: CastCamp, count: Int)] {
@@ -97,10 +99,11 @@ final class CastEditorModel {
         replace(with: try await api.replaceCast(runID: runID, personas: people))
     }
 
-    /// Sends the edits so they are still there when the editor opens again ("Later"). Returns false when it failed.
+    /// Sends the edits so they are still there when the editor opens again ("Later"); an empty cast is sent too, since
+    /// the engine keeps it while the run waits. Returns false when it failed or a row editor is open.
     @discardableResult
     func saveForLater() async -> Bool {
-        guard !isBusy else { return false }
+        guard canClose else { return false }
         isSaving = true
         defer { isSaving = false }
         do {

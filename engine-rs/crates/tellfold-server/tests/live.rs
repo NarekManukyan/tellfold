@@ -55,7 +55,7 @@ impl Factory {
                 } else {
                     fake_responder(purpose, prompt, schema)
                 };
-                let held = purpose == "engine.round";
+                let held = purpose == "engine.round" || purpose == "personas.group";
                 let gate = gate.clone();
                 async move {
                     while held && gate.closed.load(Ordering::SeqCst) {
@@ -725,7 +725,6 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     let edited = edited["personas"].as_array().unwrap().clone();
     assert_eq!(edited.len(), 3);
     assert_eq!((edited[0]["id"].clone(), edited[0]["source"].clone()), (json!("a01"), json!("edited")));
-    assert_eq!(server.put(&cast_url, json!({"personas": []})).await.0, 400);
     assert_eq!(server.put(&cast_url, json!({"people": []})).await.0, 422);
     assert_eq!(server.put(&cast_url, json!({"personas": [{"id": 1}]})).await.0, 422);
     assert_eq!(server.put(&cast_url, json!({"personas": vec![edited[0].clone(); 201]})).await.0, 422, "over MAX_CAST");
@@ -754,6 +753,29 @@ async fn review_the_cast_edit_it_add_a_group_and_continue() {
     let (status, full) = server.post(&group_url, json!({"description": "one more parent", "count": 1})).await;
     assert_eq!(status, 400, "{full}");
     assert_eq!(server.factory.count("personas.group"), 1);
+    assert_eq!(server.put(&cast_url, json!({"personas": grown})).await.0, 200);
+    // while a group is written its places are held: an edit cannot take them, and the run cannot start yet
+    server.factory.close();
+    let (http, url) = (server.http.clone(), server.url(&group_url));
+    let pending = tokio::spawn(async move {
+        let res = http.post(url).json(&json!({"description": "two ferry crew", "count": 2})).send().await.unwrap();
+        (res.status().as_u16(), res.json::<Value>().await.unwrap_or(Value::Null))
+    });
+    wait_for("the group call to reach the gate", || async { server.factory.gate.waiting.load(Ordering::SeqCst) }).await;
+    let (status, refused) = server.put(&cast_url, json!({"personas": vec![grown[0].clone(); 199]})).await;
+    assert_eq!(status, 409, "{refused}");
+    assert_eq!(server.put(&cast_url, json!({"personas": grown[..5]})).await.0, 200);
+    assert_eq!(server.post_empty(&format!("{cast_url}/confirm")).await.0, 409, "the group is still being written");
+    server.factory.open();
+    let (status, with_group) = pending.await.unwrap();
+    assert_eq!(status, 200, "{with_group}");
+    assert_eq!(with_group["personas"].as_array().unwrap().len(), 7, "the edit and the paid-for group both kept");
+    // an empty cast is fine while the run waits (a group can still be added), but cannot be started
+    let (status, empty) = server.put(&cast_url, json!({"personas": []})).await;
+    assert_eq!((status, empty["personas"].clone()), (200, json!([])));
+    assert_eq!(server.post_empty(&format!("{cast_url}/confirm")).await.0, 400);
+    let (status, refilled) = server.post(&group_url, json!({"description": "one ferry captain", "count": 1})).await;
+    assert_eq!((status, refilled["personas"].as_array().map(Vec::len)), (200, Some(1)));
     assert_eq!(server.put(&cast_url, json!({"personas": grown})).await.0, 200);
 
     assert_eq!(server.post_empty(&format!("{cast_url}/confirm")).await, (200, json!({"ok": true})));
@@ -788,9 +810,14 @@ async fn stop_while_the_cast_is_under_review() {
     assert!(d["report"].is_null());
     assert!(d["status"].get("pause").is_none());
     assert_eq!(server.factory.count("engine.round"), 0);
-    // its source ran without fair turns, so a version of it does too
-    let form = [("cast_from", run_id.clone()), ("fair_turns", "true".into())];
-    let (status, version) = server.start_run_with(&form).await;
+    // its personas.json is a cast nobody checked, so no other run may reuse it
+    let (status, refused) = server.start_run_with(&[("cast_from", run_id.clone())]).await;
+    assert_eq!(status, 409, "{refused}");
+    // a run without fair turns lends its people to a version without them, whatever the form says
+    let (_, plain) = server.start_run_with(&[]).await;
+    let plain = plain["id"].as_str().unwrap().to_string();
+    server.wait_state(&plain, &["done"]).await;
+    let (status, version) = server.start_run_with(&[("cast_from", plain), ("fair_turns", "true".into())]).await;
     assert_eq!(status, 200, "{version}");
     let version = server.wait_state(version["id"].as_str().unwrap(), &["done"]).await;
     assert!(version["config"].get("fair_turns").is_none(), "{}", version["config"]);
