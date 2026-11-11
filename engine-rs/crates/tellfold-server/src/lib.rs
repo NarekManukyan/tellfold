@@ -46,10 +46,20 @@ pub struct AppState {
     bundle_hook: Option<BundleHook>,
 }
 
-/// Called on the worker thread before a bundle is written or opened. Tests hold the work there to show the server
-/// keeps answering meanwhile.
+/// Where a bundle request is when [`BundleHook`] is called.
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BundleStage {
+    /// on the manager thread, once an export was checked and marked, before the handler hears back
+    Checked,
+    /// on the blocking worker, before a bundle is written or opened
+    Work,
+}
+
+/// Called at each [`BundleStage`] of a bundle request. Tests hold the request there: on the worker to show the server
+/// keeps answering meanwhile, on the manager to drop a request whose reply is not sent yet.
 #[derive(Clone)]
-pub struct BundleHook(pub Arc<dyn Fn() + Send + Sync>);
+pub struct BundleHook(pub Arc<dyn Fn(BundleStage) + Send + Sync>);
 
 impl std::fmt::Debug for BundleHook {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

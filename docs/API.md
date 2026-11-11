@@ -269,8 +269,9 @@ The report as Markdown (`text/markdown`) or as the standalone HTML page. 404 unt
 The finished run as one `.tellfold` file to send to someone else: a zip of a cleaned copy of the run folder (no
 prompt text, no process id, relative seed paths) plus `bundle.json` (`{format, run_id, question, exported_at,
 engine_version}`). Sent as `application/vnd.tellfold.run+zip` with `Content-Disposition: attachment;
-filename="<run_id>.tellfold"`. 400 when the run is not finished with a report, its calls log holds prompt text, or the
-bundle would be over 512 MB; 409 while the run is live or its report is being rebuilt. While a bundle is being written
+filename="<run_id>.tellfold"`. 400 when the run is not finished with a report, its calls log holds prompt text or is
+damaged (`"the run's calls log is damaged"`), the run unpacks to more than 2048 MB (`"... a bundle may unpack to at
+most 2048 MB"`), or the bundle would be over 512 MB; 409 while the run is live or its report is being rebuilt. While a bundle is being written
 the run's report cannot be rebuilt (409).
 
 ### `POST /api/runs/import`

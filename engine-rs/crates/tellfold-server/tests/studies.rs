@@ -11,7 +11,9 @@ use serde_json::{json, Value};
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::{Llm, LlmError};
-use tellfold_server::{create_app, AppOptions, BundleHook, LlmFactory, ManagerOptions, ManagerThread, RuntimeReady};
+use tellfold_server::{
+    create_app, AppOptions, BundleHook, BundleStage, LlmFactory, ManagerOptions, ManagerThread, RuntimeReady,
+};
 
 const SEED: &[u8] =
     b"# Harbour Town votes on a new ferry fare\n\nThe council proposes raising the ferry fare from 2 to \
@@ -337,26 +339,64 @@ async fn a_bundle_opens_as_a_read_only_run() {
     server.stop().await;
 }
 
-/// A bundle hook that stops each bundle job until the test lets it go, and says when one is waiting.
+/// A bundle hook that stops each bundle request at `stage` until the test lets it go, and says when one is waiting.
 struct Gate {
     waiting: tokio::sync::mpsc::UnboundedReceiver<()>,
     release: std::sync::mpsc::Sender<()>,
 }
 
-fn gate() -> (BundleHook, Gate) {
+fn gate(stage: BundleStage) -> (BundleHook, Gate) {
     let (waiting_tx, waiting) = tokio::sync::mpsc::unbounded_channel();
     let (release, release_rx) = std::sync::mpsc::channel::<()>();
     let release_rx = Mutex::new(release_rx);
-    let hook = BundleHook(Arc::new(move || {
-        let _ = waiting_tx.send(());
-        let _ = release_rx.lock().unwrap().recv_timeout(TIMEOUT);
+    let hook = BundleHook(Arc::new(move |at| {
+        if at == stage {
+            let _ = waiting_tx.send(());
+            let _ = release_rx.lock().unwrap().recv_timeout(TIMEOUT);
+        }
     }));
     (hook, Gate { waiting, release })
 }
 
+/// Posts a report rebuild until it is accepted; panics if it is still refused after the timeout.
+async fn rebuild_accepted(server: &Server, run_id: &str) {
+    let deadline = Instant::now() + TIMEOUT;
+    loop {
+        let (status, body) = server.post(&format!("/api/runs/{run_id}/report"), json!({})).await;
+        if status == 200 {
+            break;
+        }
+        assert!(status == 409 && Instant::now() < deadline, "{status} {body}");
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    let deadline = Instant::now() + TIMEOUT;
+    while server.get(&format!("/api/runs/{run_id}")).await["report_rebuild"]["running"] == true {
+        assert!(Instant::now() < deadline, "the rebuild did not finish");
+        tokio::time::sleep(Duration::from_millis(30)).await;
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn an_export_dropped_before_its_reply_does_not_block_rebuilds() {
+    let (hook, mut gate) = gate(BundleStage::Checked);
+    let app = AppOptions { fake_llm: true, bundle_hook: Some(hook), ..Default::default() };
+    let server = Server::start_with(|_, _| (), app).await;
+    let source = server.finished_run().await;
+    // the manager has marked the run and is held before it replies; the client gives up meanwhile
+    let export = tokio::spawn(server.http.get(format!("{}/api/runs/{source}/bundle", server.base)).send());
+    gate.waiting.recv().await.unwrap();
+    export.abort();
+    let _ = export.await;
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    gate.release.send(()).unwrap();
+    // the unsent reply took the mark with it
+    rebuild_accepted(&server, &source).await;
+    server.stop().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn the_server_keeps_answering_while_a_bundle_is_made_or_opened() {
-    let (hook, mut gate) = gate();
+    let (hook, mut gate) = gate(BundleStage::Work);
     let app = AppOptions { fake_llm: true, bundle_hook: Some(hook), ..Default::default() };
     let server = Server::start_with(|_, _| (), app).await;
     let source = server.finished_run().await;
@@ -378,20 +418,7 @@ async fn the_server_keeps_answering_while_a_bundle_is_made_or_opened() {
     gate.release.send(()).unwrap();
     let bundle = export.await.unwrap().unwrap().bytes().await.unwrap();
     // once it is written, the report can be rebuilt again
-    let deadline = Instant::now() + TIMEOUT;
-    loop {
-        let (status, body) = server.post(&format!("/api/runs/{source}/report"), json!({})).await;
-        if status == 200 {
-            break;
-        }
-        assert!(status == 409 && Instant::now() < deadline, "{status} {body}");
-        tokio::time::sleep(Duration::from_millis(20)).await;
-    }
-    let deadline = Instant::now() + TIMEOUT;
-    while server.get(&format!("/api/runs/{source}")).await["report_rebuild"]["running"] == true {
-        assert!(Instant::now() < deadline, "the rebuild did not finish");
-        tokio::time::sleep(Duration::from_millis(30)).await;
-    }
+    rebuild_accepted(&server, &source).await;
 
     // import: the same while the bundle is checked and unpacked
     let url = format!("{}/api/runs/import", server.base);

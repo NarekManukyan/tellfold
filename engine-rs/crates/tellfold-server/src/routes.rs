@@ -497,7 +497,7 @@ async fn bundle_work<T: Send + 'static>(
     let hook = app.bundle_hook.clone();
     tokio::task::spawn_blocking(move || {
         if let Some(hook) = hook {
-            (hook.0)();
+            (hook.0)(crate::BundleStage::Work);
         }
         work()
     })
@@ -506,8 +506,9 @@ async fn bundle_work<T: Send + 'static>(
     .map_err(bundle_error)
 }
 
-/// Marks a run as being exported for as long as it lives; dropping it tells the manager the export ended. It is moved
-/// into the blocking job, so it ends with the job even when the client goes away first.
+/// Marks a run as being exported for as long as it lives; dropping it tells the manager the export ended. It is made
+/// in the manager job that marks the run, so a reply nobody receives (the client went away while the job waited)
+/// drops it too, and it is then moved into the blocking job, so it ends with that job.
 struct ExportGuard {
     handle: Handle,
     run_id: String,
@@ -527,8 +528,8 @@ pub const BUNDLE_TYPE: &str = "application/vnd.tellfold.run+zip";
 /// checks that the run may be shared and marks it as being exported (no report rebuild starts until the bundle is
 /// written); the bundle is written to an unnamed temporary file off the manager thread and streamed from there.
 pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath<String>, method: Method) -> ApiResult {
-    let id = run_id.clone();
-    let dir = app
+    let (id, handle, hook) = (run_id.clone(), app.handle.clone(), app.bundle_hook.clone());
+    let (dir, guard) = app
         .handle
         .call(move |m| async move {
             let dir = run_dir_of(&m, &id)?;
@@ -540,10 +541,13 @@ pub async fn export_bundle(State(app): State<AppState>, UrlPath(run_id): UrlPath
             }
             // checked and marked in one manager job, so a rebuild cannot start in between
             m.begin_export(&id);
-            Ok(dir)
+            let guard = ExportGuard { handle, run_id: id };
+            if let Some(hook) = hook {
+                (hook.0)(crate::BundleStage::Checked);
+            }
+            Ok((dir, guard))
         })
         .await??;
-    let guard = ExportGuard { handle: app.handle.clone(), run_id: run_id.clone() };
     let name = format!("{run_id}.{}", tellfold_study::bundle::EXTENSION);
     let file = bundle_work(&app, move || {
         let _guard = guard;

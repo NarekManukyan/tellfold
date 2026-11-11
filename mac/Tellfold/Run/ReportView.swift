@@ -114,8 +114,9 @@ struct ReportView: View {
                     }
                 }
                 .buttonStyle(.console(.secondary, compact: true))
-                .disabled(rebuilding || store.isLive || store.detail?.reportRebuild.running == true)
-                .help(store.isLive ? "Available once the run has finished" : "Write the report again from this run")
+                .disabled(!store.canRebuildReport || rebuilding || store.detail?.reportRebuild.running == true)
+                .help(store.isLive ? "Available once the run has finished"
+                      : store.isSavingBundle ? "Available once the run bundle is saved" : "Write the report again from this run")
             }
 
             Button {
