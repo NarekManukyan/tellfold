@@ -1,6 +1,6 @@
 //! Local, deterministic redaction of the user's audience material before any of it reaches a model.
 //!
-//! [`redact`] replaces [`REDACTION_TEXT`] with placeholders such as `[name]`, and counts what it hid. It uses fixed
+//! [`Redactor`] replaces [`REDACTION_TEXT`] with placeholders such as `[name]`, and counts what it hid. It uses fixed
 //! patterns and a fixed list of common first names only: the same text always comes out the same, and nothing is
 //! sent anywhere to decide. It errs on the side of hiding too much, because a quote that lost a word is still useful
 //! and a leaked name is not. It is not complete: a name it does not know, mid-sentence or in lower case, stays, which
@@ -16,7 +16,7 @@ pub use tellfold_models::REDACTION_TEXT;
 use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::UnicodeNormalization;
 
-/// What [`redact`] hid, by category, in [`REDACTION_CATEGORIES`] order.
+/// What [`Redactor::redact`] hid, by category, in [`REDACTION_CATEGORIES`] order.
 pub const CATEGORIES: [&str; 6] = {
     let mut keys = [""; 6];
     let mut i = 0;
@@ -48,28 +48,22 @@ pub fn add_counts(total: &mut Redactions, more: &Redactions) {
     }
 }
 
-/// The text with personal details replaced by placeholders, and what was replaced.
-pub fn redact(text: &str) -> (String, Redactions) {
-    Redactor::default().redact(text)
-}
-
-/// [`redact`], also hiding every whole-word, any-case occurrence of the `extra` words or phrases as `[name]` (the
-/// names of staff, pupils or customers the fixed rules would not know).
-pub fn redact_with(text: &str, extra: &[String]) -> (String, Redactions) {
-    Redactor::new(extra).redact(text)
-}
-
-/// [`redact_with`] for many texts: the user's words to hide are compiled once.
+/// Replaces personal details with placeholders, and counts what it replaced. Built once with the user's own words to
+/// hide (the names of staff, pupils or customers the fixed rules would not know), each hidden as `[name]` wherever
+/// it appears as a whole word, in any case; then used for every text.
 #[derive(Debug, Clone, Default)]
 pub struct Redactor {
     extra: Option<Regex>,
 }
 
 impl Redactor {
-    pub fn new(extra: &[String]) -> Self {
-        Redactor { extra: extra_words(extra) }
+    /// A redactor that also hides `extra`. Err when those words cannot be made into one pattern (too many or too
+    /// long), so they are never dropped without a word.
+    pub fn new(extra: &[String]) -> Result<Self, String> {
+        Ok(Redactor { extra: extra_words(extra)? })
     }
 
+    /// The text with personal details replaced by placeholders, and what was replaced.
     pub fn redact(&self, text: &str) -> (String, Redactions) {
         let mut counts = empty_counts();
         let mut text = text.to_string();
@@ -134,7 +128,7 @@ impl Redactor {
 
 /// One pattern for the user's own words to hide: whole words, any case, longest first. A word that starts or ends
 /// with punctuation ("J.R.", "Smith & Co.") is bounded only on its word-character side.
-fn extra_words(extra: &[String]) -> Option<Regex> {
+fn extra_words(extra: &[String]) -> Result<Option<Regex>, String> {
     let mut words: Vec<String> = extra
         .iter()
         .map(|w| w.split_whitespace().collect::<Vec<_>>().join(" "))
@@ -143,7 +137,7 @@ fn extra_words(extra: &[String]) -> Option<Regex> {
     words.sort_by_key(|w| std::cmp::Reverse(w.chars().count()));
     words.dedup();
     if words.is_empty() {
-        return None;
+        return Ok(None);
     }
     let is_word = |c: Option<char>| c.is_some_and(|c| c.is_alphanumeric() || c == '_');
     let alternatives: Vec<String> = words
@@ -154,7 +148,11 @@ fn extra_words(extra: &[String]) -> Option<Regex> {
             format!("{start}{}{end}", regex::escape(w).replace(' ', r"\s+"))
         })
         .collect();
-    Regex::new(&format!(r"(?i)(?:{})", alternatives.join("|"))).ok()
+    let pattern = format!(r"(?i)(?:{})", alternatives.join("|"));
+    Regex::new(&pattern).map(Some).map_err(|e| match e {
+        regex::Error::CompiledTooBig(_) => "there are too many of them, or they are too long".to_string(),
+        other => other.to_string(),
+    })
 }
 
 pattern!(re_email, r"(?i)\b[\p{L}\p{N}][\p{L}\p{N}._%+-]*@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.\p{L}{2,}\b");
@@ -162,7 +160,7 @@ pattern!(re_link, r#"(?i)\b(?:https?://|www\.)[^\s<>"'\])]+"#);
 pattern!(re_handle, r"(^|[^\w@\[])@[A-Za-z0-9_](?:[A-Za-z0-9_.]{0,28}[A-Za-z0-9_])\b");
 pattern!(
     re_labelled_number,
-    r"(?i)(\b(?:order|account|acct|a/c|invoice|ticket|case|ref|reference|customer|client|member|membership|booking|reservation|policy|tracking|transaction|confirmation|receipt|card|iban|sort code|routing|subscription|licen[cs]e|serial|patient|student|employee|staff)\b)(\s*(?:no\.?|number|num|nr|id|#|code|ref)?\s*(?:[:#.]|is|was)?\s*)([A-Z0-9][A-Z0-9/-]{2,})\b"
+    r"(?i)(\b(?:order|account|acct|a/c|invoice|ticket|case|ref|reference|customer|client|member|membership|booking|reservation|policy|tracking|transaction|confirmation|receipt|card|iban|sort code|routing|subscription|licen[cs]e|serial|patient|student|employee|staff)\b)(\s*(?:(?:no\.?|number|num|nr|id|#|code|ref)\s*(?:[:#.]|is|was)?|[:#.])?\s*)([A-Z0-9][A-Z0-9/-]{2,})\b"
 );
 pattern!(re_card, r"\b\d(?:[ -]?\d){12,18}\b");
 pattern!(re_phone, r"(?:\+\(?|\(|\b)\d[\d ().-]{7,}\d\b");
@@ -432,6 +430,14 @@ william yasmin yusuf yvonne zach zachary zara zoe
 mod tests {
     use super::*;
 
+    fn redact(text: &str) -> (String, Redactions) {
+        Redactor::default().redact(text)
+    }
+
+    fn redact_with(text: &str, extra: &[String]) -> (String, Redactions) {
+        Redactor::new(extra).unwrap().redact(text)
+    }
+
     fn hidden(text: &str) -> String {
         redact(text).0
     }
@@ -468,6 +474,8 @@ mod tests {
             "It costs $120 a year, up 25%.",
             "On 12.03.2024 at 10:30 it crashed 3 times.",
             "Version 2.10.1 fixed it.",
+            "the subscription was 120 a year",
+            "my membership is 2025 pricing",
         ] {
             assert_eq!(hidden(text), text);
         }
@@ -626,13 +634,20 @@ mod tests {
     }
 
     #[test]
+    fn words_to_hide_that_cannot_be_used_are_an_error() {
+        let words: Vec<String> = (0..2000).map(|i| format!("{i}{}", "verylongname".repeat(40))).collect();
+        let err = Redactor::new(&words).unwrap_err();
+        assert!(err.contains("too many") || err.contains("too long"), "{err}");
+    }
+
+    #[test]
     fn dotted_handles() {
         assert_eq!(hidden("thanks @tamsin.greaves."), "thanks [name].");
     }
 
     #[test]
     fn one_redactor_for_many_texts() {
-        let redactor = Redactor::new(&["Mossbook".to_string()]);
+        let redactor = Redactor::new(&["Mossbook".to_string()]).unwrap();
         assert_eq!(redactor.redact("Mossbook is slow").0, "[name] is slow");
         assert_eq!(redactor.redact("mossbook again").0, "[name] again");
     }

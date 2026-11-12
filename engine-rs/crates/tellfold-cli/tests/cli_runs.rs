@@ -10,7 +10,7 @@ use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
 use tellfold_cli::help::command_spec_help;
-use tellfold_cli::spec::{commands, Command};
+use tellfold_cli::spec::commands;
 use tellfold_cli::term::render_help;
 
 #[derive(Deserialize)]
@@ -249,6 +249,5 @@ fn without_rust_only_options(screen: &str) -> String {
     if screen != render_help(&command_spec_help(&run), 100) {
         return screen.to_string();
     }
-    let typer = Command { params: run.params.into_iter().filter(|p| !p.rust_only).collect(), ..run };
-    render_help(&command_spec_help(&typer), 100)
+    render_help(&command_spec_help(&run.without_rust_only()), 100)
 }

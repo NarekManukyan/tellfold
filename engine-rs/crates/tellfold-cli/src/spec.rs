@@ -10,12 +10,24 @@ pub const APP_HELP: &str =
 /// them out.
 pub const RUST_ONLY: &[&str] = &["mcp", "material"];
 
+/// The commands as typer had them: without the [`RUST_ONLY`] commands and without the options marked `rust_only`.
+pub fn without_rust_only(commands: Vec<Command>) -> Vec<Command> {
+    commands.into_iter().filter(|c| !RUST_ONLY.contains(&c.name)).map(Command::without_rust_only).collect()
+}
+
 pub struct Command {
     pub name: &'static str,
     pub help: &'static str,
     /// What follows `[OPTIONS]` in the usage line.
     pub usage_args: &'static str,
     pub params: Vec<Param>,
+}
+
+impl Command {
+    /// The command without its options marked `rust_only`.
+    pub fn without_rust_only(self) -> Command {
+        Command { params: self.params.into_iter().filter(|p| !p.rust_only).collect(), ..self }
+    }
 }
 
 const STR: Kind = Kind::Str;

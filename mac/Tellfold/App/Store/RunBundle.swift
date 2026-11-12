@@ -17,13 +17,13 @@ enum RunBundle {
     }
 
     /// What the save panel says about the file.
-    static let panelMessage = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
+    static let basePanelMessage = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
 
     /// Added for a run built from audience material: its people carry the quotes they were written from.
     static let groundedNote = "This run was built from your audience material: the file includes the cleaned quotes its people were written from."
 
     /// The save panel's message; a grounded run adds a line about its quotes.
-    static func panelMessage(grounded: Bool) -> String { grounded ? panelMessage + "\n\n" + groundedNote : panelMessage }
+    static func panelMessage(grounded: Bool) -> String { grounded ? basePanelMessage + "\n\n" + groundedNote : basePanelMessage }
 
     nonisolated static func isBundle(_ url: URL) -> Bool { url.pathExtension.lowercased() == fileExtension }
 

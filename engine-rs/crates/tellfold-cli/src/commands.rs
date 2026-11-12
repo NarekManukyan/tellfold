@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
-use tellfold_engine::material::{read_material, write_material, Material, MaterialFile, MAX_MATERIAL_FILE_BYTES};
+use tellfold_engine::material::{read_material, write_material, Material, MaterialFile};
 use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
 use tellfold_llm::Llm;
 use tellfold_models::text::{py_prefix, py_strip};
@@ -31,8 +31,7 @@ use tellfold_study::compare::{build_compare, Member};
 
 use crate::args::{py_repr, Parsed, UsageError};
 use crate::llm::{fake_mode, make_llm, resolve_runtimes};
-use crate::paths::{as_uri, py_os_error, py_path, py_resolve};
-use crate::serve::{expanduser, os_error_text};
+use crate::paths::{as_uri, expanduser, py_os_error, py_path, py_resolve, read_material_path};
 use crate::term::{Overflow, Table, Text};
 use crate::ui::Console;
 use crate::view::{on_event, RunView};
@@ -299,19 +298,6 @@ fn material_file(given: &str) -> Result<MaterialFile, String> {
     Ok(MaterialFile { name, kind: kind.map(str::to_string), column: column.map(str::to_string), bytes })
 }
 
-/// The name and contents of a material file on disk, held to the size limit for one file. The CLI and the MCP
-/// tools both read material through it.
-pub(crate) fn read_material_path(path: &Path) -> Result<(String, Vec<u8>), String> {
-    let shown = path.display().to_string();
-    let size = std::fs::metadata(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
-    if size > MAX_MATERIAL_FILE_BYTES as u64 {
-        return Err(format!("{shown} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20));
-    }
-    let bytes = std::fs::read(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
-    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "material.txt".into());
-    Ok((name, bytes))
-}
-
 /// The material a command was given, read and redacted; None without any.
 fn given_material(
     con: &Console,
@@ -342,15 +328,14 @@ pub fn material(con: &Console, p: &Parsed) -> Done {
         return Err(fail(con, "give at least one KIND:FILE"));
     };
     if p.flag("json") {
-        let mut body = serde_json::to_value(&material).unwrap_or_default();
-        body["estimated_calls"] = serde_json::json!(material_calls_for(&material.summary));
-        con.write(&format!("{}\n", serde_json::to_string_pretty(&body).unwrap_or_default()));
+        con.write(&format!("{}\n", serde_json::to_string_pretty(&material.preview()).unwrap_or_default()));
         return Ok(());
     }
     material_overview(con, &material);
     for file in &material.files {
         let column = file.column.as_deref().map(|c| format!(", column {c:?}")).unwrap_or_default();
-        con.write(&format!("  {}: {}{column}\n", file.name, tellfold_models::material_noun(&file.kind, file.items)));
+        let items = tellfold_models::material_noun(&file.kind, file.items);
+        con.write(&format!("  {} ({}): {items}{column}\n", file.label, file.name));
     }
     con.line();
     for item in &material.items {

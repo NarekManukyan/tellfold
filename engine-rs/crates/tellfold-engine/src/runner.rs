@@ -20,7 +20,7 @@ use tellfold_llm::{Llm, LlmError};
 use tellfold_models::log;
 use tellfold_models::text::py_prefix;
 use tellfold_models::{
-    BatchRef, FailedBatch, KnowledgeGraph, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
+    BatchRef, FailedBatch, KnowledgeGraph, MaterialSummary, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
 };
 use tellfold_store::estimate::estimate_calls;
 use tellfold_store::files::{
@@ -31,7 +31,7 @@ use tellfold_store::world::{World, WorldError};
 
 use crate::engine::{Engine, EngineError};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
-use crate::material::{cluster, count_kinds, load_material, read_items};
+use crate::material::{cluster, count_kinds, load_material, read_items, Cluster, StoredMaterial};
 use crate::personas::{generate_cast, CastPlan, Ground};
 
 /// `status.pause` while a `review_cast` run waits for its cast to be confirmed.
@@ -329,11 +329,11 @@ pub async fn run_pipeline(
     result
 }
 
-/// The cast of a run with audience material: the planner reads the items, they are clustered, and the public is
-/// written from them. The config (written back to the run folder) then records only what was read, so the report
-/// and the run's status never claim more: when nothing could be read, the run has no material at all. None when the
-/// run was stopped meanwhile.
-async fn grounded_cast(
+/// The new cast of a run. With audience material, the planner reads the items, they are clustered, and the public
+/// is written from them; the config (written back to the run folder) then records only what was read, so the
+/// report and the run's status never claim more: when nothing could be read, the run has no material at all. None
+/// when the run was stopped meanwhile.
+async fn cast_people(
     llm: &dyn Llm,
     graph: &KnowledgeGraph,
     config: &mut SimConfig,
@@ -341,6 +341,42 @@ async fn grounded_cast(
     track: &Tracker<'_>,
     stopping: &dyn Fn() -> bool,
 ) -> Result<Option<Vec<Persona>>, PipelineError> {
+    let mut grounded = None;
+    if config.material.is_some() {
+        let Some(read) = read_material_items(llm, graph, config, run_dir, track, stopping).await? else {
+            return Ok(None);
+        };
+        grounded = read;
+    } else {
+        track.stage(
+            RunStage::Personas,
+            &format!("creating {} personas", config.num_agents),
+            json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
+        )?;
+    }
+    let n = config.num_agents.max(0) as usize;
+    let ground = grounded.as_ref().map(|g| Ground { items: &g.material.items, clusters: &g.clusters });
+    let plan = CastPlan { fair: config.fair_turns, ground };
+    let cast = generate_cast(llm, graph, &config.question, n, &config.planner_model, &config.language, plan).await?;
+    Ok(Some(cast))
+}
+
+/// A run's audience material and its clusters, as read by the planner.
+struct Grounded {
+    material: StoredMaterial,
+    clusters: Vec<Cluster>,
+}
+
+/// Reads the run's audience material with the planner and clusters it, recording in the config what was read.
+/// Some(None) when nothing could be read; None when the run was stopped.
+async fn read_material_items(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    config: &mut SimConfig,
+    run_dir: &Path,
+    track: &Tracker<'_>,
+    stopping: &dyn Fn() -> bool,
+) -> Result<Option<Option<Grounded>>, PipelineError> {
     let material = load_material(run_dir).map_err(|e| PipelineError::Other(e.0))?;
     track.stage(
         RunStage::Personas,
@@ -357,37 +393,32 @@ async fn grounded_cast(
         track.finish_stopped()?;
         return Ok(None);
     }
+    if read.len() < material.items.len() {
+        // what the people are built from: the items read, or no material at all
+        config.material = config.material.take().filter(|_| !read.is_empty()).map(|summary| MaterialSummary {
+            read: Some(count_kinds(read.iter().map(|r| material.items[r.index].kind.as_str()))),
+            ..summary
+        });
+        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
+    }
     if read.is_empty() {
         log::warning(LOGGER, "no item of the audience material could be read; the cast is planned without it");
         track.detail(
             &format!("could not read your material: creating {} personas without it", config.num_agents),
             json!({"material_read": 0}),
         )?;
-        config.material = None;
-    } else {
-        track.detail(
-            &format!(
-                "creating {} personas from {} items in {} groups of your material",
-                config.num_agents,
-                read.len(),
-                clusters.len()
-            ),
-            json!({"material_read": read.len(), "clusters": clusters.len()}),
-        )?;
-        if let Some(summary) = config.material.as_mut() {
-            summary.counts = count_kinds(read.iter().map(|r| material.items[r.index].kind.as_str()));
-            summary.items = read.len() as i64;
-            summary.unread = (material.items.len() - read.len()) as i64;
-        }
+        return Ok(Some(None));
     }
-    if read.len() < material.items.len() {
-        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
-    }
-    let n = config.num_agents.max(0) as usize;
-    let ground = (!read.is_empty()).then_some(Ground { items: &material.items, clusters: &clusters });
-    let plan = CastPlan { fair: config.fair_turns, ground };
-    let cast = generate_cast(llm, graph, &config.question, n, &config.planner_model, &config.language, plan).await?;
-    Ok(Some(cast))
+    track.detail(
+        &format!(
+            "creating {} personas from {} items in {} groups of your material",
+            config.num_agents,
+            read.len(),
+            clusters.len()
+        ),
+        json!({"material_read": read.len(), "clusters": clusters.len()}),
+    )?;
+    Ok(Some(Some(Grounded { material, clusters })))
 }
 
 async fn pipeline(
@@ -494,23 +525,10 @@ async fn pipeline(
                 track.finish_stopped()?;
                 return Ok(None);
             }
-            let n = config.num_agents.max(0) as usize;
-            if config.material.is_some() {
-                let Some(cast) = grounded_cast(llm, &graph, &mut config, run_dir, track, &stopping).await? else {
-                    return Ok(None);
-                };
-                personas = cast;
-            } else {
-                track.stage(
-                    RunStage::Personas,
-                    &format!("creating {} personas", config.num_agents),
-                    json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
-                )?;
-                let plan = CastPlan { fair: config.fair_turns, ground: None };
-                personas =
-                    generate_cast(llm, &graph, &config.question, n, &config.planner_model, &config.language, plan)
-                        .await?;
-            }
+            let Some(cast) = cast_people(llm, &graph, &mut config, run_dir, track, &stopping).await? else {
+                return Ok(None);
+            };
+            personas = cast;
             write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
         }
         if stopping() {

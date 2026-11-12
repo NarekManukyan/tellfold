@@ -51,7 +51,7 @@ nonisolated enum SizePreset: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// How the user gives the crowd its material.
+/// How the user gives the crowd its documents.
 nonisolated enum AboutMode: String, CaseIterable, Identifiable, Sendable {
     case describe, files
 
@@ -228,7 +228,7 @@ nonisolated enum NewSimulationRules {
     /// On "Run again…" of a run built from audience material: Tellfold keeps only the cleaned text in the run, not the
     /// files, so the user adds them again.
     static func materialAgainNote(_ material: MaterialSummary) -> String {
-        "The last run was built from \(MaterialText.counts(material.counts)). Add the material again to build the crowd "
+        "The last run was built from \(MaterialText.counts(material.readCounts)). Add the material again to build the crowd "
             + "from it."
     }
 

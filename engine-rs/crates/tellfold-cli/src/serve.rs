@@ -14,7 +14,7 @@ use tellfold_server::{create_app, log, AppOptions, LlmFactory, ManagerOptions};
 use crate::args::Parsed;
 use crate::commands::{Done, Exit};
 use crate::llm::{fake_mode, make_llm};
-use crate::paths::py_resolve;
+use crate::paths::{expanduser, os_error_text, py_resolve};
 use crate::ui::Console;
 
 /// `serve` hard-exits this long after stdin closes / after the server stops, if something stuck keeps the process
@@ -29,14 +29,6 @@ pub(crate) fn llm_factory() -> LlmFactory {
     Arc::new(|run_dir: Option<&Path>, concurrency: i64, think: bool| make_llm(run_dir, concurrency, think, None))
 }
 
-/// `Path.expanduser()`, `~name/...` included.
-pub(crate) fn expanduser(path: &Path) -> PathBuf {
-    match path.to_str() {
-        Some(text) => tellfold_runtimes::settings::expand_user(text),
-        None => path.to_path_buf(),
-    }
-}
-
 /// Kills live agent CLIs and ends the process unless it has exited on its own after `after`.
 pub(crate) fn exit_later(after: Duration) {
     std::thread::spawn(move || {
@@ -45,14 +37,6 @@ pub(crate) fn exit_later(after: Duration) {
         let _ = std::io::stderr().flush();
         std::process::exit(0);
     });
-}
-
-/// Python's `str(OSError)`: `[Errno N] message`.
-pub(crate) fn os_error_text(e: &std::io::Error) -> String {
-    match e.raw_os_error() {
-        Some(code) => format!("[Errno {code}] {}", tellfold_server::upload::strerror(e)),
-        None => e.to_string(),
-    }
 }
 
 /// `--examples` as a folder, or None (with a warning) when it is not one.

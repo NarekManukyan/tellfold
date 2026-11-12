@@ -92,13 +92,13 @@ each of those after checking the citations.
 strongly held views are not left idle), `audience` (the name of the saved audience the people came from) and
 `material` (a **MaterialSummary** of the audience material the people were built from).
 
-**MaterialSummary**: `items` (how many items the people were built from), `counts` (those items by kind, e.g.
-`{"reviews": 14, "survey": 3}`; kinds are `reviews`, `survey`, `emails`, `comments` and `notes`), `dropped` (items
-left out by the cap), `redacted` (how many of each were hidden in the kept items: `names`, `emails`, `phones`,
-`addresses`, `numbers`, `links`), `files` (a neutral label per file, such as `"reviews 1"`; file names are never
-stored) and, only when some were, `unread` (items the planner could not read when the run started; `items` and
-`counts` then cover only the ones it read). A run whose material could not be read at all has no `material`. The
-cleaned items themselves are in the run's `material.json`.
+**MaterialSummary** describes what was sent: `items` (how many items), `counts` (those items by kind, e.g.
+`{"reviews": 14, "survey": 3}`; kinds are `reviews`, `survey`, `emails`, `comments` and `notes`), `dropped` (distinct
+items the cap left out before they were looked at), `redacted` (how many of each were hidden in the items sent:
+`names`, `emails`, `phones`, `addresses`, `numbers`, `links`) and `files` (a neutral label per file, such as
+`"reviews 1"`; file names are never stored). Only when the planner could read fewer items than were sent, `read`
+holds the items it read, by kind: the people were built from those, and the report names them. A run whose material
+could not be read at all has no `material`. The cleaned items themselves are in the run's `material.json`.
 
 **Persona**: `id` (`"a03"`), `handle`, `name`, `bio`, `background`, `stance`, `traits`, `activity` (0-1),
 `influence` (0-1), `entity_id`, and, only when known, `camp` (`strong_support`, `lean_support`, `undecided`,
@@ -208,9 +208,10 @@ picks the column to read, by header or by 1-based number; without it the column 
 column is ever read. A spreadsheet with a quote that never closes is refused with 400 naming its line, since the rest
 of the file, other columns included, would otherwise be read as one answer.
 
-Limits: 300 items at most (duplicates are dropped and a larger set is sampled evenly before anything is redacted, and
-`dropped` says how many were left out), 600 characters
-per item, and items under 12 characters are skipped. Fewer than 30 items adds a warning (a few voices will shape the
+Limits: 300 items at most, 600 characters per item, and items under 12 characters are skipped. Repeats are dropped,
+then items are redacted in an even sample across the files until 300 distinct ones are kept; `dropped` counts the
+ones never looked at, and a warning says so. Items that only differ in a hidden detail (two names, one complaint)
+count once. Fewer than 30 items adds a warning (a few voices will shape the
 whole crowd), and so do fewer items than people (some people share quotes).
 
 ```sh

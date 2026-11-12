@@ -34,8 +34,8 @@ use tellfold_server::{create_app, log, AppOptions, ManagerOptions};
 use crate::args::Parsed;
 use crate::commands::{Done, Exit};
 use crate::llm::fake_mode;
-use crate::paths::py_resolve;
-use crate::serve::{bind, examples_folder, exit_later, expanduser, llm_factory, os_error_text, run_server};
+use crate::paths::{expanduser, os_error_text, py_resolve, read_material_path};
+use crate::serve::{bind, examples_folder, exit_later, llm_factory, run_server};
 use crate::ui::Console;
 use crate::VERSION;
 
@@ -238,7 +238,7 @@ fn collect_material(given: &[MaterialIn], hide: &[String]) -> Result<Option<Mate
         if !path.is_file() {
             return Err(format!("{}: no such file (relative paths start at {})", entry.file, cwd_text()));
         }
-        let (name, bytes) = crate::commands::read_material_path(&path)?;
+        let (name, bytes) = read_material_path(&path)?;
         files.push(Seed { name, bytes });
         spec.push(json!({"kind": entry.kind, "column": entry.column}));
     }
@@ -416,7 +416,7 @@ fn run_status(detail: &Value) -> Value {
         }
     }
     if let Ok(material) = serde_json::from_value::<tellfold_models::MaterialSummary>(config["material"].clone()) {
-        out["grounded_in"] = json!(tellfold_models::material_counts_text(&material.counts));
+        out["grounded_in"] = json!(tellfold_models::material_counts_text(material.based_on()));
     }
     copy_read_only_flags(detail, out.as_object_mut().expect("an object"));
     out
@@ -504,7 +504,9 @@ const COMPARE_DRAFTS: &str = "Compare two versions of a text on the same crowd: 
 draft B is shown to the same people with the same settings, and a cited comparison is written once both finish. \
 Returns the run ids at once; follow with get_study. While draft A is still making its people, run_b and study_id are \
 null and draft B starts later from this MCP session, so keep the session open until get_study (with run_id set to \
-run_a) returns a study_id.";
+run_a) returns a study_id. With material (the user's reviews, survey answers, support emails, social comments or \
+meeting notes) and hide, draft A's crowd is built from what real people said: call preview_material first and show \
+the user what would be sent. Material builds a new crowd, so it cannot be used with baseline_run_id.";
 const GET_STUDY: &str = "A study: the runs of compare_drafts with their cited comparison, or the repeats of check_run \
 with what held across them. ready is true once every run has ended and the result covers them all; error says why \
 a result will not be written (e.g. fewer than two runs have a report). wait_seconds waits for either, and for a draft \
@@ -597,7 +599,8 @@ pub struct StartSimulation {
 
 #[derive(Debug, Clone, Deserialize, JsonSchema)]
 pub struct MaterialIn {
-    /// A .txt, .md, .csv, .tsv or .eml file. Relative paths start at the folder the MCP server runs in.
+    /// A .txt, .md, .markdown, .csv, .tsv or .eml file. Relative paths start at the folder the MCP server runs in,
+    /// and ~/ is your home folder.
     pub file: String,
     /// "reviews", "survey", "emails", "comments" or "notes". Optional for .eml (emails) and .csv/.tsv (survey).
     #[serde(default)]
@@ -1303,7 +1306,11 @@ impl Tellfold {
         if p.draft_b.trim().is_empty() {
             return fail("draft_b is required");
         }
-        let run_a = match p.baseline_run_id.as_deref().filter(|r| !r.trim().is_empty()) {
+        let baseline = p.baseline_run_id.as_deref().filter(|r| !r.trim().is_empty());
+        if baseline.is_some() && !p.material.is_empty() {
+            return fail("material builds a new crowd: leave out baseline_run_id");
+        }
+        let run_a = match baseline {
             Some(run_a) => run_a.to_string(),
             None => {
                 let Some(question) = p.question.as_deref().filter(|q| !q.trim().is_empty()) else {

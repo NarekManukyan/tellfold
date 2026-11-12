@@ -170,6 +170,12 @@ fn preview_material_then_a_grounded_run() {
     let people = client.call("list_people", json!({"run_id": run_id}))["structuredContent"].clone();
     let grounded = people["people"].as_array().unwrap().iter().filter(|p| p["based_on"].is_string()).count();
     assert!(grounded > 0, "{people}");
+    // a baseline reuses its crowd, so material cannot be added to it
+    let error = client.call_error(
+        "compare_drafts",
+        json!({"baseline_run_id": run_id, "draft_b": "Another draft.", "material": material}),
+    );
+    assert!(error.contains("leave out baseline_run_id"), "{error}");
 }
 
 #[test]

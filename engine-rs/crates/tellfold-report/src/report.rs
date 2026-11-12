@@ -341,7 +341,7 @@ pub fn grounding_caveat(material: &tellfold_models::MaterialSummary) -> String {
         "The public is based on {} you supplied. Before any of it was sent to the model, {} were removed on this \
 computer; a name those rules do not know can remain. The people are still simulated: they echo that material, they \
 are not its authors.",
-        tellfold_models::material_counts_text(&material.counts),
+        tellfold_models::material_counts_text(material.based_on()),
         tellfold_models::REDACTION_TEXT
     )
 }

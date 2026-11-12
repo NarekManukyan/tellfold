@@ -707,6 +707,9 @@ fn material_read_in_part_counts_only_what_was_read() {
     });
     let (_tmp, _run_dir, saved) = grounded_run(&llm);
     let material = saved.material.unwrap();
-    assert_eq!((material.items, material.unread), (1, 2));
-    assert_eq!(material.counts.iter().map(|(k, n)| (k.as_str(), *n)).collect::<Vec<_>>(), [("reviews", 1)]);
+    // what was sent stays as it was; `read` says what the people were built from
+    assert_eq!(material.items, 3);
+    let read = material.read.as_ref().unwrap();
+    assert_eq!(read.iter().map(|(k, n)| (k.as_str(), *n)).collect::<Vec<_>>(), [("reviews", 1)]);
+    assert_eq!(tellfold_models::material_counts_text(material.based_on()), "1 review");
 }

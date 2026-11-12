@@ -51,7 +51,7 @@ struct NewSimulationTests {
         #expect(reason(d: long, engine: false) == "Waiting for the engine to start")
         #expect(reason(d: long, runtime: true) == "Fix the runtime above")
         #expect(reason(d: long, models: false) == "Choose a model in Advanced")
-        // The question comes first, then the material.
+        // The question comes first, then the documents.
         #expect(reason(q: "") == "Add a question")
     }
 

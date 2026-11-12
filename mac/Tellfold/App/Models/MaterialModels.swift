@@ -126,17 +126,24 @@ nonisolated struct MaterialSummary: Codable, Hashable, Sendable {
     var dropped: Int = 0
     var redacted: [String: Int] = [:]
     var files: [String] = []
+    /// What was sent stays as it is; this is only present when the planner could read fewer items than were sent, and
+    /// then holds the items by kind the people were actually built from.
+    var read: [String: Int]?
+
+    /// The items by kind the crowd was built from: what the planner read when that was less than what was sent.
+    var readCounts: [String: Int] { read ?? counts }
 
     /// "Based on 14 reviews and 3 survey answers".
-    var basedOn: String { "Based on \(MaterialText.counts(counts))" }
+    var basedOn: String { "Based on \(MaterialText.counts(readCounts))" }
 
     init(items: Int = 0, counts: [String: Int] = [:], dropped: Int = 0, redacted: [String: Int] = [:],
-         files: [String] = []) {
+         files: [String] = [], read: [String: Int]? = nil) {
         self.items = items
         self.counts = counts
         self.dropped = dropped
         self.redacted = redacted
         self.files = files
+        self.read = read
     }
 
     init(from decoder: any Decoder) throws {
@@ -146,6 +153,7 @@ nonisolated struct MaterialSummary: Codable, Hashable, Sendable {
         dropped = c.value(.dropped, default: 0)
         redacted = c.value(.redacted, default: [:])
         files = c.value(.files, default: [])
+        read = c.optional(.read)
     }
 }
 
@@ -315,8 +323,9 @@ nonisolated enum GroundingText {
 }
 
 extension RunDetail {
-    /// Built from the user's audience material: its config says so, or a person was written from it.
+    /// Built from the user's audience material: a person carries the quotes they were written from (an edited person
+    /// keeps them, and an audience from the API can have such people without a `config.material`).
     var isGrounded: Bool {
-        config.material != nil || personas.contains { PersonaSource($0) == .material }
+        personas.contains { !($0.grounding?.quotes.isEmpty ?? true) }
     }
 }

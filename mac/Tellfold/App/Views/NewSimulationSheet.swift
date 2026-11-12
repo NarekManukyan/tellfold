@@ -41,7 +41,7 @@ struct NewSimulationSheet: View {
     @State private var runtimesChosen = false
     @AppStorage("newSimulation.advancedOpen") private var advancedOpen = false
     @AppStorage("newSimulation.reviewCast") private var reviewCast = false
-    /// The saved audience to start from; nil casts new people from the material.
+    /// The saved audience to start from; nil casts new people from the documents.
     @State private var audienceID: String?
     @State private var showsAudiences = false
     /// The user's own audience material, what the engine would send of it, and how reading it went.
@@ -172,13 +172,13 @@ struct NewSimulationSheet: View {
 
     private var aboutStep: some View {
         FormStep(title: "What is it about?", helper: "The simulated crowd only knows what you give it here.") {
-            Picker("Material", selection: $aboutMode) {
+            Picker("Documents", selection: $aboutMode) {
                 ForEach(AboutMode.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
             .fixedSize()
-            .accessibilityLabel("How to give it material")
+            .accessibilityLabel("How to give it documents")
 
             if !missingSeedNames.isEmpty && allFiles.isEmpty && descriptionText.isEmpty {
                 Text("Add the documents again. The last run used \(missingSeedNames.joined(separator: ", ")).")
@@ -385,7 +385,7 @@ struct NewSimulationSheet: View {
             HStack(spacing: Theme.space2) {
                 Text("People").font(Theme.body).foregroundStyle(Theme.secondary)
                 Picker("People", selection: $audienceID) {
-                    Text("Cast new people from the material").tag(String?.none)
+                    Text("Cast new people from the documents").tag(String?.none)
                     if !model.audiences.audiences.isEmpty {
                         Divider()
                         ForEach(model.audiences.audiences) { saved in
@@ -702,7 +702,7 @@ struct NewSimulationSheet: View {
                 && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos))
     }
 
-    /// The model-call estimate under the summary; nil until there is material to estimate from.
+    /// The model-call estimate under the summary; nil until there are documents to estimate from.
     private var costLine: String? {
         let text = NewSimulationRules.trimmed(descriptionText)
         guard NewSimulationRules.hasSeeds(description: text, fileCount: allFiles.count),

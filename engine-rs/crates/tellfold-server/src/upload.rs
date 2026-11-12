@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use axum::extract::multipart::MultipartError;
 use axum::extract::{FromRequest, Multipart, Request};
 use axum::http::header;
+use indexmap::IndexMap;
 use regex::Regex;
 use serde_json::{json, Value};
 use unicode_normalization::UnicodeNormalization;
@@ -351,12 +352,16 @@ struct Audience {
 /// names no item.
 fn checked_summary(summary: MaterialSummary) -> Option<MaterialSummary> {
     let cap = MAX_ITEMS as i64;
-    let mut checked = MaterialSummary {
-        counts: MATERIAL_KINDS
+    let known = |counts: &IndexMap<String, i64>| -> IndexMap<String, i64> {
+        MATERIAL_KINDS
             .iter()
-            .filter_map(|k| summary.counts.get(*k).map(|n| (k.to_string(), (*n).clamp(0, cap))))
+            .filter_map(|k| counts.get(*k).map(|n| (k.to_string(), (*n).clamp(0, cap))))
             .filter(|(_, n)| *n > 0)
-            .collect(),
+            .collect()
+    };
+    let mut checked = MaterialSummary {
+        counts: known(&summary.counts),
+        read: summary.read.as_ref().map(known).filter(|r| !r.is_empty()),
         ..Default::default()
     };
     checked.items = checked.counts.values().sum::<i64>().min(cap);
@@ -373,13 +378,7 @@ fn checked_summary(summary: MaterialSummary) -> Option<MaterialSummary> {
         .take(MAX_MATERIAL_FILES)
         .map(|f| py_split(f).collect::<Vec<_>>().join(" ").chars().take(40).collect())
         .collect();
-    Some(MaterialSummary {
-        dropped: summary.dropped.clamp(0, 1_000_000),
-        redacted,
-        files,
-        unread: summary.unread.clamp(0, cap),
-        ..checked
-    })
+    Some(MaterialSummary { dropped: summary.dropped.clamp(0, 1_000_000), redacted, files, ..checked })
 }
 
 /// Longest audience name kept in `config.audience`.
@@ -440,6 +439,10 @@ pub fn material_field(form: &Form, agents: Option<i64>) -> Result<Option<Materia
     for (i, (filename, data)) in files.into_iter().enumerate() {
         let spec = specs.get(i);
         let name = safe_filename(if filename.is_empty() { "material.txt" } else { &filename }, &mut taken);
+        // refused before it is read into memory
+        if data.size > MAX_MATERIAL_FILE_BYTES {
+            return Err(ApiError::new(400, format!("{name} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20)));
+        }
         let bytes = data.bytes().map_err(ApiError::internal)?;
         material_files.push(MaterialFile {
             name,
@@ -461,9 +464,7 @@ pub async fn preview_material(app: AppState, request: Request) -> ApiResult {
     let Some(material) = material else {
         return Err(ApiError::new(400, "add at least one file of audience material"));
     };
-    let mut body = serde_json::to_value(&material).map_err(ApiError::internal)?;
-    body["estimated_calls"] = json!(tellfold_store::estimate::material_calls_for(&material.summary));
-    Ok(ok_json(&body))
+    Ok(ok_json(&material.preview()))
 }
 
 fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {

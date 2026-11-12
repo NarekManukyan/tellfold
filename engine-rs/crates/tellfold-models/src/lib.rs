@@ -190,14 +190,17 @@ pub struct MaterialSummary {
     /// preview.
     #[serde(default)]
     pub files: Vec<String>,
-    /// Items the planner model could not read when the run started (a failed call, an unknown camp); `items` and
-    /// `counts` then cover only the items that were read.
-    #[serde(default, skip_serializing_if = "is_zero")]
-    pub unread: i64,
+    /// Only when the planner model could read fewer items than were sent (a failed call, an unknown camp): the items
+    /// it read, by kind. The people were built from these; every other field still describes what was sent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub read: Option<IndexMap<String, i64>>,
 }
 
-fn is_zero(n: &i64) -> bool {
-    *n == 0
+impl MaterialSummary {
+    /// The items the people were built from, by kind: [`MaterialSummary::read`] when set, else every item sent.
+    pub fn based_on(&self) -> &IndexMap<String, i64> {
+        self.read.as_ref().unwrap_or(&self.counts)
+    }
 }
 
 impl Persona {

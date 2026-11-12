@@ -17,7 +17,7 @@ use tellfold_llm::ingest::decode_text;
 use tellfold_llm::{json, Llm};
 use tellfold_models::text::py_strip;
 use tellfold_models::{material_counts_text, MaterialSummary, MATERIAL_KINDS};
-use tellfold_store::estimate::MATERIAL_ITEMS_PER_CALL;
+use tellfold_store::estimate::{material_calls_for, MATERIAL_ITEMS_PER_CALL};
 use tellfold_store::files::write_json;
 
 use crate::personas::CAMPS;
@@ -97,6 +97,16 @@ pub struct Material {
     pub thin: bool,
 }
 
+impl Material {
+    /// What a preview answers (the API's `/api/material/preview`, `tellfold material --json`): the material, and
+    /// `estimated_calls`, the extra planner calls reading it costs.
+    pub fn preview(&self) -> serde_json::Value {
+        let mut body = serde_json::to_value(self).expect("material serializes");
+        body["estimated_calls"] = serde_json::json!(material_calls_for(&self.summary));
+        body
+    }
+}
+
 /// `material.json`: the summary and the redacted items.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StoredMaterial {
@@ -140,8 +150,8 @@ fn suffix(name: &str) -> String {
 /// Reads, splits, redacts and caps the material. `hide` are extra words or phrases to hide as names (staff, pupils,
 /// customers the fixed rules would miss). `agents`, when known, warns when there are few items per person.
 ///
-/// The pieces of every file are deduplicated and sampled down to [`MAX_ITEMS`] first, so only what is kept is
-/// redacted: a large export costs no more than a small one.
+/// Pieces that say the same thing are dropped first, then pieces are redacted in an even sample across the files
+/// until [`MAX_ITEMS`] distinct ones are kept, so a large export costs no more than a small one.
 pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64>) -> Result<Material, MaterialError> {
     if files.is_empty() {
         return Err(MaterialError("add at least one file of audience material".into()));
@@ -152,9 +162,11 @@ pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64
     if hide.len() > MAX_HIDE_WORDS {
         return Err(MaterialError(format!("at most {MAX_HIDE_WORDS} words to hide")));
     }
+    let redactor =
+        Redactor::new(hide).map_err(|e| MaterialError(format!("the words to hide could not be used: {e}")))?;
     let mut reports = Vec::new();
     let mut pieces: Vec<Piece> = Vec::new();
-    let mut seen: HashSet<String> = HashSet::new();
+    let mut seen: HashSet<u64> = HashSet::new();
     let mut per_kind: IndexMap<String, usize> = IndexMap::new();
     let mut warnings = Vec::new();
     for file in files {
@@ -166,10 +178,10 @@ pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64
         for raw in read.pieces {
             // a cheap look before redaction: too short, or the same words as an earlier piece
             let Some(tidy) = tidy_item(&raw) else { continue };
-            if !seen.insert(tidy.to_lowercase()) {
+            if !seen.insert(text_hash(&tidy)) {
                 continue;
             }
-            pieces.push(Piece { kind: read.kind.clone(), label: label.clone(), text: raw });
+            pieces.push(Piece { file: reports.len(), text: raw });
             kept += 1;
         }
         if kept == 0 {
@@ -184,34 +196,37 @@ pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64
             column: read.column,
         });
     }
-    if pieces.is_empty() {
+    let chosen = choose_items(&pieces, &reports, &redactor);
+    if chosen.items.is_empty() {
         return Err(MaterialError("no usable text in the audience material".into()));
     }
-    let total = pieces.len();
-    let (items, redacted) = redact_pieces(sample_evenly(pieces, MAX_ITEMS), hide);
-    if items.is_empty() {
-        return Err(MaterialError("no usable text in the audience material".into()));
-    }
+    let items = chosen.items;
     let counts = count_kinds(items.iter().map(|i| i.kind.as_str()));
-    let dropped = (total - items.len()) as i64;
     let thin = items.len() < THIN_ITEMS;
-    warnings.extend(size_warnings(items.len(), total, &counts, agents));
+    warnings.extend(size_warnings(items.len(), chosen.dropped, &counts, agents));
     let summary = MaterialSummary {
         items: items.len() as i64,
         counts,
-        dropped,
-        redacted,
+        dropped: chosen.dropped as i64,
+        redacted: chosen.redacted,
         files: reports.iter().map(|r| r.label.clone()).collect(),
-        unread: 0,
+        read: None,
     };
     Ok(Material { summary, files: reports, items, warnings, thin })
 }
 
-/// One piece of a file, before redaction.
+/// One piece of a file, before redaction: the file's index in the reports, and its text.
 struct Piece {
-    kind: String,
-    label: String,
+    file: usize,
     text: String,
+}
+
+/// A piece's text, lower case, as a hash: enough to tell repeats apart without keeping a copy of every piece.
+fn text_hash(text: &str) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    text.to_lowercase().hash(&mut hasher);
+    hasher.finish()
 }
 
 /// What one file holds, split into pieces.
@@ -262,52 +277,71 @@ answer; fix that row or export the file again",
     Ok(ReadFile { kind, pieces, columns: Vec::new(), column: None })
 }
 
-/// At most `cap` of `all`, evenly across them in their order, so every file keeps its share.
-fn sample_evenly<T>(all: Vec<T>, cap: usize) -> Vec<T> {
-    let total = all.len();
+/// The order pieces are looked at in: `cap` of the `total` evenly across them (so every file keeps its share),
+/// then the rest in order, to refill what redaction turns into repeats.
+fn sample_order(total: usize, cap: usize) -> Vec<usize> {
     if total <= cap {
-        return all;
+        return (0..total).collect();
     }
-    let keep: HashSet<usize> = (0..cap).map(|i| i * total / cap).collect();
-    all.into_iter().enumerate().filter(|(i, _)| keep.contains(i)).map(|(_, p)| p).collect()
+    let first: Vec<usize> = (0..cap).map(|i| i * total / cap).collect();
+    let picked: HashSet<usize> = first.iter().copied().collect();
+    first.into_iter().chain((0..total).filter(|i| !picked.contains(i))).collect()
 }
 
-/// The kept pieces redacted, tidied and numbered, and what was hidden in them. A piece that redacts to the same
-/// text as an earlier one (two names, one complaint) is left out.
-fn redact_pieces(pieces: Vec<Piece>, hide: &[String]) -> (Vec<MaterialItem>, Redactions) {
-    let redactor = Redactor::new(hide);
+/// The items chosen from the pieces, and what choosing them took.
+struct Chosen {
+    items: Vec<MaterialItem>,
+    /// what was hidden in the chosen items
+    redacted: Redactions,
+    /// distinct pieces left out because the cap was reached before they were looked at
+    dropped: usize,
+}
+
+/// Redacts pieces in [`sample_order`] until [`MAX_ITEMS`] distinct ones are kept or none are left. A piece that
+/// redacts to the text of one kept before (two names, one complaint) or to too little is passed over, so it never
+/// counts as dropped by the cap. The items keep the pieces' order and are numbered in it.
+fn choose_items(pieces: &[Piece], reports: &[FileReport], redactor: &Redactor) -> Chosen {
     let mut redacted = empty_counts();
-    let mut seen: HashSet<String> = HashSet::new();
-    let mut kept: Vec<(Piece, String)> = Vec::new();
-    for piece in pieces {
-        let (clean, counts) = redactor.redact(&piece.text);
+    let mut seen: HashSet<u64> = HashSet::new();
+    let mut kept: Vec<(usize, String)> = Vec::new();
+    let mut looked = 0;
+    for i in sample_order(pieces.len(), MAX_ITEMS) {
+        if kept.len() == MAX_ITEMS {
+            break;
+        }
+        looked += 1;
+        let (clean, counts) = redactor.redact(&pieces[i].text);
         let Some(text) = tidy_item(&clean) else { continue };
-        if !seen.insert(text.to_lowercase()) {
+        if !seen.insert(text_hash(&text)) {
             continue;
         }
         add_counts(&mut redacted, &counts);
-        kept.push((piece, text));
+        kept.push((i, text));
     }
+    kept.sort_by_key(|(i, _)| *i);
     let width = kept.len().to_string().len().max(3);
     let items = kept
         .into_iter()
         .enumerate()
-        .map(|(i, (piece, text))| MaterialItem {
-            id: format!("m{:0width$}", i + 1),
-            kind: piece.kind,
-            file: piece.label,
-            text,
+        .map(|(n, (i, text))| {
+            let report = &reports[pieces[i].file];
+            MaterialItem {
+                id: format!("m{:0width$}", n + 1),
+                kind: report.kind.clone(),
+                file: report.label.clone(),
+                text,
+            }
         })
         .collect();
-    (items, redacted)
+    Chosen { items, redacted, dropped: pieces.len() - looked }
 }
 
-/// The size cap and thin material, in words.
-fn size_warnings(kept: usize, total: usize, counts: &IndexMap<String, i64>, agents: Option<i64>) -> Vec<String> {
+/// The size cap (when it left anything out) and thin material, in words.
+fn size_warnings(kept: usize, dropped: usize, counts: &IndexMap<String, i64>, agents: Option<i64>) -> Vec<String> {
     let mut warnings = Vec::new();
-    if total > kept {
+    if dropped > 0 {
         warnings.push(format!(
-            "Kept {kept} of {total} items, the most a run reads; the rest were left out evenly across your files."
+            "Kept {kept} items, the most a run reads; {dropped} more were left out evenly across your files."
         ));
     }
     if kept < THIN_ITEMS {
@@ -357,7 +391,9 @@ pattern!(
 pattern!(re_sent_from, r"(?im)^\s*sent from my .*$");
 pattern!(re_email_header, r"(?i)^(from|to|cc|bcc|date|sent|subject|reply-to|message-id|received):\s?(.*)$");
 pattern!(re_from_line, r"(?i)^\s*\*?from:\*?\s");
-pattern!(re_sent_line, r"(?i)^\s*\*?(?:sent|date):\*?\s");
+pattern!(re_sent_line, r"(?i)^\s*\*?sent:\*?\s");
+pattern!(re_date_line, r"(?i)^\s*\*?date:\*?\s");
+pattern!(re_header_from, r"(?i)^from:");
 pattern!(re_markdown_heading, r"^[ \t]*#{1,6}(?:[ \t]|$)");
 pattern!(re_html_breaks, r"(?i)<\s*(?:br|/p|/div|/li|/tr)\s*/?>");
 pattern!(re_html_tags, r"(?s)<[^>]*>");
@@ -430,10 +466,11 @@ pub fn split_items(text: &str, kind: &str, markdown: bool) -> Vec<String> {
 pub fn split_emails(text: &str, eml: bool) -> Vec<String> {
     let messages: Vec<String> = if eml {
         vec![eml_text(text)]
-    } else if text.lines().filter(|l| l.to_lowercase().starts_with("from:")).count() >= 2 {
+    } else if message_starts(text).iter().filter(|s| **s).count() >= 2 {
         let mut out: Vec<String> = Vec::new();
-        for line in text.lines() {
-            if line.to_lowercase().starts_with("from:") || out.is_empty() {
+        let starts = message_starts(text);
+        for (line, starts) in text.lines().zip(starts) {
+            if starts || out.is_empty() {
                 out.push(String::new());
             }
             let last = out.last_mut().expect("one message");
@@ -447,6 +484,22 @@ pub fn split_emails(text: &str, eml: bool) -> Vec<String> {
         vec![text.to_string()]
     };
     messages.iter().map(|m| email_body(m)).filter(|m| !m.trim().is_empty()).collect()
+}
+
+/// For every line of a text file of emails, whether it starts a message: a `From:` line that opens a header block of
+/// its own, not the `From:` of an Outlook-style quote (a `Sent:` line follows) or of a forwarded or quoted part (a
+/// marker line comes just before it).
+fn message_starts(text: &str) -> Vec<bool> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut after_marker = false;
+    let mut out = Vec::with_capacity(lines.len());
+    for i in 0..lines.len() {
+        out.push(re_header_from().is_match(lines[i]) && !after_marker && !quoted_header(&lines[i..], false));
+        if !lines[i].trim().is_empty() {
+            after_marker = re_quoted_reply().is_match(lines[i]);
+        }
+    }
+    out
 }
 
 /// A message's own words: header lines turned into the subject alone, everything from a quoted reply, a forwarded
@@ -469,7 +522,7 @@ fn email_body(message: &str) -> String {
             }
             in_headers = false;
         }
-        if line == "-- " || line == "--" || re_quoted_reply().is_match(line) || outlook_header(&all[i..]) {
+        if is_reply_start(&all[i..]) {
             break;
         }
         if line.trim_start().starts_with('>') || re_sent_from().is_match(line) {
@@ -485,10 +538,18 @@ fn email_body(message: &str) -> String {
     }
 }
 
-/// Whether `lines` start an Outlook-style quoted message: a `From:` line with a `Sent:` or `Date:` line among the
-/// next few.
-fn outlook_header(lines: &[&str]) -> bool {
-    re_from_line().is_match(lines[0]) && lines.iter().skip(1).take(3).any(|l| re_sent_line().is_match(l))
+/// Whether the body of a message stops at `rest[0]`: a signature, a quoted reply or forwarded part, or a quoted
+/// header block.
+fn is_reply_start(rest: &[&str]) -> bool {
+    let line = rest[0];
+    line == "-- " || line == "--" || re_quoted_reply().is_match(line) || quoted_header(rest, true)
+}
+
+/// Whether `lines` start a quoted header block: a `From:` line with a `Sent:` line (Outlook) among the next few, or
+/// with `date` also a `Date:` line.
+fn quoted_header(lines: &[&str], date: bool) -> bool {
+    let later = |l: &&str| re_sent_line().is_match(l) || (date && re_date_line().is_match(l));
+    re_from_line().is_match(lines[0]) && lines.iter().skip(1).take(3).any(later)
 }
 
 /// The readable text of an .eml message: its first text/plain part (else text/html without tags), decoded.
@@ -967,7 +1028,7 @@ On Tue, 3 Mar 2026, Support wrote:\n> We are looking into it\n";
         assert!(text.starts_with("Charged twice\nHi team,"), "{text}");
         assert!(text.contains("charged twice for order #A88213 — please fix"), "{text}");
         assert!(!text.contains("looking into it") && !text.contains("tamsin@"), "{text}");
-        let (clean, _) = crate::redact::redact(text);
+        let (clean, _) = Redactor::default().redact(text);
         assert!(!clean.contains("Tamsin") && !clean.contains("A88213"), "{clean}");
     }
 
@@ -1013,7 +1074,7 @@ Too expensive now, call me on +44 7700 900123.\n\nok\n\nToo expensive now, call 
         // item i of the 300 is item i * 400 / 300 of the 400
         assert_eq!(material.items[1].text, "Comment number 1 about the change");
         assert_eq!(material.items.last().unwrap().text, "Comment number 398 about the change");
-        assert!(material.warnings.iter().any(|w| w.starts_with("Kept 300 of 400")));
+        assert!(material.warnings.iter().any(|w| w.starts_with("Kept 300 items") && w.contains("100 more")));
     }
 
     #[test]
@@ -1073,6 +1134,18 @@ Subject: Re: refund\n\nWe are looking into it";
     }
 
     #[test]
+    fn a_text_file_of_emails_is_not_split_on_quoted_headers() {
+        let text = "From: a@x.com\nSubject: One\n\nStill waiting on my refund.\n\n\
+From: Support Team <help@x.com>\nSent: Monday, 3 March\nTo: a@x.com\nSubject: Re: refund\n\nWe are looking into it\n\
+From: b@x.com\nSubject: Two\n\nPlease bring back the yearly plan.\n\n\
+---------- Forwarded message ---------\nFrom: Carol <c@x.com>\nDate: Tue\n\nOld forwarded text\n";
+        let emails = split_emails(text, false);
+        assert_eq!(emails.len(), 2, "{emails:?}");
+        assert!(emails[0].contains("Still waiting") && !emails[0].contains("looking into it"), "{emails:?}");
+        assert!(emails[1].contains("yearly plan") && !emails[1].contains("forwarded text"), "{emails:?}");
+    }
+
+    #[test]
     fn html_loses_styles_scripts_and_entities() {
         let html = "<html><head><title>Hi</title><style>p { color: red }</style></head><body>\
 <script>track()</script><p>Caf&#233; prices &#x2014; too high &amp;lt;3</p></body></html>";
@@ -1100,6 +1173,45 @@ Subject: Re: refund\n\nWe are looking into it";
         // each kept item hid one name; the 101 pieces left out were never redacted
         assert_eq!(material.items.len(), MAX_ITEMS);
         assert_eq!(material.summary.redacted["names"], MAX_ITEMS as i64);
+    }
+
+    #[test]
+    fn repeats_after_redaction_are_not_cap_drops() {
+        let replies: String = (0..50)
+            .map(|i| {
+                let name = format!("X{}{}", (b'a' + i / 26) as char, (b'a' + i % 26) as char);
+                format!("Hi {name},\nthe export button does nothing again\n\n")
+            })
+            .collect();
+        let material = read_material(&[file("r.txt", Some("emails"), None, &replies)], &[], None).unwrap();
+        assert_eq!(material.items.len(), 1);
+        assert_eq!(material.summary.dropped, 0);
+        assert!(!material.warnings.iter().any(|w| w.contains("the most a run reads")), "{:?}", material.warnings);
+    }
+
+    #[test]
+    fn the_cap_refills_from_pieces_not_yet_looked_at() {
+        // 400 distinct pieces, but the first 300 sampled are 2 complaints with different names: the rest fill in
+        let mut text = String::new();
+        for i in 0..400 {
+            if i < 350 {
+                let name = format!("X{}{}", (b'a' + (i / 26 % 26) as u8) as char, (b'a' + (i % 26) as u8) as char);
+                text.push_str(&format!("Hi {name}, comment {} about the price\n\n", i % 2));
+            } else {
+                text.push_str(&format!("Distinct comment number {i} about the change\n\n"));
+            }
+        }
+        let material = read_material(&[file("c.txt", Some("notes"), None, &text)], &[], None).unwrap();
+        assert_eq!(material.items.len(), 52, "two complaints and the 50 distinct comments");
+        assert_eq!(material.summary.dropped, 0);
+    }
+
+    #[test]
+    fn hide_words_that_cannot_be_used_refuse_the_material() {
+        let words: Vec<String> = (0..MAX_HIDE_WORDS).map(|i| format!("{i}{}", "verylongname".repeat(400))).collect();
+        let err =
+            read_material(&[file("n.txt", Some("notes"), None, "The bus is always late.")], &words, None).unwrap_err();
+        assert!(err.0.starts_with("the words to hide could not be used"), "{err}");
     }
 
     #[test]

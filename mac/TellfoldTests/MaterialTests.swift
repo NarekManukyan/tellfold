@@ -116,8 +116,8 @@ struct MaterialTests {
     }
 
     @Test func redactionIsNotClaimedToBeComplete() {
-        #expect(MaterialText.redactedCategories.hasPrefix("common first names, names in greetings"))
-        #expect(MaterialText.redactedCategories.hasSuffix("order or account numbers and links"))
+        #expect(MaterialText.redactedCategories == "common first names, names in greetings, sign-offs and introductions, "
+                + "@handles, email addresses, phone numbers, street addresses, order or account numbers and links")
         #expect(MaterialText.namesMayRemain.contains("can remain"))
     }
 
@@ -126,12 +126,20 @@ struct MaterialTests {
             let json = #"{"id": "r1", "config": \#(config), "live": false, "personas": \#(personas), "stats": [], "events": [], "follows": [], "calls": {}}"#
             return try JSONDecoder().decode(RunDetail.self, from: Data(json.utf8))
         }
-        let person = #"{"id": "a01", "handle": "h", "name": "N", "bio": "", "background": "", "stance": "", "source": "material"}"#
+        func person(source: String, grounding: String = "") -> String {
+            #"{"id": "a01", "handle": "h", "name": "N", "bio": "", "background": "", "stance": "", "source": "\#(source)"\#(grounding)}"#
+        }
+        let quotes = #", "grounding": {"theme": "t", "counts": {"reviews": 1}, "quotes": ["The price doubled."]}"#
+        let noQuotes = #", "grounding": {"theme": "t", "counts": {"reviews": 1}, "quotes": []}"#
         let plain = try detail(config: #"{"question": "q"}"#, personas: "[]")
         #expect(!plain.isGrounded)
-        #expect(try detail(config: #"{"question": "q", "material": {"items": 3}}"#, personas: "[]").isGrounded)
-        #expect(try detail(config: #"{"question": "q"}"#, personas: "[\(person)]").isGrounded)
-        #expect(RunBundle.panelMessage(grounded: false) == RunBundle.panelMessage)
+        // the bundle decides, not the config or the source label
+        #expect(try !detail(config: #"{"question": "q", "material": {"items": 3}}"#, personas: "[]").isGrounded)
+        #expect(try !detail(config: #"{"question": "q"}"#, personas: "[\(person(source: "material"))]").isGrounded)
+        #expect(try !detail(config: #"{"question": "q"}"#, personas: "[\(person(source: "cast", grounding: noQuotes))]").isGrounded)
+        #expect(try detail(config: #"{"question": "q"}"#, personas: "[\(person(source: "material", grounding: quotes))]").isGrounded)
+        #expect(try detail(config: #"{"question": "q"}"#, personas: "[\(person(source: "edited", grounding: quotes))]").isGrounded)
+        #expect(RunBundle.panelMessage(grounded: false) == RunBundle.basePanelMessage)
         #expect(RunBundle.panelMessage(grounded: true).hasSuffix(RunBundle.groundedNote))
     }
 
@@ -158,6 +166,22 @@ struct MaterialTests {
         let encoded = try JSONEncoder().encode(audience)
         let back = try JSONDecoder().decode(SavedAudience.self, from: encoded)
         #expect(back.material == summary && back.personas[0].grounding == grounding)
+    }
+
+    @Test func whatThePlannerReadIsKeptAndPreferredOverWhatWasSent() throws {
+        let json = #"{"items": 40, "counts": {"reviews": 30, "survey": 10}, "dropped": 1, "redacted": {"names": 2}, "files": ["a.txt"], "read": {"reviews": 1}}"#
+        let summary = try JSONDecoder().decode(MaterialSummary.self, from: Data(json.utf8))
+        #expect(summary.read == ["reviews": 1] && summary.counts == ["reviews": 30, "survey": 10] && summary.items == 40)
+        #expect(summary.basedOn == "Based on 1 review")
+        #expect(NewSimulationRules.materialAgainNote(summary).hasPrefix("The last run was built from 1 review."))
+        let back = try JSONDecoder().decode(MaterialSummary.self, from: try JSONEncoder().encode(summary))
+        #expect(back == summary && back.read == ["reviews": 1])
+        // a summary from before `read`, or one where everything was read, still decodes and falls back to what was sent
+        let plain = try JSONDecoder().decode(
+            MaterialSummary.self, from: Data(#"{"items": 3, "counts": {"notes": 3}}"#.utf8))
+        #expect(plain.read == nil && plain.basedOn == "Based on 3 meeting notes")
+        let encoded = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(plain)) as? [String: Any])
+        #expect(encoded["read"] == nil)
     }
 
     @Test func aRunWithoutMaterialHasNone() throws {

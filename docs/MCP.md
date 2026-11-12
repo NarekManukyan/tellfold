@@ -145,8 +145,9 @@ other names or words to hide:
 Common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone numbers, street
 addresses, order or account numbers and links are removed on this computer before anything reaches the model, and the
 uploaded files are not kept: the run saves only the redacted items. A name the rules do not know can remain, so show
-the user the preview and add any such name to `hide`. The people are then built from that material, so their camps follow its spread and each is written from real
-quotes. Material cannot be combined with a reused cast. Call `preview_material` first and show the user what will be
+the user the preview and add any such name to `hide`. The people are then built from that material, so their camps
+follow its spread and each is written from real quotes. Material cannot be combined with a reused cast, so
+`compare_drafts` refuses it with `baseline_run_id`. Call `preview_material` first and show the user what will be
 sent. The [HTTP API](API.md#audience-material) has the details and limits.
 
 ### A typical session
