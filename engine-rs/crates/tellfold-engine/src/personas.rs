@@ -8,7 +8,9 @@ use tellfold_llm::{json, Llm, LlmError};
 use tellfold_models::json::{py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
-use tellfold_models::{Entity, Grounding, KnowledgeGraph, Persona, SimConfig, MATERIAL_KINDS};
+use tellfold_models::{
+    CastStakes, Entity, Grounding, KnowledgeGraph, Persona, SimConfig, Stake, StanceMix, MATERIAL_KINDS,
+};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::material::{count_kinds, Cluster, MaterialItem, QUOTES_PER_PERSONA};
@@ -197,12 +199,119 @@ pub async fn generate_personas(
 }
 
 /// How [`generate_cast`] plans: `fair` for the cast of a `fair_turns` run (vocal stances never get a lurker's
-/// activity, and every persona records its camp and source), and `ground` to build the public from the user's
-/// material.
+/// activity, and every persona records its camp and source), `ground` to build the public from the user's
+/// material, and `stakes` to build it from the groups the announcement affects and the stance mix the planner
+/// expects ([`plan_stakes`]) when there is no material.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct CastPlan<'a> {
     pub fair: bool,
     pub ground: Option<Ground<'a>>,
+    pub stakes: bool,
+}
+
+/// The planner's reply for a planned cast ([`plan_stakes`]).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct StakePlan {
+    #[serde(default)]
+    pub groups: Vec<Stake>,
+    #[serde(default)]
+    pub mix: Option<StanceMix>,
+    #[serde(default)]
+    pub reason: String,
+}
+
+tellfold_llm::json_model!(StakePlan, "../schemas/StakePlan.json");
+
+pub const STAKES_SYSTEM: &str = "\
+You plan the public for a social-media simulation of how people react to an announcement. First list the groups of \
+ordinary people it actually touches: the ones whose money, time, work, routine, rights or the things they care about \
+it changes, for better or worse, and anyone else who would plausibly talk about it in public. Name each group \
+concretely (\"bank staff with school-age children\", not \"employees\") and say in one plain sentence what the \
+announcement changes for them, using only what the material says. Then estimate how those people lean when they \
+first hear the news: the shares that start out supportive, critical, undecided, and indifferent, with a reason of \
+one or two sentences tied to the stakes. Reply with JSON only.";
+
+/// The most groups [`plan_stakes`] keeps.
+pub const MAX_STAKES: usize = 6;
+/// The least share of a planned public that starts on each side, so a dissenting minority always exists.
+pub const MIN_SIDE: f64 = 0.15;
+/// The least share that starts undecided or indifferent, so there is a middle the conversation can move.
+pub const MIN_MIDDLE: f64 = 0.15;
+
+/// [`STANCE_MIX`] as shares of a [`StanceMix`]: the mix a cast drew from before the stake rules.
+pub fn default_mix() -> StanceMix {
+    let w = |i: usize| STANCE_MIX[i].1;
+    StanceMix { supportive: w(0) + w(4), critical: w(1) + w(5), undecided: w(2), indifferent: w(3) }
+}
+
+/// The planner's mix made a valid one with the bounds: shares cleaned and scaled to add up to 1, then each side
+/// raised to at least [`MIN_SIDE`] and the middle (undecided and indifferent together) to at least [`MIN_MIDDLE`],
+/// taking what that needs from the parts above their floor in proportion to how far above it they are. A mix with
+/// nothing in it is [`default_mix`].
+pub fn bound_mix(planned: &StanceMix) -> StanceMix {
+    let clean = |x: f64| if x.is_finite() && x > 0.0 { x } else { 0.0 };
+    let (s, c, u, i) =
+        (clean(planned.supportive), clean(planned.critical), clean(planned.undecided), clean(planned.indifferent));
+    let total = s + c + u + i;
+    if total <= 0.0 {
+        return default_mix();
+    }
+    let (s, c, u, i) = (s / total, c / total, u / total, i / total);
+    let floors = [MIN_SIDE, MIN_SIDE, MIN_MIDDLE];
+    let mut blocks = [s, c, u + i];
+    let deficit: f64 = blocks.iter().zip(floors).map(|(b, f)| (f - b).max(0.0)).sum();
+    let spare: f64 = blocks.iter().zip(floors).map(|(b, f)| (b - f).max(0.0)).sum();
+    for (b, f) in blocks.iter_mut().zip(floors) {
+        *b = if *b < f { f } else { *b - deficit * (*b - f) / spare };
+    }
+    let undecided = if u + i > 0.0 { u / (u + i) } else { 0.5 };
+    StanceMix {
+        supportive: blocks[0],
+        critical: blocks[1],
+        undecided: blocks[2] * undecided,
+        indifferent: blocks[2] * (1.0 - undecided),
+    }
+}
+
+/// A mix as weights of the six [`STANCE_MIX`] leanings: each side split into moderate and strong as
+/// [`STANCE_MIX`] splits it.
+pub fn mix_weights(mix: &StanceMix) -> Vec<(&'static str, f64)> {
+    let strong = STANCE_MIX[4].1 / (STANCE_MIX[0].1 + STANCE_MIX[4].1);
+    vec![
+        (STANCE_MIX[0].0, mix.supportive * (1.0 - strong)),
+        (STANCE_MIX[1].0, mix.critical * (1.0 - strong)),
+        (STANCE_MIX[2].0, mix.undecided),
+        (STANCE_MIX[3].0, mix.indifferent),
+        (STANCE_MIX[4].0, mix.supportive * strong),
+        (STANCE_MIX[5].0, mix.critical * strong),
+    ]
+}
+
+/// Asks the planner which groups of people the announcement affects, how, and how they will lean at first. None
+/// when the call fails or names no group, so the cast falls back to [`plan_cast`]; a reply without a mix keeps
+/// [`default_mix`].
+pub async fn plan_stakes(llm: &dyn Llm, graph: &KnowledgeGraph, question: &str, model: &str) -> Option<CastStakes> {
+    let prompt = format!(
+        "Question being simulated:\n{question}\n\nSource material (digest):\n{}\n\n\
+Return {{\"groups\": [{{\"group\": str, \"stake\": str, \"share\": float}}], \"mix\": {{\"supportive\": float, \
+\"critical\": float, \"undecided\": float, \"indifferent\": float}}, \"reason\": str}}: 3-{MAX_STAKES} groups, the most \
+directly affected first. share is the rough part (0-1) of the people who would post about it that the group makes \
+up; the shares need not add up exactly. mix is the share of all those people starting on each side, adding up to 1.",
+        graph_digest(graph)
+    );
+    let plan = json::<StakePlan>(llm, &prompt, STAKES_SYSTEM, model, "personas.stakes").await.ok()?;
+    let groups: Vec<Stake> = plan
+        .groups
+        .into_iter()
+        .map(|s| Stake { group: py_strip(&s.group).into(), stake: py_strip(&s.stake).into(), share: s.share })
+        .filter(|s| !s.group.is_empty())
+        .take(MAX_STAKES)
+        .collect();
+    if groups.is_empty() {
+        return None;
+    }
+    let planned = plan.mix.unwrap_or_else(default_mix);
+    Some(CastStakes { groups, reason: py_strip(&plan.reason).into(), planned, mix: bound_mix(&planned) })
 }
 
 /// [`generate_personas`] planned by `plan`. With `ground`, the camps follow the material's spread, and every member
@@ -217,15 +326,34 @@ pub async fn generate_cast(
     language: &str,
     plan: CastPlan<'_>,
 ) -> Result<Vec<Persona>, LlmError> {
+    Ok(generate_planned_cast(llm, graph, question, n, model, language, plan).await?.0)
+}
+
+/// [`generate_cast`], with how the public was planned when `plan.stakes` got an answer from the planner (see
+/// [`plan_staked_cast`]).
+pub async fn generate_planned_cast(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    question: &str,
+    n: usize,
+    model: &str,
+    language: &str,
+    plan: CastPlan<'_>,
+) -> Result<(Vec<Persona>, Option<CastStakes>), LlmError> {
     if n == 0 {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), None));
     }
     let voices = select_voices(llm, graph, question, n, model).await;
-    let slots = match plan.ground {
-        Some(ground) => plan_grounded_cast(graph, question, n, voices.as_deref(), plan.fair, ground),
-        None => plan_cast(graph, question, n, voices.as_deref(), plan.fair),
+    let stakes = match (plan.stakes, plan.ground) {
+        (true, None) => plan_stakes(llm, graph, question, model).await,
+        _ => None,
     };
-    fill_cast(llm, graph, &slots, question, model, language, plan.fair).await
+    let slots = match (plan.ground, &stakes) {
+        (Some(ground), _) => plan_grounded_cast(graph, question, n, voices.as_deref(), plan.fair, ground),
+        (None, Some(stakes)) => plan_staked_cast(graph, question, n, voices.as_deref(), plan.fair, stakes),
+        (None, None) => plan_cast(graph, question, n, voices.as_deref(), plan.fair),
+    };
+    Ok((fill_cast(llm, graph, &slots, question, model, language, plan.fair).await?, stakes))
 }
 
 /// The user's audience material, read and clustered ([`crate::material`]), for [`CastPlan::ground`].
@@ -514,6 +642,69 @@ pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Optio
     plan(graph, question, n, voices, fair, None)
 }
 
+/// [`plan_cast`] with the public spread over the groups the announcement affects (apportioned by their shares),
+/// each person told what it changes for them, and the stances drawn from the bounded mix the planner expects instead
+/// of [`STANCE_MIX`]. The entity voices, and with `fair` the engagement swap, are [`plan_cast`]'s.
+pub fn plan_staked_cast(
+    graph: &KnowledgeGraph,
+    question: &str,
+    n: usize,
+    voices: Option<&[Entity]>,
+    fair: bool,
+    stakes: &CastStakes,
+) -> Vec<Slot> {
+    let planned = plan_cast(graph, question, n, voices, fair);
+    if stakes.groups.is_empty() {
+        return planned;
+    }
+    let mut slots: Vec<Slot> = planned.into_iter().filter(|s| s.entity_id.is_some()).collect();
+    let n_entity = slots.len();
+    let n_public = n - n_entity;
+    let mut rng = PyRandom::from_str_seed(&format!("{question}|{n}|stakes"));
+    let stances = allocate(&mix_weights(&stakes.mix), n_public, &mut rng);
+    let mut engagement = allocate(&ENGAGEMENT_MIX, n_public, &mut rng);
+    if fair {
+        swap_strong_lurkers(&stances, &mut engagement);
+    }
+    let shares: Vec<(usize, f64)> =
+        stakes.groups.iter().enumerate().map(|(i, s)| (i, s.share.clamp(0.05, 1.0))).collect();
+    let groups = allocate(&shares, n_public, &mut rng);
+    let mut ages: Vec<&str> = (0..n_public).map(|i| AGE_BANDS[i % AGE_BANDS.len()]).collect();
+    rng.shuffle(&mut ages);
+    for j in 0..n_public {
+        let (eng_label, band) = engagement[j];
+        let stake = &stakes.groups[groups[j]];
+        let brief = format!(
+            "ordinary member of the public; age {}; part of: {} (what the announcement changes for them: {}); \
+starting stance: {}; engagement: {eng_label} (activity {:.2}-{:.2})",
+            ages[j], stake.group, stake.stake, stances[j], band.0, band.1
+        );
+        slots.push(Slot {
+            label: agent_id(n_entity + j, n),
+            brief,
+            entity_id: None,
+            activity_band: band,
+            camp: camp_of(stances[j]).map(String::from),
+            grounding: None,
+        });
+    }
+    slots
+}
+
+/// The `fair` swap of [`plan_cast`]: a strongly held stance that drew a lurker's engagement takes that of the first
+/// moderate or neutral slot that drew more.
+fn swap_strong_lurkers(stances: &[&str], engagement: &mut [Engagement]) {
+    let strong = |j: usize| camp_of(stances[j]).is_some_and(is_strong);
+    let lurker = ENGAGEMENT_MIX[0].0;
+    for j in 0..stances.len() {
+        if strong(j) && engagement[j] == lurker {
+            if let Some(k) = (0..stances.len()).find(|&k| !strong(k) && engagement[k] != lurker) {
+                engagement.swap(j, k);
+            }
+        }
+    }
+}
+
 /// [`plan_cast`] with the public drawn from the user's material: stances apportioned by how many items each camp
 /// holds, and each public slot given one cluster of its camp (clusters apportioned by size) and up to
 /// [`QUOTES_PER_PERSONA`] of its items, so people of one cluster are written from different quotes while it has
@@ -635,15 +826,7 @@ fn plan(
     let stances = allocate(mix.as_deref().unwrap_or(&STANCE_MIX), n_public, &mut rng);
     let mut engagement = allocate(&ENGAGEMENT_MIX, n_public, &mut rng);
     if fair {
-        let strong = |j: usize| camp_of(stances[j]).is_some_and(is_strong);
-        let lurker = ENGAGEMENT_MIX[0].0;
-        for j in 0..n_public {
-            if strong(j) && engagement[j] == lurker {
-                if let Some(k) = (0..n_public).find(|&k| !strong(k) && engagement[k] != lurker) {
-                    engagement.swap(j, k);
-                }
-            }
-        }
+        swap_strong_lurkers(&stances, &mut engagement);
     }
     let mut ages: Vec<&str> = (0..n_public).map(|i| AGE_BANDS[i % AGE_BANDS.len()]).collect();
     rng.shuffle(&mut ages);

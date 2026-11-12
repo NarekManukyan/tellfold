@@ -9,6 +9,7 @@ use tellfold_models::json::{py_round, py_sum};
 use tellfold_models::text::{py_split, py_strip};
 use tellfold_models::{
     Camp, CitationAudit, FirstReaction, KnowledgeGraph, Recommendation, RecommendationAction, Report, SimConfig,
+    STAKE_RULES,
 };
 use tellfold_store::world::World;
 
@@ -83,6 +84,18 @@ removed. These are hypotheses from a simulated crowd, to be tested with real peo
 
 EVIDENCE DIGEST
 {digest}";
+
+/// Added to the report task in a run with [`STAKE_RULES`], after the FIRST POSTS block. The digest's top posts and
+/// threads favour the loudest few, so in the first two accuracy passes most objections real people raised never
+/// reached the report even when someone in the crowd had raised them.
+pub const OBJECTIONS_TASK: &str = "\
+OBJECTIONS RULE: one of the sections is titled \"What people objected to\". Its body is a \"- \" list of every \
+distinct objection, worry or complaint people raised anywhere in the digest, including the FIRST POSTS block, each \
+naming who raised it (their situation, not only a handle) with a citation. Keep objections only one or two people \
+raised; merge only ones that make the same point.";
+
+/// The most characters of a first post shown in the FIRST POSTS block.
+const FIRST_POST_CHARS: usize = 280;
 
 /// Added to the report task in a run with the crowd rules, after the digest's FIRST REACTION block.
 pub const DIRECTION_TASK: &str = "\
@@ -159,6 +172,28 @@ fn direction_block(reaction: &FirstReaction) -> String {
     )
 }
 
+/// The digest block and task note that make the report list every objection, for a run with [`STAKE_RULES`]: each
+/// person's first post (organisation accounts left out), in the order they were written. None when nobody posted.
+pub fn objections_block(ev: &Evidence) -> Option<String> {
+    let mut posts: Vec<_> = ev.posts.values().filter(|p| p.repost_of.is_none() && !p.content.is_empty()).collect();
+    posts.sort_by_key(|p| (p.round, p.id));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let mut lines: Vec<String> = Vec::new();
+    for post in posts {
+        let Some(person) = ev.people.get(&post.author_id) else { continue };
+        if person.entity_id.as_deref().is_some_and(|e| !e.is_empty()) || !seen.insert(post.author_id.as_str()) {
+            continue;
+        }
+        lines.push(format!("- @{} #{}: {}", person.handle, post.id, clip(&post.content, FIRST_POST_CHARS)));
+    }
+    (!lines.is_empty()).then(|| {
+        format!(
+            "FIRST POSTS (each person's first post; organisation accounts left out)\n{}\n\n{OBJECTIONS_TASK}",
+            lines.join("\n")
+        )
+    })
+}
+
 /// `{"keep": "Keep", ...}`: the same words are in the web Studio and the Mac app.
 pub fn action_label(action: RecommendationAction) -> &'static str {
     match action {
@@ -225,8 +260,20 @@ pub async fn build_report(
     if let Some(reaction) = &reaction {
         prompt = format!("{prompt}\n\n{}", direction_block(reaction));
     }
+    if let Some(block) = objections_block(&ev).filter(|_| config.crowd_rules >= STAKE_RULES) {
+        prompt = format!("{prompt}\n\n{block}");
+    }
     let system = fill(REPORT_SYSTEM, &[("language", &config.language)]);
-    let draft = json::<Report>(llm, &prompt, &system, model, "report.write").await?;
+    // A reply that fails validation even after the JSON repair is rare and does not repeat (UT Austin in the second
+    // accuracy pass lost its `summary` once, and the same prompt worked when run again), so the report gets one more
+    // full try before the run fails.
+    let draft = match json::<Report>(llm, &prompt, &system, model, "report.write").await {
+        Ok(draft) => draft,
+        Err(first) if config.crowd_rules >= STAKE_RULES => {
+            json::<Report>(llm, &prompt, &system, model, "report.write").await.map_err(|_| first)?
+        }
+        Err(first) => return Err(first.into()),
+    };
     let mut report = finalize(draft.clone(), &ev, config);
     let handles = handle_set(&ev);
     let mut audit = audit_citations(&report, &ev.posts, handles.iter().map(String::as_str));

@@ -21,6 +21,7 @@ use tellfold_models::log;
 use tellfold_models::text::py_prefix;
 use tellfold_models::{
     BatchRef, FailedBatch, KnowledgeGraph, MaterialSummary, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
+    STAKE_RULES,
 };
 use tellfold_store::estimate::estimate_calls;
 use tellfold_store::files::{
@@ -32,7 +33,7 @@ use tellfold_store::world::{World, WorldError};
 use crate::engine::{Engine, EngineError};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
 use crate::material::{cluster, count_kinds, load_material, read_items, Cluster, StoredMaterial};
-use crate::personas::{generate_cast, CastPlan, Ground};
+use crate::personas::{generate_planned_cast, CastPlan, Ground};
 
 /// `status.pause` while a `review_cast` run waits for its cast to be confirmed.
 pub const PAUSE_PERSONAS: &str = "personas_ready";
@@ -123,6 +124,15 @@ fn object(value: Value) -> Map<String, Value> {
         Value::Object(map) => map,
         _ => Map::new(),
     }
+}
+
+/// The organisation posts the fact check dropped ([`Engine::with_source`]), one `posts_dropped` event per line.
+pub const DROPPED_FILE: &str = "dropped_posts.jsonl";
+
+fn append_line(path: &Path, payload: &Value) -> std::io::Result<()> {
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new().create(true).append(true).open(path)?;
+    writeln!(file, "{}", serde_json::to_string(payload).unwrap_or_default())
 }
 
 /// Owns the [`RunStatus`] of one run: every change is written to disk and announced.
@@ -223,6 +233,7 @@ impl<'a> Tracker<'a> {
                 self.defer(self.update(|s| s.detail = format!("round {r} of {total}: {batches} batches deciding")));
             }
             "batch_failed" => self.record_failed_batch(&payload),
+            "posts_dropped" => self.defer(append_line(&self.run_dir.join(DROPPED_FILE), &payload)),
             _ => {}
         }
         self.emit(name, payload);
@@ -356,8 +367,14 @@ async fn cast_people(
     }
     let n = config.num_agents.max(0) as usize;
     let ground = grounded.as_ref().map(|g| Ground { items: &g.material.items, clusters: &g.clusters });
-    let plan = CastPlan { fair: config.fair_turns, ground };
-    let cast = generate_cast(llm, graph, &config.question, n, &config.planner_model, &config.language, plan).await?;
+    let plan = CastPlan { fair: config.fair_turns, ground, stakes: config.crowd_rules >= STAKE_RULES };
+    let (cast, stakes) =
+        generate_planned_cast(llm, graph, &config.question, n, &config.planner_model, &config.language, plan).await?;
+    if stakes.is_some() {
+        // the config records how the public was planned, so a reader can see why the crowd leaned as it did
+        config.stakes = stakes;
+        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
+    }
     Ok(Some(cast))
 }
 
@@ -470,6 +487,7 @@ async fn pipeline(
     track.stage(RunStage::Reading, &format!("reading {} seed file{plural}", seeds.len()), json!({}))?;
     let docs = load_documents(seeds).map_err(|e| RunError(format!("could not read seed files: {e}")))?;
     let chunks = chunk_text_default(&docs);
+    let source = docs.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n");
     if chunks.is_empty() {
         return Err(RunError("no readable text found in the seed files".into()).into());
     }
@@ -578,14 +596,16 @@ async fn pipeline(
         world = World::open(&run_dir.join(WORLD_FILE), config.seed)?;
         world.add_personas(&personas)?;
         track.stage(RunStage::Seeding, "seeding follows and opening posts", json!({"personas": personas.len()}))?;
-        let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))));
+        let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))))
+            .with_source(&source);
         engine.seed_world(&graph).await?;
         track.take_deferred()?;
         track.update(|s| s.round = 0)?;
     }
 
     let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))))
-        .with_graph(&graph);
+        .with_graph(&graph)
+        .with_source(&source);
     track.stage(RunStage::Rounds, &format!("simulating {} rounds", config.rounds), json!({}))?;
     for r in first_round..=config.rounds {
         if stopping() {

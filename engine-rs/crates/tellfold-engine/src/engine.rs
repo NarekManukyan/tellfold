@@ -21,7 +21,7 @@ use tellfold_models::json::{py_repr, py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{
-    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig,
+    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, STAKE_RULES,
 };
 use tellfold_store::world::{World, WorldError};
 
@@ -155,9 +155,18 @@ pub struct SentimentScores {
     pub scores: Vec<PostScore>,
 }
 
+/// The numbers of the organisation posts that state something the source doesn't (see [`FACT_CHECK_SYSTEM`]).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct FactCheck {
+    #[serde(default)]
+    pub invented: Vec<Value>,
+}
+
 tellfold_llm::json_model!(RoundDecisions, "../../../schemas/RoundDecisions.json");
 tellfold_llm::json_model!(OpeningPosts, "../../../schemas/OpeningPosts.json");
 tellfold_llm::json_model!(SentimentScores, "../../../schemas/SentimentScores.json");
+// Rust-only, so it lives with the crate.
+tellfold_llm::json_model!(FactCheck, "../schemas/FactCheck.json");
 
 // ---------- prompts ----------
 
@@ -217,6 +226,18 @@ Facts and topic:
 - Stay on the announcement in the situation and on what users have actually said in the feed. Don't bring in other
   plans, decisions, events or controversies that neither of them mentions."#;
 
+/// The characters of the seed documents an organisation post is checked against ([`Engine::with_source`]).
+pub const SOURCE_CHARS: usize = 12_000;
+
+/// The check on organisation posts in a run with [`STAKE_RULES`]: the round prompt asks them not to announce
+/// anything new, and in the second accuracy pass they still did late in a run (docs/ACCURACY.md).
+pub const FACT_CHECK_SYSTEM: &str = r#"You check posts written for organisation accounts in a social-media simulation
+against the source material, which is everything that is known about the situation. A post fails when it states,
+offers or announces anything the source doesn't contain: a concession, exemption, option, pilot, review,
+consultation, talks, figure, date, promise or change of plan. Restating, explaining or defending what the source
+says is fine, and so are opinions, thanks, sympathy, general promises to listen and declining to comment. When in
+doubt about a specific new fact, it fails. Reply with JSON only."#;
+
 const SENTIMENT_SYSTEM: &str = r#"You are a careful annotator of social media posts. For each post, rate the attitude it
 expresses toward the subject of the question below, from -1 (strongly negative, pessimistic or opposed)
 through 0 (neutral, mixed or off-topic) to +1 (strongly positive, optimistic or supportive). A plain repost
@@ -265,11 +286,20 @@ pub struct Engine<'a> {
     emit: EventCallback<'a>,
     /// the source material's digest, shown in every round with the crowd rules ([`Engine::with_graph`])
     situation: String,
+    /// the source material itself, which organisation posts are checked against ([`Engine::with_source`])
+    source: String,
 }
 
 impl<'a> Engine<'a> {
     pub fn new(llm: &'a dyn Llm, world: &'a World, config: &'a SimConfig, on_event: Option<EventCallback<'a>>) -> Self {
-        Engine { llm, world, config, emit: on_event.unwrap_or_else(|| Box::new(|_, _| {})), situation: String::new() }
+        Engine {
+            llm,
+            world,
+            config,
+            emit: on_event.unwrap_or_else(|| Box::new(|_, _| {})),
+            situation: String::new(),
+            source: String::new(),
+        }
     }
 
     /// The topic map the run was seeded from: with the crowd rules every round prompt shows its digest, as the
@@ -279,8 +309,68 @@ impl<'a> Engine<'a> {
         self
     }
 
+    /// The text of the seed documents (the first [`SOURCE_CHARS`] characters). With [`STAKE_RULES`] every
+    /// organisation post is checked against it, and dropped when it states something the source doesn't.
+    pub fn with_source(mut self, text: &str) -> Self {
+        self.source = text.chars().take(SOURCE_CHARS).collect();
+        self
+    }
+
     fn rules(&self) -> bool {
         self.config.crowd_rules >= 1
+    }
+
+    /// The indexes of the organisation posts (author, text) that state something the source doesn't, checked by
+    /// the planner model. Empty without [`STAKE_RULES`] or a source, and when the check fails (the posts stay).
+    async fn invented(&self, r: i64, posts: &[(&Persona, &str)], ledger: &Ledger) -> HashSet<usize> {
+        if self.config.crowd_rules < STAKE_RULES || self.source.is_empty() || posts.is_empty() {
+            return HashSet::new();
+        }
+        let lines: Vec<String> = posts
+            .iter()
+            .enumerate()
+            .map(|(i, (p, text))| format!("[{}] @{} ({}): {}", i + 1, p.handle, p.name, squash(text)))
+            .collect();
+        let prompt = format!(
+            "SOURCE MATERIAL (everything that is known):\n{}\n\nPOSTS BY ORGANISATION ACCOUNTS:\n{}\n\n\
+Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list when none does.",
+            self.source,
+            lines.join("\n")
+        );
+        let started = Instant::now();
+        let result =
+            json::<FactCheck>(self.llm, &prompt, FACT_CHECK_SYSTEM, &self.config.planner_model, "engine.factcheck")
+                .await;
+        ledger.calls.set(ledger.calls.get() + 1);
+        ledger.seconds.set(ledger.seconds.get() + started.elapsed().as_secs_f64());
+        let flagged: HashSet<usize> = match result {
+            Ok(out) => out
+                .invented
+                .iter()
+                .filter_map(|v| {
+                    v.as_i64().or_else(|| {
+                        v.as_str().and_then(|s| s.trim().trim_start_matches('[').trim_end_matches(']').parse().ok())
+                    })
+                })
+                .filter(|&n| n >= 1 && (n as usize) <= posts.len())
+                .map(|n| n as usize - 1)
+                .collect(),
+            Err(e) => {
+                self.emit(
+                    "batch_failed",
+                    json!({"round": r, "batch": "factcheck", "agents": [], "error": e.to_string()}),
+                );
+                return HashSet::new();
+            }
+        };
+        if !flagged.is_empty() {
+            let mut dropped: Vec<usize> = flagged.iter().copied().collect();
+            dropped.sort_unstable();
+            let dropped: Vec<Value> =
+                dropped.iter().map(|&i| json!({"agent_id": posts[i].0.id, "content": posts[i].1})).collect();
+            self.emit("posts_dropped", json!({"round": r, "reason": "invented", "posts": dropped}));
+        }
+        flagged
     }
 
     /// A round or opening system prompt, with the fact rules in a run with the crowd rules.
@@ -395,7 +485,20 @@ impl<'a> Engine<'a> {
     ) -> Option<Vec<OpeningPost>> {
         let system = self.system(OPENING_SYSTEM);
         match self.call::<OpeningPosts>(prompt, &system, "engine.seed", ledger).await {
-            Ok(out) => Some(out.posts),
+            Ok(out) => {
+                let by_id: HashMap<&str, &Persona> = batch.iter().map(|p| (p.id.as_str(), p)).collect();
+                let organisation =
+                    |op: &OpeningPost| by_id.get(op.agent_id.as_str()).copied().filter(|p| entity(p).is_some());
+                let spots: Vec<usize> =
+                    (0..out.posts.len()).filter(|&i| organisation(&out.posts[i]).is_some()).collect();
+                let posts: Vec<(&Persona, &str)> = spots
+                    .iter()
+                    .filter_map(|&i| organisation(&out.posts[i]).map(|p| (p, out.posts[i].content.as_str())))
+                    .collect();
+                let flagged: HashSet<usize> =
+                    self.invented(0, &posts, ledger).await.into_iter().map(|k| spots[k]).collect();
+                Some(out.posts.into_iter().enumerate().filter(|(i, _)| !flagged.contains(i)).map(|(_, p)| p).collect())
+            }
             Err(e) => {
                 let agents: Vec<&str> = batch.iter().map(|p| p.id.as_str()).collect();
                 self.emit(
@@ -563,12 +666,30 @@ impl<'a> Engine<'a> {
         };
         let expected: HashSet<&str> = views.iter().map(|v| v.persona.id.as_str()).collect();
         let mut seen: HashSet<String> = HashSet::new();
-        Some(
-            out.decisions
-                .into_iter()
-                .filter(|d| expected.contains(d.agent_id.as_str()) && seen.insert(d.agent_id.clone()))
-                .collect(),
-        )
+        let mut decisions: Vec<AgentDecision> = out
+            .decisions
+            .into_iter()
+            .filter(|d| expected.contains(d.agent_id.as_str()) && seen.insert(d.agent_id.clone()))
+            .collect();
+        // (decision, action) of every organisation action with text, in order
+        let by_id: HashMap<&str, &Persona> = views.iter().map(|v| (v.persona.id.as_str(), &v.persona)).collect();
+        let mut spots: Vec<(usize, usize)> = Vec::new();
+        let mut posts: Vec<(&Persona, &str)> = Vec::new();
+        for (i, d) in decisions.iter().enumerate() {
+            let Some(persona) = by_id.get(d.agent_id.as_str()).filter(|p| entity(p).is_some()) else { continue };
+            for (j, a) in d.actions.iter().take(MAX_ACTIONS_PER_AGENT).enumerate() {
+                if !py_strip(&a.content).is_empty() {
+                    spots.push((i, j));
+                    posts.push((persona, &a.content));
+                }
+            }
+        }
+        let flagged = self.invented(r, &posts, ledger).await;
+        for k in flagged {
+            let (i, j) = spots[k];
+            decisions[i].actions[j] = ProposedAction::nothing();
+        }
+        Some(decisions)
     }
 
     fn round_prompt(&self, r: i64, views: &[&AgentView], events: &[GodEvent]) -> Result<String> {

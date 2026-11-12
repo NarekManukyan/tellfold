@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "Stake": {
+      "properties": {
+        "group": {
+          "description": "a concrete group of ordinary people the announcement touches",
+          "title": "Group",
+          "type": "string"
+        },
+        "stake": {
+          "description": "one plain sentence: what the announcement changes for them, from the material only",
+          "title": "Stake",
+          "type": "string"
+        },
+        "share": {
+          "description": "rough part (0-1) of the people who would post about it that this group makes up",
+          "title": "Share",
+          "type": "number"
+        }
+      },
+      "required": ["group", "stake", "share"],
+      "title": "Stake",
+      "type": "object"
+    },
+    "StanceMix": {
+      "properties": {
+        "supportive": {"title": "Supportive", "type": "number"},
+        "critical": {"title": "Critical", "type": "number"},
+        "undecided": {"title": "Undecided", "type": "number"},
+        "indifferent": {"title": "Indifferent", "type": "number"}
+      },
+      "required": ["supportive", "critical", "undecided", "indifferent"],
+      "title": "StanceMix",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "groups": {
+      "items": {"$ref": "#/$defs/Stake"},
+      "title": "Groups",
+      "type": "array"
+    },
+    "mix": {
+      "$ref": "#/$defs/StanceMix",
+      "description": "share of all those people starting on each side when they first hear the news, adding up to 1"
+    },
+    "reason": {
+      "description": "one or two sentences on why they lean this way, tied to the stakes",
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": ["groups", "mix", "reason"],
+  "title": "StakePlan",
+  "type": "object"
+}

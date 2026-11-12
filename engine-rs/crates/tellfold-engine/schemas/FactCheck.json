@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "invented": {
+      "description": "the numbers of the posts that state, offer or announce something the source doesn't contain",
+      "items": {
+        "type": "integer"
+      },
+      "title": "Invented",
+      "type": "array"
+    }
+  },
+  "required": [
+    "invented"
+  ],
+  "title": "FactCheck",
+  "type": "object"
+}

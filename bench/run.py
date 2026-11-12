@@ -735,6 +735,17 @@ def write_markdown(path: Path, result: dict) -> None:
             f"| zero-shot baseline | {x['graded']} | {pct(x['direction_accuracy'])} | {pct(x['objection_recall'])} | "
             f"{pct(x['backdown_accuracy'])} | {pct(x['group_recall'])} | – |"
         )
+    pc = result.get("planner_vs_crowd")
+    if pc:
+        lines.append(f"| planner's stance mix alone | {pc['runs']} | {pct(pc['planner_direction_accuracy'])} | – | – | – | – |")
+        lines += [
+            "",
+            f"The crowd's final direction moved away from the planner's mix in {pc['moved']} of {pc['runs']} runs: "
+            f"{pc['moved_right']} to the right answer, {pc['moved_wrong']} away from it, {pc['moved_neither']} from one "
+            f"wrong answer to another. Tellfold agrees with the zero-shot answer on direction in "
+            f"{pct(pc['agrees_with_zero_shot'])} of runs; the planner's mix alone agrees with it in "
+            f"{pct(pc['planner_agrees_with_zero_shot'])}.",
+        ]
     if b:
         lines += [
             "",
@@ -746,8 +757,8 @@ def write_markdown(path: Path, result: dict) -> None:
         lines += ["", f"**Failures:** {failed_runs} simulation run(s) and {failed_zero} zero-shot answer(s) failed; "
                       "the case table shows each error. Failed entries are left out of the averages."]
     lines += ["", "## Cases", "",
-              "| case | actual | predicted | objections | backdown (actual / predicted) | zero-shot | error |",
-              "|---|---|---|---|---|---|---|"]
+              "| case | actual | predicted | planner's mix | objections | backdown (actual / predicted) | zero-shot | error |",
+              "|---|---|---|---|---|---|---|---|"]
     for c in result["cases"]:
         r = c["rubric"]
         zero = _zero_shot_cell(c.get("zero_shot"))
@@ -757,7 +768,8 @@ def write_markdown(path: Path, result: dict) -> None:
             recall = pct(sc.get("objection_recall")) if sc else "–"
             mark = "" if not sc else (" ✓" if sc["direction_match"] else " ✗")
             lines.append(
-                f"| {c['slug']} (seed {run['seed']}) | {r['direction']} | {pred}{mark} | {recall} | "
+                f"| {c['slug']} (seed {run['seed']}) | {r['direction']} | {pred}{mark} | "
+                f"{run.get('planner_direction', '–')} | {recall} | "
                 f"{r['backdown']['kind']} / {sc.get('backdown_predicted', '–')} | {zero} | "
                 f"{run.get('error', '')[:80]} |"
             )
@@ -832,8 +844,54 @@ def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, e
         run["sentiment_note"] = f"round {final_round}, the last, has no sentiment score"
     report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
     run["report_confidence"] = report.get("confidence")
+    run["first_reaction"] = report.get("first_reaction")
+    stakes = json.loads((run_dir / "config.json").read_text(encoding="utf-8")).get("stakes")
+    if stakes:
+        run["planner_mix"] = stakes["planned"]
+        run["planner_reason"] = stakes.get("reason", "")
+        run["planner_direction"] = mix_direction(stakes["planned"])
     run["grade"] = judge.grade(case, report, final)
     run["scores"] = score(rubric, run["grade"])
+
+
+def mix_direction(mix: dict) -> str:
+    """The direction the planner's own stance mix implies (crowd rules 2), by the engine's first-reaction rule
+    (`direction_of` in tellfold-report): mixed unless at least half the people take a side and 3 in 5 of those take
+    the same one."""
+    s, c = mix.get("supportive", 0.0), mix.get("critical", 0.0)
+    total = s + c + mix.get("undecided", 0.0) + mix.get("indifferent", 0.0)
+    if total <= 0 or s + c < 0.5 * total:
+        return "mixed"
+    if c >= 0.6 * (s + c):
+        return "negative"
+    if s >= 0.6 * (s + c):
+        return "positive"
+    return "mixed"
+
+
+def planner_vs_crowd(cases: list[dict]) -> dict | None:
+    """The planner's own mix scored as a forecast, and how often the crowd's final direction moved away from it: the
+    question whether the crowd adds anything to the planner's guess."""
+    runs = [(c, r) for c in cases for r in c["runs"] if r.get("planner_direction") and r.get("scores")]
+    if not runs:
+        return None
+    actual = lambda c: c["rubric"]["direction"]  # noqa: E731
+    crowd = lambda r: r["grade"].get("predicted_direction")  # noqa: E731
+    moved = [(c, r) for c, r in runs if crowd(r) != r["planner_direction"]]
+    zero = [(c, r) for c, r in runs if (c.get("zero_shot") or {}).get("grade")]
+    return {
+        "runs": len(runs),
+        "planner_direction_accuracy": mean([float(r["planner_direction"] == actual(c)) for c, r in runs]),
+        "crowd_direction_accuracy": mean([float(crowd(r) == actual(c)) for c, r in runs]),
+        "moved": len(moved),
+        "moved_right": sum(crowd(r) == actual(c) for c, r in moved),
+        "moved_wrong": sum(r["planner_direction"] == actual(c) for c, r in moved),
+        "moved_neither": sum(actual(c) not in (crowd(r), r["planner_direction"]) for c, r in moved),
+        "agrees_with_zero_shot": mean(
+            [float(crowd(r) == c["zero_shot"]["grade"].get("predicted_direction")) for c, r in zero]),
+        "planner_agrees_with_zero_shot": mean(
+            [float(r["planner_direction"] == c["zero_shot"]["grade"].get("predicted_direction")) for c, r in zero]),
+    }
 
 
 def warn_unmatched(slug: str, scores: dict, what: str) -> None:
@@ -901,6 +959,7 @@ def build_result(args: argparse.Namespace, settings: dict, cmd: list[str], label
         "summary": summarise(results),
         "zero_shot_summary": summarise(results, "zero_shot") if zero_model is not None else None,
         "baselines": baselines(results),
+        "planner_vs_crowd": planner_vs_crowd(results),
         "usage": {
             "simulation_calls": sum(r.get("calls", 0) for c in results for r in c["runs"]),
             "judge": judge.usage,
@@ -908,6 +967,47 @@ def build_result(args: argparse.Namespace, settings: dict, cmd: list[str], label
         },
         "cases": results,
     }
+
+
+def merge_results(paths: list[Path], results_dir: Path | None) -> int:
+    """One result from the parts of a pass run in parallel with --cases: the cases in case order, summaries and
+    baselines computed again, usage added up. Every part must come from the same commit, settings and repeats."""
+    parts = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
+    first = parts[0]
+    same = ("git_commit", "settings", "repeats", "dry_run", "tellfold", "judge")
+    for path, part in zip(paths, parts):
+        differ = [k for k in same if part.get(k) != first.get(k)]
+        if differ:
+            print(f"{path} differs from {paths[0]} in {', '.join(differ)}", file=sys.stderr)
+            return 1
+    order = {c["slug"]: i for i, c in enumerate(load_cases())}
+    cases = sorted((c for part in parts for c in part["cases"]), key=lambda c: order.get(c["slug"], len(order)))
+    slugs = [c["slug"] for c in cases]
+    if len(set(slugs)) != len(slugs):
+        print("a case is in more than one part", file=sys.stderr)
+        return 1
+
+    def total(key: str) -> dict | None:
+        usages = [p["usage"][key] for p in parts if p["usage"].get(key)]
+        return {k: sum(u[k] for u in usages) for k in usages[0]} if usages else None
+
+    zero = any(c.get("zero_shot") for c in cases)
+    result = {
+        **first,
+        "summary": summarise(cases),
+        "zero_shot_summary": summarise(cases, "zero_shot") if zero else None,
+        "baselines": baselines(cases),
+        "planner_vs_crowd": planner_vs_crowd(cases),
+        "usage": {"simulation_calls": sum(p["usage"]["simulation_calls"] for p in parts),
+                  "judge": total("judge"), "zero_shot": total("zero_shot")},
+        "cases": cases,
+    }
+    folder = results_dir or paths[0].parent
+    out_json = results_path(folder, first["label"], first["date"])
+    out_json.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_markdown(out_json.with_suffix(".md"), result)
+    print(f"wrote {out_json} and {out_json.with_suffix('.md').name} from {len(parts)} parts, {len(cases)} cases")
+    return 0
 
 
 def count_failures(results: list[dict]) -> tuple[int, int]:
@@ -923,6 +1023,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--estimate", action="store_true", help="print the calls and cost of this pass, run nothing")
     p.add_argument("--validate", action="store_true", help="check the case files, run nothing")
     p.add_argument("--cases", help="comma-separated slugs (default: every case)")
+    p.add_argument("--merge", help="comma-separated result JSONs of one pass run in parts (--cases): write them as "
+                   "one result, run nothing")
     p.add_argument("--repeats", type=int, default=1, help="runs per case, seeds 7, 8, 9...")
     p.add_argument("--zero-shot", action="store_true", help="also grade one direct planner-model answer per case")
     p.add_argument("--tellfold", help='command that runs the CLI, e.g. "uv run tellfold" (default: engine-rs build)')
@@ -949,6 +1051,8 @@ def main(argv: list[str] | None = None) -> int:
     settings = {**SETTINGS, "agent_model": args.agent_model, "planner_model": args.planner_model}
     if args.validate:
         return 0 if validate_all(cases) else 1
+    if args.merge:
+        return merge_results([Path(p.strip()) for p in args.merge.split(",") if p.strip()], args.results_dir)
     if args.estimate:
         print_estimate(estimate(cases, settings, args.repeats, args.zero_shot, args.judge_model))
         return 0

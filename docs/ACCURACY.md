@@ -85,6 +85,44 @@ public on the day, and the later rounds are where the faults above showed up, wi
 response to things that never happened. The 60% bar is the smallest majority that is clearly not an even split; the
 half bar matches the judge's definition of mixed, which includes "mostly indifferent".
 
+The second pass (12 November) showed what version 1 didn't fix, listed under [Where it still goes
+wrong](#where-it-still-goes-wrong). Since commit `STAKE_COMMIT`, new runs follow version 2 (`crowd_rules: 2`), which
+keeps every rule above and adds these:
+
+- **A cast of the people it affects, leaning the way they would.** Before writing the cast, the planner lists the
+  groups of ordinary people the announcement touches and what it changes for each of them (their money, time, work,
+  routine or rights), using only the source material, with roughly how much of the conversation each group makes up.
+  It then estimates how those people lean when they first hear the news (supportive, critical, undecided or
+  indifferent) and gives a short reason. The public is spread over the groups, and each person's starting stance is
+  drawn from that mix, after the bounds below, instead of from one fixed mix of about a third supportive and a third
+  critical. With the fixed mix, the first reaction came out close to even in 12 of the 19 runs of the second pass,
+  whatever the announcement was. The groups, the planner's mix, its reason and the bounded mix are saved in the run's
+  `config.json` as `stakes`, so a reader can see why the crowd leaned the way it did.
+- **Organisation posts are checked.** Before a post by an organisation account goes into the feed, the planner model
+  checks it against the seed text, and the post is dropped if it states, offers or announces anything the seed
+  doesn't contain. The prompt rule alone didn't stop Barclays, HubSpot, Meta and the MBTA from inventing concessions
+  late in the second pass. Dropped posts are listed in the run's `dropped_posts.jsonl`.
+- **Every objection reaches the report.** The report's digest favours the most engaged posts, so objections raised
+  by quieter people never reached it. The report now also gets each person's first post and must include a section
+  called "What people objected to" that lists every distinct objection and who raised it.
+- **One more try at the report.** When the report reply fails validation even after its JSON repair, the report gets
+  one more full attempt before the run fails. UT Austin's report failed this way in the second pass, and the same
+  prompt worked when run again.
+
+The bounds on the planner's mix: at least 15% of the public starts on each side, and at least 15% starts undecided
+or indifferent. Whatever the planner expects, some people defend the decision, some oppose it and some haven't made
+up their mind, so the crowd has a minority that can win the argument and a middle that can move. With 14 members of
+the public (20 agents less the organisation accounts), 15% is two people, the fewest who can reply to each other.
+The bounds still let one side hold up to 70%, enough for a clear lean under the first-reaction rule. They were set
+from that reasoning before the third pass and not tuned on the 20 cases.
+
+The catch: with a planned mix, the crowd's direction can simply be the planner's guess under another name, since
+people mostly post the stance they were cast with (in the second pass 78 of 106 supportive people and 87 of 102
+critical ones posted that way first). So the harness also scores the direction the planner's own mix implies, by the
+same first-reaction rule, as a row of its own, counts the runs where the crowd's final direction moved away from it
+and whether each move was right, and counts how often Tellfold agrees with the zero-shot answer. If Tellfold only
+matches the planner, the crowd adds nothing to the planner's guess, and the results say so.
+
 ### Scoring
 
 One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads Tellfold's

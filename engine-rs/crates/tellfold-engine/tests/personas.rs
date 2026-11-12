@@ -197,9 +197,16 @@ fn run<F: std::future::Future>(future: F) -> F::Output {
 fn fair_cast_records_camps_and_source() {
     use tellfold_engine::personas::{generate_cast, CastPlan, CAMPS, SOURCE_CAST};
     let llm = FakeLlm::new(tellfold_llm::canned::fake_responder);
-    let fair =
-        run(generate_cast(&llm, &graph(), QUESTION, 10, "sonnet", "English", CastPlan { fair: true, ground: None }))
-            .unwrap();
+    let fair = run(generate_cast(
+        &llm,
+        &graph(),
+        QUESTION,
+        10,
+        "sonnet",
+        "English",
+        CastPlan { fair: true, ..Default::default() },
+    ))
+    .unwrap();
     assert_eq!(fair.len(), 10);
     for p in &fair {
         assert_eq!(p.source.as_deref(), Some(SOURCE_CAST));

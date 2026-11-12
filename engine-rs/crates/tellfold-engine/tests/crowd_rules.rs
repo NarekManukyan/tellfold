@@ -14,7 +14,7 @@ use tellfold_engine::personas::tidy_cast;
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::Schema;
-use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES};
+use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES, STAKE_RULES};
 use tellfold_store::world::World;
 
 /// (handle, activity): a council raising bus fares. Most of these people mostly read.
@@ -54,15 +54,32 @@ fn graph() -> KnowledgeGraph {
     }
 }
 
+/// What the council's account invents from round 3 on, as Barclays' did in the second accuracy pass.
+const INVENTED: &str = "We will freeze fares for students.";
+
 fn responder(purpose: &str, prompt: &str, schema: Option<&Schema>) -> FakeReply {
+    if purpose == "engine.factcheck" {
+        // the posts are numbered "[n] @handle (name): text"
+        let invented: Vec<i64> = prompt
+            .lines()
+            .filter(|l| l.starts_with('[') && l.contains(INVENTED))
+            .filter_map(|l| l[1..l.find(']')?].parse().ok())
+            .collect();
+        return FakeReply::Json(json!({"invented": invented}));
+    }
     if purpose != "engine.round" {
         return fake_responder(purpose, prompt, schema);
     }
+    let late = !(prompt.contains("Round 1 of") || prompt.contains("Round 2 of"));
     let mut decisions: Vec<Value> = Vec::new();
     for block in prompt.split("=== ").skip(1) {
         let agent = block.split_whitespace().next().unwrap_or_default();
         let speaks = block.contains("Activity level: high") || block.contains(TURN_FIRST);
-        let action = if speaks {
+        // the block's header line is "a01 @council_news ==="; its feed may show the council to others
+        let council = block.lines().next().is_some_and(|l| l.contains("@council_news"));
+        let action = if speaks && late && council {
+            json!({"type": "post", "content": format!("{agent} on the fares. {INVENTED}")})
+        } else if speaks {
             json!({"type": "post", "content": format!("{agent} on the fares.")})
         } else {
             json!({"type": "nothing"})
@@ -75,6 +92,8 @@ fn responder(purpose: &str, prompt: &str, schema: Option<&Schema>) -> FakeReply 
 struct Run {
     /// the authors of every post up to each round
     posted: Vec<HashSet<String>>,
+    /// the text of every post
+    texts: Vec<String>,
     /// (purpose, prompt, system) of every round and opening call
     calls: Vec<(String, String, String)>,
     cast: Vec<Persona>,
@@ -95,7 +114,9 @@ fn simulate(rules: i64, rounds: i64) -> Run {
     };
     let llm = FakeLlm::new(responder);
     let graph = graph();
-    let engine = Engine::new(&llm, &world, &config, None).with_graph(&graph);
+    let engine = Engine::new(&llm, &world, &config, None)
+        .with_graph(&graph)
+        .with_source("The City Council raises adult bus fares by 15% from January.");
     tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async {
         engine.seed_world(&graph).await.unwrap();
         engine.run().await.unwrap();
@@ -108,10 +129,10 @@ fn simulate(rules: i64, rounds: i64) -> Run {
     let calls = prompts
         .into_iter()
         .zip(systems)
-        .filter(|(c, _)| c.0 == "engine.round" || c.0 == "engine.seed")
+        .filter(|(c, _)| ["engine.round", "engine.seed", "engine.factcheck"].contains(&c.0.as_str()))
         .map(|(c, s)| (c.0, c.2, s.1))
         .collect();
-    Run { posted, calls, cast }
+    Run { posted, texts: posts.iter().map(|p| p.content.clone()).collect(), calls, cast }
 }
 
 #[test]
@@ -146,7 +167,7 @@ fn the_fact_rules_are_in_the_system_prompts_only_under_the_rules() {
     for (rules, want) in [(CROWD_RULES, true), (0, false)] {
         let run = simulate(rules, 1);
         assert!(run.calls.iter().any(|c| c.0 == "engine.seed") && run.calls.iter().any(|c| c.0 == "engine.round"));
-        for (_, _, system) in &run.calls {
+        for (_, _, system) in run.calls.iter().filter(|c| c.0 != "engine.factcheck") {
             assert_eq!(system.contains("never announces anything it doesn't"), want, "{system}");
             assert_eq!(system.contains("Stay on the announcement"), want, "{system}");
         }
@@ -168,4 +189,16 @@ fn first_turns_give_the_floor_to_whoever_has_not_posted() {
     assert_eq!(extra.iter().map(|p| p.id.clone()).collect::<Vec<_>>(), want);
     assert_eq!(turns.len(), cast.len() - 1);
     assert!(turns.values().all(|n| *n == TURN_FIRST));
+}
+
+#[test]
+fn organisation_posts_that_invent_something_are_dropped_under_the_stake_rules() {
+    for (rules, kept) in [(STAKE_RULES, false), (STAKE_RULES - 1, true)] {
+        let run = simulate(rules, 4);
+        assert_eq!(run.texts.iter().any(|t| t.contains(INVENTED)), kept, "rules {rules}");
+        let checks = run.calls.iter().filter(|c| c.0 == "engine.factcheck").count();
+        assert_eq!(checks > 0, rules >= STAKE_RULES, "rules {rules}");
+        // the council's honest posts stay
+        assert!(run.posted[4].contains(&run.cast[0].id));
+    }
 }

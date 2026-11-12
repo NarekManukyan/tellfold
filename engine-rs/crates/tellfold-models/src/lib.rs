@@ -17,6 +17,10 @@ use indexmap::IndexMap;
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize, Serializer};
 
+fn d_03() -> f64 {
+    0.3
+}
+
 fn d_06() -> f64 {
     0.6
 }
@@ -453,12 +457,58 @@ pub struct SimConfig {
     /// [`CROWD_RULES`] for a new run. Rust-only.
     #[serde(default, skip_serializing_if = "is_zero", deserialize_with = "lax::int")]
     pub crowd_rules: i64,
+    /// The groups the public was cast from and the stance mix it was drawn from, in a run with [`STAKE_RULES`].
+    /// Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stakes: Option<CastStakes>,
+}
+
+/// One group of people an announcement affects, and what it changes for them.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Stake {
+    pub group: String,
+    pub stake: String,
+    /// the rough part (0-1) of the people who would post about it that the group makes up
+    #[serde(default = "d_03", deserialize_with = "lax::float")]
+    pub share: f64,
+}
+
+/// Shares of a public by starting stance (0-1 each, adding up to 1 once bounded).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct StanceMix {
+    #[serde(default, deserialize_with = "lax::float")]
+    pub supportive: f64,
+    #[serde(default, deserialize_with = "lax::float")]
+    pub critical: f64,
+    #[serde(default, deserialize_with = "lax::float")]
+    pub undecided: f64,
+    #[serde(default, deserialize_with = "lax::float")]
+    pub indifferent: f64,
+}
+
+/// How the public of a run with [`STAKE_RULES`] was planned: the groups the announcement affects, the stance mix
+/// the planner expected and why, and the mix the cast was drawn from after the bounds that keep a minority on each
+/// side.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CastStakes {
+    pub groups: Vec<Stake>,
+    pub reason: String,
+    /// as the planner gave it
+    pub planned: StanceMix,
+    /// after the bounds
+    pub mix: StanceMix,
 }
 
 /// The crowd rules a new run follows (see [`SimConfig::crowd_rules`]). Version 1: organisation accounts never
 /// announce anything the source material doesn't say, every round shows the situation and keeps users on it, everyone
-/// gets a turn in the first rounds, and the report's direction comes from the crowd's first reaction.
-pub const CROWD_RULES: i64 = 1;
+/// gets a turn in the first rounds, and the report's direction comes from the crowd's first reaction. Version 2
+/// ([`STAKE_RULES`]) adds: the public is cast from the groups the announcement affects with a stance mix the planner
+/// expects for it (bounded, see [`CastStakes`]), organisation posts that state something the source doesn't are
+/// dropped, and the report lists every objection.
+pub const CROWD_RULES: i64 = 2;
+
+/// The first [`SimConfig::crowd_rules`] version with the planned cast, the fact check and the objections section.
+pub const STAKE_RULES: i64 = 2;
 
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
 /// does (its parity tests set it).
@@ -507,6 +557,7 @@ impl SimConfig {
             audience: None,
             material: None,
             crowd_rules: 0,
+            stakes: None,
         }
     }
 }
