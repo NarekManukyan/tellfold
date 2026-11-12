@@ -39,6 +39,8 @@ enum PersonaSource: String, Sendable {
     case group
     /// Changed by the user in the cast editor.
     case edited
+    /// Written from the user's own audience material (reviews, survey answers, ...).
+    case material
 
     init?(_ persona: Persona) {
         guard let source = persona.source.flatMap(PersonaSource.init(rawValue:)) else { return nil }
@@ -64,20 +66,23 @@ struct SavedAudience: Codable, Hashable, Sendable, Identifiable {
     var personas: [Persona]
     /// The topic map the people were cast from; the engine reuses it with the people.
     var graph: KnowledgeGraph?
+    /// The audience material the people were built from, so a run with them can say so in its report.
+    var material: MaterialSummary?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, question, personas, graph
+        case id, name, question, personas, graph, material
         case createdAt = "created_at"
     }
 
     init(id: String, name: String, createdAt: Date, question: String = "", personas: [Persona],
-         graph: KnowledgeGraph?) {
+         graph: KnowledgeGraph?, material: MaterialSummary? = nil) {
         self.id = id
         self.name = name
         self.createdAt = createdAt
         self.question = question
         self.personas = personas
         self.graph = graph
+        self.material = material
     }
 
     init(from decoder: any Decoder) throws {
@@ -88,6 +93,7 @@ struct SavedAudience: Codable, Hashable, Sendable, Identifiable {
         question = c.value(.question, default: "")
         personas = try c.decode([Persona].self, forKey: .personas)
         graph = c.optional(.graph)
+        material = c.optional(.material)
     }
 
     /// The `audience` form field of `POST /api/runs`.
@@ -96,9 +102,11 @@ struct SavedAudience: Codable, Hashable, Sendable, Identifiable {
             let name: String
             let personas: [Persona]
             let graph: KnowledgeGraph?
+            let material: MaterialSummary?
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        return String(decoding: try encoder.encode(Field(name: name, personas: personas, graph: graph)), as: UTF8.self)
+        let field = Field(name: name, personas: personas, graph: graph, material: material)
+        return String(decoding: try encoder.encode(field), as: UTF8.self)
     }
 }

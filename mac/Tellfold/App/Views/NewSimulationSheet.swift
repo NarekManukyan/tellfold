@@ -41,9 +41,20 @@ struct NewSimulationSheet: View {
     @State private var runtimesChosen = false
     @AppStorage("newSimulation.advancedOpen") private var advancedOpen = false
     @AppStorage("newSimulation.reviewCast") private var reviewCast = false
-    /// The saved audience to start from; nil casts new people from the material.
+    /// The saved audience to start from; nil casts new people from the documents.
     @State private var audienceID: String?
     @State private var showsAudiences = false
+    /// The user's own audience material, what the engine would send of it, and how reading it went.
+    @State private var material: [MaterialInput] = []
+    @State private var materialHide = ""
+    @State private var materialPreview: MaterialPreview?
+    @State private var materialError: String?
+    /// Files skipped on adding; informs only, so it neither blocks Start nor goes when the preview returns.
+    @State private var materialNotice: String?
+    @State private var readingMaterial = false
+    @State private var showsMaterialPreview = false
+    /// "Run again…" of a run built from material: what it was built from, since the files are not kept.
+    @State private var materialAgainNote: String?
     @FocusState private var focus: Field?
 
     private enum Field { case question, description }
@@ -76,6 +87,7 @@ struct NewSimulationSheet: View {
                         }
                         questionStep
                         aboutStep
+                        materialStep
                         sizeStep
                         advancedSection.id("advanced")
                     }
@@ -109,6 +121,12 @@ struct NewSimulationSheet: View {
         .sheet(isPresented: $showsAudiences) {
             AudiencesSheet()
         }
+        .sheet(isPresented: $showsMaterialPreview) {
+            if let materialPreview {
+                MaterialPreviewSheet(preview: materialPreview, plannerName: plannerName)
+            }
+        }
+        .task(id: materialKey) { await readMaterial() }
         .sheet(isPresented: $showsAgentSetup, onDismiss: {
             runtimesChosen = false
             useDefaultRuntimes()
@@ -154,13 +172,13 @@ struct NewSimulationSheet: View {
 
     private var aboutStep: some View {
         FormStep(title: "What is it about?", helper: "The simulated crowd only knows what you give it here.") {
-            Picker("Material", selection: $aboutMode) {
+            Picker("Documents", selection: $aboutMode) {
                 ForEach(AboutMode.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
             .fixedSize()
-            .accessibilityLabel("How to give it material")
+            .accessibilityLabel("How to give it documents")
 
             if !missingSeedNames.isEmpty && allFiles.isEmpty && descriptionText.isEmpty {
                 Text("Add the documents again. The last run used \(missingSeedNames.joined(separator: ", ")).")
@@ -178,7 +196,7 @@ struct NewSimulationSheet: View {
                 if !allFiles.isEmpty {
                     sideNote("\(allFiles.count) \(allFiles.count == 1 ? "file is" : "files are") sent too.")
                 } else if !NewSimulationRules.trimmed(descriptionText).isEmpty,
-                          !NewSimulationRules.hasMaterial(description: descriptionText, fileCount: 0) {
+                          !NewSimulationRules.hasSeeds(description: descriptionText, fileCount: 0) {
                     sideNote("A little more detail helps. Or add a file instead.")
                 }
             case .files:
@@ -274,7 +292,79 @@ struct NewSimulationSheet: View {
         .frame(minHeight: 26)
     }
 
-    // MARK: Step 3: how big
+    // MARK: Step 3: who the audience is
+
+    private var materialStep: some View {
+        MaterialStep(
+            inputs: $material, hideText: $materialHide, preview: materialPreview, isReading: readingMaterial,
+            error: materialError, notice: materialNotice,
+            unavailableNote: audience == nil ? nil
+                : "A saved audience already has its people, so material is not used. Choose “Cast new people” to use it.",
+            plannerName: plannerName, agents: crowdSize,
+            note: material.isEmpty ? materialAgainNote : nil,
+            add: addMaterial,
+            showPreview: { showsMaterialPreview = true })
+    }
+
+    private var plannerName: String { model.runtime(plannerRuntime)?.name ?? plannerRuntime }
+
+    /// What the preview depends on; a change reads the material again. The crowd size is not part of it: it only
+    /// changes the note about fewer items than people, which the sheet words itself.
+    private struct MaterialKey: Equatable {
+        var material: [MaterialInput]
+        var hide: [String]
+        var engine: Bool
+    }
+
+    private var materialKey: MaterialKey {
+        MaterialKey(material: material, hide: MaterialText.hideWords(materialHide),
+                    engine: model.engine.state.isRunning)
+    }
+
+    private func addMaterial(_ urls: [URL]) {
+        var rejected: [String] = []
+        for url in urls {
+            guard MaterialKind.extensions.contains(url.pathExtension.lowercased()), !AppModel.isFolder(url) else {
+                rejected.append(url.lastPathComponent)
+                continue
+            }
+            guard !material.contains(where: { $0.url == url }), material.count < MaterialLimits.maxFiles else { continue }
+            material.append(MaterialInput(url: url))
+        }
+        materialNotice = rejected.isEmpty ? nil
+            : "Skipped: \(rejected.joined(separator: ", ")). Use \(MaterialKind.extensionHint) files."
+    }
+
+    /// Asks the engine what it would send of the material, a moment after the last change.
+    private func readMaterial() async {
+        guard !material.isEmpty else {
+            materialPreview = nil
+            materialError = nil
+            return
+        }
+        guard let api = model.api, model.engine.state.isRunning else { return }
+        try? await Task.sleep(for: .milliseconds(300))
+        guard !Task.isCancelled else { return }
+        readingMaterial = true
+        defer { readingMaterial = false }
+        do {
+            let read = material
+            var preview = try await api.previewMaterial(read, hide: MaterialText.hideWords(materialHide))
+            guard !Task.isCancelled else { return }
+            preview.inputs = read
+            materialPreview = preview
+            materialError = nil
+        } catch {
+            guard !Task.isCancelled else { return }
+            materialPreview = nil
+            materialError = error.localizedDescription
+        }
+    }
+
+    /// The material a run sends: none with a saved audience.
+    private var usedMaterial: [MaterialInput] { audience == nil ? material : [] }
+
+    // MARK: Step 4: how big
 
     private var sizeStep: some View {
         FormStep(title: "How big?") {
@@ -295,7 +385,7 @@ struct NewSimulationSheet: View {
             HStack(spacing: Theme.space2) {
                 Text("People").font(Theme.body).foregroundStyle(Theme.secondary)
                 Picker("People", selection: $audienceID) {
-                    Text("Cast new people from the material").tag(String?.none)
+                    Text("Cast new people from the documents").tag(String?.none)
                     if !model.audiences.audiences.isEmpty {
                         Divider()
                         ForEach(model.audiences.audiences) { saved in
@@ -599,7 +689,8 @@ struct NewSimulationSheet: View {
             question: question, description: descriptionText, fileCount: allFiles.count,
             engineRunning: model.engine.state.isRunning,
             runtimeProblem: NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos),
-            modelsChosen: !agentModel.isEmpty && !plannerModel.isEmpty)
+            modelsChosen: !agentModel.isEmpty && !plannerModel.isEmpty,
+            materialProblem: !usedMaterial.isEmpty && materialError != nil)
     }
 
     private var summary: String {
@@ -611,16 +702,17 @@ struct NewSimulationSheet: View {
                 && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos))
     }
 
-    /// The model-call estimate under the summary; nil until there is material to estimate from.
+    /// The model-call estimate under the summary; nil until there are documents to estimate from.
     private var costLine: String? {
         let text = NewSimulationRules.trimmed(descriptionText)
-        guard NewSimulationRules.hasMaterial(description: text, fileCount: allFiles.count),
+        guard NewSimulationRules.hasSeeds(description: text, fileCount: allFiles.count),
               !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
         let chunks = NewRunRequest.estimatedChunks(files: allFiles, sizes: fileBytes, inlineDocuments: text.isEmpty ? [] : [.description(text)])
+        let materialItems = usedMaterial.isEmpty ? 0 : materialPreview?.summary.items ?? 0
         let split = NewRunRequest.estimatedCallSplit(agents: crowdSize, rounds: rounds, batch: batch, chunks: chunks,
-                                                     reusesCast: audience != nil)
+                                                     reusesCast: audience != nil, materialItems: materialItems)
         return NewSimulationRules.costLine(
-            agentCalls: split.agent, plannerCalls: split.planner,
+            agentCalls: split.agent, plannerCalls: split.planner, materialCalls: MaterialText.calls(items: materialItems),
             agentRuntime: model.runtime(agentRuntime)?.name ?? agentRuntime, agentModel: agentModel,
             plannerRuntime: model.runtime(plannerRuntime)?.name ?? plannerRuntime, plannerModel: plannerModel)
     }
@@ -700,6 +792,7 @@ struct NewSimulationSheet: View {
         folders = []
         missingSeedNames = prefill.missingSeedNames
         if !allFiles.isEmpty || !missingSeedNames.isEmpty { aboutMode = .files }
+        materialAgainNote = c.material.map(NewSimulationRules.materialAgainNote)
     }
 
     /// Fills the question, attaches the template's bundled document and plans its breaking news.
@@ -736,7 +829,9 @@ struct NewSimulationSheet: View {
             seed: seed,
             inlineDocuments: text.isEmpty ? [] : [.description(text)],
             reviewCast: reviewCast,
-            audience: audience)
+            audience: audience,
+            material: usedMaterial,
+            materialHide: usedMaterial.isEmpty ? [] : MaterialText.hideWords(materialHide))
         do {
             _ = try await model.createRun(request)
             model.prefs.lastLanguage = language

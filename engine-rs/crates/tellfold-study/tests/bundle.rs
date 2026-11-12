@@ -148,6 +148,47 @@ fn a_finished_run_survives_the_round_trip() {
 }
 
 #[test]
+fn a_grounded_run_carries_its_quotes_but_no_file_name() {
+    use tellfold_engine::material::{read_material, write_material, MaterialFile};
+    let tmp = tempfile::tempdir().unwrap();
+    let run_dir = tmp.path().join("mine/20261110-090604-grounded");
+    std::fs::create_dir_all(&run_dir).unwrap();
+    let seeds = copy_seeds(&run_dir, &[seed_path()]).unwrap();
+    let reviews: String =
+        (0..12).map(|i| format!("Review {i}: the yearly plan doubled and I may leave for another app.\n\n")).collect();
+    let file = MaterialFile {
+        name: "Quillfeather family.txt".into(),
+        kind: Some("reviews".into()),
+        column: None,
+        bytes: reviews.into(),
+    };
+    let material = read_material(&[file], &[], None).unwrap();
+    write_material(&run_dir, &material).unwrap();
+    let mut config = SimConfig::new(
+        "Will buyers accept the subscription?",
+        seeds.iter().map(|p| p.to_string_lossy().into_owned()).collect(),
+    );
+    (config.num_agents, config.rounds, config.batch_size) = (6, 2, 3);
+    config.material = Some(material.summary);
+    let llm = FakeLlm::new(fake_responder);
+    block_on(run_pipeline(&llm, &run_dir, &config, &seeds, &ReportWriter, RunOptions::default())).unwrap().unwrap();
+
+    let bytes = bundle_bytes(&run_dir, "20261110-090604-grounded").unwrap();
+    let files = entries(&bytes);
+    // the redacted items stay with the sender; the file they came from is named by label only
+    assert!(!files.iter().any(|(n, _)| n == "material.json"));
+    for (name, data) in &files {
+        assert!(!String::from_utf8_lossy(data).contains("Quillfeather"), "{name} names the material's file");
+    }
+    // the people keep the quotes they were written from (docs/API.md says so, and the app's export panel)
+    let personas = &files.iter().find(|(n, _)| n == "personas.json").unwrap().1;
+    assert!(String::from_utf8_lossy(personas).contains("\"quotes\""));
+    let config = &files.iter().find(|(n, _)| n == "config.json").unwrap().1;
+    let config: Value = serde_json::from_slice(config).unwrap();
+    assert_eq!(config["material"]["files"], serde_json::json!(["reviews 1"]));
+}
+
+#[test]
 fn only_a_finished_run_can_be_shared() {
     let tmp = tempfile::tempdir().unwrap();
     let source = finished_run(&tmp.path().join("mine"), "run");

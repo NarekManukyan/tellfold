@@ -45,6 +45,8 @@ pub struct Param {
     /// The type column of `--help` (`<int range>`), without the range.
     pub metavar: &'static str,
     pub is_argument: bool,
+    /// Only the Rust engine has it, so typer's recorded help screens leave it out.
+    pub rust_only: bool,
 }
 
 impl Param {
@@ -62,6 +64,7 @@ impl Param {
             help,
             metavar,
             is_argument: true,
+            rust_only: false,
         }
     }
 
@@ -85,6 +88,7 @@ impl Param {
             help,
             metavar,
             is_argument: false,
+            rust_only: false,
         }
     }
 
@@ -119,6 +123,11 @@ impl Param {
 
     pub fn secondary(mut self, names: &[&'static str]) -> Self {
         self.secondary = names.to_vec();
+        self
+    }
+
+    pub fn rust_only(mut self) -> Self {
+        self.rust_only = true;
         self
     }
 
@@ -171,6 +180,14 @@ impl Parsed {
         match self.values.get(name) {
             Some(Value::Int(n)) => *n,
             other => panic!("{name} is not an int: {other:?}"),
+        }
+    }
+
+    /// An optional number: None when the option was not given.
+    pub fn opt_int(&self, name: &str) -> Option<i64> {
+        match self.values.get(name) {
+            Some(Value::Int(n)) => Some(*n),
+            _ => None,
         }
     }
 

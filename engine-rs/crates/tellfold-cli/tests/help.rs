@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 use tellfold_cli::help::{command_spec_help, group_spec_help};
-use tellfold_cli::spec::{commands, RUST_ONLY};
+use tellfold_cli::spec::{commands, without_rust_only, Command};
 use tellfold_cli::term::{render_help, CommandHelp, ParamHelp};
 
 #[derive(Deserialize)]
@@ -56,8 +56,8 @@ fn param(p: Param) -> ParamHelp {
 fn every_help_screen_matches_typer() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../golden/fixtures/cli/help.json");
     let cases: Vec<Case> = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
-    // typer never had the Rust-only commands
-    let all: Vec<_> = commands().into_iter().filter(|c| !RUST_ONLY.contains(&c.name)).collect();
+    // typer never had the Rust-only commands and options
+    let all: Vec<Command> = without_rust_only(commands());
     assert_eq!(cases.len(), all.len() + 1, "the group and every command");
     for case in cases {
         let want = CommandHelp {

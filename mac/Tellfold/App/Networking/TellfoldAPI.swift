@@ -66,6 +66,10 @@ struct NewRunRequest: Hashable, Sendable {
     var fairTurns = true
     /// Start from a saved audience: its people (and topic map) are used as they are, so casting is skipped.
     var audience: SavedAudience?
+    /// The user's own audience material to build the people from (redacted by the engine before any model sees it).
+    var material: [MaterialInput] = []
+    /// Extra names or words to hide in the material.
+    var materialHide: [String] = []
 
     static let seedExtensions: Set<String> = ["pdf", "md", "markdown", "txt"]
     static let maxFileBytes = 20 * 1024 * 1024
@@ -81,9 +85,10 @@ struct NewRunRequest: Hashable, Sendable {
 
     /// The same formula as `tellfold.runner.estimate_call_split`: model calls for the crowd (agent runtime) and for
     /// planning (graph, personas, report) when nothing needs a retry.
-    /// `reusesCast` (a saved audience) skips the graph and persona calls.
+    /// `reusesCast` (a saved audience) skips the graph and persona calls; `materialItems` of audience material add
+    /// the planner calls that read them (Rust-only, `material_calls` in tellfold-store/src/estimate.rs).
     static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int,
-                                   reusesCast: Bool = false) -> (agent: Int, planner: Int) {
+                                   reusesCast: Bool = false, materialItems: Int = 0) -> (agent: Int, planner: Int) {
         let batch = Double(max(1, batch))
         let graph = reusesCast ? 0 : Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
         let personas = reusesCast ? 0 : Int((Double(agents) / 10).rounded(.up))
@@ -91,7 +96,8 @@ struct NewRunRequest: Hashable, Sendable {
         let opening = Int((openingAuthors / batch).rounded(.up)) + 1
         let active = max(1, (Double(agents) * estimatedActiveShare).rounded(.up))
         let perRound = Int((active / batch).rounded(.up)) + 1
-        return (opening + rounds * perRound, graph + personas + 1)
+        let material = reusesCast ? 0 : MaterialText.calls(items: materialItems)
+        return (opening + rounds * perRound, graph + personas + material + 1)
     }
 
     /// The same formula as `tellfold.runner.estimate_calls`.
@@ -208,11 +214,44 @@ actor TellfoldAPI {
         for doc in request.inlineDocuments {
             form.addFile("files[]", filename: doc.filename, contentType: "text/markdown", data: doc.data)
         }
+        try Self.addMaterial(request.material, hide: request.materialHide, to: &form)
         var req = makeRequest(["runs"], method: "POST")
         req.setValue(form.contentType, forHTTPHeaderField: "Content-Type")
         req.httpBody = form.finalize()
         let created: CreatedRun = try await send(req)
         return created.id
+    }
+
+    /// What a run with this audience material would send (`POST /api/material/preview`): the items after redaction,
+    /// what was hidden, and warnings. The crowd size is not sent: the sheet words the note about too few items itself.
+    func previewMaterial(_ material: [MaterialInput], hide: [String]) async throws -> MaterialPreview {
+        var form = MultipartForm()
+        try Self.addMaterial(material, hide: hide, to: &form)
+        var req = makeRequest(["material", "preview"], method: "POST")
+        req.setValue(form.contentType, forHTTPHeaderField: "Content-Type")
+        req.httpBody = form.finalize()
+        return try await send(req)
+    }
+
+    /// The `material` file parts, `material_spec` and `material_hide` of a form.
+    private static func addMaterial(_ material: [MaterialInput], hide: [String], to form: inout MultipartForm) throws {
+        guard !material.isEmpty else { return }
+        struct Spec: Encodable { let kind: String; let column: String? }
+        for input in material {
+            let data: Data
+            do {
+                data = try Data(contentsOf: input.url, options: .mappedIfSafe)
+            } catch {
+                throw TellfoldAPIError(status: 0, message: "Could not read \(input.url.lastPathComponent): \(error.localizedDescription)")
+            }
+            if data.count > MaterialLimits.maxFileBytes {
+                throw TellfoldAPIError(status: 413, message: "\(input.url.lastPathComponent) is larger than 10 MB")
+            }
+            form.addFile("material", filename: input.url.lastPathComponent, contentType: "text/plain", data: data)
+        }
+        let specs = material.map { Spec(kind: $0.kind.rawValue, column: $0.column) }
+        form.add("material_spec", String(decoding: try encoder.encode(specs), as: UTF8.self))
+        if !hide.isEmpty { form.add("material_hide", hide.joined(separator: "\n")) }
     }
 
     /// The seed documents saved with a run (`GET /api/runs/{id}/seeds`); empty for runs made before the engine kept them.

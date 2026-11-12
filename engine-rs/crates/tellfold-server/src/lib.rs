@@ -160,6 +160,11 @@ pub fn router(state: AppState) -> Router {
             get(list_runs).post(post_runs).layer(DefaultBodyLimit::max(upload::MAX_FORM_BYTES + 1024 * 1024)),
         )
         .route(
+            "/api/material/preview",
+            // the preview takes material only, no seeds
+            post(post_material_preview).layer(DefaultBodyLimit::max(upload::MAX_MATERIAL_BYTES + 2 * 1024 * 1024)),
+        )
+        .route(
             "/api/runs/import",
             // the handler streams the body and holds it to MAX_BUNDLE_BYTES itself
             post(import_bundle),

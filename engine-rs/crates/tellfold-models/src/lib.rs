@@ -84,9 +84,123 @@ pub struct Persona {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub camp: Option<String>,
     /// Where the persona came from: "cast" (planned and written by the engine), "group" (a group the user
-    /// described), "edited" (changed by the user before the run). None for older runs. Rust-only.
+    /// described), "edited" (changed by the user before the run), "material" (written from the user's audience
+    /// material, see `grounding`). None for older runs. Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+    /// The slice of the user's audience material this persona was written from (`source` "material"). Kept when
+    /// the user edits the persona or saves the cast as an audience. Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grounding: Option<Grounding>,
+}
+
+/// What a persona drawn from the user's own material was based on. Rust-only, like [`MaterialSummary`].
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Grounding {
+    /// The worry or hope the persona's cluster of material shares, in a few words.
+    #[serde(default)]
+    pub theme: String,
+    /// How many items of each kind ("reviews", "survey", ...) that cluster holds, in [`MATERIAL_KINDS`] order.
+    #[serde(default)]
+    pub counts: IndexMap<String, i64>,
+    /// The redacted quotes the persona's background and stance were written from.
+    #[serde(default)]
+    pub quotes: Vec<String>,
+}
+
+/// The kinds of audience material, in the order they are listed everywhere.
+pub const MATERIAL_KINDS: [&str; 5] = ["reviews", "survey", "emails", "comments", "notes"];
+
+/// "review" / "reviews" for an item count of one kind of material.
+pub fn material_noun(kind: &str, n: i64) -> String {
+    let (one, many) = match kind {
+        "reviews" => ("review", "reviews"),
+        "survey" => ("survey answer", "survey answers"),
+        "emails" => ("support email", "support emails"),
+        "comments" => ("social comment", "social comments"),
+        "notes" => ("meeting note", "meeting notes"),
+        _ => ("item", "items"),
+    };
+    format!("{n} {}", if n == 1 { one } else { many })
+}
+
+/// "14 reviews and 3 survey answers": the counts in words, kinds with none left out.
+pub fn material_counts_text(counts: &IndexMap<String, i64>) -> String {
+    let parts: Vec<String> = counts.iter().filter(|(_, n)| **n > 0).map(|(kind, n)| material_noun(kind, *n)).collect();
+    match parts.as_slice() {
+        [] => "no material".into(),
+        [one] => one.clone(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
+}
+
+/// What redaction of audience material hides, by category: (key in [`MaterialSummary::redacted`], one, many). The
+/// one list every message about redaction is written from.
+pub const REDACTION_CATEGORIES: [(&str, &str, &str); 6] = [
+    ("names", "name", "names"),
+    ("emails", "email address", "email addresses"),
+    ("phones", "phone number", "phone numbers"),
+    ("addresses", "street address", "street addresses"),
+    ("numbers", "order or account number", "order or account numbers"),
+    ("links", "link", "links"),
+];
+
+/// What the redaction rules remove, in words. Names are caught from greetings, sign-offs, titles, introductions and
+/// a list of common first names, so a name the rules do not know can remain: every claim says so.
+pub const REDACTION_TEXT: &str = "common first names, names in greetings, sign-offs and introductions, @handles, \
+email addresses, phone numbers, street addresses, order or account numbers and links";
+
+/// "4 names, 2 email addresses": what redaction hid, in words; "nothing needed hiding" when nothing was.
+pub fn redacted_text(redacted: &IndexMap<String, i64>) -> String {
+    let parts: Vec<String> = redacted
+        .iter()
+        .filter(|(_, n)| **n > 0)
+        .map(|(key, n)| {
+            let (one, many) = REDACTION_CATEGORIES
+                .iter()
+                .find(|(k, _, _)| k == key)
+                .map_or(("other detail", "other details"), |(_, one, many)| (*one, *many));
+            format!("{n} {}", if *n == 1 { one } else { many })
+        })
+        .collect();
+    if parts.is_empty() {
+        "nothing needed hiding".into()
+    } else {
+        parts.join(", ")
+    }
+}
+
+/// The audience material a run's crowd is built from (`SimConfig.material`). The redacted items themselves are in
+/// the run folder's `material.json`; the user's files never are. Rust-only.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct MaterialSummary {
+    /// Items that will be sent to the planner model, after redaction and the size cap.
+    #[serde(default)]
+    pub items: i64,
+    /// Items by kind, in [`MATERIAL_KINDS`] order.
+    #[serde(default)]
+    pub counts: IndexMap<String, i64>,
+    /// Items found but left out by the size cap.
+    #[serde(default)]
+    pub dropped: i64,
+    /// What was hidden before anything left the Mac, by [`REDACTION_CATEGORIES`] key.
+    #[serde(default)]
+    pub redacted: IndexMap<String, i64>,
+    /// The files the material came from, by neutral label ("reviews 1", "survey 1"): their names never leave the
+    /// preview.
+    #[serde(default)]
+    pub files: Vec<String>,
+    /// Only when the planner model could read fewer items than were sent (a failed call, an unknown camp): the items
+    /// it read, by kind. The people were built from these; every other field still describes what was sent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub read: Option<IndexMap<String, i64>>,
+}
+
+impl MaterialSummary {
+    /// The items the people were built from, by kind: [`MaterialSummary::read`] when set, else every item sent.
+    pub fn based_on(&self) -> &IndexMap<String, i64> {
+        self.read.as_ref().unwrap_or(&self.counts)
+    }
 }
 
 impl Persona {
@@ -105,6 +219,7 @@ impl Persona {
             entity_id: None,
             camp: None,
             source: None,
+            grounding: None,
         }
     }
 }
@@ -330,6 +445,10 @@ pub struct SimConfig {
     /// folder before the run starts, so the graph and persona stages are skipped.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
+    /// The user's own audience material the cast is grounded in (its redacted items are in `material.json`).
+    /// Rust-only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub material: Option<MaterialSummary>,
 }
 
 fn is_false(b: &bool) -> bool {
@@ -364,6 +483,7 @@ impl SimConfig {
             review_cast: false,
             fair_turns: false,
             audience: None,
+            material: None,
         }
     }
 }

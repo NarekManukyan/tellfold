@@ -8,7 +8,12 @@ pub const APP_HELP: &str =
 
 /// Commands only the Rust engine has, so the typer screens recorded from `cli.py` (`golden/fixtures/cli`) leave
 /// them out.
-pub const RUST_ONLY: &[&str] = &["mcp"];
+pub const RUST_ONLY: &[&str] = &["mcp", "material"];
+
+/// The commands as typer had them: without the [`RUST_ONLY`] commands and without the options marked `rust_only`.
+pub fn without_rust_only(commands: Vec<Command>) -> Vec<Command> {
+    commands.into_iter().filter(|c| !RUST_ONLY.contains(&c.name)).map(Command::without_rust_only).collect()
+}
 
 pub struct Command {
     pub name: &'static str,
@@ -16,6 +21,13 @@ pub struct Command {
     /// What follows `[OPTIONS]` in the usage line.
     pub usage_args: &'static str,
     pub params: Vec<Param>,
+}
+
+impl Command {
+    /// The command without its options marked `rust_only`.
+    pub fn without_rust_only(self) -> Command {
+        Command { params: self.params.into_iter().filter(|p| !p.rust_only).collect(), ..self }
+    }
 }
 
 const STR: Kind = Kind::Str;
@@ -111,6 +123,15 @@ pub fn commands() -> Vec<Command> {
                     STR,
                     "Label of this run in its study, e.g. \"Draft B\". Default: the next letter.",
                 ),
+                opt(
+                    "material",
+                    &["--material"],
+                    STR,
+                    "Build the crowd from your own audience material, as KIND:FILE (reviews, survey, emails, comments, notes; a spreadsheet's column after #, e.g. survey:answers.csv#Comments). Redacted on this computer first; preview it with `tellfold material`. Repeatable.",
+                )
+                .many()
+                .rust_only(),
+                opt("hide", &["--hide"], STR, "A name or word to hide in the material as well. Repeatable.").many().rust_only(),
             ],
         },
         Command {
@@ -258,6 +279,17 @@ pub fn commands() -> Vec<Command> {
                     .envvar(&["TELLFOLD_SERVE_TOKEN", "SHOAL_SERVE_TOKEN"]),
                 opt("examples", &["--examples"], PATH, "Folder of read-only example runs to list next to the runs."),
                 opt("log_level", &["--log-level"], STR, "debug, info, warning or error (logs go to stderr).").default("warning"),
+            ],
+        },
+        Command {
+            name: "material",
+            help: "Show exactly what `run --material` would send to the model: your audience material read, redacted and capped on this computer.",
+            usage_args: "{material}...",
+            params: vec![
+                arg("material", STR, "KIND:FILE, e.g. reviews:reviews.txt or survey:answers.csv#Comments.", "<str>").many(),
+                opt("hide", &["--hide"], STR, "A name or word to hide as well. Repeatable.").many(),
+                opt("agents", &["--agents"], range(2, Some(200)), "People in the planned crowd, to warn when the material is thin for it."),
+                flag("json", &["--json"], "Print the preview as JSON."),
             ],
         },
     ]

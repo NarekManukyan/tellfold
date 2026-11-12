@@ -16,6 +16,15 @@ enum RunBundle {
         var errorDescription: String? { message }
     }
 
+    /// What the save panel says about the file.
+    static let basePanelMessage = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
+
+    /// Added for a run built from audience material: its people carry the quotes they were written from.
+    static let groundedNote = "This run was built from your audience material: the file includes the cleaned quotes its people were written from."
+
+    /// The save panel's message; a grounded run adds a line about its quotes.
+    static func panelMessage(grounded: Bool) -> String { grounded ? basePanelMessage + "\n\n" + groundedNote : basePanelMessage }
+
     nonisolated static func isBundle(_ url: URL) -> Bool { url.pathExtension.lowercased() == fileExtension }
 
     /// The report title as a bundle file name, cleaned like the PDF's.

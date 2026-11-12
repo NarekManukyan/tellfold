@@ -9,13 +9,18 @@ use std::sync::{Arc, Mutex, OnceLock};
 use axum::extract::multipart::MultipartError;
 use axum::extract::{FromRequest, Multipart, Request};
 use axum::http::header;
+use indexmap::IndexMap;
 use regex::Regex;
 use serde_json::{json, Value};
 use unicode_normalization::UnicodeNormalization;
 
+use tellfold_engine::material::{
+    read_material, write_material, Material, MaterialFile, MAX_HIDE_WORDS, MAX_ITEMS, MAX_MATERIAL_FILES,
+    MAX_MATERIAL_FILE_BYTES,
+};
 use tellfold_engine::personas::{tidy_cast, MAX_CAST};
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{GodEvent, KnowledgeGraph, Persona, SimConfig};
+use tellfold_models::{GodEvent, KnowledgeGraph, MaterialSummary, Persona, SimConfig, MATERIAL_KINDS};
 use tellfold_runtimes::load_settings;
 use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE, WORLD_FILE};
 use tellfold_store::study::{join_study, plan_variant};
@@ -31,7 +36,11 @@ pub const MAX_FILE_BYTES: usize = 20 * 1024 * 1024;
 pub const MAX_FILES: usize = 100;
 pub const MAX_FIELDS: usize = 100;
 pub const MAX_TOTAL_BYTES: usize = 100 * 1024 * 1024;
-pub const MAX_FORM_BYTES: usize = MAX_TOTAL_BYTES + 1024 * 1024;
+/// Audience material has its own budget next to the seeds': its file count and size limits all used.
+pub const MAX_MATERIAL_BYTES: usize = MAX_MATERIAL_FILES * MAX_MATERIAL_FILE_BYTES;
+/// File parts a form may hold: the seeds and the material.
+pub const MAX_FORM_FILES: usize = MAX_FILES + MAX_MATERIAL_FILES;
+pub const MAX_FORM_BYTES: usize = MAX_TOTAL_BYTES + MAX_MATERIAL_BYTES + 1024 * 1024;
 
 /// Bytes an uploaded file part may keep in memory before the rest goes to a temporary file, like Starlette's
 /// `SpooledTemporaryFile`.
@@ -45,6 +54,16 @@ pub struct Upload {
 }
 
 impl Upload {
+    /// The whole contents, for material that is read in memory and never saved.
+    fn bytes(&self) -> std::io::Result<Vec<u8>> {
+        use std::io::Read;
+        let mut file = self.file.lock().expect("not poisoned");
+        file.rewind()?;
+        let mut out = Vec::with_capacity(self.size);
+        file.read_to_end(&mut out)?;
+        Ok(out)
+    }
+
     /// Copies the contents to `target`.
     fn save(&self, target: &Path) -> std::io::Result<()> {
         let mut file = self.file.lock().expect("not poisoned");
@@ -71,6 +90,18 @@ pub struct Form {
 impl Form {
     pub fn get(&self, key: &str) -> Option<&FormItem> {
         self.items.iter().rev().find(|(k, _)| k == key).map(|(_, v)| v)
+    }
+
+    /// The file parts sent under any of `keys` (`files` and `files[]`), in the form's order.
+    fn files(&self, keys: [&str; 2]) -> Vec<(String, Arc<Upload>)> {
+        self.items
+            .iter()
+            .filter(|(k, _)| keys.contains(&k.as_str()))
+            .filter_map(|(_, item)| match item {
+                FormItem::File { filename, data } => Some((filename.clone(), data.clone())),
+                FormItem::Text(_) => None,
+            })
+            .collect()
     }
 
     fn text(&self, key: &str) -> Option<&str> {
@@ -231,10 +262,10 @@ async fn read_form(request: Request, app: &AppState) -> Result<Form, ApiError> {
                     }
                     let data = Arc::new(Upload { size, file: Mutex::new(spool) });
                     files += 1;
-                    if files > MAX_FILES {
+                    if files > MAX_FORM_FILES {
                         return Err(ApiError::new(
                             400,
-                            format!("Too many files. Maximum number of files is {MAX_FILES}."),
+                            format!("Too many files. Maximum number of files is {MAX_FORM_FILES}."),
                         ));
                     }
                     form.items.push((key, FormItem::File { filename, data }));
@@ -267,7 +298,15 @@ async fn read_form(request: Request, app: &AppState) -> Result<Form, ApiError> {
 /// the 413 `_save_uploads` gives for too much in total.
 fn form_error(e: MultipartError) -> ApiError {
     if e.status() == axum::http::StatusCode::PAYLOAD_TOO_LARGE {
-        ApiError::new(413, "the seed files add up to more than 100 MB")
+        ApiError::new(
+            413,
+            format!(
+                "the upload is larger than {} MB: the seed files may add up to {} MB and the audience material to {} MB",
+                (MAX_TOTAL_BYTES + MAX_MATERIAL_BYTES) >> 20,
+                MAX_TOTAL_BYTES >> 20,
+                MAX_MATERIAL_BYTES >> 20
+            ),
+        )
     } else {
         ApiError::new(400, format!("could not read the form: {}", e.body_text()))
     }
@@ -293,6 +332,7 @@ struct Planned {
     study_id: Option<String>,
     variant: Option<String>,
     audience: Option<Audience>,
+    material: Option<Material>,
 }
 
 /// The `audience` field: a saved cast the app sends to skip the graph and persona stages.
@@ -302,6 +342,43 @@ struct Audience {
     personas: Vec<Persona>,
     #[serde(default)]
     graph: KnowledgeGraph,
+    /// what a grounded cast was built from, so the report of a run with it can say so ([`checked_summary`])
+    #[serde(default)]
+    material: Option<MaterialSummary>,
+}
+
+/// A client's summary of a saved audience's material, held to what a run could have made: known kinds and
+/// redaction categories only, numbers within the caps, at most [`MAX_MATERIAL_FILES`] short labels. None when it
+/// names no item.
+fn checked_summary(summary: MaterialSummary) -> Option<MaterialSummary> {
+    let cap = MAX_ITEMS as i64;
+    let known = |counts: &IndexMap<String, i64>| -> IndexMap<String, i64> {
+        MATERIAL_KINDS
+            .iter()
+            .filter_map(|k| counts.get(*k).map(|n| (k.to_string(), (*n).clamp(0, cap))))
+            .filter(|(_, n)| *n > 0)
+            .collect()
+    };
+    let mut checked = MaterialSummary {
+        counts: known(&summary.counts),
+        read: summary.read.as_ref().map(known).filter(|r| !r.is_empty()),
+        ..Default::default()
+    };
+    checked.items = checked.counts.values().sum::<i64>().min(cap);
+    if checked.items == 0 {
+        return None;
+    }
+    let redacted = tellfold_engine::redact::CATEGORIES
+        .iter()
+        .map(|c| (c.to_string(), summary.redacted.get(*c).copied().unwrap_or(0).clamp(0, 100 * cap)))
+        .collect();
+    let files = summary
+        .files
+        .iter()
+        .take(MAX_MATERIAL_FILES)
+        .map(|f| py_split(f).collect::<Vec<_>>().join(" ").chars().take(40).collect())
+        .collect();
+    Some(MaterialSummary { dropped: summary.dropped.clamp(0, 1_000_000), redacted, files, ..checked })
 }
 
 /// Longest audience name kept in `config.audience`.
@@ -318,22 +395,80 @@ fn audience_field(form: &Form) -> Result<Option<Audience>, ApiError> {
         return Err(ApiError::new(400, format!("an audience holds at most {MAX_CAST} people")));
     }
     audience.personas = tidy_cast(audience.personas);
+    audience.material = audience.material.and_then(checked_summary);
     if audience.personas.is_empty() {
         return Err(ApiError::new(400, "the audience has no people"));
     }
     Ok(Some(audience))
 }
 
+/// One entry of `material_spec`: what the material file at the same position holds.
+#[derive(Debug, Default, serde::Deserialize)]
+struct MaterialSpec {
+    #[serde(default)]
+    kind: Option<String>,
+    #[serde(default)]
+    column: Option<String>,
+}
+
+/// The audience material of a form: the `material` file parts, `material_spec` (a JSON list of `{kind, column}`,
+/// one per file in order) and `material_hide` (extra words to hide, one per line or comma separated), read and
+/// redacted in memory. Nothing of it is saved but the redacted items. None without material files.
+pub fn material_field(form: &Form, agents: Option<i64>) -> Result<Option<Material>, ApiError> {
+    let files = form.files(["material[]", "material"]);
+    if files.is_empty() {
+        return Ok(None);
+    }
+    let specs: Vec<MaterialSpec> = match form.text("material_spec").filter(|t| !py_strip(t).is_empty()) {
+        None => Vec::new(),
+        Some(text) => serde_json::from_str(text)
+            .map_err(|_| ApiError::new(400, "material_spec must be a JSON list of {kind, column}, one per file"))?,
+    };
+    if specs.len() > files.len() {
+        return Err(ApiError::new(400, "material_spec has more entries than there are material files"));
+    }
+    let hide: Vec<String> = form
+        .text("material_hide")
+        .map(|t| t.split(['\n', ',']).map(|w| py_strip(w).to_string()).filter(|w| !w.is_empty()).collect())
+        .unwrap_or_default();
+    if hide.len() > MAX_HIDE_WORDS {
+        return Err(ApiError::new(400, format!("material_hide holds at most {MAX_HIDE_WORDS} words")));
+    }
+    let mut material_files = Vec::new();
+    let mut taken = HashSet::new();
+    for (i, (filename, data)) in files.into_iter().enumerate() {
+        let spec = specs.get(i);
+        let name = safe_filename(if filename.is_empty() { "material.txt" } else { &filename }, &mut taken);
+        // refused before it is read into memory
+        if data.size > MAX_MATERIAL_FILE_BYTES {
+            return Err(ApiError::new(400, format!("{name} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20)));
+        }
+        let bytes = data.bytes().map_err(ApiError::internal)?;
+        material_files.push(MaterialFile {
+            name,
+            kind: spec.and_then(|s| s.kind.clone()),
+            column: spec.and_then(|s| s.column.clone()),
+            bytes,
+        });
+    }
+    read_material(&material_files, &hide, agents).map(Some).map_err(|e| ApiError::new(400, e.0))
+}
+
+/// `POST /api/material/preview`: exactly what a run with this material would send, without starting one.
+pub async fn preview_material(app: AppState, request: Request) -> ApiResult {
+    let form = read_form(request, &app).await?;
+    let agents = form.text("agents").and_then(crate::validate::parse_py_int).filter(|n| *n > 0);
+    // reading and redacting megabytes of text is blocking work: off the async workers
+    let material =
+        tokio::task::spawn_blocking(move || material_field(&form, agents)).await.map_err(ApiError::internal)??;
+    let Some(material) = material else {
+        return Err(ApiError::new(400, "add at least one file of audience material"));
+    };
+    Ok(ok_json(&material.preview()))
+}
+
 fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
-    let uploads: Vec<(String, Arc<Upload>)> = ["files[]", "files"]
-        .iter()
-        .flat_map(|key| {
-            form.items.iter().filter(move |(k, _)| k == key).filter_map(|(_, item)| match item {
-                FormItem::File { filename, data } => Some((filename.clone(), data.clone())),
-                FormItem::Text(_) => None,
-            })
-        })
-        .collect();
+    let uploads = form.files(["files[]", "files"]);
     if uploads.is_empty() {
         return Err(ApiError::new(400, "add at least one seed file (.pdf, .md, .markdown or .txt)"));
     }
@@ -392,7 +527,12 @@ fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
     if audience.is_some() && !cast_from.is_empty() {
         return Err(ApiError::new(400, "use either cast_from or audience, not both"));
     }
-    Ok(Planned { config, uploads, cast_from, study_id, variant, audience })
+    let material = material_field(form, Some(config.num_agents))?;
+    if material.is_some() && (audience.is_some() || !cast_from.is_empty()) {
+        return Err(ApiError::new(400, "audience material builds a new cast: leave out cast_from and audience"));
+    }
+    config.material = material.as_ref().map(|m| m.summary.clone());
+    Ok(Planned { config, uploads, cast_from, study_id, variant, audience, material })
 }
 
 /// The config of the run whose people a new run reuses; 400 unless it got as far as having people.
@@ -458,11 +598,12 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
         return Err(ApiError::new(413, "upload too large"));
     }
     let form = read_form(request, &app).await?;
-    let planned = plan(&form, &app)?;
-    drop(form);
+    // the audience material is read and redacted here: blocking work, off the async workers
+    let planning = app.clone();
+    let planned = tokio::task::spawn_blocking(move || plan(&form, &planning)).await.map_err(ApiError::internal)??;
     app.handle
         .call(move |m| async move {
-            let Planned { mut config, uploads, cast_from, study_id, variant, audience } = planned;
+            let Planned { mut config, uploads, cast_from, study_id, variant, audience, material } = planned;
             let mut study = None;
             if !cast_from.is_empty() {
                 let source = cast_source(&m, &cast_from)?;
@@ -482,6 +623,8 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 config.num_agents = source.num_agents;
                 // a version changes the text only: it keeps the source's turn rule, whatever the form says
                 config.fair_turns = source.fair_turns;
+                // and was grounded in the same material, which the report names
+                config.material = source.material.clone();
                 study = Some(planned_study);
             } else if study_id.is_some() || variant.is_some() {
                 return Err(ApiError::new(
@@ -498,6 +641,13 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 }
             };
             config.seed_files = seeds.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+            if let Some(material) = &material {
+                // only the redacted items: the user's files are never written
+                if let Err(e) = write_material(&run_dir, material) {
+                    let _ = std::fs::remove_dir_all(&run_dir);
+                    return Err(ApiError::internal(e));
+                }
+            }
             if let Some(audience) = audience {
                 // the runner reads these back as the cast, so the graph and persona stages cost nothing
                 let written = write_json(&run_dir.join(GRAPH_FILE), &audience.graph)
@@ -508,6 +658,7 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 }
                 config.num_agents = audience.personas.len() as i64;
                 config.audience = Some(audience.name);
+                config.material = audience.material;
             }
             let run_name = run_dir.file_name().unwrap_or_default().to_string_lossy().into_owned();
             if let Some(study) = &study {

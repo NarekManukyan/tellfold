@@ -51,15 +51,15 @@ struct NewSimulationTests {
         #expect(reason(d: long, engine: false) == "Waiting for the engine to start")
         #expect(reason(d: long, runtime: true) == "Fix the runtime above")
         #expect(reason(d: long, models: false) == "Choose a model in Advanced")
-        // The question comes first, then the material.
+        // The question comes first, then the documents.
         #expect(reason(q: "") == "Add a question")
     }
 
     @Test func descriptionNeedsAboutFortyCharacters() {
-        #expect(!NewSimulationRules.hasMaterial(description: String(repeating: "x", count: 39), fileCount: 0))
-        #expect(NewSimulationRules.hasMaterial(description: String(repeating: "x", count: 40), fileCount: 0))
-        #expect(!NewSimulationRules.hasMaterial(description: "  " + String(repeating: "x", count: 39) + "  ", fileCount: 0))
-        #expect(NewSimulationRules.hasMaterial(description: "", fileCount: 1))
+        #expect(!NewSimulationRules.hasSeeds(description: String(repeating: "x", count: 39), fileCount: 0))
+        #expect(NewSimulationRules.hasSeeds(description: String(repeating: "x", count: 40), fileCount: 0))
+        #expect(!NewSimulationRules.hasSeeds(description: "  " + String(repeating: "x", count: 39) + "  ", fileCount: 0))
+        #expect(NewSimulationRules.hasSeeds(description: "", fileCount: 1))
     }
 
     // MARK: summary

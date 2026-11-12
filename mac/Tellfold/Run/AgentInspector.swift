@@ -255,6 +255,19 @@ private struct AgentProfileView: View {
                     privateField("Stance", persona.stance)
                     privateField("Background", persona.background)
                 }
+                if let grounding = persona.grounding {
+                    InspectorSection(title: "Built from your material") {
+                        privateField(grounding.basedOn, grounding.theme)
+                        ForEach(grounding.quotes, id: \.self) { quote in
+                            MaterialPreviewSheet.marked("\u{201C}\(quote)\u{201D}")
+                                .font(Theme.small)
+                                .foregroundStyle(Theme.secondary)
+                                .textSelection(.enabled)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
                 if !persona.traits.isEmpty {
                     InspectorSection(title: "Traits") {
                         RunFlowLayout(spacing: 6, lineSpacing: 6) {

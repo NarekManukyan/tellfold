@@ -90,6 +90,35 @@ pub fn open_url(url: &str) {
         .spawn();
 }
 
+/// `Path.expanduser()`, `~name/...` included.
+pub(crate) fn expanduser(path: &Path) -> PathBuf {
+    match path.to_str() {
+        Some(text) => tellfold_runtimes::settings::expand_user(text),
+        None => path.to_path_buf(),
+    }
+}
+
+/// Python's `str(OSError)`: `[Errno N] message`.
+pub(crate) fn os_error_text(e: &std::io::Error) -> String {
+    match e.raw_os_error() {
+        Some(code) => format!("[Errno {code}] {}", tellfold_server::upload::strerror(e)),
+        None => e.to_string(),
+    }
+}
+
+/// The name and contents of a material file on disk, held to the size limit for one file. The CLI and the MCP
+/// tools both read material through it.
+pub(crate) fn read_material_path(path: &Path) -> Result<(String, Vec<u8>), String> {
+    let shown = path.display().to_string();
+    let size = std::fs::metadata(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
+    if size > tellfold_engine::material::MAX_MATERIAL_FILE_BYTES as u64 {
+        return Err(format!("{shown} is larger than {} MB", tellfold_engine::material::MAX_MATERIAL_FILE_BYTES >> 20));
+    }
+    let bytes = std::fs::read(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
+    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "material.txt".into());
+    Ok((name, bytes))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

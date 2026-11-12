@@ -13,6 +13,7 @@ axum.workspace = true
 chrono.workspace = true
 futures.workspace = true
 httpdate = "1"
+indexmap.workspace = true
 percent-encoding = "2"
 regex.workspace = true
 serde.workspace = true

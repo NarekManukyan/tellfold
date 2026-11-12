@@ -20,7 +20,7 @@ use tellfold_llm::{Llm, LlmError};
 use tellfold_models::log;
 use tellfold_models::text::py_prefix;
 use tellfold_models::{
-    BatchRef, FailedBatch, KnowledgeGraph, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
+    BatchRef, FailedBatch, KnowledgeGraph, MaterialSummary, Persona, Report, RunStage, RunState, RunStatus, SimConfig,
 };
 use tellfold_store::estimate::estimate_calls;
 use tellfold_store::files::{
@@ -31,7 +31,8 @@ use tellfold_store::world::{World, WorldError};
 
 use crate::engine::{Engine, EngineError};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
-use crate::personas::generate_cast;
+use crate::material::{cluster, count_kinds, load_material, read_items, Cluster, StoredMaterial};
+use crate::personas::{generate_cast, CastPlan, Ground};
 
 /// `status.pause` while a `review_cast` run waits for its cast to be confirmed.
 pub const PAUSE_PERSONAS: &str = "personas_ready";
@@ -328,6 +329,132 @@ pub async fn run_pipeline(
     result
 }
 
+/// The new cast of a run. With audience material, the planner reads the items, they are clustered, and the public
+/// is written from them; the config (written back to the run folder) then records only what was read, so the
+/// report and the run's status never claim more: when nothing could be read, the run has no material at all. None
+/// when the run was stopped meanwhile.
+async fn cast_people(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    config: &mut SimConfig,
+    run_dir: &Path,
+    track: &Tracker<'_>,
+    stopping: &dyn Fn() -> bool,
+) -> Result<Option<Vec<Persona>>, PipelineError> {
+    let mut grounded = None;
+    if config.material.is_some() {
+        let Some(read) = read_material_items(llm, graph, config, run_dir, track, stopping).await? else {
+            return Ok(None);
+        };
+        grounded = read;
+    } else {
+        track.stage(
+            RunStage::Personas,
+            &format!("creating {} personas", config.num_agents),
+            json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
+        )?;
+    }
+    let n = config.num_agents.max(0) as usize;
+    let ground = grounded.as_ref().map(|g| Ground { items: &g.material.items, clusters: &g.clusters });
+    let plan = CastPlan { fair: config.fair_turns, ground };
+    let cast = generate_cast(llm, graph, &config.question, n, &config.planner_model, &config.language, plan).await?;
+    Ok(Some(cast))
+}
+
+/// A run's audience material and its clusters, as read by the planner.
+struct Grounded {
+    material: StoredMaterial,
+    clusters: Vec<Cluster>,
+}
+
+/// Reads the run's audience material with the planner and clusters it, recording in the config what was read.
+/// Some(None) when nothing could be read; None when the run was stopped.
+async fn read_material_items(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    config: &mut SimConfig,
+    run_dir: &Path,
+    track: &Tracker<'_>,
+    stopping: &dyn Fn() -> bool,
+) -> Result<Option<Option<Grounded>>, PipelineError> {
+    let material = load_material(run_dir).map_err(|e| PipelineError::Other(e.0))?;
+    track.stage(
+        RunStage::Personas,
+        &format!("reading {} items of your audience material", material.items.len()),
+        json!({
+            "entities": graph.entities.len(),
+            "relations": graph.relations.len(),
+            "material_items": material.items.len(),
+        }),
+    )?;
+    let read = read_items(llm, &material.items, &config.question, &config.planner_model, &config.language).await;
+    let clusters = cluster(&read);
+    if stopping() {
+        track.finish_stopped()?;
+        return Ok(None);
+    }
+    if read.len() < material.items.len() {
+        // what the people are built from: the items read, or no material at all
+        config.material = config.material.take().filter(|_| !read.is_empty()).map(|summary| MaterialSummary {
+            read: Some(count_kinds(read.iter().map(|r| material.items[r.index].kind.as_str()))),
+            ..summary
+        });
+        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
+    }
+    if read.is_empty() {
+        log::warning(LOGGER, "no item of the audience material could be read; the cast is planned without it");
+        track.detail(
+            &format!("could not read your material: creating {} personas without it", config.num_agents),
+            json!({"material_read": 0}),
+        )?;
+        return Ok(Some(None));
+    }
+    track.detail(
+        &format!(
+            "creating {} personas from {} items in {} groups of your material",
+            config.num_agents,
+            read.len(),
+            clusters.len()
+        ),
+        json!({"material_read": read.len(), "clusters": clusters.len()}),
+    )?;
+    Ok(Some(Some(Grounded { material, clusters })))
+}
+
+/// Holds a `review_cast` run until a client confirms its people, then writes the cast it confirmed (and its size,
+/// when that changed). None when the run was stopped meanwhile.
+async fn review_cast(
+    gate: &dyn CastGate,
+    personas: Vec<Persona>,
+    config: &mut SimConfig,
+    run_dir: &Path,
+    track: &Tracker<'_>,
+    stopping: &dyn Fn() -> bool,
+) -> Result<Option<Vec<Persona>>, PipelineError> {
+    track.update(|s| {
+        s.pause = Some(PAUSE_PERSONAS.into());
+        s.detail = format!("{} people ready: waiting for you to check them", personas.len());
+    })?;
+    track.emit("personas_ready", json!({"personas": personas}));
+    let Some(personas) = gate.review(personas).await.filter(|_| !stopping()) else {
+        track.finish_stopped()?;
+        return Ok(None);
+    };
+    if personas.is_empty() {
+        return Err(PipelineError::Other("the cast is empty: add at least one person".into()));
+    }
+    write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
+    if config.num_agents != personas.len() as i64 {
+        config.num_agents = personas.len() as i64;
+        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
+    }
+    track.update(|s| {
+        s.pause = None;
+        s.detail = format!("cast confirmed: {} people", personas.len());
+    })?;
+    Ok(Some(personas))
+}
+
 async fn pipeline(
     llm: &dyn Llm,
     run_dir: &Path,
@@ -432,21 +559,10 @@ async fn pipeline(
                 track.finish_stopped()?;
                 return Ok(None);
             }
-            track.stage(
-                RunStage::Personas,
-                &format!("creating {} personas", config.num_agents),
-                json!({"entities": graph.entities.len(), "relations": graph.relations.len()}),
-            )?;
-            personas = generate_cast(
-                llm,
-                &graph,
-                &config.question,
-                config.num_agents.max(0) as usize,
-                &config.planner_model,
-                &config.language,
-                config.fair_turns,
-            )
-            .await?;
+            let Some(cast) = cast_people(llm, &graph, &mut config, run_dir, track, &stopping).await? else {
+                return Ok(None);
+            };
+            personas = cast;
             write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
         }
         if stopping() {
@@ -454,28 +570,10 @@ async fn pipeline(
             return Ok(None);
         }
         if let Some(gate) = cast_gate.filter(|_| config.review_cast) {
-            track.update(|s| {
-                s.pause = Some(PAUSE_PERSONAS.into());
-                s.detail = format!("{} people ready: waiting for you to check them", personas.len());
-            })?;
-            track.emit("personas_ready", json!({"personas": personas}));
-            let Some(reviewed) = gate.review(personas).await.filter(|_| !stopping()) else {
-                track.finish_stopped()?;
+            let Some(reviewed) = review_cast(gate, personas, &mut config, run_dir, track, &stopping).await? else {
                 return Ok(None);
             };
-            if reviewed.is_empty() {
-                return Err(PipelineError::Other("the cast is empty: add at least one person".into()));
-            }
             personas = reviewed;
-            write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
-            if config.num_agents != personas.len() as i64 {
-                config.num_agents = personas.len() as i64;
-                write_json(&run_dir.join(CONFIG_FILE), &config)?;
-            }
-            track.update(|s| {
-                s.pause = None;
-                s.detail = format!("cast confirmed: {} people", personas.len());
-            })?;
         }
         world = World::open(&run_dir.join(WORLD_FILE), config.seed)?;
         world.add_personas(&personas)?;

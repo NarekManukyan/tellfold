@@ -4,10 +4,15 @@
 //! Every seeded choice goes through [`rng::PyRandom`], CPython's Mersenne Twister, so a seed picks the same agents,
 //! follows and opening authors as the Python engine did.
 
+#[macro_use]
+mod patterns;
+
 pub mod engine;
 pub mod graph;
+pub mod material;
 pub mod personas;
 pub mod pytext;
+pub mod redact;
 pub mod rng;
 pub mod runner;
 mod unicode_tables;

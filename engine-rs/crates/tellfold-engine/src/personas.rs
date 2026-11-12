@@ -8,9 +8,10 @@ use tellfold_llm::{json, Llm, LlmError};
 use tellfold_models::json::{py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
-use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig};
+use tellfold_models::{Entity, Grounding, KnowledgeGraph, Persona, SimConfig, MATERIAL_KINDS};
 use unicode_normalization::UnicodeNormalization;
 
+use crate::material::{count_kinds, Cluster, MaterialItem, QUOTES_PER_PERSONA};
 use crate::rng::PyRandom;
 
 pub const BATCH_SIZE: usize = 10;
@@ -59,8 +60,12 @@ pub fn is_strong(camp: &str) -> bool {
 pub const SOURCE_CAST: &str = "cast";
 pub const SOURCE_GROUP: &str = "group";
 pub const SOURCE_EDITED: &str = "edited";
+/// Written from the user's own audience material (see [`generate_cast`]).
+pub const SOURCE_MATERIAL: &str = "material";
 /// Every `source` a persona may have; [`tidy_cast`] drops any other.
-pub const SOURCES: [&str; 3] = [SOURCE_CAST, SOURCE_GROUP, SOURCE_EDITED];
+pub const SOURCES: [&str; 4] = [SOURCE_CAST, SOURCE_GROUP, SOURCE_EDITED, SOURCE_MATERIAL];
+/// Characters of a quote shown to the model in a slot brief.
+const BRIEF_QUOTE_CHARS: usize = 300;
 
 /// The most people one described group may add, and the most a cast may hold.
 pub const MAX_GROUP: usize = 20;
@@ -150,6 +155,8 @@ pub struct Slot {
     pub activity_band: (f64, f64),
     /// the planned camp (public slots only)
     pub camp: Option<String>,
+    /// the slice of the user's material the slot is written from (grounded public slots only)
+    pub grounding: Option<Grounding>,
 }
 
 pub const SYSTEM_PROMPT: &str = "\
@@ -186,11 +193,21 @@ pub async fn generate_personas(
     model: &str,
     language: &str,
 ) -> Result<Vec<Persona>, LlmError> {
-    generate_cast(llm, graph, question, n, model, language, false).await
+    generate_cast(llm, graph, question, n, model, language, CastPlan::default()).await
 }
 
-/// [`generate_personas`], and with `fair` the cast of a `fair_turns` run: vocal stances never get a lurker's
-/// activity, and every persona records its camp and source.
+/// How [`generate_cast`] plans: `fair` for the cast of a `fair_turns` run (vocal stances never get a lurker's
+/// activity, and every persona records its camp and source), and `ground` to build the public from the user's
+/// material.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CastPlan<'a> {
+    pub fair: bool,
+    pub ground: Option<Ground<'a>>,
+}
+
+/// [`generate_personas`] planned by `plan`. With `ground`, the camps follow the material's spread, and every member
+/// of the public is written from real quotes of one cluster, records it as its `grounding` and has source
+/// "material"; entity voices still come from the graph.
 pub async fn generate_cast(
     llm: &dyn Llm,
     graph: &KnowledgeGraph,
@@ -198,18 +215,41 @@ pub async fn generate_cast(
     n: usize,
     model: &str,
     language: &str,
-    fair: bool,
+    plan: CastPlan<'_>,
 ) -> Result<Vec<Persona>, LlmError> {
     if n == 0 {
         return Ok(Vec::new());
     }
     let voices = select_voices(llm, graph, question, n, model).await;
-    let slots = plan_cast(graph, question, n, voices.as_deref(), fair);
+    let slots = match plan.ground {
+        Some(ground) => plan_grounded_cast(graph, question, n, voices.as_deref(), plan.fair, ground),
+        None => plan_cast(graph, question, n, voices.as_deref(), plan.fair),
+    };
+    fill_cast(llm, graph, &slots, question, model, language, plan.fair).await
+}
+
+/// The user's audience material, read and clustered ([`crate::material`]), for [`CastPlan::ground`].
+#[derive(Debug, Clone, Copy)]
+pub struct Ground<'a> {
+    pub items: &'a [MaterialItem],
+    pub clusters: &'a [Cluster],
+}
+
+/// Writes the planned slots in batches, retrying the ones a batch left out.
+async fn fill_cast(
+    llm: &dyn Llm,
+    graph: &KnowledgeGraph,
+    slots: &[Slot],
+    question: &str,
+    model: &str,
+    language: &str,
+    fair: bool,
+) -> Result<Vec<Persona>, LlmError> {
     let digest = graph_digest(graph);
     let mut filled: HashMap<String, Persona> = HashMap::new();
     let mut filled_order: Vec<String> = Vec::new();
     let mut taken: HashSet<String> = HashSet::new();
-    let mut pending: Vec<Slot> = slots.clone();
+    let mut pending: Vec<Slot> = slots.to_vec();
     let mut last_error = String::new();
     // every batch may be retried once, plus one spare
     let mut calls_left = 2 * slots.len().div_ceil(BATCH_SIZE) + 1;
@@ -227,7 +267,11 @@ pub async fn generate_cast(
         };
         for (slot, draft) in match_drafts(&batch, result.personas) {
             let mut persona = to_persona(slot, &draft, &mut taken);
-            if fair {
+            if slot.grounding.is_some() {
+                persona.camp = slot.camp.clone();
+                persona.source = Some(SOURCE_MATERIAL.into());
+                persona.grounding = slot.grounding.clone();
+            } else if fair {
                 persona.camp = slot.camp.clone();
                 persona.source = Some(SOURCE_CAST.into());
             }
@@ -273,6 +317,7 @@ age, situation and voice"
             entity_id: None,
             activity_band: (0.05, 0.95),
             camp: None,
+            grounding: None,
         })
         .collect();
     let digest = graph_digest(graph);
@@ -356,7 +401,8 @@ pub fn tidy_cast(personas: Vec<Persona>) -> Vec<Persona> {
     let tidy: Vec<Persona> = personas
         .into_iter()
         .take(MAX_CAST)
-        .map(|p| {
+        .map(|mut p| {
+            let grounding = p.grounding.take().and_then(tidy_grounding);
             let handle = unique_handle(&p.handle, &p.name, &taken);
             taken.insert(handle.clone());
             let name = py_strip(&p.name);
@@ -381,11 +427,30 @@ pub fn tidy_cast(personas: Vec<Persona>) -> Vec<Persona> {
                 entity_id: keep(p.entity_id),
                 camp: keep(p.camp).filter(|c| CAMPS.contains(&c.as_str())),
                 source: keep(p.source).filter(|s| SOURCES.contains(&s.as_str())),
+                grounding,
                 ..p
             }
         })
         .collect();
     renumber(tidy)
+}
+
+/// A client-sent grounding with known kinds, a short theme and at most a handful of quotes; None when nothing is left.
+fn tidy_grounding(g: Grounding) -> Option<Grounding> {
+    let counts: indexmap::IndexMap<String, i64> = MATERIAL_KINDS
+        .iter()
+        .filter_map(|k| g.counts.get(*k).filter(|n| **n > 0).map(|n| (k.to_string(), *n)))
+        .collect();
+    let quotes: Vec<String> = g
+        .quotes
+        .iter()
+        .map(|q| py_strip(q))
+        .filter(|q| !q.is_empty())
+        .take(2 * QUOTES_PER_PERSONA)
+        .map(|q| q.chars().take(crate::material::MAX_ITEM_CHARS + 1).collect())
+        .collect();
+    let theme: String = py_strip(&g.theme).chars().take(120).collect();
+    (!counts.is_empty() || !quotes.is_empty()).then_some(Grounding { theme, counts, quotes })
 }
 
 /// Asks the planner which entities would really speak up about the question.
@@ -446,6 +511,100 @@ pub fn plan_slots(graph: &KnowledgeGraph, question: &str, n: usize, voices: Opti
 /// moderate or neutral slot that drew more, so the people most likely to speak up are not planned to stay silent.
 /// The random draws are the same either way.
 pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Option<&[Entity]>, fair: bool) -> Vec<Slot> {
+    plan(graph, question, n, voices, fair, None)
+}
+
+/// [`plan_cast`] with the public drawn from the user's material: stances apportioned by how many items each camp
+/// holds, and each public slot given one cluster of its camp (clusters apportioned by size) and up to
+/// [`QUOTES_PER_PERSONA`] of its items, so people of one cluster are written from different quotes while it has
+/// enough. Without any read item it is [`plan_cast`].
+pub fn plan_grounded_cast(
+    graph: &KnowledgeGraph,
+    question: &str,
+    n: usize,
+    voices: Option<&[Entity]>,
+    fair: bool,
+    ground: Ground<'_>,
+) -> Vec<Slot> {
+    plan(graph, question, n, voices, fair, Some(ground))
+}
+
+/// Each camp's stance weighted by its items, camps without any left out; None when no item was read.
+fn camp_mix(ground: &Ground<'_>) -> Option<Vec<(&'static str, f64)>> {
+    let mix: Vec<(&'static str, f64)> = CAMPS
+        .iter()
+        .zip(STANCE_MIX.iter())
+        .map(|(camp, (stance, _))| {
+            let items: usize = ground.clusters.iter().filter(|c| c.camp == *camp).map(|c| c.items.len()).sum();
+            (*stance, items as f64)
+        })
+        .filter(|(_, w)| *w > 0.0)
+        .collect();
+    (!mix.is_empty()).then_some(mix)
+}
+
+/// Largest-remainder shares of `count` over `weights`, ties to the earlier weight.
+fn apportion(weights: &[usize], count: usize) -> Vec<usize> {
+    let total: usize = weights.iter().sum();
+    if total == 0 {
+        return vec![0; weights.len()];
+    }
+    let mut shares: Vec<usize> = weights.iter().map(|w| w * count / total).collect();
+    let mut order: Vec<usize> = (0..weights.len()).collect();
+    order.sort_by_key(|&i| (std::cmp::Reverse(weights[i] * count % total), i));
+    let short = count - shares.iter().sum::<usize>();
+    for &i in order.iter().take(short) {
+        shares[i] += 1;
+    }
+    shares
+}
+
+/// For every public slot, the cluster it is drawn from and its quotes (item indexes).
+fn assign_clusters(
+    ground: &Ground<'_>,
+    camps: &[Option<&str>],
+    rng: &mut PyRandom,
+) -> Vec<Option<(usize, Vec<usize>)>> {
+    let mut out: Vec<Option<(usize, Vec<usize>)>> = vec![None; camps.len()];
+    let mut decks: Vec<(Vec<usize>, usize)> = ground
+        .clusters
+        .iter()
+        .map(|c| {
+            let mut deck = c.items.clone();
+            rng.shuffle(&mut deck);
+            (deck, 0)
+        })
+        .collect();
+    for camp in CAMPS {
+        let slots: Vec<usize> = (0..camps.len()).filter(|&j| camps[j] == Some(camp)).collect();
+        let clusters: Vec<usize> = (0..ground.clusters.len()).filter(|&c| ground.clusters[c].camp == camp).collect();
+        if slots.is_empty() || clusters.is_empty() {
+            continue;
+        }
+        let sizes: Vec<usize> = clusters.iter().map(|&c| ground.clusters[c].items.len()).collect();
+        let shares = apportion(&sizes, slots.len());
+        let mut next = slots.into_iter();
+        for (&c, &share) in clusters.iter().zip(&shares) {
+            for j in next.by_ref().take(share) {
+                let (deck, cursor) = &mut decks[c];
+                let take = QUOTES_PER_PERSONA.min(deck.len());
+                let quotes: Vec<usize> = (0..take).map(|k| deck[(*cursor + k) % deck.len()]).collect();
+                *cursor = (*cursor + take) % deck.len().max(1);
+                out[j] = Some((c, quotes));
+            }
+        }
+    }
+    out
+}
+
+fn plan(
+    graph: &KnowledgeGraph,
+    question: &str,
+    n: usize,
+    voices: Option<&[Entity]>,
+    fair: bool,
+    ground: Option<Ground<'_>>,
+) -> Vec<Slot> {
     let candidates: Vec<Entity> = match voices {
         Some(v) => v.to_vec(),
         None => embodiable(graph),
@@ -466,11 +625,14 @@ pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Optio
             ),
             activity_band: (0.0, 1.0),
             camp: None,
+            grounding: None,
         })
         .collect();
     let n_public = n - n_entity;
     let mut rng = PyRandom::from_str_seed(&format!("{question}|{n}"));
-    let stances = allocate(&STANCE_MIX, n_public, &mut rng);
+    let mix = ground.as_ref().and_then(camp_mix);
+    let ground = ground.filter(|_| mix.is_some());
+    let stances = allocate(mix.as_deref().unwrap_or(&STANCE_MIX), n_public, &mut rng);
     let mut engagement = allocate(&ENGAGEMENT_MIX, n_public, &mut rng);
     if fair {
         let strong = |j: usize| camp_of(stances[j]).is_some_and(is_strong);
@@ -486,8 +648,38 @@ pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Optio
     let mut ages: Vec<&str> = (0..n_public).map(|i| AGE_BANDS[i % AGE_BANDS.len()]).collect();
     rng.shuffle(&mut ages);
     let groups: Vec<&str> = graph.entities.iter().filter(|e| e.kind == "group").map(|e| e.name.as_str()).collect();
+    let picks = ground.map(|g| {
+        let camps: Vec<Option<&str>> = stances.iter().map(|s| camp_of(s)).collect();
+        assign_clusters(&g, &camps, &mut rng)
+    });
     for j in 0..n_public {
         let (eng_label, band) = engagement[j];
+        if let (Some(g), Some(Some((c, quotes)))) = (ground, picks.as_ref().map(|p| &p[j])) {
+            let cluster = &g.clusters[*c];
+            let texts: Vec<String> = quotes.iter().map(|&i| g.items[i].text.clone()).collect();
+            let shown = texts
+                .iter()
+                .map(|t| format!("\"{}\"", py_prefix(t, BRIEF_QUOTE_CHARS)))
+                .collect::<Vec<_>>()
+                .join(" / ");
+            let brief = format!(
+                "a member of the real audience the user's material comes from; age {}; starting stance: {}; \
+engagement: {eng_label} (activity {:.2}-{:.2}); what drives them: {}; write their background and stance from these \
+real comments by people like them, keeping their concerns and plain wording (square brackets hide personal \
+details: invent no names or contact details for them): {shown}",
+                ages[j], stances[j], band.0, band.1, cluster.theme
+            );
+            let counts = count_kinds(cluster.items.iter().map(|&i| g.items[i].kind.as_str()));
+            slots.push(Slot {
+                label: agent_id(n_entity + j, n),
+                brief,
+                entity_id: None,
+                activity_band: band,
+                camp: Some(cluster.camp.clone()),
+                grounding: Some(Grounding { theme: cluster.theme.clone(), counts, quotes: texts }),
+            });
+            continue;
+        }
         let segment = if !groups.is_empty() && j % 2 == 0 {
             groups[j % groups.len()]
         } else {
@@ -504,6 +696,7 @@ pub fn plan_cast(graph: &KnowledgeGraph, question: &str, n: usize, voices: Optio
             entity_id: None,
             activity_band: band,
             camp: camp_of(stances[j]).map(String::from),
+            grounding: None,
         });
     }
     slots
@@ -647,6 +840,7 @@ fn to_persona(slot: &Slot, draft: &PersonaDraft, taken: &mut HashSet<String>) ->
         entity_id: slot.entity_id.clone(),
         camp: None,
         source: None,
+        grounding: None,
     }
 }
 

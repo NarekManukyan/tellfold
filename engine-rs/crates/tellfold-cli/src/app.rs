@@ -142,6 +142,7 @@ fn dispatch(con: &Console, command: &Command, p: &Parsed) -> Done {
         "serve" => crate::serve::serve(con, p),
         "ui" => crate::serve::ui(con, p),
         "mcp" => crate::mcp::mcp(con, p),
+        "material" => commands::material(con, p),
         other => unreachable!("no command {other}"),
     }
 }

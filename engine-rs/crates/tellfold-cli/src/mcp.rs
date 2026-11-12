@@ -23,6 +23,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
+use tellfold_engine::material::MAX_MATERIAL_FILES;
 use tellfold_llm::ingest::{self, TEXT_SUFFIXES};
 use tellfold_runtimes::load_settings;
 use tellfold_runtimes::process::kill_live_process_groups;
@@ -33,8 +34,8 @@ use tellfold_server::{create_app, log, AppOptions, ManagerOptions};
 use crate::args::Parsed;
 use crate::commands::{Done, Exit};
 use crate::llm::fake_mode;
-use crate::paths::py_resolve;
-use crate::serve::{bind, examples_folder, exit_later, expanduser, llm_factory, os_error_text, run_server};
+use crate::paths::{expanduser, os_error_text, py_resolve, read_material_path};
+use crate::serve::{bind, examples_folder, exit_later, llm_factory, run_server};
 use crate::ui::Console;
 use crate::VERSION;
 
@@ -168,6 +169,16 @@ impl Engine {
 
     /// `POST /api/runs` with the form fields and the seed files.
     async fn create_run(&self, fields: &[(String, String)], seeds: Vec<Seed>) -> Result<String, String> {
+        self.create_grounded_run(fields, seeds, None).await
+    }
+
+    /// [`Engine::create_run`] with audience material for the cast.
+    async fn create_grounded_run(
+        &self,
+        fields: &[(String, String)],
+        seeds: Vec<Seed>,
+        material: Option<MaterialUpload>,
+    ) -> Result<String, String> {
         let mut form = reqwest::multipart::Form::new();
         for (key, value) in fields {
             form = form.text(key.clone(), value.clone());
@@ -175,9 +186,63 @@ impl Engine {
         for seed in seeds {
             form = form.part("files", reqwest::multipart::Part::bytes(seed.bytes).file_name(seed.name));
         }
+        if let Some(material) = material {
+            form = material.into_form(form);
+        }
         let created = self.json(self.http.post(self.url("/api/runs")).multipart(form).timeout(UPLOAD_TIMEOUT)).await?;
         created["id"].as_str().map(str::to_string).ok_or_else(|| "the engine did not return a run id".into())
     }
+
+    /// `POST /api/material/preview`: what the engine would send of this material.
+    async fn preview_material(&self, material: MaterialUpload, agents: Option<i64>) -> Result<Value, String> {
+        let mut form = material.into_form(reqwest::multipart::Form::new());
+        if let Some(agents) = agents {
+            form = form.text("agents", agents.to_string());
+        }
+        self.json(self.http.post(self.url("/api/material/preview")).multipart(form).timeout(UPLOAD_TIMEOUT)).await
+    }
+}
+
+/// Audience material read from disk, ready for a form: the files, what each holds, and the extra words to hide.
+struct MaterialUpload {
+    files: Vec<Seed>,
+    spec: Vec<Value>,
+    hide: Vec<String>,
+}
+
+impl MaterialUpload {
+    fn into_form(self, mut form: reqwest::multipart::Form) -> reqwest::multipart::Form {
+        for file in self.files {
+            form = form.part("material", reqwest::multipart::Part::bytes(file.bytes).file_name(file.name));
+        }
+        form = form.text("material_spec", Value::Array(self.spec).to_string());
+        if !self.hide.is_empty() {
+            form = form.text("material_hide", self.hide.join("\n"));
+        }
+        form
+    }
+}
+
+/// The material files given to a tool, read; None without any.
+fn collect_material(given: &[MaterialIn], hide: &[String]) -> Result<Option<MaterialUpload>, String> {
+    if given.is_empty() {
+        return Ok(None);
+    }
+    if given.len() > MAX_MATERIAL_FILES {
+        return Err(format!("at most {MAX_MATERIAL_FILES} files of audience material"));
+    }
+    let mut files = Vec::new();
+    let mut spec = Vec::new();
+    for entry in given {
+        let path = expanduser(Path::new(&entry.file));
+        if !path.is_file() {
+            return Err(format!("{}: no such file (relative paths start at {})", entry.file, cwd_text()));
+        }
+        let (name, bytes) = read_material_path(&path)?;
+        files.push(Seed { name, bytes });
+        spec.push(json!({"kind": entry.kind, "column": entry.column}));
+    }
+    Ok(Some(MaterialUpload { files, spec, hide: hide.to_vec() }))
 }
 
 fn run_path(run_id: &str, rest: &str) -> String {
@@ -350,6 +415,9 @@ fn run_status(detail: &Value) -> Value {
             out[key] = json!(value);
         }
     }
+    if let Ok(material) = serde_json::from_value::<tellfold_models::MaterialSummary>(config["material"].clone()) {
+        out["grounded_in"] = json!(tellfold_models::material_counts_text(material.based_on()));
+    }
     copy_read_only_flags(detail, out.as_object_mut().expect("an object"));
     out
 }
@@ -404,9 +472,17 @@ fn clamp_wait(seconds: Option<u64>) -> Duration {
 
 const START_SIMULATION: &str = "Starts a simulation of how a crowd of AI personas reacts to a text \
 (announcement, changelog, pricing change, launch post) and returns its run id at once. A run takes minutes: follow it \
-with wait_for_run, then read get_report.";
+with wait_for_run, then read get_report. With material (the user's reviews, survey answers, support emails, social \
+comments or meeting notes) and hide, the crowd is built from what real people said: call preview_material first and \
+show the user what would be sent.";
+const PREVIEW_MATERIAL: &str = "Show exactly what start_simulation would send of your audience material: every item \
+after common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone numbers, \
+street addresses, order or account numbers and links were removed on this computer, what was hidden, warnings when \
+the material is thin, and the extra model calls reading it costs. A name the rules do not know can remain: show the \
+items to the user before starting a run with them, and add any such name to hide.";
 const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) of a run, without waiting. pause is \
-set while the run waits for its cast to be checked in the Tellfold app. Example and imported runs (example or \
+set while the run waits for its cast to be checked in the Tellfold app. grounded_in (\"14 reviews and 3 survey \
+answers\") is set when the crowd was built from the user's audience material. Example and imported runs (example or \
 imported true) are read-only: they can be read and asked about, not changed.";
 const WAIT_FOR_RUN: &str = "Wait until a run finishes, or until timeout_seconds pass (default 30, at most 120), and \
 return its status. Call it again while finished is false. While pause is set, the run waits for someone to check its \
@@ -415,7 +491,9 @@ const GET_REPORT: &str = "The report of a finished run: the prediction, confiden
 recommendations, each citing the posts behind it. format: \"markdown\" (default), \"json\" or \"both\".";
 const LIST_RUNS: &str = "The runs in the runs folder, newest first, with their state and question. Example and \
 imported runs (example or imported true) are read-only: they can be read and asked about, not changed.";
-const LIST_PEOPLE: &str = "The simulated people of a run: id, handle, name, bio and starting stance.";
+const LIST_PEOPLE: &str = "The simulated people of a run: id, handle, name, bio and starting stance. A person \
+written from the user's audience material also has based_on (\"5 reviews and 2 survey answers\") and theme, the \
+worry or hope those items share.";
 const ASK_CROWD: &str = "Ask a question about how the crowd reacted in a finished run. The report agent answers from \
 the posts and cites them.";
 const INTERVIEW_PERSON: &str = "Interview one simulated person of a run, by id or handle; they answer in character.";
@@ -426,7 +504,9 @@ const COMPARE_DRAFTS: &str = "Compare two versions of a text on the same crowd: 
 draft B is shown to the same people with the same settings, and a cited comparison is written once both finish. \
 Returns the run ids at once; follow with get_study. While draft A is still making its people, run_b and study_id are \
 null and draft B starts later from this MCP session, so keep the session open until get_study (with run_id set to \
-run_a) returns a study_id.";
+run_a) returns a study_id. With material (the user's reviews, survey answers, support emails, social comments or \
+meeting notes) and hide, draft A's crowd is built from what real people said: call preview_material first and show \
+the user what would be sent. Material builds a new crowd, so it cannot be used with baseline_run_id.";
 const GET_STUDY: &str = "A study: the runs of compare_drafts with their cited comparison, or the repeats of check_run \
 with what held across them. ready is true once every run has ended and the result covers them all; error says why \
 a result will not be written (e.g. fewer than two runs have a report). wait_seconds waits for either, and for a draft \
@@ -505,8 +585,41 @@ pub struct StartSimulation {
     /// server runs in.
     #[serde(default)]
     pub files: Vec<String>,
+    /// Optional: your own audience material to build the crowd from (reviews, survey answers, support emails,
+    /// social comments, meeting notes). It is redacted on this computer before anything is sent; check it first
+    /// with preview_material.
+    #[serde(default)]
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide in the material (staff, pupils, customers).
+    #[serde(default)]
+    pub hide: Vec<String>,
     #[serde(flatten)]
     pub options: RunOptions,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct MaterialIn {
+    /// A .txt, .md, .markdown, .csv, .tsv or .eml file. Relative paths start at the folder the MCP server runs in,
+    /// and ~/ is your home folder.
+    pub file: String,
+    /// "reviews", "survey", "emails", "comments" or "notes". Optional for .eml (emails) and .csv/.tsv (survey).
+    #[serde(default)]
+    pub kind: Option<String>,
+    /// For a spreadsheet: the column to read, by header or 1-based number (default: the column with the most text).
+    #[serde(default)]
+    pub column: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PreviewMaterial {
+    /// The material files, as for start_simulation.
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide.
+    #[serde(default)]
+    pub hide: Vec<String>,
+    /// People in the planned crowd, to warn when the material is thin for it.
+    #[serde(default)]
+    pub agents: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -585,6 +698,13 @@ pub struct CompareDrafts {
     /// Label of draft B in the comparison (default: the next letter).
     #[serde(default)]
     pub label_b: Option<String>,
+    /// Optional: audience material to build draft A's crowd from, as for start_simulation; draft B shows its
+    /// text to the same people. Not used with `baseline_run_id`.
+    #[serde(default)]
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide in the material.
+    #[serde(default)]
+    pub hide: Vec<String>,
     /// How draft A is set up; draft B uses the same people and settings.
     #[serde(flatten)]
     pub options: RunOptions,
@@ -992,9 +1112,13 @@ impl Tellfold {
             Ok(seeds) => seeds,
             Err(e) => return fail(e),
         };
+        let material = match collect_material(&p.material, &p.hide) {
+            Ok(material) => material,
+            Err(e) => return fail(e),
+        };
         let fields = run_fields(&p.question, &p.options);
         let sent: Vec<String> = seeds.iter().map(|s| s.name.clone()).collect();
-        let run_id = match self.engine.create_run(&fields, seeds).await {
+        let run_id = match self.engine.create_grounded_run(&fields, seeds, material).await {
             Ok(run_id) => run_id,
             Err(e) => return fail(e),
         };
@@ -1004,6 +1128,19 @@ impl Tellfold {
             "documents": documents,
             "next": "Call wait_for_run with this run_id until finished is true, then get_report.",
         }))
+    }
+
+    #[tool(description = PREVIEW_MATERIAL)]
+    async fn preview_material(&self, Parameters(p): Parameters<PreviewMaterial>) -> Result<CallToolResult, ErrorData> {
+        let material = match collect_material(&p.material, &p.hide) {
+            Ok(Some(material)) => material,
+            Ok(None) => return fail("give at least one material file"),
+            Err(e) => return fail(e),
+        };
+        match self.engine.preview_material(material, p.agents).await {
+            Ok(preview) => ok(preview),
+            Err(e) => fail(e),
+        }
     }
 
     #[tool(description = GET_RUN_STATUS)]
@@ -1103,8 +1240,13 @@ impl Tellfold {
             .map(|all| {
                 all.iter()
                     .map(|p| {
-                        json!({"id": p["id"], "handle": p["handle"], "name": p["name"], "bio": p["bio"],
-                               "stance": p["stance"]})
+                        let mut person = json!({"id": p["id"], "handle": p["handle"], "name": p["name"],
+                                                "bio": p["bio"], "stance": p["stance"]});
+                        if let Ok(g) = serde_json::from_value::<tellfold_models::Grounding>(p["grounding"].clone()) {
+                            person["based_on"] = json!(tellfold_models::material_counts_text(&g.counts));
+                            person["theme"] = json!(g.theme);
+                        }
+                        person
                     })
                     .collect()
             })
@@ -1164,7 +1306,11 @@ impl Tellfold {
         if p.draft_b.trim().is_empty() {
             return fail("draft_b is required");
         }
-        let run_a = match p.baseline_run_id.as_deref().filter(|r| !r.trim().is_empty()) {
+        let baseline = p.baseline_run_id.as_deref().filter(|r| !r.trim().is_empty());
+        if baseline.is_some() && !p.material.is_empty() {
+            return fail("material builds a new crowd: leave out baseline_run_id");
+        }
+        let run_a = match baseline {
             Some(run_a) => run_a.to_string(),
             None => {
                 let Some(question) = p.question.as_deref().filter(|q| !q.trim().is_empty()) else {
@@ -1173,9 +1319,13 @@ impl Tellfold {
                 let Some(draft_a) = p.draft_a.as_deref().filter(|d| !d.trim().is_empty()) else {
                     return fail("draft_a is required (or give baseline_run_id)");
                 };
+                let material = match collect_material(&p.material, &p.hide) {
+                    Ok(material) => material,
+                    Err(e) => return fail(e),
+                };
                 let fields = run_fields(question, &p.options);
                 let seeds = vec![Seed { name: "draft-a.md".into(), bytes: draft_a.as_bytes().to_vec() }];
-                match self.engine.create_run(&fields, seeds).await {
+                match self.engine.create_grounded_run(&fields, seeds, material).await {
                     Ok(run_id) => run_id,
                     Err(e) => return fail(e),
                 }
@@ -1338,6 +1488,13 @@ async fn embedded(p: &Parsed, token: Option<String>, err: &Console) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_preview_tool_names_what_redaction_removes() {
+        // the description is a constant for the tool attribute, so it spells the shared list out: keep them one
+        let words = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(words(PREVIEW_MATERIAL).contains(&words(tellfold_models::REDACTION_TEXT)), "{PREVIEW_MATERIAL}");
+    }
 
     #[test]
     fn progress_follows_stage_and_round() {

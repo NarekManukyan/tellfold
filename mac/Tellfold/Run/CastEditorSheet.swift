@@ -239,7 +239,7 @@ struct CastEditorSheet: View {
 
     private func saveAudience() {
         guard let saved = model.saveAudience(name: audienceName, question: store.question, graph: store.graph,
-                                             to: app.audiences) else { return }
+                                             material: store.material, to: app.audiences) else { return }
         savedNote = "Saved as \u{201C}\(saved.name)\u{201D}."
     }
 }
@@ -281,10 +281,18 @@ private struct CastRow: View {
                         switch PersonaSource(person) {
                         case .group: Text("Added").font(Theme.caption).foregroundStyle(Theme.accent)
                         case .edited: Text("Edited").font(Theme.caption).foregroundStyle(Theme.accent)
+                        case .material: Text("From your material").font(Theme.caption).foregroundStyle(Theme.accent)
                         case .cast, nil: EmptyView()
                         }
                     }
                     Text(role).font(Theme.small).foregroundStyle(Theme.secondary).lineLimit(2)
+                    if let grounding = person.grounding {
+                        Text(GroundingText.line(grounding))
+                            .font(Theme.small)
+                            .foregroundStyle(Theme.muted)
+                            .lineLimit(2)
+                            .help(grounding.quotes.map { "\u{201C}\($0)\u{201D}" }.joined(separator: "\n"))
+                    }
                     if !isEditing {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(CastCamp.label(for: person))
@@ -342,6 +350,18 @@ private struct CastRow: View {
 
     private var editor: some View {
         VStack(alignment: .leading, spacing: Theme.space2) {
+            if let grounding = person.grounding, !grounding.quotes.isEmpty {
+                field("Written from (cleaned quotes; some names may remain)") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(grounding.quotes, id: \.self) { quote in
+                            MaterialPreviewSheet.marked("\u{201C}\(quote)\u{201D}")
+                                .font(Theme.small)
+                                .foregroundStyle(Theme.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+            }
             field("Public bio") {
                 TextField("Public bio", text: $draft.bio, axis: .vertical).labelsHidden().consoleField()
             }

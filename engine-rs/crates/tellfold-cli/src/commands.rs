@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
+use tellfold_engine::material::{read_material, write_material, Material, MaterialFile};
 use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
 use tellfold_llm::Llm;
 use tellfold_models::text::{py_prefix, py_strip};
@@ -17,6 +18,7 @@ use tellfold_report::report::build_report;
 use tellfold_report::rewrite::build_rewrite;
 use tellfold_report::{write_report, ReportError, ReportWriter};
 use tellfold_runtimes::{load_settings, Auth};
+use tellfold_store::estimate::material_calls_for;
 use tellfold_store::files::{copy_seeds, create_run_dir, load_cast, now_iso, write_json, REWRITE_FILE};
 use tellfold_store::study::{
     join_study, letter, new_study_id, plan_variant, repeat_config, save_study, study_dir, study_of, AGREEMENT_FILE,
@@ -29,7 +31,7 @@ use tellfold_study::compare::{build_compare, Member};
 
 use crate::args::{py_repr, Parsed, UsageError};
 use crate::llm::{fake_mode, make_llm, resolve_runtimes};
-use crate::paths::{as_uri, py_os_error, py_path, py_resolve};
+use crate::paths::{as_uri, expanduser, py_os_error, py_path, py_resolve, read_material_path};
 use crate::term::{Overflow, Table, Text};
 use crate::ui::Console;
 use crate::view::{on_event, RunView};
@@ -274,6 +276,82 @@ fn run_live(
     outcome
 }
 
+// ---------- audience material ----------
+
+/// `KIND:FILE[#COLUMN]` (or a bare .eml/.csv file, whose kind its type says) as a material file, read from disk.
+fn material_file(given: &str) -> Result<MaterialFile, String> {
+    let (kind, rest) = match given.split_once(':') {
+        Some((kind, rest)) if tellfold_engine::material::kind_of("", Some(kind)).is_ok() => (Some(kind), rest),
+        _ => (None, given),
+    };
+    let on_disk = |text: &str| expanduser(&py_path(text));
+    // a column after the last "#", unless the whole thing is the file's name
+    let (path, column) = match rest.rsplit_once('#') {
+        Some((path, column)) if !on_disk(rest).exists() && on_disk(path).exists() => (path, Some(column)),
+        _ => (rest, None),
+    };
+    let path = on_disk(path);
+    if !path.is_file() {
+        return Err(format!("{given}: no such file"));
+    }
+    let (name, bytes) = read_material_path(&path)?;
+    Ok(MaterialFile { name, kind: kind.map(str::to_string), column: column.map(str::to_string), bytes })
+}
+
+/// The material a command was given, read and redacted; None without any.
+fn given_material(
+    con: &Console,
+    given: &[String],
+    hide: &[String],
+    agents: Option<i64>,
+) -> Result<Option<Material>, Exit> {
+    if given.is_empty() {
+        return Ok(None);
+    }
+    let files = given.iter().map(|g| material_file(g)).collect::<Result<Vec<_>, _>>().map_err(|e| fail(con, &e))?;
+    read_material(&files, hide, agents).map(Some).map_err(|e| fail(con, &e.0))
+}
+
+fn material_overview(con: &Console, material: &Material) {
+    let counts = tellfold_models::material_counts_text(&material.summary.counts);
+    con.print_soft(&format!("[bold]Audience material:[/] {counts}"));
+    con.print_soft(&format!("Hidden on this computer: {}", tellfold_models::redacted_text(&material.summary.redacted)));
+    for warning in &material.warnings {
+        con.print_soft(&format!("[yellow]![/] {}", warning.replace('[', "\\[")));
+    }
+}
+
+/// `tellfold material`: the material a run would send, item by item.
+pub fn material(con: &Console, p: &Parsed) -> Done {
+    let agents = p.opt_int("agents");
+    let Some(material) = given_material(con, &p.list("material"), &p.list("hide"), agents)? else {
+        return Err(fail(con, "give at least one KIND:FILE"));
+    };
+    if p.flag("json") {
+        con.write(&format!("{}\n", serde_json::to_string_pretty(&material.preview()).unwrap_or_default()));
+        return Ok(());
+    }
+    material_overview(con, &material);
+    for file in &material.files {
+        let column = file.column.as_deref().map(|c| format!(", column {c:?}")).unwrap_or_default();
+        let items = tellfold_models::material_noun(&file.kind, file.items);
+        con.write(&format!("  {} ({}): {items}{column}\n", file.label, file.name));
+    }
+    con.line();
+    for item in &material.items {
+        con.write(&format!("[{}] {} · {}\n    {}\n", item.id, item.kind, item.file, item.text));
+    }
+    con.line();
+    let calls = material_calls_for(&material.summary);
+    con.print_soft(&format!(
+        "Only the text above is sent, to the planner model you pick ({calls} extra call{}). Nothing else in these \
+files leaves this computer. The rules remove {}; check the text for any other name, and add it with --hide.",
+        if calls == 1 { "" } else { "s" },
+        tellfold_models::REDACTION_TEXT
+    ));
+    Ok(())
+}
+
 // ---------- commands ----------
 
 pub fn run(con: &Console, p: &Parsed) -> Done {
@@ -284,6 +362,10 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
     let think = p.flag("think");
     let cast_from = p.str("cast_from").map(|s| py_path(&s));
     let variant = p.str("variant");
+    let material_given = p.list("material");
+    if cast_from.is_some() && !material_given.is_empty() {
+        return Err(fail(con, "--material builds a new cast: it cannot be used with --cast-from"));
+    }
 
     let files = expand_seeds(&seeds);
     if files.is_empty() {
@@ -309,6 +391,8 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
         planner_runtime,
         ..SimConfig::new(&question, files.iter().map(|f| f.to_string_lossy().into_owned()).collect())
     };
+    let material = given_material(con, &material_given, &p.list("hide"), Some(config.num_agents))?;
+    config.material = material.as_ref().map(|m| m.summary.clone());
     let mut study: Option<Study> = None;
     if let Some(cast_from) = &cast_from {
         if py_resolve(cast_from).parent() != Some(py_resolve(&out).as_path()) {
@@ -324,6 +408,8 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
         config.study_id = Some(planned.id.clone());
         config.variant = Some(label);
         config.num_agents = cast.personas.len() as i64;
+        // the crowd is the source's, and so is what it was grounded in
+        config.material = source.material.clone();
         study = Some(planned);
     } else if variant.as_deref().is_some_and(|v| !v.is_empty()) {
         return Err(fail(con, "--variant needs --cast-from: a study compares runs of one crowd"));
@@ -334,9 +420,16 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
             .map_err(|e| fail(con, &e.to_string()))?;
     }
     let files = copy_seeds(&run_dir, &files).map_err(|e| fail(con, &e.to_string()))?;
+    if let Some(material) = &material {
+        // only the redacted items; the user's own files stay where they are
+        write_material(&run_dir, material).map_err(|e| fail(con, &e.to_string()))?;
+    }
     config.seed_files = files.iter().map(|f| f.to_string_lossy().into_owned()).collect();
     write_json(&run_dir.join("config.json"), &config).map_err(|e| fail(con, &e.to_string()))?;
     con.print_soft(&format!("[bold]Tellfold[/] run [cyan]{}[/]{}", run_dir.display(), fake_note()));
+    if let Some(material) = &material {
+        material_overview(con, material);
+    }
 
     let llm = make_llm(Some(&run_dir), config.concurrency, think, Some(&config)).map_err(|e| fail(con, &e.0))?;
     let report = match run_live(con, llm.as_ref(), &run_dir, &config, &files) {

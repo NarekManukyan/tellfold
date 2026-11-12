@@ -1,0 +1,48 @@
+{
+  "$defs": {
+    "ReadItem": {
+      "properties": {
+        "item_id": {
+          "title": "Item Id",
+          "type": "string"
+        },
+        "camp": {
+          "description": "starting leaning toward the question's subject, one of: lean_support, lean_critical, undecided, indifferent, strong_support, strong_critical",
+          "enum": [
+            "lean_support",
+            "lean_critical",
+            "undecided",
+            "indifferent",
+            "strong_support",
+            "strong_critical"
+          ],
+          "title": "Camp",
+          "type": "string"
+        },
+        "theme": {
+          "description": "the worry or hope behind the item, at most eight words",
+          "title": "Theme",
+          "type": "string"
+        }
+      },
+      "required": [
+        "item_id",
+        "camp",
+        "theme"
+      ],
+      "title": "ReadItem",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/ReadItem"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "title": "MaterialRead",
+  "type": "object"
+}

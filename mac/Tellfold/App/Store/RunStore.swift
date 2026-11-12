@@ -97,6 +97,8 @@ final class RunStore: Identifiable {
     var personas: [Persona] { detail?.personas ?? [] }
     var personaByID: [String: Persona] { Dictionary(personas.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }) }
     var graph: KnowledgeGraph? { detail?.graph }
+    /// The audience material the run's people were built from, if any.
+    var material: MaterialSummary? { detail?.config.material }
     var stats: [RoundStats] { detail?.stats ?? [] }
     var events: [GodEvent] { detail?.events ?? [] }
     var followEdges: [FollowEdge] { detail?.followEdges ?? [] }

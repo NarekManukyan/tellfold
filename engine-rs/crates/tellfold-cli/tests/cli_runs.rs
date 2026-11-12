@@ -4,11 +4,14 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Command as Process, Stdio};
 
 use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
+use tellfold_cli::help::command_spec_help;
+use tellfold_cli::spec::commands;
+use tellfold_cli::term::render_help;
 
 #[derive(Deserialize)]
 struct Step {
@@ -154,7 +157,7 @@ fn a_session_of_commands_matches_python() {
                     .into_owned()
             })
             .collect();
-        let mut command = Command::new(env!("CARGO_BIN_EXE_tellfold"));
+        let mut command = Process::new(env!("CARGO_BIN_EXE_tellfold"));
         command.args(&args).current_dir(&cwd);
         for (key, _) in std::env::vars() {
             if key.starts_with("TELLFOLD_") || key.starts_with("SHOAL_") {
@@ -204,6 +207,9 @@ fn a_session_of_commands_matches_python() {
             }
             continue;
         }
+        // typer's `run --help` never had the Rust-only options, which `run` lists last
+        let stdout =
+            if step.args.first().is_some_and(|a| a == "run") { without_rust_only_options(&stdout) } else { stdout };
         assert_eq!(stdout, step.stdout, "stdout of `{label}`");
         assert_eq!(stderr, step.stderr, "stderr of `{label}`");
     }
@@ -234,4 +240,14 @@ fn a_session_of_commands_matches_python() {
     for (name, want) in &session.files {
         assert_eq!(&files[name], want, "{name}");
     }
+}
+
+/// `run --help` as typer printed it: when this engine printed the help of `run`, the help of `run` without its
+/// Rust-only options (`rust_only` in spec.rs), rendered as typer's was.
+fn without_rust_only_options(screen: &str) -> String {
+    let run = commands().into_iter().find(|c| c.name == "run").expect("a run command");
+    if screen != render_help(&command_spec_help(&run), 100) {
+        return screen.to_string();
+    }
+    render_help(&command_spec_help(&run.without_rust_only()), 100)
 }

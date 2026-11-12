@@ -112,22 +112,43 @@ session must stay open until it has (see below).
 
 | tool | what it does |
 |---|---|
-| `start_simulation` | Starts a run from `text` (with an optional `title`; `.md` is added unless it ends in .md, .markdown or .txt) and/or `files` (paths of .md, .markdown, .txt or .pdf files or folders; folders are read recursively, symlinked folders are skipped, and relative paths start at the server's working folder). Takes `question` (required), `agents` (2-200), `rounds` (1-50), `language`, `events` (`[{round, content}]`), `agent_runtime`, `planner_runtime`, `agent_model` and `planner_model`. Answers `run_id` at once, and `documents`: the names the engine saved the seeds under. |
-| `get_run_status` | `state`, `stage`, `round`, `total_rounds`, a rough `progress` (0-1), `finished`, `has_report`, `people`, and `error` when it failed. `pause` is set while the run waits for its cast to be checked in the Tellfold app. `example` or `imported` is true for a read-only run: it can be read and asked about, not changed. |
+| `start_simulation` | Starts a run from `text` (with an optional `title`; `.md` is added unless it ends in .md, .markdown or .txt) and/or `files` (paths of .md, .markdown, .txt or .pdf files or folders; folders are read recursively, symlinked folders are skipped, and relative paths start at the server's working folder). Takes `question` (required), `agents` (2-200), `rounds` (1-50), `language`, `events` (`[{round, content}]`), `agent_runtime`, `planner_runtime`, `agent_model` and `planner_model`, and optionally `material` and `hide` to build the crowd from the user's own audience material (see below). Answers `run_id` at once, and `documents`: the names the engine saved the seeds under. |
+| `preview_material` | Shows exactly what `start_simulation` would send of the audience material: every item after redaction, what was hidden, warnings when the material is thin, and `estimated_calls`, the extra planner calls reading it costs. Takes `material`, `hide` and optionally `agents`. Starts nothing. |
+| `get_run_status` | `state`, `stage`, `round`, `total_rounds`, a rough `progress` (0-1), `finished`, `has_report`, `people`, and `error` when it failed. `grounded_in` (e.g. `"14 reviews and 3 survey answers"`) when the people were built from audience material. `pause` is set while the run waits for its cast to be checked in the Tellfold app. `example` or `imported` is true for a read-only run: it can be read and asked about, not changed. |
 | `wait_for_run` | Waits until the run finishes or `timeout_seconds` (default 30, at most 120) pass, then answers like `get_run_status`. Call it again while `finished` is false. A run paused for its cast check is waited for like any other, with `pause` in the answer. |
 | `get_report` | The report: `format` `markdown` (default, also `md`), `json` (also as structured content) or `both`. |
 | `list_runs` | Runs, newest first (`limit`, default 20), with `example` or `imported` set on read-only ones. |
-| `list_people` | The simulated people of a run: `id`, `handle`, `name`, `bio`, `stance`. |
+| `list_people` | The simulated people of a run: `id`, `handle`, `name`, `bio`, `stance`, and for a person built from audience material `based_on` (e.g. `"3 reviews and 1 survey answer"`) and `theme`. |
 | `ask_crowd` | Asks the report agent a question about the outcome of a run; the answer cites posts. |
 | `interview_person` | Asks one person (`person`: id, or handle with or without `@`, in any case) a question; they answer in character. |
 | `inject_event` | Breaking news at a round that has not started, in a running run. |
 | `stop_run` | Stops a running run; what it has so far is kept. |
-| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b` (plus the run options of `start_simulation` for draft A), or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people, with draft A's settings and events, as soon as draft A has them. Answers `run_a`, `run_b` and `study_id`, or only `run_a` while draft A is still making its people: then draft B starts later from this MCP session, which must stay open until `get_study` returns a `study_id`. `pause` is set when draft A's cast waits to be checked in the Tellfold app. If it closed first, call `compare_drafts` again with `baseline_run_id` set to `run_a`. |
+| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b` (plus the run options of `start_simulation` for draft A, and its `material` and `hide` to build draft A's crowd from audience material), or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people, with draft A's settings and events, as soon as draft A has them. Answers `run_a`, `run_b` and `study_id`, or only `run_a` while draft A is still making its people: then draft B starts later from this MCP session, which must stay open until `get_study` returns a `study_id`. `pause` is set when draft A's cast waits to be checked in the Tellfold app. If it closed first, call `compare_drafts` again with `baseline_run_id` set to `run_a`. |
 | `get_study` | A study by `study_id` or `run_id`: its runs, and the cited comparison (`compare_drafts`) or what held across repeats (`check_run`). `ready` is true once every run has ended and the result covers them all; until then `comparison` is null, even when an older comparison exists. `error` says when no result will be written: fewer than two runs finished with a report, writing it failed, or the engine stopped before it was written. `wait_seconds` (at most 120) waits for either, and for a draft B that has not started yet. |
 | `check_run` | Runs a finished run again with the same people and text but other random seeds (`runs` in all, 2-5) and writes what held. Answers a `study_id`. |
 
 A tool that cannot do what was asked (an unknown run, a run with no report yet, a round that has started) answers
 with a tool error whose text says why, so the assistant can correct itself.
+
+### Audience material
+
+`start_simulation` and `preview_material` take `material`, a list of `{file, kind, column}`, and `hide`, a list of
+other names or words to hide:
+
+- `file`: a `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml` file, at most 10 MB and 20 files. Relative paths
+  start at the folder the MCP server runs in, and `~/` is your home folder.
+- `kind`: `reviews`, `survey`, `emails`, `comments` or `notes`. Optional for `.eml` (emails) and `.csv`/`.tsv`
+  (survey answers).
+- `column`: for a spreadsheet, the column to read, by header or 1-based number. Without it the column with the most
+  text is read; no other column is ever read.
+
+Common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone numbers, street
+addresses, order or account numbers and links are removed on this computer before anything reaches the model, and the
+uploaded files are not kept: the run saves only the redacted items. A name the rules do not know can remain, so show
+the user the preview and add any such name to `hide`. The people are then built from that material, so their camps
+follow its spread and each is written from real quotes. Material cannot be combined with a reused cast, so
+`compare_drafts` refuses it with `baseline_run_id`. Call `preview_material` first and show the user what will be
+sent. The [HTTP API](API.md#audience-material) has the details and limits.
 
 ### A typical session
 

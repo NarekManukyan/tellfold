@@ -28,6 +28,12 @@ fn post_re() -> &'static Regex {
     RE.get_or_init(|| Regex::new(r"(?i)(?:#|\bpost[ _-]?(?:id)?\s*[:=#]?\s*)(\d+)").expect("valid regex"))
 }
 
+/// `[m001]`: an item of audience material (Rust-only; Python's fake never sees one).
+fn item_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"\[(m\d{3,})\]").expect("valid regex"))
+}
+
 fn choices_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| Regex::new(r"(?i)\bone of:\s*([\w\s,|/-]+)").expect("valid regex"))
@@ -61,6 +67,8 @@ pub struct FakeBuilder<'a> {
     counter: usize,
     refs: Vec<String>,
     agent_cursor: usize,
+    items: Vec<String>,
+    item_cursor: usize,
 }
 
 impl<'a> FakeBuilder<'a> {
@@ -76,6 +84,8 @@ impl<'a> FakeBuilder<'a> {
             counter: 0,
             refs: Vec::new(),
             agent_cursor: 0,
+            items: dedupe(item_re().captures_iter(prompt).map(|c| c[1].to_string())),
+            item_cursor: 0,
         }
     }
 
@@ -171,7 +181,9 @@ impl<'a> FakeBuilder<'a> {
         let items = self.resolve(node.get("items").unwrap_or(&json!({})));
         let top_level_objects = items.get("type") == Some(&json!("object")) && agent.is_none();
         let want = if top_level_objects {
-            if self.agents.is_empty() {
+            if self.agents.is_empty() && !self.items.is_empty() {
+                self.items.len()
+            } else if self.agents.is_empty() {
                 3
             } else {
                 self.agents.len()
@@ -180,7 +192,13 @@ impl<'a> FakeBuilder<'a> {
             2
         };
         let min = node.get("minItems").and_then(Value::as_u64).unwrap_or(0) as usize;
-        let max = node.get("maxItems").and_then(Value::as_u64).map_or(MAX_FAKE_ITEMS, |m| m as usize);
+        // every item of material gets its answer
+        let cap = if top_level_objects && self.agents.is_empty() && !self.items.is_empty() {
+            self.items.len()
+        } else {
+            MAX_FAKE_ITEMS
+        };
+        let max = node.get("maxItems").and_then(Value::as_u64).map_or(cap, |m| m as usize);
         let size = min.max(want).min(max);
         let items = Value::Object(items);
         (0..size).map(|_| self.value(&items, name, agent, false)).collect()
@@ -202,6 +220,11 @@ impl<'a> FakeBuilder<'a> {
         if let Some(found) = choices_re().captures(description) {
             let options: Vec<&str> = found[1].split([',', '|', '/']).map(py_strip).filter(|c| !c.is_empty()).collect();
             return json!(options[n % options.len()]);
+        }
+        if key == "item_id" && !self.items.is_empty() {
+            let item = self.items[self.item_cursor % self.items.len()].clone();
+            self.item_cursor += 1;
+            return json!(item);
         }
         if key == "agent_id" {
             return json!(agent.map_or_else(|| self.take_agent(), str::to_string));

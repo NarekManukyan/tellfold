@@ -329,7 +329,21 @@ Treat this as a scenario exploration, not a poll or a measurement of real people
     if (rounds_done(ev) as i64) < config.rounds {
         caveats.push(format!("Only {} of {} planned rounds completed.", rounds_done(ev), config.rounds));
     }
+    if let Some(material) = config.material.as_ref().filter(|m| m.items > 0) {
+        caveats.push(grounding_caveat(material));
+    }
     caveats
+}
+
+/// "The public is based on 14 reviews and 3 survey answers you supplied...": where a grounded crowd came from.
+pub fn grounding_caveat(material: &tellfold_models::MaterialSummary) -> String {
+    format!(
+        "The public is based on {} you supplied. Before any of it was sent to the model, {} were removed on this \
+computer; a name those rules do not know can remain. The people are still simulated: they echo that material, they \
+are not its authors.",
+        tellfold_models::material_counts_text(material.based_on()),
+        tellfold_models::REDACTION_TEXT
+    )
 }
 
 fn citation_repair_prompt(prompt: &str, draft: &Report, audit: &CitationAudit, ev: &Evidence) -> String {
