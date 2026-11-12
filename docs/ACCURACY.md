@@ -1,9 +1,10 @@
 # How accurate is Tellfold?
 
 **Not accurate enough yet.** In the first real pass (one seed per case, 11 November 2026), Tellfold called the
-overall reaction right in 6 of 20 cases. Asking the same model once, with no simulated crowd, got 14 right, and
-answering "negative" every time would have got 15. Tellfold makes no accuracy claim. This page describes the test,
-holds every result and lists every case it got wrong.
+overall reaction right in 6 of 20 cases. After fixing four faults that pass found, the second pass (12 November)
+called 7 of the 19 cases it graded. Asking the same model once, with no simulated crowd, got 14 of 20 and then 11 of
+20, and answering "negative" every time would have got 15 of 20. Tellfold makes no accuracy claim. This page
+describes the test, holds every result and lists every case it got wrong.
 
 Tellfold calls itself a rehearsal, not a survey. A rehearsal is still only worth doing if it points the right way
 more often than a guess. So we took real announcements whose public reaction is well documented, gave Tellfold only
@@ -53,6 +54,36 @@ CLI, random seed 7. The question follows one template for every case:
 > is *the organisation* likely to keep, change or reverse the decision?
 
 A pass with `--repeats 3` runs each case with seeds 7, 8 and 9, which shows how much the answer moves between runs.
+
+### Crowd rules
+
+The first pass (11 November) found four faults in the engine, listed under [Where it went wrong](#where-it-went-wrong).
+Since commit `a963978` every new run follows a set of crowd rules (`crowd_rules: 1` in its `config.json`). Older runs
+keep the original behaviour and still reproduce exactly. The rules were written from what each fault was, and none
+of them was tuned against the 20 cases:
+
+- **No invented facts.** The round and opening prompts say that the source material is everything that is known. An
+  organisation's account may restate, explain or defend what it says, but never announces anything it doesn't: no
+  new concessions, exemptions, figures, data, dates, promises or changes of plan. No one else may report such things
+  as fact either. A case with no organisation account gets none added.
+- **Stay on topic.** Every round prompt now shows the digest of the source material, as the opening prompt always
+  did, and tells users to stay on the announcement and on what others have actually said, not bring in other plans
+  or controversies.
+- **Everyone speaks early.** In rounds 1 and 2, anyone who hasn't posted yet is told this is their turn to give a
+  first reaction, and in round 2 everyone still silent joins the round. The rule builds on the fair turns from
+  [PR #16](https://github.com/NarekManukyan/tellfold/pull/16), which only cover camps and strong views and are off for command-line runs.
+- **Direction from the first reaction.** The report no longer reads the direction off where sentiment drifted to. The
+  engine takes each person's first scored post (organisation accounts are left out, since they speak for a side) and
+  counts it as against (below −0.2), in favour (above 0.2) or neither. The reaction is **negative** or **positive**
+  when at least half the people took a side and at least 60% of those (3 in 5) took the same one. Otherwise it is
+  **mixed**: the sides are close to even, or most people didn't take one. The report is told to state that
+  direction first and to describe later movement as a shift. The counts are saved in `report.json` as
+  `first_reaction`.
+
+Why the first reaction: the question asks about the first two weeks, the people in a run are cast to represent the
+public on the day, and the later rounds are where the faults above showed up, with the crowd calming down in
+response to things that never happened. The 60% bar is the smallest majority that is clearly not an even split; the
+half bar matches the judge's definition of mixed, which includes "mostly indifferent".
 
 ### Scoring
 
@@ -110,11 +141,130 @@ The set leans negative: well-sourced positive reactions were hard to find, becau
 
 ## Results
 
-One pass so far: 11 November 2026, commit `a92638f`, seed 7 only, with the zero-shot baseline. All 20 runs and all
-20 zero-shot answers completed and were graded; none failed. The full output, with every judge verdict and the
-quote behind it, is in
-[`bench/results/2026-11-11-sonnet-haiku.json`](../bench/results/2026-11-11-sonnet-haiku.json), with a per-case table in
-[`2026-11-11-sonnet-haiku.md`](../bench/results/2026-11-11-sonnet-haiku.md).
+Two passes so far, on the same 20 cases with the same models, settings, seed (7 only) and judge, each with the
+zero-shot baseline:
+
+- **11 November 2026, commit `a92638f`:** the engine as released. All 20 runs and all 20 zero-shot answers were
+  graded. Results: [`2026-11-11-sonnet-haiku.json`](../bench/results/2026-11-11-sonnet-haiku.json), per-case table in
+  [`2026-11-11-sonnet-haiku.md`](../bench/results/2026-11-11-sonnet-haiku.md).
+- **12 November 2026, commit `a963978`:** the same engine with the [crowd rules](#crowd-rules). 19 runs were graded.
+  The UT Austin simulation finished, but its report failed: the report call returned JSON without the required
+  `summary` field twice, and the harness leaves a failed run out of the averages. All 20 zero-shot answers were
+  graded. Results: [`2026-11-12-sonnet-haiku.json`](../bench/results/2026-11-12-sonnet-haiku.json), per-case table in
+  [`2026-11-12-sonnet-haiku.md`](../bench/results/2026-11-12-sonnet-haiku.md).
+
+Every judge verdict and the quote behind it is in the JSON files.
+
+All cases:
+
+| | Tellfold 11 Nov | Tellfold 12 Nov | No crowd 11 Nov | No crowd 12 Nov | Ignoring the announcement |
+|---|---|---|---|---|---|
+| cases graded | 20 | 19 | 20 | 20 | 20 |
+| direction | 30% | 37% | 70% | 55% | 75% |
+| objection recall | 35% | 41% | 66% | 68% | – |
+| backdown | 80% | 68% | 65% | 55% | 65% |
+| groups named | 47% | 36% | 70% | 69% | – |
+| direction from sentiment | 30% | 37% | – | – | – |
+
+After the models' cutoff:
+
+| | Tellfold 11 Nov | Tellfold 12 Nov | No crowd 11 Nov | No crowd 12 Nov | Ignoring the announcement |
+|---|---|---|---|---|---|
+| cases graded | 18 | 17 | 18 | 18 | 18 |
+| direction | 33% | 29% | 67% | 56% | 72% |
+| objection recall | 34% | 43% | 67% | 71% | – |
+| backdown | 78% | 65% | 61% | 50% | 67% |
+| groups named | 49% | 36% | 72% | 74% | – |
+| direction from sentiment | 33% | 35% | – | – | – |
+
+"Ignoring the announcement" is always answering "negative" for the direction and "no backdown" for the backdown.
+The two `known_to_model` controls went from 0 to 2 directions right, with backdown right in both passes. On the 19
+cases both passes graded, Tellfold went from 6 to 7 directions right, from 35% to 41% objection recall, from 16 to 13
+backdowns right and from 47% to 36% of groups named.
+
+### Second pass (12 November)
+
+What this says:
+
+- **Direction: still worse than both baselines.** 7 of 19 right, against 11 of 20 for the model alone and 15 of 20
+  for always "negative".
+- **The difference between the passes is within the noise.** Nothing changed in the zero-shot baseline between the
+  two passes (same model, same prompt, same seed text), yet it went from 14 to 11 directions right and from 13 to 11
+  backdowns right. That is how much one sample per case moves on 20 cases. Tellfold's changes (one more direction
+  right, three fewer backdowns, six points more objections) are no bigger, so this pass doesn't show that the rules
+  helped or hurt any score. It needs `--repeats 3` to tell.
+- **Everyone now speaks.** On 11 November 164 of the 400 simulated people (41%) never posted. On 12 November 12 of 400
+  (3%) never posted, and everyone else had posted by round 2. Nine of the 12 were cast as indifferent. Olathe still
+  had three silent, one of them cast as strongly opposed.
+- **The direction rule did what it says, and showed where the hedging comes from.** The report followed the
+  first-reaction count in 16 of 19 runs. But the count itself came out mixed in 12 of the 19: in Instagram most
+  people took no side, and in the other 11 the sides were close to even (Apple Music 5 against and 6 in favour,
+  Garmin 5 and 6, Hillsborough 6 and 6, Olathe 4 and 5). The rule calls those mixed, as it should. The reason is
+  upstream. Without audience material, as in every bench run, each cast is drawn from the same fixed stance mix
+  (about a third supportive, a third critical, a third undecided or indifferent; `STANCE_MIX` in
+  [`personas.rs`](../engine-rs/crates/tellfold-engine/src/personas.rs)), whatever the announcement says. People's
+  first posts follow the stance they were cast with: of 106 people cast as supportive, 78 posted in favour first and
+  10 against; of 102 cast as critical, 87 posted against first and 2 in favour (reading each stance by its wording).
+  So the crowd starts near even by construction, and a report that reads the crowd honestly says mixed.
+- **Backdown fell, for a reason worth knowing.** Three full reversals (Hillsborough, Meta, OpenAI) that the first
+  pass called "partial" were called "none". In the first pass the reports often predicted a change because the
+  simulated organisation had already conceded something inside the run. This time the three reports saw the
+  organisation hold its line with monitoring and talks, and predicted no change. Either way the report reads a
+  backdown off the organisation's simulated account, which is not a model of how the real organisation decides.
+
+### Where it still goes wrong
+
+Every direction miss of the 12 November pass, with the first-reaction count the engine saved in `report.json`
+(against, in favour, neither; organisation accounts left out):
+
+| case | actual | Tellfold | first reaction |
+|---|---|---|---|
+| Apple Music rebrand | negative | mixed | 5, 6, 4 |
+| Barnet parking | positive | negative | 7, 4, 6 |
+| Garmin CIRQA paywall | negative | mixed | 5, 6, 4 |
+| Hillsborough dress code | negative | mixed | 6, 6, 2 |
+| HubSpot data sharing | negative | mixed | 5, 4, 5 |
+| Ireland NTA fares | negative | mixed | 7, 5, 1 |
+| Iron County four-day week | mixed | negative | 8, 3, 2 |
+| MBTA fare pilots | positive | mixed | 4, 4, 6 |
+| Meta crawling terms | negative | mixed | 12, 3, 3 (the report called it mixed against the count) |
+| Olathe school closures | negative | mixed | 4, 5, 2 |
+| OpenAI Pro 200 cut | negative | mixed | 7, 5, 5 |
+| Xbox cloud caps | negative | mixed | 8, 6, 6 |
+
+Nintendo (7, 6, 7) and Sony (7, 5, 4) were called negative, correctly, by reports that went against a mixed count.
+Barclays, Dublin 7, Instagram, NatWest and the Witcher 3 upgrade were right and matched the count.
+
+Two of the four fixes didn't fully hold:
+
+- **Organisations still invent things, late in a run.** The rule is in every prompt, but under pressure from users
+  the organisation's account still announced things the input doesn't have. Barclays' account said in round 6 that
+  it had "shared consultation framework and flexibility guidance" and that implementation would include "day-choice
+  options for most roles and carers' case-by-case review". HubSpot's said in round 5 that it was "prioritizing
+  client-level opt-out controls". Meta's said in round 6 that licensing talks with publishers were "constructive".
+  MBTA's promised in round 3 to publish budget figures. We found these with a keyword scan of the 232 organisation
+  posts, not a full count, so there may be more. A rule in the prompt is not enough on its own.
+- **NatWest still went off topic, because of its cast.** The announcement is about more than 30,000 staff and how
+  many days they spend in the office. The cast was mostly customers, students and one union rep, and their profiles
+  are about bank branches and digital banking. 15 of the 56 posts were about redundancies or restructuring, against
+  2 of 37 in the first pass, and objection recall stayed at 0%. The topic rule shapes the rounds; it can't fix a cast
+  that is about something else.
+
+Other misses: Iron County, NatWest and Sony were called a partial change where none came, and Meta, OpenAI and
+Hillsborough no change where the decision was reversed in full. Nintendo's report raised none of the objections.
+UT Austin's report failed, as described above; the first pass had no report failures, and we don't know yet whether
+the longer report prompt made it more likely.
+
+What we take from this, again as hypotheses for the next pass: the direction is mostly set by the cast's fixed
+stance mix, so the next fix is to let the cast's mix follow the announcement. That has a cost to watch: if the
+planner model chooses the mix, its own expectation goes into the cast, and the crowd's direction becomes partly the
+zero-shot answer by another route. A pass would need to show the crowd adds something beyond that. Organisation
+posts need a check against the source material rather than a rule in the prompt, and casts need a check that they
+are made of the people the announcement affects.
+
+### First pass (11 November)
+
+The first pass's own table:
 
 | | cases | direction | objection recall | backdown | groups named | direction from sentiment |
 |---|---|---|---|---|---|---|
@@ -144,7 +294,7 @@ What this says:
 - **Sentiment agrees with the judge.** The judge-free reading of the last round's sentiment also gets 6 of 20, so
   the low direction score is not the judge misreading the reports.
 
-### Where it went wrong
+#### Where it went wrong
 
 Every miss from the 11 November pass. "Said" is what the judge quoted from Tellfold's report; anyone can check the
 quote against the report in the results file.
@@ -185,7 +335,29 @@ objections, partly. Barclays (negative, correct) raised 50%.
 
 What we take from this, as hypotheses for the next pass rather than findings: the simulated crowd is pulled towards
 the middle, in-simulation responses from the organisation calm it in a way the real world didn't, and some runs drift
-away from the announcement. None of this has been tested yet.
+away from the announcement. The [crowd rules](#crowd-rules) were written to test these; the
+[second pass](#second-pass-12-november) shows how far they got.
+
+### Judge check
+
+The judge's verdicts were reread for six reports of the 11 November pass: Apple Music, Barclays, Hillsborough,
+NatWest, Olathe and Xbox. That covers 6 directions, 6 backdowns and 26 objection verdicts. The second reading was
+done by the Claude session that ran the benchmark, reading each report against the checklist; it is not a check by a
+person.
+
+- **Direction: 5 of 6 agreed.** Olathe was called "mixed" by the judge, but the report says the crowd "never turned
+  hostile" and leans "yes with conditions", which reads as positive. Both are wrong against the real reaction
+  (negative), so the score doesn't change. Hillsborough and Xbox were called mixed: both reports describe an early
+  negative turn that the simulated organisation then calmed down, so mixed is a fair reading of what they say.
+- **Backdown: 6 of 6 agreed.** Hillsborough is the closest call: the report keeps the dress code and predicts changes
+  to how it is enforced, which the judge counted as partial under its rules.
+- **Objections: 25 of 26 agreed.** The one disagreement is Xbox's "the 4% figure understates the impact on cloud-only
+  players", marked partial because the report says cloud-only players are the most affected; the report never
+  questions the figure, so it reads as missed. A few other partials (Apple Music's "looks like a different app",
+  Barclays' "delay until the union consultation ends") are generous but defensible.
+
+On these six the judge looks slightly lenient on objections and accurate on direction and backdown. Six reports is
+a small sample, and they all come from the first pass; the second pass's verdicts have not been reread.
 
 ## Known limits
 
@@ -208,10 +380,11 @@ Read the results with these in mind. Some of them we can measure; some we can on
 - **The judge is an LLM.** Grading objection recall needs judgement, so a model does it. It can be lenient, strict or
   inconsistent. Its prompt is public, it sees only the report, the seed's headline and the rubric's objections and
   groups (never the true direction or backdown), and every verdict comes with a quote
-  from the report so it can be checked by hand. We will spot-check a sample by hand and report the agreement; that
-  has not been done for the 11 November pass yet.
+  from the report so it can be checked by hand. The [judge check](#judge-check) below compares six of its gradings
+  with a second reading; that second reading was also done by a Claude model, so a check by a person is still owed.
 - **Few cases.** With 20 cases, one case moves a percentage by five points. Differences of a few points
-  between two passes mean nothing.
+  between two passes mean nothing. The zero-shot baseline, which didn't change at all between the two passes, still
+  moved by three cases on direction and two on backdown.
 - **"Direction" is a judgement too.** Reporting rarely says "62% of people were against". The rubric's direction is
   our reading of the coverage, and mixed reactions are the hardest to call.
 - **Runs vary.** The same case can come out differently with another seed. A single-seed pass is a sample, not a
@@ -234,6 +407,11 @@ nearly twice the estimate. The judge alone used 0.29M input and 0.09M output tok
 The simulations used about 0.9M output tokens, mostly Sonnet ($6.00). Their input was about 2.7M tokens ($1.20), an
 estimate from prompt size, since the CLI logs output tokens only. The estimator undercounts Sonnet output. The pass
 took about four hours and fifteen minutes, close to 13 minutes a case including grading.
+
+The 12 November pass, counted the same way, made 550 calls: 491 for the simulations, 39 for the judge (none for the
+failed UT Austin report) and 20 for zero-shot. It would have cost about **$10.40**: judge $1.75, zero-shot $0.96,
+and simulations about 0.98M output tokens ($6.70) and an estimated 2.5M input tokens ($1.00). It took about four
+hours and fifty-five minutes, close to 15 minutes a case.
 
 ## Rerun it
 
