@@ -15,7 +15,7 @@
    "status": 200,
    "content_type": "application/json",
    "headers_out": {},
-   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.5.0\"}"
+   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.6.0\"}"
   },
   {
    "name": "no runs yet",
@@ -1470,7 +1470,7 @@
    "status": 200,
    "content_type": "application/json",
    "headers_out": {},
-   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.5.0\"}"
+   "body": "{\"ok\":true,\"fake_llm\":true,\"version\":\"0.6.0\"}"
   }
  ]
 }

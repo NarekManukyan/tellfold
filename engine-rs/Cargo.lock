@@ -1836,7 +1836,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-cli"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "axum",
  "futures",
@@ -1863,7 +1863,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-engine"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "futures",
@@ -1885,7 +1885,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-llm"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "chardetng",
@@ -1905,7 +1905,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-models"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "indexmap",
@@ -1916,7 +1916,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-report"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "fancy-regex",
@@ -1936,7 +1936,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-runtimes"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "futures",
@@ -1955,7 +1955,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-server"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "axum",
@@ -1982,7 +1982,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-store"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "blake2",
  "chrono",
@@ -2000,7 +2000,7 @@ dependencies = [
 
 [[package]]
 name = "tellfold-study"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "fancy-regex",
  "flate2",

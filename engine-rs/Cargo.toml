@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/tellfold-models", "crates/tellfold-store", "crates/tellfold-llm", "crates/tellfold-runtimes", "crates/tellfold-engine", "crates/tellfold-report", "crates/tellfold-study", "crates/tellfold-server", "crates/tellfold-cli"]
 
 [workspace.package]
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 rust-version = "1.88"
 license = "LicenseRef-Proprietary"

@@ -1,6 +1,6 @@
 [project]
 name = "tellfold"
-version = "0.5.0"
+version = "0.6.0"
 description = "Local swarm simulation: seed documents in, simulated social reaction and a prediction report out. Powered by your local Claude Code CLI."
 requires-python = ">=3.11"
 dependencies = [
