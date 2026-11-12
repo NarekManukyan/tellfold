@@ -1,19 +1,31 @@
 //! Local, deterministic redaction of the user's audience material before any of it reaches a model.
 //!
-//! [`redact`] replaces names, email addresses, phone numbers, street addresses and order or account numbers (and
-//! links and @handles, which point at people too) with placeholders such as `[name]`, and counts what it hid. It
-//! uses fixed patterns and a fixed list of given names only: the same text always comes out the same, and nothing
-//! is sent anywhere to decide. It errs on the side of hiding too much, because a quote that lost a word is still
-//! useful and a leaked name is not.
+//! [`redact`] replaces [`REDACTION_TEXT`] with placeholders such as `[name]`, and counts what it hid. It uses fixed
+//! patterns and a fixed list of common first names only: the same text always comes out the same, and nothing is
+//! sent anywhere to decide. It errs on the side of hiding too much, because a quote that lost a word is still useful
+//! and a leaked name is not. It is not complete: a name it does not know, mid-sentence or in lower case, stays, which
+//! is why every preview shows the text as sent and the user can add words to hide.
 
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
 use indexmap::IndexMap;
 use regex::{Captures, Regex};
+use tellfold_models::REDACTION_CATEGORIES;
+pub use tellfold_models::REDACTION_TEXT;
+use unicode_normalization::char::is_combining_mark;
+use unicode_normalization::UnicodeNormalization;
 
-/// What [`redact`] hid, by category, in this order: "names", "emails", "phones", "addresses", "numbers", "links".
-pub const CATEGORIES: [&str; 6] = ["names", "emails", "phones", "addresses", "numbers", "links"];
+/// What [`redact`] hid, by category, in [`REDACTION_CATEGORIES`] order.
+pub const CATEGORIES: [&str; 6] = {
+    let mut keys = [""; 6];
+    let mut i = 0;
+    while i < keys.len() {
+        keys[i] = REDACTION_CATEGORIES[i].0;
+        i += 1;
+    }
+    keys
+};
 
 pub const NAME: &str = "[name]";
 pub const EMAIL: &str = "[email]";
@@ -38,72 +50,90 @@ pub fn add_counts(total: &mut Redactions, more: &Redactions) {
 
 /// The text with personal details replaced by placeholders, and what was replaced.
 pub fn redact(text: &str) -> (String, Redactions) {
-    redact_with(text, &[])
+    Redactor::default().redact(text)
 }
 
 /// [`redact`], also hiding every whole-word, any-case occurrence of the `extra` words or phrases as `[name]` (the
 /// names of staff, pupils or customers the fixed rules would not know).
 pub fn redact_with(text: &str, extra: &[String]) -> (String, Redactions) {
-    let mut counts = empty_counts();
-    let mut text = text.to_string();
-    let mut hide = |text: &mut String, re: &Regex, category: &str, replace: &dyn Fn(&Captures) -> Option<String>| {
-        let mut n = 0;
-        let out = re
-            .replace_all(text, |c: &Captures| match replace(c) {
-                Some(r) => {
-                    n += 1;
-                    r
-                }
-                None => c[0].to_string(),
-            })
-            .into_owned();
-        *text = out;
-        *counts.get_mut(category).expect("every category") += n;
-    };
-    let whole = |token: &'static str| move |_: &Captures| Some(token.to_string());
-
-    // Machine-shaped details first, so the name rules below never see an email's local part or a URL's path.
-    hide(&mut text, re_email(), "emails", &whole(EMAIL));
-    hide(&mut text, re_link(), "links", &whole(LINK));
-    hide(&mut text, re_handle(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
-    hide(&mut text, re_card(), "numbers", &|c| {
-        let digits = c[0].chars().filter(char::is_ascii_digit).count();
-        (13..=19).contains(&digits).then(|| NUMBER.to_string())
-    });
-    hide(&mut text, re_labelled_number(), "numbers", &|c| {
-        c[3].chars().any(|ch| ch.is_ascii_digit()).then(|| format!("{}{}{NUMBER}", &c[1], &c[2]))
-    });
-    hide(&mut text, re_phone(), "phones", &|c| {
-        let digits = c[0].chars().filter(char::is_ascii_digit).count();
-        (9..=15).contains(&digits).then(|| PHONE.to_string())
-    });
-    hide(&mut text, re_street(), "addresses", &whole(ADDRESS));
-    hide(&mut text, re_po_box(), "addresses", &whole(ADDRESS));
-    hide(&mut text, re_uk_postcode(), "addresses", &whole(ADDRESS));
-    hide(&mut text, re_us_zip(), "addresses", &|c| Some(format!("{}{ADDRESS}", &c[1])));
-    hide(&mut text, re_code(), "numbers", &whole(NUMBER));
-    hide(&mut text, re_long_digits(), "numbers", &whole(NUMBER));
-
-    // Names: titles, introductions, greetings and sign-offs, signature lines, then known given names.
-    hide(&mut text, re_titled(), "names", &whole(NAME));
-    hide(&mut text, re_intro(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
-    hide(&mut text, re_this_is(), "names", &|c| Some(format!("{}{NAME}{}", &c[1], &c[2])));
-    hide(&mut text, re_greeting(), "names", &|c| Some(format!("{}{NAME}{}", &c[1], &c[2])));
-    hide(&mut text, re_dash_signature(), "names", &|c| Some(format!("{}{}{NAME}{}", &c[1], &c[2], &c[3])));
-    hide(&mut text, re_initial_signature(), "names", &|c| Some(format!("{}{}{NAME}{}", &c[1], &c[2], &c[3])));
-    hide(&mut text, re_inline_signature(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
-    let mut names = sign_off_names(&mut text);
-    names += given_names_in(&mut text);
-    if let Some(words) = extra_words(extra) {
-        hide(&mut text, &words, "names", &whole(NAME));
-    }
-    *counts.get_mut("names").expect("names") += names;
-    // a surname left after a hidden first name ("[name] Hollis") goes with it
-    text = re_name_then_surname().replace_all(&text, NAME).into_owned();
-    (text, counts)
+    Redactor::new(extra).redact(text)
 }
 
-/// One pattern for the user's own words to hide: whole words, any case, longest first.
+/// [`redact_with`] for many texts: the user's words to hide are compiled once.
+#[derive(Debug, Clone, Default)]
+pub struct Redactor {
+    extra: Option<Regex>,
+}
+
+impl Redactor {
+    pub fn new(extra: &[String]) -> Self {
+        Redactor { extra: extra_words(extra) }
+    }
+
+    pub fn redact(&self, text: &str) -> (String, Redactions) {
+        let mut counts = empty_counts();
+        let mut text = text.to_string();
+        let mut hide =
+            |text: &mut String, re: &Regex, category: &str, replace: &dyn Fn(&Captures) -> Option<String>| {
+                let mut n = 0;
+                let out = re
+                    .replace_all(text, |c: &Captures| match replace(c) {
+                        Some(r) => {
+                            n += 1;
+                            r
+                        }
+                        None => c[0].to_string(),
+                    })
+                    .into_owned();
+                *text = out;
+                *counts.get_mut(category).expect("every category") += n;
+            };
+        let whole = |token: &'static str| move |_: &Captures| Some(token.to_string());
+
+        // Machine-shaped details first, so the name rules below never see an email's local part or a URL's path.
+        hide(&mut text, re_email(), "emails", &whole(EMAIL));
+        hide(&mut text, re_link(), "links", &whole(LINK));
+        hide(&mut text, re_handle(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
+        hide(&mut text, re_card(), "numbers", &|c| {
+            let digits = c[0].chars().filter(char::is_ascii_digit).count();
+            (13..=19).contains(&digits).then(|| NUMBER.to_string())
+        });
+        hide(&mut text, re_labelled_number(), "numbers", &|c| {
+            c[3].chars().any(|ch| ch.is_ascii_digit()).then(|| format!("{}{}{NUMBER}", &c[1], &c[2]))
+        });
+        hide(&mut text, re_phone(), "phones", &|c| {
+            let digits = c[0].chars().filter(char::is_ascii_digit).count();
+            (9..=15).contains(&digits).then(|| PHONE.to_string())
+        });
+        hide(&mut text, re_street(), "addresses", &whole(ADDRESS));
+        hide(&mut text, re_po_box(), "addresses", &whole(ADDRESS));
+        hide(&mut text, re_uk_postcode(), "addresses", &whole(ADDRESS));
+        hide(&mut text, re_us_zip(), "addresses", &|c| Some(format!("{}{ADDRESS}", &c[1])));
+        hide(&mut text, re_code(), "numbers", &whole(NUMBER));
+        hide(&mut text, re_long_digits(), "numbers", &whole(NUMBER));
+
+        // Names: titles, introductions, greetings and sign-offs, signature lines, then known given names.
+        hide(&mut text, re_titled(), "names", &whole(NAME));
+        hide(&mut text, re_intro(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
+        hide(&mut text, re_this_is(), "names", &|c| Some(format!("{}{NAME}{}", &c[1], &c[2])));
+        hide(&mut text, re_greeting(), "names", &|c| Some(format!("{}{NAME}{}", &c[1], &c[2])));
+        hide(&mut text, re_dash_signature(), "names", &|c| Some(format!("{}{}{NAME}{}", &c[1], &c[2], &c[3])));
+        hide(&mut text, re_initial_signature(), "names", &|c| Some(format!("{}{}{NAME}{}", &c[1], &c[2], &c[3])));
+        hide(&mut text, re_inline_signature(), "names", &|c| Some(format!("{}{NAME}", &c[1])));
+        let mut names = sign_off_names(&mut text);
+        names += given_names_in(&mut text);
+        if let Some(words) = &self.extra {
+            hide(&mut text, words, "names", &whole(NAME));
+        }
+        *counts.get_mut("names").expect("names") += names;
+        // a surname left after a hidden first name ("[name] Hollis") goes with it
+        text = re_name_then_surname().replace_all(&text, NAME).into_owned();
+        (text, counts)
+    }
+}
+
+/// One pattern for the user's own words to hide: whole words, any case, longest first. A word that starts or ends
+/// with punctuation ("J.R.", "Smith & Co.") is bounded only on its word-character side.
 fn extra_words(extra: &[String]) -> Option<Regex> {
     let mut words: Vec<String> = extra
         .iter()
@@ -115,29 +145,24 @@ fn extra_words(extra: &[String]) -> Option<Regex> {
     if words.is_empty() {
         return None;
     }
-    let alternatives: Vec<String> = words.iter().map(|w| regex::escape(w).replace(' ', r"\s+")).collect();
-    Regex::new(&format!(r"(?i)\b(?:{})\b", alternatives.join("|"))).ok()
+    let is_word = |c: Option<char>| c.is_some_and(|c| c.is_alphanumeric() || c == '_');
+    let alternatives: Vec<String> = words
+        .iter()
+        .map(|w| {
+            let start = if is_word(w.chars().next()) { r"\b" } else { "" };
+            let end = if is_word(w.chars().last()) { r"\b" } else { "" };
+            format!("{start}{}{end}", regex::escape(w).replace(' ', r"\s+"))
+        })
+        .collect();
+    Regex::new(&format!(r"(?i)(?:{})", alternatives.join("|"))).ok()
 }
 
-fn re(pattern: &str) -> Regex {
-    Regex::new(pattern).expect("valid pattern")
-}
-
-macro_rules! pattern {
-    ($name:ident, $pattern:expr) => {
-        fn $name() -> &'static Regex {
-            static R: OnceLock<Regex> = OnceLock::new();
-            R.get_or_init(|| re($pattern))
-        }
-    };
-}
-
-pattern!(re_email, r"(?i)\b[a-z0-9][a-z0-9._%+-]*@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}\b");
+pattern!(re_email, r"(?i)\b[\p{L}\p{N}][\p{L}\p{N}._%+-]*@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.\p{L}{2,}\b");
 pattern!(re_link, r#"(?i)\b(?:https?://|www\.)[^\s<>"'\])]+"#);
-pattern!(re_handle, r"(^|[^\w@\[])@[A-Za-z0-9_]{2,30}\b");
+pattern!(re_handle, r"(^|[^\w@\[])@[A-Za-z0-9_](?:[A-Za-z0-9_.]{0,28}[A-Za-z0-9_])\b");
 pattern!(
     re_labelled_number,
-    r"(?i)(\b(?:order|account|acct|a/c|invoice|ticket|case|ref|reference|customer|client|member|membership|booking|reservation|policy|tracking|transaction|confirmation|receipt|card|iban|sort code|routing|subscription|licen[cs]e|serial|patient|student|employee|staff)\b)(\s*(?:no\.?|number|num|nr|id|#|code|ref)?\s*[:#.]?\s*)([A-Z0-9][A-Z0-9/-]{2,})\b"
+    r"(?i)(\b(?:order|account|acct|a/c|invoice|ticket|case|ref|reference|customer|client|member|membership|booking|reservation|policy|tracking|transaction|confirmation|receipt|card|iban|sort code|routing|subscription|licen[cs]e|serial|patient|student|employee|staff)\b)(\s*(?:no\.?|number|num|nr|id|#|code|ref)?\s*(?:[:#.]|is|was)?\s*)([A-Z0-9][A-Z0-9/-]{2,})\b"
 );
 pattern!(re_card, r"\b\d(?:[ -]?\d){12,18}\b");
 pattern!(re_phone, r"(?:\+\(?|\(|\b)\d[\d ().-]{7,}\d\b");
@@ -229,7 +254,7 @@ fn given_names_in(text: &mut String) -> i64 {
             Some(stem) => (stem, &word[stem.len()..]),
             None => (word, ""),
         };
-        let lower = stem.to_lowercase();
+        let lower = fold(stem);
         if !given_names().contains(lower.as_str()) {
             continue;
         }
@@ -261,6 +286,11 @@ fn given_names_in(text: &mut String) -> i64 {
         *text = out;
     }
     n
+}
+
+/// Lower case without accents, so "José" and "Chloé" find "jose" and "chloe".
+fn fold(word: &str) -> String {
+    word.to_lowercase().nfkd().filter(|c| !is_combining_mark(*c)).collect()
 }
 
 fn given_names() -> &'static HashSet<&'static str> {
@@ -347,7 +377,6 @@ const AMBIGUOUS_NAMES: &[&str] = &[
     "morgan",
     "dean",
     "don",
-    "sterling",
     "iris",
     "carol",
     "mario",
@@ -359,8 +388,9 @@ const AMBIGUOUS_NAMES: &[&str] = &[
     "lee",
 ];
 
-/// Common given names across English, European, South Asian, Middle Eastern, East Asian and Armenian usage,
-/// lower case. Not exhaustive: the other rules catch names in greetings, sign-offs and introductions.
+/// Common given names across English, European, South Asian, Middle Eastern, East Asian and Armenian usage, lower
+/// case without accents (see [`fold`]), none of them also in [`AMBIGUOUS_NAMES`]. Not exhaustive: the other rules
+/// catch names in greetings, sign-offs and introductions, and a name in neither stays.
 const GIVEN_NAMES: &str = "
 aaron abby abdul abdullah abigail adam adele adrian ahmad ahmed aidan aisha alan alana albert alberto alejandro
 alex alexa alexander alexandra alexis alfie alfred ali alice alicia alison amanda amelia amir amit amy ana anahit
@@ -368,34 +398,34 @@ anastasia andre andrea andreas andrei andrew andy angela angelica angus anil ani
 anthony antonio anya aram archie arjun armen arthur arturo arun ashley ashot astrid audrey ava avery barbara barry
 beatrice becky ben benjamin bernard beth bethany betty beverly bianca bob bobby bonnie brad bradley brandon brenda
 brendan brian bridget britney bruce bruno bryan caitlin caleb callum calvin cameron camila carl carla carlos carmen
-carol caroline carrie casey catherine cathy cecilia chad charles charlie charlotte chen cheryl chloe chris christian
+caroline carrie casey catherine cathy cecilia chad charles charlie charlotte chen cheryl chloe chris
 christina christine christopher cindy claire clara claudia colin connor conor craig cristina curtis cynthia daisy
-dale damian dan dana daniel daniela danielle danny darius darren dave david davit dean debbie deborah declan deepak
-denise dennis derek diana diane diego dimitri dominic don donald donna doris dorothy douglas duncan dylan eddie
+dale damian dan dana daniel daniela danielle danny darius darren dave david davit debbie deborah declan deepak
+denise dennis derek diana diane diego dimitri dominic donald donna doris dorothy douglas duncan dylan eddie
 edgar edith edward eileen elaine eleanor elena eli elijah elizabeth ella ellen ellie elliot emil emily emma enrique
 eric erica erik erin ernest esther ethan eugene eva evan evelyn fahad farah fatima felipe felix fernando fiona
 francesca francesco francis francisco freddie frederick freya gabriel gabriela gabrielle gareth gary gavin gemma
 geoffrey george gerald gerard gina giovanni giulia gloria gordon graham greg gregory gustavo hailey hamid hana
 hannah hans harold harriet harry harvey hassan hayk heather hector heidi helen helena henry hilary howard hugh hugo
-hussein ian ibrahim igor imran ines ingrid irene iris isaac isabel isabella isabelle ivan jacob jacqueline jaime
-jake james jamie jan jane janet janice jared jasmine jason javier jay jean jeff jeffrey jen jenna jennifer jenny
+hussein ian ibrahim igor imran ines ingrid irene isaac isabel isabella isabelle ivan jacob jacqueline jaime
+jake james jamie jane janet janice jared jasmine jason javier jay jeff jeffrey jen jenna jennifer jenny
 jeremy jerry jess jessica jesus jill jim jimmy joan joanna joanne joe joel johann johanna john johnny jon jonathan
 jorge jose josef joseph josephine josh joshua juan judith judy julia julian julie juliet justin kai kamal karen
-karim karina karl kate katherine kathleen kathryn kathy katie kayla keith kelly kenneth kevin khalid kim kimberly
-kirsty kristen kumar kyle lara laura lauren leah lee leila lena leo leon leonardo lewis liam lilit linda lindsay
+karim karina karl kate katherine kathleen kathryn kathy katie kayla keith kelly kenneth kevin khalid kimberly
+kirsty kristen kumar kyle lara laura lauren leah leila lena leon leonardo lewis liam lilit linda lindsay
 lisa liz lorenzo louis louise lucas lucia lucy luis luke lydia lynn maddie madison maggie mahmoud malcolm manuel
-marc marcel marco marcus margaret maria mariam marie marina mario marisa marta martha martin marty mary maryam
+marc marcel marco marcus margaret maria mariam marie marina marisa marta martha martin marty mary maryam
 matilda matt matteo matthew maureen maurice maya megan mehmet melanie melissa mia michael michelle miguel mike
-mila milan mohamed mohammad mohammed molly monica morgan muhammad nadia nancy naomi narek natalia natalie natasha
+mila mohamed mohammad mohammed molly monica muhammad nadia nancy naomi narek natalia natalie natasha
 nathan neil nicholas nick nicola nicole nikhil nina noah noel nora norman oliver olivia omar oscar owen pablo
 pamela paolo patricia patrick paul paula pauline pedro peter philip phillip phoebe pierre pooja priya rachel rafael
-rahul raj rajesh ralph ramon randy rashid raymond rebecca reza ricardo richard rick ricky rita robert roberta
+rahul raj rajesh ralph ramon randy rashid raymond rebecca reza ricardo richard rick ricky robert roberta
 roberto robin rodrigo roger roland ronald rosa rosie ross roy russell ruth ryan sabrina sally sam samantha samir
 samuel sandra sanjay sara sarah sasha scott sean sebastian sergei sergio seth shannon sharon shaun shawn sheila
 shirley simon sofia sonia sophia sophie stacy stella stephanie stephen steve steven stuart susan suzanne sven tamar
-tanya tara ted teresa terry theo theodore theresa thomas tiffany tim timothy tina toby todd tom tommy tony tracy
+tanya tara ted teresa terry theodore theresa thomas tiffany tim timothy tina toby todd tom tommy tony tracy
 travis trevor tyler valentina valeria vanessa vera veronica victor vincent vivian walter wang wayne wei wendy
-william yasmin yusuf yvonne zach zachary zara zoe zoë
+william yasmin yusuf yvonne zach zachary zara zoe
 ";
 
 #[cfg(test)]
@@ -561,6 +591,50 @@ mod tests {
         for text in ["It is 5 minutes down the road.", "After 2 weeks the park closed.", "I walked 3 miles home."] {
             assert_eq!(hidden(text), text);
         }
+    }
+
+    #[test]
+    fn unlisted_names_mid_sentence_stay() {
+        // the documented limit: a name the rules do not know, outside a greeting, sign-off, title or introduction,
+        // is sent as written, so the preview and the words to hide matter
+        for text in ["Orla at the ticket desk was rude", "sarah said it was fine"] {
+            assert_eq!(hidden(text), text);
+        }
+    }
+
+    #[test]
+    fn accented_names() {
+        assert_eq!(hidden("José and Chloé came back"), "[name] and [name] came back");
+        assert_eq!(hidden("Zoe said no"), "[name] said no");
+    }
+
+    #[test]
+    fn emails_beyond_ascii() {
+        assert_eq!(hidden("write zoë@example.com or info@müller-bücher.de"), "write [email] or [email]");
+    }
+
+    #[test]
+    fn numbers_after_is() {
+        assert_eq!(hidden("my order number is 88213, sorry"), "my order number is [number], sorry");
+        assert_eq!(hidden("the account number is 99881"), "the account number is [number]");
+    }
+
+    #[test]
+    fn words_to_hide_with_punctuation() {
+        let extra = vec!["J.R.".to_string(), "Smith & Co.".to_string()];
+        assert_eq!(redact_with("J.R. said Smith & Co. were late", &extra).0, "[name] said [name] were late");
+    }
+
+    #[test]
+    fn dotted_handles() {
+        assert_eq!(hidden("thanks @tamsin.greaves."), "thanks [name].");
+    }
+
+    #[test]
+    fn one_redactor_for_many_texts() {
+        let redactor = Redactor::new(&["Mossbook".to_string()]);
+        assert_eq!(redactor.redact("Mossbook is slow").0, "[name] is slow");
+        assert_eq!(redactor.redact("mossbook again").0, "[name] again");
     }
 
     #[test]

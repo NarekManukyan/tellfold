@@ -123,7 +123,7 @@ session must stay open until it has (see below).
 | `interview_person` | Asks one person (`person`: id, or handle with or without `@`, in any case) a question; they answer in character. |
 | `inject_event` | Breaking news at a round that has not started, in a running run. |
 | `stop_run` | Stops a running run; what it has so far is kept. |
-| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b` (plus the run options of `start_simulation` for draft A), or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people, with draft A's settings and events, as soon as draft A has them. Answers `run_a`, `run_b` and `study_id`, or only `run_a` while draft A is still making its people: then draft B starts later from this MCP session, which must stay open until `get_study` returns a `study_id`. `pause` is set when draft A's cast waits to be checked in the Tellfold app. If it closed first, call `compare_drafts` again with `baseline_run_id` set to `run_a`. |
+| `compare_drafts` | Tests two versions of a text on the same crowd: `question`, `draft_a` and `draft_b` (plus the run options of `start_simulation` for draft A, and its `material` and `hide` to build draft A's crowd from audience material), or `baseline_run_id` and `draft_b`. Draft B is shown to draft A's people, with draft A's settings and events, as soon as draft A has them. Answers `run_a`, `run_b` and `study_id`, or only `run_a` while draft A is still making its people: then draft B starts later from this MCP session, which must stay open until `get_study` returns a `study_id`. `pause` is set when draft A's cast waits to be checked in the Tellfold app. If it closed first, call `compare_drafts` again with `baseline_run_id` set to `run_a`. |
 | `get_study` | A study by `study_id` or `run_id`: its runs, and the cited comparison (`compare_drafts`) or what held across repeats (`check_run`). `ready` is true once every run has ended and the result covers them all; until then `comparison` is null, even when an older comparison exists. `error` says when no result will be written: fewer than two runs finished with a report, writing it failed, or the engine stopped before it was written. `wait_seconds` (at most 120) waits for either, and for a draft B that has not started yet. |
 | `check_run` | Runs a finished run again with the same people and text but other random seeds (`runs` in all, 2-5) and writes what held. Answers a `study_id`. |
 
@@ -135,16 +135,17 @@ with a tool error whose text says why, so the assistant can correct itself.
 `start_simulation` and `preview_material` take `material`, a list of `{file, kind, column}`, and `hide`, a list of
 other names or words to hide:
 
-- `file`: a `.txt`, `.md`, `.csv`, `.tsv` or `.eml` file, at most 10 MB and 20 files. Relative paths start at the
-  folder the MCP server runs in.
+- `file`: a `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml` file, at most 10 MB and 20 files. Relative paths
+  start at the folder the MCP server runs in, and `~/` is your home folder.
 - `kind`: `reviews`, `survey`, `emails`, `comments` or `notes`. Optional for `.eml` (emails) and `.csv`/`.tsv`
   (survey answers).
 - `column`: for a spreadsheet, the column to read, by header or 1-based number. Without it the column with the most
   text is read; no other column is ever read.
 
-Names, email addresses, phone numbers, street addresses, links and order or account numbers are removed on this
-computer before anything reaches the model, and the uploaded files are not kept: the run saves only the redacted
-items. The people are then built from that material, so their camps follow its spread and each is written from real
+Common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone numbers, street
+addresses, order or account numbers and links are removed on this computer before anything reaches the model, and the
+uploaded files are not kept: the run saves only the redacted items. A name the rules do not know can remain, so show
+the user the preview and add any such name to `hide`. The people are then built from that material, so their camps follow its spread and each is written from real
 quotes. Material cannot be combined with a reused cast. Call `preview_material` first and show the user what will be
 sent. The [HTTP API](API.md#audience-material) has the details and limits.
 

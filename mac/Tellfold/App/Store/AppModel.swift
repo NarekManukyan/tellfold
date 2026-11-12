@@ -382,8 +382,9 @@ final class AppModel {
         panel.allowedContentTypes = [.tellfoldBundle]
         panel.canCreateDirectories = true
         panel.isExtensionHidden = false
-        panel.nameFieldStringValue = RunBundle.suggestedFileName(title: await reportTitle(id, api: api))
-        panel.message = "The file holds the whole run: settings, documents, people, posts and report. Anyone with Tellfold can open it."
+        let detail = await runDetail(id, api: api)
+        panel.nameFieldStringValue = RunBundle.suggestedFileName(title: reportTitle(id, detail: detail))
+        panel.message = RunBundle.panelMessage(grounded: detail?.isGrounded ?? false)
         let parent = NSApp.keyWindow ?? NSApp.mainWindow
         let response = if let parent { await panel.beginSheetModal(for: parent) } else { panel.runModal() }
         guard response == .OK, let url = panel.url else { return nil }
@@ -393,10 +394,15 @@ final class AppModel {
         return url
     }
 
-    /// The run's report title (the open run's, else the engine's), falling back to its question.
-    private func reportTitle(_ id: String, api: TellfoldAPI) async -> String {
-        if currentStore?.runID == id, let title = currentStore?.report?.title, !title.isEmpty { return title }
-        if let title = try? await api.run(id).report?.title, !title.isEmpty { return title }
+    /// The run's detail: the open run's once it has its report, else the engine's; nil when neither can be had.
+    private func runDetail(_ id: String, api: TellfoldAPI) async -> RunDetail? {
+        if currentStore?.runID == id, let detail = currentStore?.detail, detail.report != nil { return detail }
+        return try? await api.run(id)
+    }
+
+    /// The run's report title, falling back to its question.
+    private func reportTitle(_ id: String, detail: RunDetail?) -> String {
+        if let title = detail?.report?.title, !title.isEmpty { return title }
         return summary(id)?.question ?? id
     }
 

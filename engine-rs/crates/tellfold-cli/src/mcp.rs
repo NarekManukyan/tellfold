@@ -23,7 +23,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
-use tellfold_engine::material::{MAX_MATERIAL_FILES, MAX_MATERIAL_FILE_BYTES};
+use tellfold_engine::material::MAX_MATERIAL_FILES;
 use tellfold_llm::ingest::{self, TEXT_SUFFIXES};
 use tellfold_runtimes::load_settings;
 use tellfold_runtimes::process::kill_live_process_groups;
@@ -238,13 +238,7 @@ fn collect_material(given: &[MaterialIn], hide: &[String]) -> Result<Option<Mate
         if !path.is_file() {
             return Err(format!("{}: no such file (relative paths start at {})", entry.file, cwd_text()));
         }
-        let shown = path.display().to_string();
-        let size = std::fs::metadata(&path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
-        if size > MAX_MATERIAL_FILE_BYTES as u64 {
-            return Err(format!("{shown} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20));
-        }
-        let bytes = std::fs::read(&path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
-        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "material.txt".into());
+        let (name, bytes) = crate::commands::read_material_path(&path)?;
         files.push(Seed { name, bytes });
         spec.push(json!({"kind": entry.kind, "column": entry.column}));
     }
@@ -478,13 +472,17 @@ fn clamp_wait(seconds: Option<u64>) -> Duration {
 
 const START_SIMULATION: &str = "Starts a simulation of how a crowd of AI personas reacts to a text \
 (announcement, changelog, pricing change, launch post) and returns its run id at once. A run takes minutes: follow it \
-with wait_for_run, then read get_report.";
+with wait_for_run, then read get_report. With material (the user's reviews, survey answers, support emails, social \
+comments or meeting notes) and hide, the crowd is built from what real people said: call preview_material first and \
+show the user what would be sent.";
 const PREVIEW_MATERIAL: &str = "Show exactly what start_simulation would send of your audience material: every item \
-after names, email addresses, phone numbers, street addresses and order or account numbers were removed on this \
-computer, what was hidden, warnings when the material is thin, and the extra model calls reading it costs. Show it \
-to the user before starting a run with it.";
+after common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone numbers, \
+street addresses, order or account numbers and links were removed on this computer, what was hidden, warnings when \
+the material is thin, and the extra model calls reading it costs. A name the rules do not know can remain: show the \
+items to the user before starting a run with them, and add any such name to hide.";
 const GET_RUN_STATUS: &str = "The state, stage, round and rough progress (0-1) of a run, without waiting. pause is \
-set while the run waits for its cast to be checked in the Tellfold app. Example and imported runs (example or \
+set while the run waits for its cast to be checked in the Tellfold app. grounded_in (\"14 reviews and 3 survey \
+answers\") is set when the crowd was built from the user's audience material. Example and imported runs (example or \
 imported true) are read-only: they can be read and asked about, not changed.";
 const WAIT_FOR_RUN: &str = "Wait until a run finishes, or until timeout_seconds pass (default 30, at most 120), and \
 return its status. Call it again while finished is false. While pause is set, the run waits for someone to check its \
@@ -493,7 +491,9 @@ const GET_REPORT: &str = "The report of a finished run: the prediction, confiden
 recommendations, each citing the posts behind it. format: \"markdown\" (default), \"json\" or \"both\".";
 const LIST_RUNS: &str = "The runs in the runs folder, newest first, with their state and question. Example and \
 imported runs (example or imported true) are read-only: they can be read and asked about, not changed.";
-const LIST_PEOPLE: &str = "The simulated people of a run: id, handle, name, bio and starting stance.";
+const LIST_PEOPLE: &str = "The simulated people of a run: id, handle, name, bio and starting stance. A person \
+written from the user's audience material also has based_on (\"5 reviews and 2 survey answers\") and theme, the \
+worry or hope those items share.";
 const ASK_CROWD: &str = "Ask a question about how the crowd reacted in a finished run. The report agent answers from \
 the posts and cites them.";
 const INTERVIEW_PERSON: &str = "Interview one simulated person of a run, by id or handle; they answer in character.";
@@ -695,6 +695,13 @@ pub struct CompareDrafts {
     /// Label of draft B in the comparison (default: the next letter).
     #[serde(default)]
     pub label_b: Option<String>,
+    /// Optional: audience material to build draft A's crowd from, as for start_simulation; draft B shows its
+    /// text to the same people. Not used with `baseline_run_id`.
+    #[serde(default)]
+    pub material: Vec<MaterialIn>,
+    /// Extra names or words to hide in the material.
+    #[serde(default)]
+    pub hide: Vec<String>,
     /// How draft A is set up; draft B uses the same people and settings.
     #[serde(flatten)]
     pub options: RunOptions,
@@ -1305,9 +1312,13 @@ impl Tellfold {
                 let Some(draft_a) = p.draft_a.as_deref().filter(|d| !d.trim().is_empty()) else {
                     return fail("draft_a is required (or give baseline_run_id)");
                 };
+                let material = match collect_material(&p.material, &p.hide) {
+                    Ok(material) => material,
+                    Err(e) => return fail(e),
+                };
                 let fields = run_fields(question, &p.options);
                 let seeds = vec![Seed { name: "draft-a.md".into(), bytes: draft_a.as_bytes().to_vec() }];
-                match self.engine.create_run(&fields, seeds).await {
+                match self.engine.create_grounded_run(&fields, seeds, material).await {
                     Ok(run_id) => run_id,
                     Err(e) => return fail(e),
                 }
@@ -1470,6 +1481,13 @@ async fn embedded(p: &Parsed, token: Option<String>, err: &Console) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_preview_tool_names_what_redaction_removes() {
+        // the description is a constant for the tool attribute, so it spells the shared list out: keep them one
+        let words = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(words(PREVIEW_MATERIAL).contains(&words(tellfold_models::REDACTION_TEXT)), "{PREVIEW_MATERIAL}");
+    }
 
     #[test]
     fn progress_follows_stage_and_round() {

@@ -56,10 +56,10 @@ struct NewSimulationTests {
     }
 
     @Test func descriptionNeedsAboutFortyCharacters() {
-        #expect(!NewSimulationRules.hasMaterial(description: String(repeating: "x", count: 39), fileCount: 0))
-        #expect(NewSimulationRules.hasMaterial(description: String(repeating: "x", count: 40), fileCount: 0))
-        #expect(!NewSimulationRules.hasMaterial(description: "  " + String(repeating: "x", count: 39) + "  ", fileCount: 0))
-        #expect(NewSimulationRules.hasMaterial(description: "", fileCount: 1))
+        #expect(!NewSimulationRules.hasSeeds(description: String(repeating: "x", count: 39), fileCount: 0))
+        #expect(NewSimulationRules.hasSeeds(description: String(repeating: "x", count: 40), fileCount: 0))
+        #expect(!NewSimulationRules.hasSeeds(description: "  " + String(repeating: "x", count: 39) + "  ", fileCount: 0))
+        #expect(NewSimulationRules.hasSeeds(description: "", fileCount: 1))
     }
 
     // MARK: summary

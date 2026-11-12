@@ -29,8 +29,15 @@ nonisolated enum MaterialKind: String, CaseIterable, Identifiable, Sendable {
         return "\(n) \(n == 1 ? one : many)"
     }
 
-    /// File types material is read from (`MATERIAL_SUFFIXES` in tellfold-engine/src/material.rs).
-    static let extensions: Set<String> = ["txt", "md", "markdown", "csv", "tsv", "eml"]
+    /// File types material is read from (`MATERIAL_SUFFIXES` in tellfold-engine/src/material.rs), as listed in hints.
+    static let orderedExtensions = ["txt", "md", "markdown", "csv", "tsv", "eml"]
+    static let extensions = Set(orderedExtensions)
+
+    /// ".txt, .md, .markdown, .csv, .tsv or .eml".
+    static let extensionHint: String = {
+        let dotted = orderedExtensions.map { "." + $0 }
+        return dotted.dropLast().joined(separator: ", ") + " or " + dotted[dotted.count - 1]
+    }()
 
     static func isSpreadsheet(_ url: URL) -> Bool { ["csv", "tsv"].contains(url.pathExtension.lowercased()) }
 
@@ -55,6 +62,21 @@ nonisolated enum MaterialLimits {
 
 /// The wording for audience material, kept free of views so it can be tested.
 nonisolated enum MaterialText {
+    /// What the engine's redaction removes, in the engine's wording. It is not every name: outside greetings, sign-offs
+    /// and introductions it knows only a list of common first names, so every claim about it uses this one list.
+    static let redactedCategories = "common first names, names in greetings, sign-offs and introductions, @handles, "
+        + "email addresses, phone numbers, street addresses, order or account numbers and links"
+
+    /// What the engine cannot promise, said wherever the cleaned text is shown.
+    static let namesMayRemain = "Names the rules don't know can remain: check the preview and add them below."
+
+    /// The note under the crowd size when the material has fewer items than people (the engine words it the same).
+    /// Nil when the material is thin (its own warning says so), or has enough items.
+    static func fewerItemsNote(items: Int, agents: Int, thin: Bool) -> String? {
+        guard !thin, items > 0, items < agents else { return nil }
+        return "\(items) items for \(agents) people: some people will be written from the same quotes."
+    }
+
     /// "14 reviews and 3 survey answers", kinds in their usual order, kinds with none left out.
     static func counts(_ counts: [String: Int]) -> String {
         var parts = MaterialKind.allCases.compactMap { kind -> String? in
@@ -177,28 +199,36 @@ nonisolated struct MaterialPreview: Decodable, Hashable, Sendable {
         var items: Int
         var columns: [String] = []
         var column: String?
+        /// The neutral label the run keeps instead of the file's name ("reviews 1"); nil in older replies.
+        var label: String?
 
         init(from decoder: any Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             name = try c.decode(String.self, forKey: .name)
+            label = c.optional(.label)
             kind = c.value(.kind, default: "")
             items = c.value(.items, default: 0)
             columns = c.value(.columns, default: [])
             column = c.optional(.column)
         }
 
-        enum CodingKeys: String, CodingKey { case name, kind, items, columns, column }
+        enum CodingKeys: String, CodingKey { case name, kind, items, columns, column, label }
     }
 
     struct Item: Decodable, Hashable, Sendable, Identifiable {
         var id: String
         var kind: String
+        /// The neutral label of the file it came from ("reviews 1"), not the file's name.
         var file: String
         var text: String
     }
 
     var summary: MaterialSummary
+    /// The reports of the files, in the order the form sent them; the engine renames each file, so match them by
+    /// position, never by name.
     var files: [File]
+    /// The files this preview was read for, set by the sheet after decoding; empty when unknown.
+    var inputs: [MaterialInput] = []
     var items: [Item]
     var warnings: [String]
     var thin: Bool
@@ -219,8 +249,26 @@ nonisolated struct MaterialPreview: Decodable, Hashable, Sendable {
         estimatedCalls = c.value(.estimatedCalls, default: MaterialText.calls(items: summary.items))
     }
 
-    /// The report of the file at `url`, by the name it was sent under.
-    func file(named name: String) -> File? { files.first { $0.name == name } }
+    /// The report of `current[index]`, only when this preview was read for exactly these files, kinds and columns
+    /// (same count, same order); otherwise nil, since the report would be another file's or out of date.
+    func report(at index: Int, of current: [MaterialInput]) -> File? {
+        guard inputs == current, files.count == current.count, current.indices.contains(index) else { return nil }
+        return files[index]
+    }
+
+    /// The report of `current[index]` while only its kind or column changed: the same files in the same order. Its
+    /// column list still holds, so the picker stays put while the preview is read again.
+    func columnsReport(at index: Int, of current: [MaterialInput]) -> File? {
+        guard inputs.map(\.url) == current.map(\.url), files.count == current.count,
+              current.indices.contains(index) else { return nil }
+        return files[index]
+    }
+
+    /// What to show for an item's `file`: the local name of the file with that label, else the label itself.
+    func fileName(forLabel label: String) -> String {
+        guard files.count == inputs.count, let index = files.firstIndex(where: { $0.label == label }) else { return label }
+        return inputs[index].url.lastPathComponent
+    }
 }
 
 /// Splits a redacted item into plain runs and the `[name]`-style placeholders, so a view can mark what was hidden.
@@ -263,5 +311,12 @@ nonisolated enum GroundingText {
     static func line(_ grounding: Grounding) -> String {
         let theme = grounding.theme.trimmingCharacters(in: .whitespacesAndNewlines)
         return theme.isEmpty ? grounding.basedOn : "\(grounding.basedOn) · \(theme)"
+    }
+}
+
+extension RunDetail {
+    /// Built from the user's audience material: its config says so, or a person was written from it.
+    var isGrounded: Bool {
+        config.material != nil || personas.contains { PersonaSource($0) == .material }
     }
 }

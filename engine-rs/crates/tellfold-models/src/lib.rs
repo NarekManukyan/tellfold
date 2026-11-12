@@ -84,7 +84,8 @@ pub struct Persona {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub camp: Option<String>,
     /// Where the persona came from: "cast" (planned and written by the engine), "group" (a group the user
-    /// described), "edited" (changed by the user before the run). None for older runs. Rust-only.
+    /// described), "edited" (changed by the user before the run), "material" (written from the user's audience
+    /// material, see `grounding`). None for older runs. Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
     /// The slice of the user's audience material this persona was written from (`source` "material"). Kept when
@@ -133,6 +134,42 @@ pub fn material_counts_text(counts: &IndexMap<String, i64>) -> String {
     }
 }
 
+/// What redaction of audience material hides, by category: (key in [`MaterialSummary::redacted`], one, many). The
+/// one list every message about redaction is written from.
+pub const REDACTION_CATEGORIES: [(&str, &str, &str); 6] = [
+    ("names", "name", "names"),
+    ("emails", "email address", "email addresses"),
+    ("phones", "phone number", "phone numbers"),
+    ("addresses", "street address", "street addresses"),
+    ("numbers", "order or account number", "order or account numbers"),
+    ("links", "link", "links"),
+];
+
+/// What the redaction rules remove, in words. Names are caught from greetings, sign-offs, titles, introductions and
+/// a list of common first names, so a name the rules do not know can remain: every claim says so.
+pub const REDACTION_TEXT: &str = "common first names, names in greetings, sign-offs and introductions, @handles, \
+email addresses, phone numbers, street addresses, order or account numbers and links";
+
+/// "4 names, 2 email addresses": what redaction hid, in words; "nothing needed hiding" when nothing was.
+pub fn redacted_text(redacted: &IndexMap<String, i64>) -> String {
+    let parts: Vec<String> = redacted
+        .iter()
+        .filter(|(_, n)| **n > 0)
+        .map(|(key, n)| {
+            let (one, many) = REDACTION_CATEGORIES
+                .iter()
+                .find(|(k, _, _)| k == key)
+                .map_or(("other detail", "other details"), |(_, one, many)| (*one, *many));
+            format!("{n} {}", if *n == 1 { one } else { many })
+        })
+        .collect();
+    if parts.is_empty() {
+        "nothing needed hiding".into()
+    } else {
+        parts.join(", ")
+    }
+}
+
 /// The audience material a run's crowd is built from (`SimConfig.material`). The redacted items themselves are in
 /// the run folder's `material.json`; the user's files never are. Rust-only.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -146,12 +183,21 @@ pub struct MaterialSummary {
     /// Items found but left out by the size cap.
     #[serde(default)]
     pub dropped: i64,
-    /// What was hidden before anything left the Mac: "names", "emails", "phones", "addresses", "numbers", "links".
+    /// What was hidden before anything left the Mac, by [`REDACTION_CATEGORIES`] key.
     #[serde(default)]
     pub redacted: IndexMap<String, i64>,
-    /// The files the material came from, by name.
+    /// The files the material came from, by neutral label ("reviews 1", "survey 1"): their names never leave the
+    /// preview.
     #[serde(default)]
     pub files: Vec<String>,
+    /// Items the planner model could not read when the run started (a failed call, an unknown camp); `items` and
+    /// `counts` then cover only the items that were read.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub unread: i64,
+}
+
+fn is_zero(n: &i64) -> bool {
+    *n == 0
 }
 
 impl Persona {

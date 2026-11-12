@@ -183,6 +183,14 @@ impl Parsed {
         }
     }
 
+    /// An optional number: None when the option was not given.
+    pub fn opt_int(&self, name: &str) -> Option<i64> {
+        match self.values.get(name) {
+            Some(Value::Int(n)) => Some(*n),
+            _ => None,
+        }
+    }
+
     pub fn flag(&self, name: &str) -> bool {
         matches!(self.values.get(name), Some(Value::Bool(true)))
     }

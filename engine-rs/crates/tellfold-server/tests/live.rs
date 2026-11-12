@@ -930,6 +930,8 @@ async fn audience_material_is_previewed_redacted_and_grounds_the_cast() {
     let run_id = created["id"].as_str().unwrap().to_string();
     let d = server.wait_state(&run_id, &["done"]).await;
     assert_eq!(d["config"]["material"]["counts"], json!({"reviews": 3, "survey": 1}));
+    // files are named by label: the user's file names stay in the preview
+    assert_eq!(d["config"]["material"]["files"], json!(["reviews 1", "survey 1"]));
     assert_eq!(server.factory.count("material.read"), 1);
     let personas = d["personas"].as_array().unwrap();
     let grounded: Vec<&Value> = personas.iter().filter(|p| p["source"] == "material").collect();
@@ -948,8 +950,48 @@ async fn audience_material_is_previewed_redacted_and_grounds_the_cast() {
     assert!(!folder.join("seeds/reviews.txt").exists() && !folder.join("seeds/survey.csv").exists());
     for entry in std::fs::read_dir(&folder).unwrap().flatten().filter(|e| e.path().is_file()) {
         let text = String::from_utf8_lossy(&std::fs::read(entry.path()).unwrap()).into_owned();
-        for leak in ["Tamsin", "Brennan", "Orla", "TK-889120", "07700 900123"] {
+        for leak in ["Tamsin", "Brennan", "Orla", "TK-889120", "07700 900123", "reviews.txt", "survey.csv"] {
             assert!(!text.contains(leak), "{leak} in {}", entry.path().display());
         }
     }
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn material_parts_keep_the_forms_order_under_either_key() {
+    let server = Server::start().await;
+    let form = reqwest::multipart::Form::new()
+        .part("material", reqwest::multipart::Part::bytes(FERRY_SURVEY.as_bytes()).file_name("survey.csv"))
+        .part("material[]", reqwest::multipart::Part::bytes(FERRY_REVIEWS.as_bytes()).file_name("reviews.txt"))
+        .text("material_spec", json!([{"column": "Comment"}, {"kind": "reviews"}]).to_string());
+    let res = server.http.post(server.url("/api/material/preview")).multipart(form).send().await.unwrap();
+    assert_eq!(res.status().as_u16(), 200);
+    let preview: Value = res.json().await.unwrap();
+    let files: Vec<(&str, &str)> = preview["files"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| (f["name"].as_str().unwrap(), f["kind"].as_str().unwrap()))
+        .collect();
+    assert_eq!(files, [("survey.csv", "survey"), ("reviews.txt", "reviews")]);
+    server.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn a_saved_audiences_material_summary_is_checked() {
+    let server = Server::start().await;
+    let audience = json!({
+        "name": "Riders",
+        "personas": [{"id": "x", "handle": "h", "name": "H", "bio": "", "background": "", "stance": ""}],
+        "material": {"items": 99999, "counts": {"reviews": 5000, "tweets": 7, "survey": -3},
+                     "redacted": {"names": 2, "secrets": 9}, "files": ["a", "b"]},
+    });
+    let (status, created) = server.post_material("/api/runs", &[], &[("audience", audience.to_string())]).await;
+    assert_eq!(status, 200, "{created}");
+    let d = server.wait_state(created["id"].as_str().unwrap(), &["done"]).await;
+    let material = &d["config"]["material"];
+    assert_eq!(material["counts"], json!({"reviews": 300}));
+    assert_eq!(material["items"], 300);
+    assert_eq!(material["redacted"]["names"], 2);
+    assert!(material["redacted"].get("secrets").is_none(), "{material}");
+    server.shutdown().await;
 }

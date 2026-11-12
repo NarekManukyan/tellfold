@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
-use tellfold_engine::material::{read_material, write_material, Material, MaterialFile};
+use tellfold_engine::material::{read_material, write_material, Material, MaterialFile, MAX_MATERIAL_FILE_BYTES};
 use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
 use tellfold_llm::Llm;
 use tellfold_models::text::{py_prefix, py_strip};
@@ -18,6 +18,7 @@ use tellfold_report::report::build_report;
 use tellfold_report::rewrite::build_rewrite;
 use tellfold_report::{write_report, ReportError, ReportWriter};
 use tellfold_runtimes::{load_settings, Auth};
+use tellfold_store::estimate::material_calls_for;
 use tellfold_store::files::{copy_seeds, create_run_dir, load_cast, now_iso, write_json, REWRITE_FILE};
 use tellfold_store::study::{
     join_study, letter, new_study_id, plan_variant, repeat_config, save_study, study_dir, study_of, AGREEMENT_FILE,
@@ -31,6 +32,7 @@ use tellfold_study::compare::{build_compare, Member};
 use crate::args::{py_repr, Parsed, UsageError};
 use crate::llm::{fake_mode, make_llm, resolve_runtimes};
 use crate::paths::{as_uri, py_os_error, py_path, py_resolve};
+use crate::serve::{expanduser, os_error_text};
 use crate::term::{Overflow, Table, Text};
 use crate::ui::Console;
 use crate::view::{on_event, RunView};
@@ -283,26 +285,31 @@ fn material_file(given: &str) -> Result<MaterialFile, String> {
         Some((kind, rest)) if tellfold_engine::material::kind_of("", Some(kind)).is_ok() => (Some(kind), rest),
         _ => (None, given),
     };
+    let on_disk = |text: &str| expanduser(&py_path(text));
     // a column after the last "#", unless the whole thing is the file's name
     let (path, column) = match rest.rsplit_once('#') {
-        Some((path, column)) if !Path::new(rest).exists() && Path::new(path).exists() => (path, Some(column)),
+        Some((path, column)) if !on_disk(rest).exists() && on_disk(path).exists() => (path, Some(column)),
         _ => (rest, None),
     };
-    let path = py_path(path);
+    let path = on_disk(path);
     if !path.is_file() {
         return Err(format!("{given}: no such file"));
     }
-    let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-    if size > tellfold_engine::material::MAX_MATERIAL_FILE_BYTES as u64 {
-        return Err(format!(
-            "{} is larger than {} MB",
-            path.display(),
-            tellfold_engine::material::MAX_MATERIAL_FILE_BYTES >> 20
-        ));
-    }
-    let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| given.to_string());
+    let (name, bytes) = read_material_path(&path)?;
     Ok(MaterialFile { name, kind: kind.map(str::to_string), column: column.map(str::to_string), bytes })
+}
+
+/// The name and contents of a material file on disk, held to the size limit for one file. The CLI and the MCP
+/// tools both read material through it.
+pub(crate) fn read_material_path(path: &Path) -> Result<(String, Vec<u8>), String> {
+    let shown = path.display().to_string();
+    let size = std::fs::metadata(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?.len();
+    if size > MAX_MATERIAL_FILE_BYTES as u64 {
+        return Err(format!("{shown} is larger than {} MB", MAX_MATERIAL_FILE_BYTES >> 20));
+    }
+    let bytes = std::fs::read(path).map_err(|e| format!("{shown}: {}", os_error_text(&e)))?;
+    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "material.txt".into());
+    Ok((name, bytes))
 }
 
 /// The material a command was given, read and redacted; None without any.
@@ -319,36 +326,10 @@ fn given_material(
     read_material(&files, hide, agents).map(Some).map_err(|e| fail(con, &e.0))
 }
 
-/// "4 names, 2 email addresses": what redaction hid, in words.
-fn hidden_text(material: &Material) -> String {
-    let parts: Vec<String> = material
-        .summary
-        .redacted
-        .iter()
-        .filter(|(_, n)| **n > 0)
-        .map(|(category, n)| {
-            let (one, many) = match category.as_str() {
-                "names" => ("name", "names"),
-                "emails" => ("email address", "email addresses"),
-                "phones" => ("phone number", "phone numbers"),
-                "addresses" => ("street address", "street addresses"),
-                "numbers" => ("order or account number", "order or account numbers"),
-                _ => ("link", "links"),
-            };
-            format!("{n} {}", if *n == 1 { one } else { many })
-        })
-        .collect();
-    if parts.is_empty() {
-        "nothing needed hiding".into()
-    } else {
-        parts.join(", ")
-    }
-}
-
 fn material_overview(con: &Console, material: &Material) {
     let counts = tellfold_models::material_counts_text(&material.summary.counts);
     con.print_soft(&format!("[bold]Audience material:[/] {counts}"));
-    con.print_soft(&format!("Hidden on this computer: {}", hidden_text(material)));
+    con.print_soft(&format!("Hidden on this computer: {}", tellfold_models::redacted_text(&material.summary.redacted)));
     for warning in &material.warnings {
         con.print_soft(&format!("[yellow]![/] {}", warning.replace('[', "\\[")));
     }
@@ -356,14 +337,13 @@ fn material_overview(con: &Console, material: &Material) {
 
 /// `tellfold material`: the material a run would send, item by item.
 pub fn material(con: &Console, p: &Parsed) -> Done {
-    let agents = p.str("agents").and_then(|a| a.parse().ok());
+    let agents = p.opt_int("agents");
     let Some(material) = given_material(con, &p.list("material"), &p.list("hide"), agents)? else {
         return Err(fail(con, "give at least one KIND:FILE"));
     };
     if p.flag("json") {
         let mut body = serde_json::to_value(&material).unwrap_or_default();
-        let config = SimConfig { material: Some(material.summary.clone()), ..SimConfig::new("", Vec::new()) };
-        body["estimated_calls"] = serde_json::json!(tellfold_store::estimate::material_calls(&config));
+        body["estimated_calls"] = serde_json::json!(material_calls_for(&material.summary));
         con.write(&format!("{}\n", serde_json::to_string_pretty(&body).unwrap_or_default()));
         return Ok(());
     }
@@ -377,11 +357,12 @@ pub fn material(con: &Console, p: &Parsed) -> Done {
         con.write(&format!("[{}] {} · {}\n    {}\n", item.id, item.kind, item.file, item.text));
     }
     con.line();
-    let config = SimConfig { material: Some(material.summary.clone()), ..SimConfig::new("", Vec::new()) };
-    let calls = tellfold_store::estimate::material_calls(&config);
+    let calls = material_calls_for(&material.summary);
     con.print_soft(&format!(
-        "Only the text above is sent, to the planner model you pick ({calls} extra call{}). Nothing else in these files leaves this computer.",
-        if calls == 1 { "" } else { "s" }
+        "Only the text above is sent, to the planner model you pick ({calls} extra call{}). Nothing else in these \
+files leaves this computer. The rules remove {}; check the text for any other name, and add it with --hide.",
+        if calls == 1 { "" } else { "s" },
+        tellfold_models::REDACTION_TEXT
     ));
     Ok(())
 }

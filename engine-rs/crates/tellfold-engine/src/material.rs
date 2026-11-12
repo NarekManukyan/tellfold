@@ -12,7 +12,6 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 use indexmap::IndexMap;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tellfold_llm::ingest::decode_text;
 use tellfold_llm::{json, Llm};
@@ -22,7 +21,7 @@ use tellfold_store::estimate::MATERIAL_ITEMS_PER_CALL;
 use tellfold_store::files::write_json;
 
 use crate::personas::CAMPS;
-use crate::redact::{add_counts, empty_counts, redact_with};
+use crate::redact::{add_counts, empty_counts, Redactions, Redactor};
 
 /// The redacted items of a run's material, in its folder.
 pub const MATERIAL_FILE: &str = "material.json";
@@ -63,6 +62,7 @@ pub struct MaterialFile {
 pub struct MaterialItem {
     pub id: String,
     pub kind: String,
+    /// the neutral label of the file it came from ([`FileReport::label`])
     pub file: String,
     pub text: String,
 }
@@ -70,7 +70,11 @@ pub struct MaterialItem {
 /// What became of one file.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FileReport {
+    /// the file's name as given, shown in the preview only
     pub name: String,
+    /// its neutral label ("reviews 1"): what the items and the summary name it by, so no file name is stored
+    #[serde(default)]
+    pub label: String,
     pub kind: String,
     /// items found in it (before the run-wide cap)
     pub items: i64,
@@ -135,6 +139,9 @@ fn suffix(name: &str) -> String {
 
 /// Reads, splits, redacts and caps the material. `hide` are extra words or phrases to hide as names (staff, pupils,
 /// customers the fixed rules would miss). `agents`, when known, warns when there are few items per person.
+///
+/// The pieces of every file are deduplicated and sampled down to [`MAX_ITEMS`] first, so only what is kept is
+/// redacted: a large export costs no more than a small one.
 pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64>) -> Result<Material, MaterialError> {
     if files.is_empty() {
         return Err(MaterialError("add at least one file of audience material".into()));
@@ -146,99 +153,172 @@ pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64
         return Err(MaterialError(format!("at most {MAX_HIDE_WORDS} words to hide")));
     }
     let mut reports = Vec::new();
-    let mut found: Vec<(String, String, String)> = Vec::new(); // (kind, file, text)
-    let mut redacted = empty_counts();
+    let mut pieces: Vec<Piece> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
+    let mut per_kind: IndexMap<String, usize> = IndexMap::new();
     let mut warnings = Vec::new();
     for file in files {
-        let suffix = suffix(&file.name);
-        if !MATERIAL_SUFFIXES.contains(&suffix.as_str()) {
-            return Err(MaterialError(format!(
-                "{}: audience material is read from .txt, .md, .csv, .tsv and .eml files",
-                file.name
-            )));
-        }
-        if file.bytes.len() > MAX_MATERIAL_FILE_BYTES {
-            return Err(MaterialError(format!("{} is larger than {} MB", file.name, MAX_MATERIAL_FILE_BYTES >> 20)));
-        }
-        let kind = kind_of(&file.name, file.kind.as_deref())?;
-        let text = decode_text(&file.bytes).replace("\r\n", "\n").replace('\r', "\n");
-        let spreadsheet = suffix == ".csv" || suffix == ".tsv";
-        if kind == "survey" && !spreadsheet {
-            return Err(MaterialError(format!(
-                "{}: survey answers come from a .csv or .tsv export; choose the column with the answers",
-                file.name
-            )));
-        }
-        let (raw, columns, column) = if spreadsheet {
-            let rows = parse_csv(&text, if suffix == ".tsv" { Some('\t') } else { None });
-            let (cells, columns, column) = column_cells(&file.name, &rows, file.column.as_deref())?;
-            (cells, columns, Some(column))
-        } else if kind == "emails" {
-            (split_emails(&text, suffix == ".eml"), Vec::new(), None)
-        } else {
-            (split_items(&text, &kind), Vec::new(), None)
-        };
+        let read = read_file(file)?;
+        let number = per_kind.entry(read.kind.clone()).or_insert(0);
+        *number += 1;
+        let label = format!("{} {number}", read.kind);
         let mut kept = 0;
-        for piece in raw {
-            let (clean, counts) = redact_with(&piece, hide);
-            let Some(item) = tidy_item(&clean) else { continue };
-            if !seen.insert(item.to_lowercase()) {
+        for raw in read.pieces {
+            // a cheap look before redaction: too short, or the same words as an earlier piece
+            let Some(tidy) = tidy_item(&raw) else { continue };
+            if !seen.insert(tidy.to_lowercase()) {
                 continue;
             }
-            add_counts(&mut redacted, &counts);
-            found.push((kind.clone(), file.name.clone(), item));
+            pieces.push(Piece { kind: read.kind.clone(), label: label.clone(), text: raw });
             kept += 1;
         }
         if kept == 0 {
             warnings.push(format!("{}: no usable text found", file.name));
         }
-        reports.push(FileReport { name: file.name.clone(), kind, items: kept, columns, column });
+        reports.push(FileReport {
+            name: file.name.clone(),
+            label,
+            kind: read.kind,
+            items: kept,
+            columns: read.columns,
+            column: read.column,
+        });
     }
-    if found.is_empty() {
+    if pieces.is_empty() {
         return Err(MaterialError("no usable text in the audience material".into()));
     }
-    let total = found.len();
-    let picked: Vec<(String, String, String)> = if total > MAX_ITEMS {
-        // evenly across the files, in their order, so every source keeps its share
-        (0..MAX_ITEMS).map(|i| found[i * total / MAX_ITEMS].clone()).collect()
-    } else {
-        found
-    };
-    let width = picked.len().to_string().len().max(3);
-    let items: Vec<MaterialItem> = picked
-        .into_iter()
-        .enumerate()
-        .map(|(i, (kind, file, text))| MaterialItem { id: format!("m{:0width$}", i + 1), kind, file, text })
-        .collect();
+    let total = pieces.len();
+    let (items, redacted) = redact_pieces(sample_evenly(pieces, MAX_ITEMS), hide);
+    if items.is_empty() {
+        return Err(MaterialError("no usable text in the audience material".into()));
+    }
     let counts = count_kinds(items.iter().map(|i| i.kind.as_str()));
     let dropped = (total - items.len()) as i64;
     let thin = items.len() < THIN_ITEMS;
-    if dropped > 0 {
-        warnings.push(format!(
-            "Kept {} of {total} items, the most a run reads; the rest were left out evenly across your files.",
-            items.len()
-        ));
-    }
-    if thin {
-        warnings.push(format!(
-            "Only {}: a few voices will shape the whole crowd. {THIN_ITEMS} or more give a truer spread.",
-            material_counts_text(&counts)
-        ));
-    } else if let Some(agents) = agents.filter(|a| (items.len() as i64) < *a) {
-        warnings.push(format!(
-            "{} items for {agents} people: some people will be written from the same quotes.",
-            items.len()
-        ));
-    }
+    warnings.extend(size_warnings(items.len(), total, &counts, agents));
     let summary = MaterialSummary {
         items: items.len() as i64,
         counts,
         dropped,
         redacted,
-        files: reports.iter().map(|r| r.name.clone()).collect(),
+        files: reports.iter().map(|r| r.label.clone()).collect(),
+        unread: 0,
     };
     Ok(Material { summary, files: reports, items, warnings, thin })
+}
+
+/// One piece of a file, before redaction.
+struct Piece {
+    kind: String,
+    label: String,
+    text: String,
+}
+
+/// What one file holds, split into pieces.
+struct ReadFile {
+    kind: String,
+    pieces: Vec<String>,
+    columns: Vec<String>,
+    column: Option<String>,
+}
+
+/// Checks one file and splits it: a spreadsheet's chosen column, emails, or reviews, comments and notes.
+fn read_file(file: &MaterialFile) -> Result<ReadFile, MaterialError> {
+    let suffix = suffix(&file.name);
+    if !MATERIAL_SUFFIXES.contains(&suffix.as_str()) {
+        return Err(MaterialError(format!(
+            "{}: audience material is read from .txt, .md, .markdown, .csv, .tsv and .eml files",
+            file.name
+        )));
+    }
+    if file.bytes.len() > MAX_MATERIAL_FILE_BYTES {
+        return Err(MaterialError(format!("{} is larger than {} MB", file.name, MAX_MATERIAL_FILE_BYTES >> 20)));
+    }
+    let kind = kind_of(&file.name, file.kind.as_deref())?;
+    let text = decode_text(&file.bytes).replace("\r\n", "\n").replace('\r', "\n");
+    let spreadsheet = suffix == ".csv" || suffix == ".tsv";
+    if kind == "survey" && !spreadsheet {
+        return Err(MaterialError(format!(
+            "{}: survey answers come from a .csv or .tsv export; choose the column with the answers",
+            file.name
+        )));
+    }
+    if spreadsheet {
+        let rows = parse_csv(&text, if suffix == ".tsv" { Some('\t') } else { None }).map_err(|row| {
+            MaterialError(format!(
+                "{}: line {row} opens a quote that never closes, so the rest of the file would be read as one \
+answer; fix that row or export the file again",
+                file.name
+            ))
+        })?;
+        let (pieces, columns, column) = column_cells(&file.name, &rows, file.column.as_deref())?;
+        return Ok(ReadFile { kind, pieces, columns, column: Some(column) });
+    }
+    let pieces = if kind == "emails" {
+        split_emails(&text, suffix == ".eml")
+    } else {
+        split_items(&text, &kind, suffix == ".md" || suffix == ".markdown")
+    };
+    Ok(ReadFile { kind, pieces, columns: Vec::new(), column: None })
+}
+
+/// At most `cap` of `all`, evenly across them in their order, so every file keeps its share.
+fn sample_evenly<T>(all: Vec<T>, cap: usize) -> Vec<T> {
+    let total = all.len();
+    if total <= cap {
+        return all;
+    }
+    let keep: HashSet<usize> = (0..cap).map(|i| i * total / cap).collect();
+    all.into_iter().enumerate().filter(|(i, _)| keep.contains(i)).map(|(_, p)| p).collect()
+}
+
+/// The kept pieces redacted, tidied and numbered, and what was hidden in them. A piece that redacts to the same
+/// text as an earlier one (two names, one complaint) is left out.
+fn redact_pieces(pieces: Vec<Piece>, hide: &[String]) -> (Vec<MaterialItem>, Redactions) {
+    let redactor = Redactor::new(hide);
+    let mut redacted = empty_counts();
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut kept: Vec<(Piece, String)> = Vec::new();
+    for piece in pieces {
+        let (clean, counts) = redactor.redact(&piece.text);
+        let Some(text) = tidy_item(&clean) else { continue };
+        if !seen.insert(text.to_lowercase()) {
+            continue;
+        }
+        add_counts(&mut redacted, &counts);
+        kept.push((piece, text));
+    }
+    let width = kept.len().to_string().len().max(3);
+    let items = kept
+        .into_iter()
+        .enumerate()
+        .map(|(i, (piece, text))| MaterialItem {
+            id: format!("m{:0width$}", i + 1),
+            kind: piece.kind,
+            file: piece.label,
+            text,
+        })
+        .collect();
+    (items, redacted)
+}
+
+/// The size cap and thin material, in words.
+fn size_warnings(kept: usize, total: usize, counts: &IndexMap<String, i64>, agents: Option<i64>) -> Vec<String> {
+    let mut warnings = Vec::new();
+    if total > kept {
+        warnings.push(format!(
+            "Kept {kept} of {total} items, the most a run reads; the rest were left out evenly across your files."
+        ));
+    }
+    if kept < THIN_ITEMS {
+        warnings.push(format!(
+            "Only {}: a few voices will shape the whole crowd. {THIN_ITEMS} or more give a truer spread.",
+            material_counts_text(counts)
+        ));
+    } else if let Some(agents) = agents.filter(|a| (kept as i64) < *a) {
+        warnings.push(format!("{kept} items for {agents} people: some people will be written from the same quotes."));
+    }
+    warnings
 }
 
 /// Items per kind, in [`MATERIAL_KINDS`] order, kinds with none left out.
@@ -266,29 +346,23 @@ pub fn load_material(run_dir: &Path) -> Result<StoredMaterial, MaterialError> {
 
 // ---------- splitting ----------
 
-fn re(pattern: &str) -> Regex {
-    Regex::new(pattern).expect("valid pattern")
-}
-
-macro_rules! pattern {
-    ($name:ident, $pattern:expr) => {
-        fn $name() -> &'static Regex {
-            static R: OnceLock<Regex> = OnceLock::new();
-            R.get_or_init(|| re($pattern))
-        }
-    };
-}
-
 pattern!(re_separator, r"(?m)^[ \t]*(?:-{3,}|={3,}|\*{3,}|_{3,}|#{3,})[ \t]*$");
 pattern!(re_blank_lines, r"\n[ \t]*\n");
 pattern!(re_bullet, r"^[ \t]*(?:[-*•‣◦·–]|\d{1,3}[.)])[ \t]+");
 pattern!(re_space, r"\s+");
 pattern!(
     re_quoted_reply,
-    r"(?im)^(?:on\s.{0,200}\swrote:|-{2,}\s*original message\s*-{2,}|_{5,}|from:\s.*\bsent:\s.*)\s*$"
+    r"(?im)^(?:on\s.{0,200}\swrote:|-{2,}\s*(?:original|forwarded) message\s*-{2,}|begin forwarded message:|_{5,}|from:\s.*\bsent:\s.*)\s*$"
 );
 pattern!(re_sent_from, r"(?im)^\s*sent from my .*$");
 pattern!(re_email_header, r"(?i)^(from|to|cc|bcc|date|sent|subject|reply-to|message-id|received):\s?(.*)$");
+pattern!(re_from_line, r"(?i)^\s*\*?from:\*?\s");
+pattern!(re_sent_line, r"(?i)^\s*\*?(?:sent|date):\*?\s");
+pattern!(re_markdown_heading, r"^[ \t]*#{1,6}(?:[ \t]|$)");
+pattern!(re_html_breaks, r"(?i)<\s*(?:br|/p|/div|/li|/tr)\s*/?>");
+pattern!(re_html_tags, r"(?s)<[^>]*>");
+pattern!(re_html_hidden, r"(?is)<style\b.*?</style\s*>|<script\b.*?</script\s*>|<head\b.*?</head\s*>");
+pattern!(re_html_entity, r"(?i)&#(x[0-9a-f]{1,6}|[0-9]{1,7});");
 
 /// Cleans one redacted piece: whitespace collapsed, bullet marker dropped, cut to [`MAX_ITEM_CHARS`]; None when too
 /// short to say anything.
@@ -308,8 +382,9 @@ fn tidy_item(text: &str) -> Option<String> {
 }
 
 /// Reviews, comments and notes: one item per separated entry, else per paragraph; a single block of lines is one
-/// review or comment per line, and bulleted notes are one item per bullet.
-pub fn split_items(text: &str, kind: &str) -> Vec<String> {
+/// review or comment per line, and bulleted notes are one item per bullet. In a Markdown file (`markdown`), heading
+/// lines are left out.
+pub fn split_items(text: &str, kind: &str, markdown: bool) -> Vec<String> {
     let blocks: Vec<&str> = if re_separator().is_match(text) {
         re_separator().split(text).collect()
     } else {
@@ -319,8 +394,11 @@ pub fn split_items(text: &str, kind: &str) -> Vec<String> {
     let one_per_line = blocks.len() == 1 && matches!(kind, "reviews" | "comments");
     let mut out = Vec::new();
     for block in blocks {
-        let lines: Vec<&str> =
-            block.lines().filter(|l| !l.trim_start().starts_with('#')).filter(|l| !l.trim().is_empty()).collect();
+        let lines: Vec<&str> = block
+            .lines()
+            .filter(|l| !(markdown && re_markdown_heading().is_match(l)))
+            .filter(|l| !l.trim().is_empty())
+            .collect();
         let bullets = lines.iter().filter(|l| re_bullet().is_match(l)).count();
         if one_per_line && lines.len() > 1 {
             out.extend(lines.iter().map(|l| l.to_string()));
@@ -377,7 +455,8 @@ fn email_body(message: &str) -> String {
     let mut subject = None;
     let mut lines: Vec<&str> = Vec::new();
     let mut in_headers = true;
-    for line in message.lines() {
+    let all: Vec<&str> = message.lines().collect();
+    for (i, &line) in all.iter().enumerate() {
         if in_headers {
             if let Some(c) = re_email_header().captures(line) {
                 if c[1].eq_ignore_ascii_case("subject") && !c[2].trim().is_empty() && !c[2].contains("=?") {
@@ -390,7 +469,7 @@ fn email_body(message: &str) -> String {
             }
             in_headers = false;
         }
-        if line == "-- " || line == "--" || re_quoted_reply().is_match(line) {
+        if line == "-- " || line == "--" || re_quoted_reply().is_match(line) || outlook_header(&all[i..]) {
             break;
         }
         if line.trim_start().starts_with('>') || re_sent_from().is_match(line) {
@@ -404,6 +483,12 @@ fn email_body(message: &str) -> String {
         Some(s) => s,
         None => body,
     }
+}
+
+/// Whether `lines` start an Outlook-style quoted message: a `From:` line with a `Sent:` or `Date:` line among the
+/// next few.
+fn outlook_header(lines: &[&str]) -> bool {
+    re_from_line().is_match(lines[0]) && lines.iter().skip(1).take(3).any(|l| re_sent_line().is_match(l))
 }
 
 /// The readable text of an .eml message: its first text/plain part (else text/html without tags), decoded.
@@ -444,7 +529,7 @@ fn header(headers: &[(String, String)], name: &str) -> Option<String> {
 fn part_text(headers: &[(String, String)], body: &str) -> Option<String> {
     let content_type = header(headers, "content-type").unwrap_or_else(|| "text/plain".into()).to_lowercase();
     if content_type.starts_with("multipart/") {
-        let boundary = boundary_of(&content_type, headers)?;
+        let boundary = boundary_of(headers)?;
         let marker = format!("--{boundary}");
         let parts: Vec<&str> = body.split(marker.as_str()).skip(1).filter(|p| !p.starts_with("--")).collect();
         let decoded: Vec<(String, String)> = parts
@@ -474,10 +559,10 @@ fn part_text(headers: &[(String, String)], body: &str) -> Option<String> {
     Some(if content_type.starts_with("text/html") { strip_html(&text) } else { text })
 }
 
-fn boundary_of(content_type: &str, headers: &[(String, String)]) -> Option<String> {
-    // the header keeps its case for the boundary itself
+fn boundary_of(headers: &[(String, String)]) -> Option<String> {
+    // the boundary keeps its case; ASCII lower case keeps every byte offset of the header
     let original = header(headers, "content-type").unwrap_or_default();
-    let at = content_type.find("boundary=")?;
+    let at = original.to_ascii_lowercase().find("boundary=")?;
     let rest = &original[at + "boundary=".len()..];
     let rest = rest.trim_start_matches('"');
     let end = rest.find(['"', ';']).unwrap_or(rest.len());
@@ -534,25 +619,31 @@ fn base64_decode(body: &str) -> Vec<u8> {
 }
 
 fn strip_html(html: &str) -> String {
-    static TAGS: OnceLock<Regex> = OnceLock::new();
-    static BREAKS: OnceLock<Regex> = OnceLock::new();
-    let breaks = BREAKS.get_or_init(|| re(r"(?i)<\s*(?:br|/p|/div|/li|/tr)\s*/?>"));
-    let tags = TAGS.get_or_init(|| re(r"(?s)<[^>]*>"));
-    let text = breaks.replace_all(html, "\n");
-    let text = tags.replace_all(&text, "");
+    let text = re_html_hidden().replace_all(html, "");
+    let text = re_html_breaks().replace_all(&text, "\n");
+    let text = re_html_tags().replace_all(&text, "");
+    let text = re_html_entity().replace_all(&text, |c: &regex::Captures| {
+        let code = &c[1];
+        let value = match code.strip_prefix(['x', 'X']) {
+            Some(hex) => u32::from_str_radix(hex, 16).ok(),
+            None => code.parse().ok(),
+        };
+        value.and_then(char::from_u32).map_or_else(|| c[0].to_string(), String::from)
+    });
+    // &amp; last, so "&amp;lt;" stays "&lt;"
     text.replace("&nbsp;", " ")
-        .replace("&amp;", "&")
         .replace("&lt;", "<")
         .replace("&gt;", ">")
         .replace("&quot;", "\"")
-        .replace("&#39;", "'")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&")
 }
 
 // ---------- spreadsheets ----------
 
 /// Rows of a CSV (quoted fields, doubled quotes and line breaks inside quotes). Without a delimiter, the one of
-/// `,` `;` and tab the header line uses most.
-pub fn parse_csv(text: &str, delimiter: Option<char>) -> Vec<Vec<String>> {
+/// `,` `;` and tab the header line uses most. A quote that never closes is the 1-based line it opened on.
+pub fn parse_csv(text: &str, delimiter: Option<char>) -> Result<Vec<Vec<String>>, usize> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let delimiter = delimiter.unwrap_or_else(|| {
         let header = text.lines().next().unwrap_or("");
@@ -562,8 +653,12 @@ pub fn parse_csv(text: &str, delimiter: Option<char>) -> Vec<Vec<String>> {
     let mut row: Vec<String> = Vec::new();
     let mut field = String::new();
     let mut quoted = false;
+    let (mut line, mut opened) = (1, 0);
     let mut chars = text.chars().peekable();
     while let Some(c) = chars.next() {
+        if c == '\n' {
+            line += 1;
+        }
         if quoted {
             match c {
                 '"' if chars.peek() == Some(&'"') => {
@@ -575,6 +670,7 @@ pub fn parse_csv(text: &str, delimiter: Option<char>) -> Vec<Vec<String>> {
             }
         } else if c == '"' && field.is_empty() {
             quoted = true;
+            opened = line;
         } else if c == delimiter {
             row.push(std::mem::take(&mut field));
         } else if c == '\n' {
@@ -584,12 +680,15 @@ pub fn parse_csv(text: &str, delimiter: Option<char>) -> Vec<Vec<String>> {
             field.push(c);
         }
     }
+    if quoted {
+        return Err(opened);
+    }
     if !field.is_empty() || !row.is_empty() {
         row.push(field);
         rows.push(row);
     }
     rows.retain(|r| r.iter().any(|f| !f.trim().is_empty()));
-    rows
+    Ok(rows)
 }
 
 /// The cells of the chosen column (by header, any case, or 1-based number), else of the column with the most text;
@@ -752,8 +851,8 @@ fn theme_words(theme: &str) -> HashSet<String> {
 }
 
 /// Groups the read items by camp, and within a camp by shared theme words (an item joins the group sharing the most
-/// of its words, when that is at least a third of them, else starts one). Camps in [`CAMPS`] order, groups biggest first; the same input always gives
-/// the same groups.
+/// of its words, when that is at least a third of them, else starts one). Camps in [`CAMPS`] order, groups biggest
+/// first; the same input always gives the same groups.
 pub fn cluster(read: &[Classified]) -> Vec<Cluster> {
     let mut out = Vec::new();
     for camp in CAMPS {
@@ -810,18 +909,18 @@ mod tests {
     #[test]
     fn reviews_split_by_blank_lines_separators_or_lines() {
         let text = "Love the app but the price doubled.\n\nSync broke twice this week, very annoying.";
-        assert_eq!(split_items(text, "reviews").len(), 2);
+        assert_eq!(split_items(text, "reviews", false).len(), 2);
         let lines = "Way too expensive now.\nBest plant app I have used.\nWhy is offline mode paid?";
-        assert_eq!(split_items(lines, "comments").len(), 3);
+        assert_eq!(split_items(lines, "comments", false).len(), 3);
         let separated = "First review here.\nIt spans two lines.\n---\nSecond review here.";
         assert_eq!(
-            split_items(separated, "reviews"),
+            split_items(separated, "reviews", false),
             vec!["First review here.\nIt spans two lines.", "Second review here."]
         );
         let notes =
             "# Parent forum\n- Worried about the bus times\n  for the younger ones\n- Phones are needed for safety";
         assert_eq!(
-            split_items(notes, "notes"),
+            split_items(notes, "notes", true),
             vec!["- Worried about the bus times\n  for the younger ones", "- Phones are needed for safety"]
         );
     }
@@ -831,7 +930,7 @@ mod tests {
         let csv = "Name,Email,What would change your mind?\n\
 Ann Lee,ann@x.com,\"If the price stayed the same, I'd stay\"\n\
 Bo,bo@x.com,\"Honestly \"\"nothing\"\", it is great\"\n";
-        let rows = parse_csv(csv, None);
+        let rows = parse_csv(csv, None).unwrap();
         assert_eq!(rows.len(), 3);
         assert_eq!(rows[2][2], "Honestly \"nothing\", it is great");
         let (cells, columns, chosen) = column_cells("s.csv", &rows, None).unwrap();
@@ -842,7 +941,7 @@ Bo,bo@x.com,\"Honestly \"\"nothing\"\", it is great\"\n";
         assert_eq!(column_cells("s.csv", &rows, Some("1")).unwrap().2, "Name");
         let err = column_cells("s.csv", &rows, Some("Age")).unwrap_err();
         assert!(err.0.contains("the columns are: Name, Email"), "{err}");
-        let semi = parse_csv("a;b\n1;2\n", None);
+        let semi = parse_csv("a;b\n1;2\n", None).unwrap();
         assert_eq!(semi[1], vec!["1", "2"]);
     }
 
@@ -929,12 +1028,78 @@ Too expensive now, call me on +44 7700 900123.\n\nok\n\nToo expensive now, call 
     fn refusals() {
         let err = |files: &[MaterialFile]| read_material(files, &[], None).unwrap_err().0;
         assert!(err(&[]).contains("at least one"));
-        assert!(err(&[file("a.pdf", Some("notes"), None, "x")]).contains(".txt, .md, .csv"));
+        assert!(err(&[file("a.pdf", Some("notes"), None, "x")]).contains(".txt, .md, .markdown, .csv"));
         assert!(err(&[file("a.txt", Some("survey"), None, "x")]).contains(".csv or .tsv"));
         assert!(err(&[file("a.txt", Some("notes"), None, "ok\n\nno")]).contains("no usable text"));
         let big =
             MaterialFile { bytes: vec![b'a'; MAX_MATERIAL_FILE_BYTES + 1], ..file("a.txt", Some("notes"), None, "") };
         assert!(err(&[big]).contains("larger than"));
+    }
+
+    #[test]
+    fn hashes_are_headings_only_in_markdown() {
+        let comments = "#1 app for plants, love it\n#plantlife the new price is too much";
+        assert_eq!(split_items(comments, "comments", false).len(), 2);
+        assert_eq!(split_items("# Notes\n\nThe bus is always late.", "notes", true), vec!["The bus is always late."]);
+        assert_eq!(split_items("#hashtag only here and more", "comments", true).len(), 1);
+    }
+
+    #[test]
+    fn an_unclosed_quote_refuses_the_file() {
+        let csv = "Name,Email,Answer\nAnn,ann@x.com,Fine\nBo,bo@x.com,\"It broke\nCy,cy@x.com,Great\n";
+        assert_eq!(parse_csv(csv, None), Err(3));
+        let err = read_material(&[file("s.csv", None, Some("Answer"), csv)], &[], None).unwrap_err();
+        assert!(err.0.contains("s.csv: line 3 opens a quote"), "{err}");
+    }
+
+    #[test]
+    fn a_boundary_after_non_ascii_text() {
+        for prefix in ["İ", "\u{212a}"] {
+            let eml = format!(
+                "Content-Type: multipart/mixed; name=\"{prefix}\"; boundary=\"AbC\"\n\n--AbC\n\
+Content-Type: text/plain\n\nThe export is broken again\n--AbC--\n"
+            );
+            assert_eq!(split_emails(&eml, true), vec!["The export is broken again"], "{prefix}");
+        }
+    }
+
+    #[test]
+    fn forwarded_and_outlook_quotes_are_cut() {
+        let gmail = "Please refund me, the app is down.\n\n---------- Forwarded message ---------\nFrom: Ann\nOld text";
+        assert_eq!(split_emails(gmail, false), vec!["Please refund me, the app is down.\n"]);
+        let outlook = "Still waiting on this.\n\nFrom: Support Team <help@x.com>\nSent: Monday, 3 March\nTo: me\n\
+Subject: Re: refund\n\nWe are looking into it";
+        assert_eq!(split_emails(outlook, false), vec!["Still waiting on this.\n"]);
+    }
+
+    #[test]
+    fn html_loses_styles_scripts_and_entities() {
+        let html = "<html><head><title>Hi</title><style>p { color: red }</style></head><body>\
+<script>track()</script><p>Caf&#233; prices &#x2014; too high &amp;lt;3</p></body></html>";
+        assert_eq!(strip_html(html).trim(), "Café prices — too high &lt;3");
+    }
+
+    #[test]
+    fn files_are_stored_by_label_and_counts_cover_kept_items() {
+        let many: String =
+            (0..(MAX_ITEMS + 100)).map(|i| format!("Sarah thinks comment {i} is about the change\n")).collect();
+        let material = read_material(
+            &[
+                file("Ann's export.txt", Some("comments"), None, &many),
+                file("more.txt", Some("comments"), None, "Another comment about the price"),
+            ],
+            &[],
+            None,
+        )
+        .unwrap();
+        assert_eq!(material.summary.files, vec!["comments 1", "comments 2"]);
+        assert_eq!(material.files[0].name, "Ann's export.txt");
+        assert!(material.items.iter().all(|i| i.file.starts_with("comments ")));
+        let stored = serde_json::to_string(&material.summary).unwrap();
+        assert!(!stored.contains("export"), "{stored}");
+        // each kept item hid one name; the 101 pieces left out were never redacted
+        assert_eq!(material.items.len(), MAX_ITEMS);
+        assert_eq!(material.summary.redacted["names"], MAX_ITEMS as i64);
     }
 
     #[test]

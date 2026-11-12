@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use indexmap::IndexMap;
 use tellfold_engine::material::{cluster, Classified, Cluster, MaterialItem, QUOTES_PER_PERSONA};
 use tellfold_engine::personas::{
-    generate_grounded_cast, plan_cast, plan_grounded_cast, tidy_cast, Ground, CAMPS, SOURCE_MATERIAL,
+    generate_cast, plan_cast, plan_grounded_cast, tidy_cast, CastPlan, Ground, CAMPS, SOURCE_MATERIAL,
 };
 use tellfold_llm::fake::FakeLlm;
 use tellfold_models::{Grounding, KnowledgeGraph, Persona};
@@ -17,7 +17,7 @@ fn item(i: usize, kind: &str) -> MaterialItem {
     MaterialItem {
         id: format!("m{:03}", i + 1),
         kind: kind.into(),
-        file: format!("{kind}.txt"),
+        file: format!("{kind} 1"),
         text: format!("quote {i}"),
     }
 }
@@ -118,10 +118,8 @@ fn the_plan_is_deterministic_and_unread_material_changes_nothing() {
 fn grounded_personas_record_their_source() {
     let (items, clusters) = material();
     let llm = FakeLlm::new(tellfold_llm::canned::fake_responder);
-    let ground = Ground { items: &items, clusters: &clusters };
-    let cast =
-        run(generate_grounded_cast(&llm, &KnowledgeGraph::default(), QUESTION, 8, "sonnet", "English", false, ground))
-            .unwrap();
+    let plan = CastPlan { fair: false, ground: Some(Ground { items: &items, clusters: &clusters }) };
+    let cast = run(generate_cast(&llm, &KnowledgeGraph::default(), QUESTION, 8, "sonnet", "English", plan)).unwrap();
     assert_eq!(cast.len(), 8);
     for p in &cast {
         assert_eq!(p.source.as_deref(), Some(SOURCE_MATERIAL));

@@ -60,7 +60,7 @@ pub fn is_strong(camp: &str) -> bool {
 pub const SOURCE_CAST: &str = "cast";
 pub const SOURCE_GROUP: &str = "group";
 pub const SOURCE_EDITED: &str = "edited";
-/// Written from the user's own audience material (see [`generate_grounded_cast`]).
+/// Written from the user's own audience material (see [`generate_cast`]).
 pub const SOURCE_MATERIAL: &str = "material";
 /// Every `source` a persona may have; [`tidy_cast`] drops any other.
 pub const SOURCES: [&str; 4] = [SOURCE_CAST, SOURCE_GROUP, SOURCE_EDITED, SOURCE_MATERIAL];
@@ -193,11 +193,21 @@ pub async fn generate_personas(
     model: &str,
     language: &str,
 ) -> Result<Vec<Persona>, LlmError> {
-    generate_cast(llm, graph, question, n, model, language, false).await
+    generate_cast(llm, graph, question, n, model, language, CastPlan::default()).await
 }
 
-/// [`generate_personas`], and with `fair` the cast of a `fair_turns` run: vocal stances never get a lurker's
-/// activity, and every persona records its camp and source.
+/// How [`generate_cast`] plans: `fair` for the cast of a `fair_turns` run (vocal stances never get a lurker's
+/// activity, and every persona records its camp and source), and `ground` to build the public from the user's
+/// material.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CastPlan<'a> {
+    pub fair: bool,
+    pub ground: Option<Ground<'a>>,
+}
+
+/// [`generate_personas`] planned by `plan`. With `ground`, the camps follow the material's spread, and every member
+/// of the public is written from real quotes of one cluster, records it as its `grounding` and has source
+/// "material"; entity voices still come from the graph.
 pub async fn generate_cast(
     llm: &dyn Llm,
     graph: &KnowledgeGraph,
@@ -205,43 +215,24 @@ pub async fn generate_cast(
     n: usize,
     model: &str,
     language: &str,
-    fair: bool,
+    plan: CastPlan<'_>,
 ) -> Result<Vec<Persona>, LlmError> {
     if n == 0 {
         return Ok(Vec::new());
     }
     let voices = select_voices(llm, graph, question, n, model).await;
-    let slots = plan_cast(graph, question, n, voices.as_deref(), fair);
-    fill_cast(llm, graph, &slots, question, model, language, fair).await
+    let slots = match plan.ground {
+        Some(ground) => plan_grounded_cast(graph, question, n, voices.as_deref(), plan.fair, ground),
+        None => plan_cast(graph, question, n, voices.as_deref(), plan.fair),
+    };
+    fill_cast(llm, graph, &slots, question, model, language, plan.fair).await
 }
 
-/// The user's audience material, read and clustered ([`crate::material`]), for [`generate_grounded_cast`].
+/// The user's audience material, read and clustered ([`crate::material`]), for [`CastPlan::ground`].
 #[derive(Debug, Clone, Copy)]
 pub struct Ground<'a> {
     pub items: &'a [MaterialItem],
     pub clusters: &'a [Cluster],
-}
-
-/// [`generate_cast`] with the public built from the user's material: the camps follow the material's spread, and
-/// every member of the public is written from real quotes of one cluster, records it as its `grounding` and has
-/// source "material". Entity voices still come from the graph.
-#[allow(clippy::too_many_arguments)]
-pub async fn generate_grounded_cast(
-    llm: &dyn Llm,
-    graph: &KnowledgeGraph,
-    question: &str,
-    n: usize,
-    model: &str,
-    language: &str,
-    fair: bool,
-    ground: Ground<'_>,
-) -> Result<Vec<Persona>, LlmError> {
-    if n == 0 {
-        return Ok(Vec::new());
-    }
-    let voices = select_voices(llm, graph, question, n, model).await;
-    let slots = plan_grounded_cast(graph, question, n, voices.as_deref(), fair, ground);
-    fill_cast(llm, graph, &slots, question, model, language, fair).await
 }
 
 /// Writes the planned slots in batches, retrying the ones a batch left out.

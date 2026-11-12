@@ -205,7 +205,8 @@ nonisolated enum NewSimulationRules {
 
     static func trimmed(_ text: String) -> String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    static func hasMaterial(description: String, fileCount: Int) -> Bool {
+    /// Whether there is anything to read the question against: files, or a description of about a paragraph's worth.
+    static func hasSeeds(description: String, fileCount: Int) -> Bool {
         fileCount > 0 || trimmed(description).count >= minimumDescription
     }
 
@@ -215,7 +216,7 @@ nonisolated enum NewSimulationRules {
                                materialProblem: Bool = false) -> String? {
         if !engineRunning { return "Waiting for the engine to start" }
         if trimmed(question).isEmpty { return "Add a question" }
-        if !hasMaterial(description: description, fileCount: fileCount) {
+        if !hasSeeds(description: description, fileCount: fileCount) {
             return trimmed(description).isEmpty ? "Describe it or add a file" : "Describe it a little more, or add a file"
         }
         if materialProblem { return "Fix the audience material" }

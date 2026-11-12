@@ -49,6 +49,8 @@ struct NewSimulationSheet: View {
     @State private var materialHide = ""
     @State private var materialPreview: MaterialPreview?
     @State private var materialError: String?
+    /// Files skipped on adding; informs only, so it neither blocks Start nor goes when the preview returns.
+    @State private var materialNotice: String?
     @State private var readingMaterial = false
     @State private var showsMaterialPreview = false
     /// "Run again…" of a run built from material: what it was built from, since the files are not kept.
@@ -194,7 +196,7 @@ struct NewSimulationSheet: View {
                 if !allFiles.isEmpty {
                     sideNote("\(allFiles.count) \(allFiles.count == 1 ? "file is" : "files are") sent too.")
                 } else if !NewSimulationRules.trimmed(descriptionText).isEmpty,
-                          !NewSimulationRules.hasMaterial(description: descriptionText, fileCount: 0) {
+                          !NewSimulationRules.hasSeeds(description: descriptionText, fileCount: 0) {
                     sideNote("A little more detail helps. Or add a file instead.")
                 }
             case .files:
@@ -295,10 +297,10 @@ struct NewSimulationSheet: View {
     private var materialStep: some View {
         MaterialStep(
             inputs: $material, hideText: $materialHide, preview: materialPreview, isReading: readingMaterial,
-            error: materialError,
+            error: materialError, notice: materialNotice,
             unavailableNote: audience == nil ? nil
                 : "A saved audience already has its people, so material is not used. Choose “Cast new people” to use it.",
-            plannerName: plannerName,
+            plannerName: plannerName, agents: crowdSize,
             note: material.isEmpty ? materialAgainNote : nil,
             add: addMaterial,
             showPreview: { showsMaterialPreview = true })
@@ -306,16 +308,16 @@ struct NewSimulationSheet: View {
 
     private var plannerName: String { model.runtime(plannerRuntime)?.name ?? plannerRuntime }
 
-    /// What the preview depends on; a change reads the material again.
+    /// What the preview depends on; a change reads the material again. The crowd size is not part of it: it only
+    /// changes the note about fewer items than people, which the sheet words itself.
     private struct MaterialKey: Equatable {
         var material: [MaterialInput]
         var hide: [String]
-        var agents: Int
         var engine: Bool
     }
 
     private var materialKey: MaterialKey {
-        MaterialKey(material: material, hide: MaterialText.hideWords(materialHide), agents: crowdSize,
+        MaterialKey(material: material, hide: MaterialText.hideWords(materialHide),
                     engine: model.engine.state.isRunning)
     }
 
@@ -329,8 +331,8 @@ struct NewSimulationSheet: View {
             guard !material.contains(where: { $0.url == url }), material.count < MaterialLimits.maxFiles else { continue }
             material.append(MaterialInput(url: url))
         }
-        materialError = rejected.isEmpty ? nil
-            : "Skipped: \(rejected.joined(separator: ", ")). Use .txt, .md, .csv or .eml files."
+        materialNotice = rejected.isEmpty ? nil
+            : "Skipped: \(rejected.joined(separator: ", ")). Use \(MaterialKind.extensionHint) files."
     }
 
     /// Asks the engine what it would send of the material, a moment after the last change.
@@ -346,9 +348,10 @@ struct NewSimulationSheet: View {
         readingMaterial = true
         defer { readingMaterial = false }
         do {
-            let preview = try await api.previewMaterial(material, hide: MaterialText.hideWords(materialHide),
-                                                        agents: crowdSize)
+            let read = material
+            var preview = try await api.previewMaterial(read, hide: MaterialText.hideWords(materialHide))
             guard !Task.isCancelled else { return }
+            preview.inputs = read
             materialPreview = preview
             materialError = nil
         } catch {
@@ -702,7 +705,7 @@ struct NewSimulationSheet: View {
     /// The model-call estimate under the summary; nil until there is material to estimate from.
     private var costLine: String? {
         let text = NewSimulationRules.trimmed(descriptionText)
-        guard NewSimulationRules.hasMaterial(description: text, fileCount: allFiles.count),
+        guard NewSimulationRules.hasSeeds(description: text, fileCount: allFiles.count),
               !(model.engine.state.isRunning && NewSimulationRules.runtimeBlocks(runtimes: runtimeInfos)) else { return nil }
         let chunks = NewRunRequest.estimatedChunks(files: allFiles, sizes: fileBytes, inlineDocuments: text.isEmpty ? [] : [.description(text)])
         let materialItems = usedMaterial.isEmpty ? 0 : materialPreview?.summary.items ?? 0

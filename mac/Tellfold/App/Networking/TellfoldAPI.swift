@@ -223,10 +223,9 @@ actor TellfoldAPI {
     }
 
     /// What a run with this audience material would send (`POST /api/material/preview`): the items after redaction,
-    /// what was hidden, and warnings. `agents` lets the engine warn when the material is thin for the crowd.
-    func previewMaterial(_ material: [MaterialInput], hide: [String], agents: Int) async throws -> MaterialPreview {
+    /// what was hidden, and warnings. The crowd size is not sent: the sheet words the note about too few items itself.
+    func previewMaterial(_ material: [MaterialInput], hide: [String]) async throws -> MaterialPreview {
         var form = MultipartForm()
-        form.add("agents", String(agents))
         try Self.addMaterial(material, hide: hide, to: &form)
         var req = makeRequest(["material", "preview"], method: "POST")
         req.setValue(form.contentType, forHTTPHeaderField: "Content-Type")

@@ -338,10 +338,11 @@ Treat this as a scenario exploration, not a poll or a measurement of real people
 /// "The public is based on 14 reviews and 3 survey answers you supplied...": where a grounded crowd came from.
 pub fn grounding_caveat(material: &tellfold_models::MaterialSummary) -> String {
     format!(
-        "The public is based on {} you supplied. Names, email addresses, phone numbers, street addresses and order \
-or account numbers were removed on this computer before any of it was sent to the model. The people are still \
-simulated: they echo that material, they are not its authors.",
-        tellfold_models::material_counts_text(&material.counts)
+        "The public is based on {} you supplied. Before any of it was sent to the model, {} were removed on this \
+computer; a name those rules do not know can remain. The people are still simulated: they echo that material, they \
+are not its authors.",
+        tellfold_models::material_counts_text(&material.counts),
+        tellfold_models::REDACTION_TEXT
     )
 }
 

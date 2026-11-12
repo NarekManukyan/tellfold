@@ -2,7 +2,7 @@
 //! the Mac app (`NewRunRequest.estimatedCallSplit`); the reference table in tests pins all three.
 
 use tellfold_models::json::py_round_int;
-use tellfold_models::SimConfig;
+use tellfold_models::{MaterialSummary, SimConfig};
 
 /// Chunks per graph extraction call (`tellfold/graph.py`).
 pub const CHUNKS_PER_CALL: i64 = 4;
@@ -40,7 +40,12 @@ pub fn estimate_call_split(config: &SimConfig, chunks: i64) -> (i64, i64) {
 
 /// Planner calls that read a run's audience material (0 without any): the extra usage grounding costs.
 pub fn material_calls(config: &SimConfig) -> i64 {
-    config.material.as_ref().map_or(0, |m| ceil_div(m.items.max(0), MATERIAL_ITEMS_PER_CALL))
+    config.material.as_ref().map_or(0, material_calls_for)
+}
+
+/// Planner calls that read this material.
+pub fn material_calls_for(material: &MaterialSummary) -> i64 {
+    ceil_div(material.items.max(0), MATERIAL_ITEMS_PER_CALL)
 }
 
 /// Model calls for a run, shown so users can judge rate-limit cost.

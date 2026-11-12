@@ -92,10 +92,13 @@ each of those after checking the citations.
 strongly held views are not left idle), `audience` (the name of the saved audience the people came from) and
 `material` (a **MaterialSummary** of the audience material the people were built from).
 
-**MaterialSummary**: `items` (how many items were kept), `counts` (items by kind, e.g. `{"reviews": 14, "survey": 3}`;
-kinds are `reviews`, `survey`, `emails`, `comments` and `notes`), `dropped` (items left out by the cap), `redacted`
-(how many of each were hidden: `names`, `emails`, `phones`, `addresses`, `numbers`, `links`) and `files` (the file
-names). The cleaned items themselves are in the run's `material.json`.
+**MaterialSummary**: `items` (how many items the people were built from), `counts` (those items by kind, e.g.
+`{"reviews": 14, "survey": 3}`; kinds are `reviews`, `survey`, `emails`, `comments` and `notes`), `dropped` (items
+left out by the cap), `redacted` (how many of each were hidden in the kept items: `names`, `emails`, `phones`,
+`addresses`, `numbers`, `links`), `files` (a neutral label per file, such as `"reviews 1"`; file names are never
+stored) and, only when some were, `unread` (items the planner could not read when the run started; `items` and
+`counts` then cover only the ones it read). A run whose material could not be read at all has no `material`. The
+cleaned items themselves are in the run's `material.json`.
 
 **Persona**: `id` (`"a03"`), `handle`, `name`, `bio`, `background`, `stance`, `traits`, `activity` (0-1),
 `influence` (0-1), `entity_id`, and, only when known, `camp` (`strong_support`, `lean_support`, `undecided`,
@@ -149,7 +152,7 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 
 | field | | |
 |---|---|---|
-| `files` or `files[]` | required, repeatable | seed documents: `.pdf`, `.md`, `.markdown` or `.txt`, at most 20 MB each, 100 files and 100 MB in all |
+| `files` or `files[]` | required, repeatable | seed documents: `.pdf`, `.md`, `.markdown` or `.txt`, at most 20 MB each, 100 files and 100 MB in all (audience material has its own budget) |
 | `question` | required | up to 2000 characters |
 | `agents` | 2-200, default 20 | |
 | `rounds` | 1-50, default 6 | |
@@ -167,10 +170,13 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 | `variant` | needs `cast_from` | label of this run in the study (default: the next letter) |
 | `review_cast` | `1`/`true`/`yes`/`on` | pause once the people are written, for the cast to be checked (see [below](#checking-the-cast-before-the-run)) |
 | `fair_turns` | `1`/`true`/`yes`/`on` | every opinion camp gets a turn to post, and strongly held views are never idle more than two rounds in a row |
-| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}, "material": MaterialSummary}` (1-200 people; `material` optional): the run uses these people and topic map and skips the graph and persona stages |
-| `material` or `material[]` | optional, repeatable, not with `cast_from` or `audience` | audience material to build the people from: `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml`, at most 10 MB each and 20 files (see [Audience material](#audience-material)) |
-| `material_spec` | JSON list, needs `material` | one `{"kind": ..., "column": ...}` per material file, in order; both keys optional |
+| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}, "material": MaterialSummary}` (1-200 people; `material` optional, held to known kinds and categories and to the caps below): the run uses these people and topic map and skips the graph and persona stages |
+| `material` or `material[]` | optional, repeatable, not with `cast_from` or `audience` | audience material to build the people from: `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml`, at most 10 MB each, 20 files and 200 MB in all (see [Audience material](#audience-material)) |
+| `material_spec` | JSON list, needs `material` | one `{"kind": ..., "column": ...}` per material file, in the form's order (under either key); both keys optional |
 | `material_hide` | text, needs `material` | other names or words to hide, one per line or separated by commas, at most 200 |
+
+A whole form may hold 300 MB (the seeds' 100 MB and the material's 200 MB) and 120 files; over that the answer is
+413, `"the upload is larger than 300 MB: the seed files may add up to 100 MB and the audience material to 200 MB"`.
 
 With `cast_from`, `agents` and `fair_turns` are taken from the source run, so a new version differs only in the
 text, and the source's `material` summary is kept. `cast_from` answers 409 when the source's cast was never checked:
@@ -185,10 +191,12 @@ from the seeds alone:
 
 1. **Read and redact, on this computer.** Each file is split into items (paragraphs, bullets, or lines of a review
    or comment list; one message per `.eml`, quoted replies and signatures cut; one cell per row of a spreadsheet
-   column). Names, email addresses, phone numbers, street addresses, links
-   and order or account numbers are replaced by `[name]`, `[email]`, `[phone]`, `[address]`, `[link]` and
-   `[number]` before anything is sent anywhere. This step is local and deterministic. Only the redacted items are
-   saved, in the run's `material.json`; the uploaded files are not kept.
+   column). Common first names, names in greetings, sign-offs and introductions, @handles, email addresses, phone
+   numbers, street addresses, order or account numbers and links are replaced by `[name]`, `[email]`, `[phone]`,
+   `[address]`, `[number]` and `[link]` before anything is sent anywhere. This step is local and deterministic, and
+   it is not complete: a name the rules do not know, mid-sentence or in lower case, stays as written. Check the
+   preview, and add such names to `material_hide`. Only the redacted items are saved, in the run's `material.json`;
+   the uploaded files are not kept, and the run names them by label only.
 2. **Sort.** The planner reads the items in batches of 40 and gives each a camp and a short theme. The engine then
    groups the items into clusters locally, by camp and by shared theme words.
 3. **Write people.** The camps of the crowd follow how the items spread across camps. Each person stands for one
@@ -197,9 +205,11 @@ from the seeds alone:
 `kind` is one of `reviews`, `survey`, `emails`, `comments` or `notes`. It can be left out for `.eml` (emails) and
 `.csv`/`.tsv` (survey answers); a `.txt` or `.md` file without one is refused with 400. For a spreadsheet, `column`
 picks the column to read, by header or by 1-based number; without it the column with the most text is read. No other
-column is ever read.
+column is ever read. A spreadsheet with a quote that never closes is refused with 400 naming its line, since the rest
+of the file, other columns included, would otherwise be read as one answer.
 
-Limits: 300 items at most (a larger set is sampled evenly, and `dropped` says how many were left out), 600 characters
+Limits: 300 items at most (duplicates are dropped and a larger set is sampled evenly before anything is redacted, and
+`dropped` says how many were left out), 600 characters
 per item, and items under 12 characters are skipped. Fewer than 30 items adds a warning (a few voices will shape the
 whole crowd), and so do fewer items than people (some people share quotes).
 
@@ -221,11 +231,11 @@ thin for that many people). 400 without a material file, or for a file that cann
 {
   "summary": {"items": 8, "counts": {"reviews": 5, "survey": 3}, "dropped": 0,
               "redacted": {"names": 2, "emails": 1, "phones": 1, "addresses": 0, "numbers": 1, "links": 0},
-              "files": ["reviews.txt", "survey.csv"]},
-  "files": [{"name": "reviews.txt", "kind": "reviews", "items": 5},
-            {"name": "survey.csv", "kind": "survey", "items": 3,
+              "files": ["reviews 1", "survey 1"]},
+  "files": [{"name": "reviews.txt", "label": "reviews 1", "kind": "reviews", "items": 5},
+            {"name": "survey.csv", "label": "survey 1", "kind": "survey", "items": 3,
              "columns": ["Name", "Email", "What would make you cancel?"], "column": "What would make you cancel?"}],
-  "items": [{"id": "m002", "kind": "reviews", "file": "reviews.txt",
+  "items": [{"id": "m002", "kind": "reviews", "file": "reviews 1",
              "text": "The price doubled overnight and nobody warned us. My order #[number] was charged twice."}],
   "warnings": ["Only 5 reviews and 3 survey answers: a few voices will shape the whole crowd. ..."],
   "thin": true,
@@ -233,8 +243,9 @@ thin for that many people). 400 without a material file, or for a file that cann
 }
 ```
 
-`estimated_calls` is the number of extra planner calls the material costs (one per 40 items). The usage estimate of
-a run counts them too.
+`files` lists the files in the form's order, with the name each was sent under and its `label`; items name their file
+by label. `estimated_calls` is the number of extra planner calls the material costs (one per 40 items). The usage
+estimate of a run counts them too.
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/api/runs \
@@ -345,6 +356,10 @@ filename="<run_id>.tellfold"`. 400 when the run is not finished with a report, i
 damaged (`"the run's calls log is damaged"`), the run unpacks to more than 2048 MB (`"... a bundle may unpack to at
 most 2048 MB"`), or the bundle would be over 512 MB; 409 while the run is live or its report is being rebuilt. While a bundle is being written
 the run's report cannot be rebuilt (409).
+
+A run built from audience material keeps it out of the bundle (`material.json` stays behind, and its files were only
+ever named by label), but its people carry the redacted quotes they were written from (`grounding.quotes` in
+`personas.json`), so whoever opens the bundle can read them.
 
 ### `POST /api/runs/import`
 

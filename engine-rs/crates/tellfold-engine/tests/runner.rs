@@ -12,6 +12,7 @@ use std::task::Poll;
 use async_trait::async_trait;
 use futures::FutureExt;
 use serde_json::{json, Value};
+use tellfold_engine::material::{read_material, write_material, MaterialFile};
 use tellfold_engine::runner::{
     mark_stopped, run_pipeline, CastGate, PipelineError, ReportStage, RunOptions, PAUSE_PERSONAS,
 };
@@ -670,4 +671,42 @@ fn audience_cast_skips_the_graph_and_persona_calls() {
     let saved: SimConfig =
         serde_json::from_str(&std::fs::read_to_string(run_dir.join("config.json")).unwrap()).unwrap();
     assert_eq!((saved.num_agents, saved.audience.as_deref()), (3, Some("Bus parents")));
+}
+
+fn grounded_run(llm: &FakeLlm) -> (tempfile::TempDir, PathBuf, SimConfig) {
+    let (tmp, run_dir) = run_dir();
+    let reviews =
+        "The price doubled overnight, not happy.\n\nI love the offline mode a lot.\n\nSync keeps failing on my phone.";
+    let file = MaterialFile { name: "r.txt".into(), kind: Some("reviews".into()), column: None, bytes: reviews.into() };
+    let material = read_material(&[file], &[], None).unwrap();
+    write_material(&run_dir, &material).unwrap();
+    let mut config = make_config();
+    config.material = Some(material.summary);
+    let report = block_on(run_pipeline(llm, &run_dir, &config, &[example()], &REPORT, RunOptions::default()));
+    assert!(report.unwrap().is_some());
+    let saved = serde_json::from_str(&std::fs::read_to_string(run_dir.join("config.json")).unwrap()).unwrap();
+    (tmp, run_dir, saved)
+}
+
+#[test]
+fn material_nobody_could_read_is_not_claimed() {
+    let (_tmp, run_dir, saved) = grounded_run(&fake(Some("material.read")));
+    // the cast was planned without it, so the run records no material: no report caveat, no grounded_in
+    assert!(saved.material.is_none());
+    let personas = std::fs::read_to_string(run_dir.join("personas.json")).unwrap();
+    assert!(!personas.contains("\"grounding\""), "{personas}");
+}
+
+#[test]
+fn material_read_in_part_counts_only_what_was_read() {
+    let llm = FakeLlm::new(|purpose: &str, prompt: &str, schema: Option<&Schema>| -> FakeReply {
+        if purpose == "material.read" {
+            return json!({"items": [{"item_id": "m001", "camp": "lean_critical", "theme": "price doubled"}]}).into();
+        }
+        fake_responder(purpose, prompt, schema)
+    });
+    let (_tmp, _run_dir, saved) = grounded_run(&llm);
+    let material = saved.material.unwrap();
+    assert_eq!((material.items, material.unread), (1, 2));
+    assert_eq!(material.counts.iter().map(|(k, n)| (k.as_str(), *n)).collect::<Vec<_>>(), [("reviews", 1)]);
 }

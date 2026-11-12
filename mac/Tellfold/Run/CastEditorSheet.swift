@@ -351,7 +351,7 @@ private struct CastRow: View {
     private var editor: some View {
         VStack(alignment: .leading, spacing: Theme.space2) {
             if let grounding = person.grounding, !grounding.quotes.isEmpty {
-                field("Written from (names and contact details removed)") {
+                field("Written from (cleaned quotes; some names may remain)") {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(grounding.quotes, id: \.self) { quote in
                             MaterialPreviewSheet.marked("\u{201C}\(quote)\u{201D}")
