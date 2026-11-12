@@ -119,9 +119,11 @@ fn normalise(text: &str, root: &Path, runs: &[String], studies: &[String]) -> St
     let stamp = Regex::new(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)?").unwrap();
     let pid = Regex::new(r#""pid":\s?\d+"#).unwrap();
     let timing = Regex::new(r#""seconds":\s?-?\d+(?:\.\d+)?(?:e[+-]?\d+)?"#).unwrap();
+    let llm_timing = Regex::new(r#""llm_seconds":\s?-?\d+(?:\.\d+)?(?:e[+-]?\d+)?"#).unwrap();
     let text = stamp.replace_all(&text, "<time>");
     let text = pid.replace_all(&text, r#""pid":0"#);
-    timing.replace_all(&text, r#""seconds":0"#).into_owned()
+    let text = timing.replace_all(&text, r#""seconds":0"#);
+    llm_timing.replace_all(&text, r#""llm_seconds":0.0"#).into_owned()
 }
 
 fn sorted_by_id(text: &str) -> String {
