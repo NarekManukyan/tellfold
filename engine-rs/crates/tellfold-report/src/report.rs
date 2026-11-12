@@ -7,7 +7,9 @@ use tellfold_engine::pytext::decimal_int;
 use tellfold_llm::{json, Llm};
 use tellfold_models::json::{py_round, py_sum};
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{Camp, CitationAudit, KnowledgeGraph, Recommendation, RecommendationAction, Report, SimConfig};
+use tellfold_models::{
+    Camp, CitationAudit, FirstReaction, KnowledgeGraph, Recommendation, RecommendationAction, Report, SimConfig,
+};
 use tellfold_store::world::World;
 
 use crate::audit::{all_ok, audit_citations, map_texts, mark_unverified_texts, UNVERIFIED};
@@ -82,7 +84,80 @@ removed. These are hypotheses from a simulated crowd, to be tested with real peo
 EVIDENCE DIGEST
 {digest}";
 
+/// Added to the report task in a run with the crowd rules, after the digest's FIRST REACTION block.
+pub const DIRECTION_TASK: &str = "\
+DIRECTION RULE: the FIRST REACTION block gives the overall direction of the crowd's reaction, counted from each \
+person's first post. The summary's first sentence states it plainly, and the title and prediction agree with it. \
+Describe later changes in sentiment as shifts after that first reaction, not as the overall answer. Call the reaction \
+mixed only when the block says mixed.";
+
+/// A first post scoring beyond this, either way, takes a side.
+pub const SIDE_SCORE: f64 = 0.2;
+/// The share of the people taking a side that one side needs for the reaction to lean its way (3 to 2).
+pub const MAJORITY: f64 = 0.6;
+/// The share of the people who must take a side at all; below it the reaction is mostly indifferent, so mixed.
+pub const MIN_SIDED: f64 = 0.5;
+
 pub const MAX_RECOMMENDATIONS: usize = 6;
+
+/// How the people first reacted: each one's first scored post (organisation accounts left out, since they speak for
+/// a side by definition). The direction leans one way only when most people took a side and at least [`MAJORITY`]
+/// of those took the same one; otherwise it is mixed. None when no person's post was scored.
+pub fn first_reaction(ev: &Evidence) -> Option<FirstReaction> {
+    let mut posts: Vec<_> = ev.posts.values().filter(|p| ev.post_sentiment.contains_key(&p.id)).collect();
+    posts.sort_by_key(|p| (p.round, p.id));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let (mut against, mut in_favour, mut neither) = (0i64, 0i64, 0i64);
+    for post in posts {
+        let organisation =
+            ev.people.get(&post.author_id).is_some_and(|p| p.entity_id.as_deref().is_some_and(|e| !e.is_empty()));
+        if organisation || !seen.insert(post.author_id.as_str()) {
+            continue;
+        }
+        let score = ev.post_sentiment[&post.id];
+        if score < -SIDE_SCORE {
+            against += 1;
+        } else if score > SIDE_SCORE {
+            in_favour += 1;
+        } else {
+            neither += 1;
+        }
+    }
+    let people = against + in_favour + neither;
+    if people == 0 {
+        return None;
+    }
+    Some(FirstReaction { direction: direction_of(against, in_favour, neither).into(), against, in_favour, neither })
+}
+
+/// The direction rule of [`first_reaction`], on its counts.
+pub fn direction_of(against: i64, in_favour: i64, neither: i64) -> &'static str {
+    let sided = (against + in_favour) as f64;
+    let people = sided + neither as f64;
+    if people == 0.0 || sided < MIN_SIDED * people {
+        "mixed"
+    } else if against as f64 >= MAJORITY * sided {
+        "negative"
+    } else if in_favour as f64 >= MAJORITY * sided {
+        "positive"
+    } else {
+        "mixed"
+    }
+}
+
+/// The digest block and task note that give the report its direction, for a run with the crowd rules.
+fn direction_block(reaction: &FirstReaction) -> String {
+    format!(
+        "FIRST REACTION (each person's first post; organisation accounts left out)\n\
+- against {}, in favour {}, neither {}, of {} people\n\
+- overall direction: {}\n\n{DIRECTION_TASK}",
+        reaction.against,
+        reaction.in_favour,
+        reaction.neither,
+        reaction.against + reaction.in_favour + reaction.neither,
+        reaction.direction
+    )
+}
 
 /// `{"keep": "Keep", ...}`: the same words are in the web Studio and the Mac app.
 pub fn action_label(action: RecommendationAction) -> &'static str {
@@ -145,7 +220,11 @@ pub async fn build_report(
 ) -> Result<Report, ReportError> {
     let ev = collect_evidence(world)?;
     let digest = digest_text(&ev, Some(graph));
-    let prompt = fill(REPORT_TASK, &[("question", &config.question), ("digest", &digest)]);
+    let mut prompt = fill(REPORT_TASK, &[("question", &config.question), ("digest", &digest)]);
+    let reaction = if config.crowd_rules >= 1 { first_reaction(&ev) } else { None };
+    if let Some(reaction) = &reaction {
+        prompt = format!("{prompt}\n\n{}", direction_block(reaction));
+    }
     let system = fill(REPORT_SYSTEM, &[("language", &config.language)]);
     let draft = json::<Report>(llm, &prompt, &system, model, "report.write").await?;
     let mut report = finalize(draft.clone(), &ev, config);
@@ -167,7 +246,9 @@ pub async fn build_report(
             ),
         }
     }
-    Ok(mark_unverified(report, audit, &ev, repaired))
+    let mut report = mark_unverified(report, audit, &ev, repaired);
+    report.first_reaction = reaction;
+    Ok(report)
 }
 
 /// Repairs what the model may get wrong and adds the caveats that can be stated with certainty.
@@ -450,6 +531,12 @@ pub fn render_markdown(report: &Report) -> String {
         report.summary.clone(),
         format!("## Prediction\n\n{}\n\n**Confidence:** {}", report.prediction, confidence_value(report.confidence)),
     ];
+    if let Some(r) = &report.first_reaction {
+        parts.push(format!(
+            "**First reaction:** {} (against {}, in favour {}, neither {})",
+            r.direction, r.against, r.in_favour, r.neither
+        ));
+    }
     parts.extend(report.sections.iter().map(|s| format!("## {}\n\n{}", s.title, s.body_markdown)));
     if !report.recommendations.is_empty() {
         let recs = report.recommendations.iter().map(recommendation_markdown).collect::<Vec<_>>().join("\n");

@@ -11,6 +11,7 @@ use std::time::Instant;
 use tellfold_engine::material::{read_material, write_material, Material, MaterialFile};
 use tellfold_engine::runner::{mark_stopped, run_pipeline, PipelineError, RunOptions};
 use tellfold_llm::Llm;
+use tellfold_models::new_crowd_rules;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{GodEvent, KnowledgeGraph, Persona, Report, SimConfig, Study, StudyKind, StudyRun};
 use tellfold_report::chat::{ask_report, interview};
@@ -389,6 +390,7 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
         think,
         agent_runtime,
         planner_runtime,
+        crowd_rules: new_crowd_rules(),
         ..SimConfig::new(&question, files.iter().map(|f| f.to_string_lossy().into_owned()).collect())
     };
     let material = given_material(con, &material_given, &p.list("hide"), Some(config.num_agents))?;
@@ -410,6 +412,8 @@ pub fn run(con: &Console, p: &Parsed) -> Done {
         config.num_agents = cast.personas.len() as i64;
         // the crowd is the source's, and so is what it was grounded in
         config.material = source.material.clone();
+        // a version changes the text only, so it follows the source's crowd rules
+        config.crowd_rules = source.crowd_rules;
         study = Some(planned);
     } else if variant.as_deref().is_some_and(|v| !v.is_empty()) {
         return Err(fail(con, "--variant needs --cast-from: a study compares runs of one crowd"));

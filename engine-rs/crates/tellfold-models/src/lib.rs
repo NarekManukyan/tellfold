@@ -449,10 +449,32 @@ pub struct SimConfig {
     /// Rust-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub material: Option<MaterialSummary>,
+    /// Which crowd rules the run follows: 0 for the original ones, which older runs keep reproducing exactly, and
+    /// [`CROWD_RULES`] for a new run. Rust-only.
+    #[serde(default, skip_serializing_if = "is_zero", deserialize_with = "lax::int")]
+    pub crowd_rules: i64,
+}
+
+/// The crowd rules a new run follows (see [`SimConfig::crowd_rules`]). Version 1: organisation accounts never
+/// announce anything the source material doesn't say, every round shows the situation and keeps users on it, everyone
+/// gets a turn in the first rounds, and the report's direction comes from the crowd's first reaction.
+pub const CROWD_RULES: i64 = 1;
+
+/// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
+/// does (its parity tests set it).
+pub const CROWD_RULES_ENV: &str = "TELLFOLD_CROWD_RULES";
+
+/// The crowd rules a new run follows: [`CROWD_RULES`] unless [`CROWD_RULES_ENV`] holds a number.
+pub fn new_crowd_rules() -> i64 {
+    std::env::var(CROWD_RULES_ENV).ok().and_then(|v| v.trim().parse().ok()).unwrap_or(CROWD_RULES)
 }
 
 fn is_false(b: &bool) -> bool {
     !*b
+}
+
+fn is_zero(n: &i64) -> bool {
+    *n == 0
 }
 
 impl SimConfig {
@@ -484,6 +506,7 @@ impl SimConfig {
             fair_turns: false,
             audience: None,
             material: None,
+            crowd_rules: 0,
         }
     }
 }
@@ -661,6 +684,21 @@ pub struct Report {
     /// Filled in by the engine, never asked of the model (kept out of the JSON schema).
     #[serde(default)]
     pub citation_audit: Option<CitationAudit>,
+    /// The crowd's first reaction, counted by the engine (never asked of the model) in a run with
+    /// [`SimConfig::crowd_rules`]; None for older reports.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub first_reaction: Option<FirstReaction>,
+}
+
+/// How the people (organisation accounts left out) first reacted: each one's first scored post, read as against
+/// (below -0.2), in favour (above 0.2) or neither, and the overall direction that follows from those counts.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FirstReaction {
+    /// "negative", "mixed" or "positive"
+    pub direction: String,
+    pub against: i64,
+    pub in_favour: i64,
+    pub neither: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

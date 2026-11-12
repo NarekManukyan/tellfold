@@ -584,7 +584,8 @@ async fn pipeline(
         track.update(|s| s.round = 0)?;
     }
 
-    let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))));
+    let engine = Engine::new(llm, &world, &config, Some(Box::new(|n: &str, p: Value| track.engine_event(n, p))))
+        .with_graph(&graph);
     track.stage(RunStage::Rounds, &format!("simulating {} rounds", config.rounds), json!({}))?;
     for r in first_round..=config.rounds {
         if stopping() {

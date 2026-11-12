@@ -42,6 +42,10 @@ pub const TURN_UNHEARD: &str = "Not heard yet: nobody with this user's outlook h
 write one post or reply in their own voice saying where they stand, even if that is unsure or unbothered.";
 pub const TURN_STRONG: &str = "This user feels strongly about the topic and has not posted yet: this round they \
 write one post or reply saying what they think.";
+/// With the crowd rules, everyone who has not posted by then is given the floor in the rounds up to this one.
+pub const FIRST_TURN_ROUNDS: i64 = 2;
+pub const TURN_FIRST: &str = "This user has not said anything yet: this round they write one post or reply giving \
+their first reaction to the announcement, in their own voice, even if it is unsure or unbothered.";
 
 fn action_alias(kind: &str) -> &str {
     match kind {
@@ -203,6 +207,16 @@ Reply with JSON only, shaped like:
 {"posts": [{"agent_id": "a01", "content": "...", "memory_note": "..."}]}
 memory_note: one first-person sentence about why they posted and how they currently feel about the topic."#;
 
+/// Added to the round and opening system prompts of a run with the crowd rules ([`SimConfig::crowd_rules`]).
+const FACT_RULES: &str = r#"
+
+Facts and topic:
+- The situation from the source material is everything that is known. An organisation or official account may
+  restate, explain or defend what it says, but never announces anything it doesn't: no new concessions, exemptions,
+  figures, data, dates, promises or changes of plan. Nobody else reports such things as fact either.
+- Stay on the announcement in the situation and on what users have actually said in the feed. Don't bring in other
+  plans, decisions, events or controversies that neither of them mentions."#;
+
 const SENTIMENT_SYSTEM: &str = r#"You are a careful annotator of social media posts. For each post, rate the attitude it
 expresses toward the subject of the question below, from -1 (strongly negative, pessimistic or opposed)
 through 0 (neutral, mixed or off-topic) to +1 (strongly positive, optimistic or supportive). A plain repost
@@ -249,11 +263,34 @@ pub struct Engine<'a> {
     pub world: &'a World,
     pub config: &'a SimConfig,
     emit: EventCallback<'a>,
+    /// the source material's digest, shown in every round with the crowd rules ([`Engine::with_graph`])
+    situation: String,
 }
 
 impl<'a> Engine<'a> {
     pub fn new(llm: &'a dyn Llm, world: &'a World, config: &'a SimConfig, on_event: Option<EventCallback<'a>>) -> Self {
-        Engine { llm, world, config, emit: on_event.unwrap_or_else(|| Box::new(|_, _| {})) }
+        Engine { llm, world, config, emit: on_event.unwrap_or_else(|| Box::new(|_, _| {})), situation: String::new() }
+    }
+
+    /// The topic map the run was seeded from: with the crowd rules every round prompt shows its digest, as the
+    /// opening prompt always does, so users stay on the announcement.
+    pub fn with_graph(mut self, graph: &KnowledgeGraph) -> Self {
+        self.situation = graph_digest(graph, 25);
+        self
+    }
+
+    fn rules(&self) -> bool {
+        self.config.crowd_rules >= 1
+    }
+
+    /// A round or opening system prompt, with the fact rules in a run with the crowd rules.
+    fn system(&self, template: &str) -> String {
+        let system = with_language(template, &self.config.language);
+        if self.rules() {
+            system + FACT_RULES
+        } else {
+            system
+        }
     }
 
     fn emit(&self, name: &str, payload: Value) {
@@ -356,7 +393,7 @@ impl<'a> Engine<'a> {
         prompt: &str,
         ledger: &Ledger,
     ) -> Option<Vec<OpeningPost>> {
-        let system = with_language(OPENING_SYSTEM, &self.config.language);
+        let system = self.system(OPENING_SYSTEM);
         match self.call::<OpeningPosts>(prompt, &system, "engine.seed", ledger).await {
             Ok(out) => Some(out.posts),
             Err(e) => {
@@ -391,6 +428,14 @@ impl<'a> Engine<'a> {
             let (extra, given) = fair_turns(&personas, &active, &posted, &last_active, r);
             active.extend(extra);
             turns = given;
+        }
+        if self.rules() && r <= FIRST_TURN_ROUNDS {
+            let posted = self.world.authors()?;
+            let (extra, given) = first_turns(&personas, &active, &posted, r);
+            active.extend(extra);
+            for (id, note) in given {
+                turns.entry(id).or_insert(note);
+            }
         }
         let batches = chunks(&active, self.config.batch_size);
         let current: Vec<&str> = events.iter().filter(|e| e.round == r).map(|e| e.content.as_str()).collect();
@@ -504,7 +549,7 @@ impl<'a> Engine<'a> {
         prompt: &str,
         ledger: &Ledger,
     ) -> Option<Vec<AgentDecision>> {
-        let system = with_language(ROUND_SYSTEM, &self.config.language);
+        let system = self.system(ROUND_SYSTEM);
         let out = match self.call::<RoundDecisions>(prompt, &system, "engine.round", ledger).await {
             Ok(out) => out,
             Err(e) => {
@@ -531,6 +576,11 @@ impl<'a> Engine<'a> {
         let mut blocks = vec![
             format!("Question being simulated: {}", self.config.question),
             format!("Round {r} of {}.", self.config.rounds),
+            if self.rules() && !self.situation.is_empty() {
+                format!("Situation (from the source material):\n{}", self.situation)
+            } else {
+                String::new()
+            },
             news_block(events, r),
             format!(
                 "Users to decide for: {}. Each block holds one user's private profile, memory and own feed.",
@@ -811,6 +861,31 @@ pub fn fair_turns(
             turns.insert(p.id.clone(), TURN_STRONG);
         }
     }
+    (extra, turns)
+}
+
+/// Who else acts in round `r` under the crowd rules, so that everyone has posted by [`FIRST_TURN_ROUNDS`]: in the
+/// last of those rounds everyone who has not posted yet joins the draw (in id order, after it). Every active person
+/// who has not posted yet, joined or drawn, is given the floor with [`TURN_FIRST`]; `posted` holds the authors of
+/// every post so far. Organisation accounts count too: they are given the floor, not new facts.
+pub fn first_turns(
+    personas: &[Persona],
+    active: &[Persona],
+    posted: &HashSet<String>,
+    r: i64,
+) -> (Vec<Persona>, HashMap<String, &'static str>) {
+    let drawn: HashSet<&str> = active.iter().map(|p| p.id.as_str()).collect();
+    let unposted: Vec<Persona> = by_id(personas).into_iter().filter(|p| !posted.contains(&p.id)).collect();
+    let extra: Vec<Persona> = if r >= FIRST_TURN_ROUNDS {
+        unposted.iter().filter(|p| !drawn.contains(p.id.as_str())).cloned().collect()
+    } else {
+        Vec::new()
+    };
+    let turns = unposted
+        .iter()
+        .filter(|p| drawn.contains(p.id.as_str()) || r >= FIRST_TURN_ROUNDS)
+        .map(|p| (p.id.clone(), TURN_FIRST))
+        .collect();
     (extra, turns)
 }
 

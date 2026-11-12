@@ -52,6 +52,8 @@ pub struct FakeLlm {
     responder: Arc<Responder>,
     /// (purpose, model, prompt) of every call, in order.
     pub calls: Mutex<Vec<(String, String, String)>>,
+    /// (purpose, system prompt) of every call, in the same order.
+    pub systems: Mutex<Vec<(String, String)>>,
 }
 
 impl FakeLlm {
@@ -68,6 +70,7 @@ impl FakeLlm {
                 async move { reply }.boxed()
             }),
             calls: Mutex::new(Vec::new()),
+            systems: Mutex::new(Vec::new()),
         }
     }
 
@@ -76,7 +79,7 @@ impl FakeLlm {
     where
         F: Fn(&str, &str, Option<&Schema>) -> BoxFuture<'static, FakeReply> + Send + Sync + 'static,
     {
-        FakeLlm { responder: Arc::new(responder), calls: Mutex::new(Vec::new()) }
+        FakeLlm { responder: Arc::new(responder), calls: Mutex::new(Vec::new()), systems: Mutex::new(Vec::new()) }
     }
 
     /// A fake answering through [`Routes`].
@@ -89,15 +92,16 @@ impl FakeLlm {
         self.calls.lock().expect("not poisoned").iter().map(|c| c.0.clone()).collect()
     }
 
-    fn record(&self, purpose: &str, model: &str, prompt: &str) {
+    fn record(&self, purpose: &str, model: &str, prompt: &str, system: &str) {
         self.calls.lock().expect("not poisoned").push((purpose.into(), model.into(), prompt.into()));
+        self.systems.lock().expect("not poisoned").push((purpose.into(), system.into()));
     }
 }
 
 #[async_trait]
 impl Llm for FakeLlm {
-    async fn text(&self, prompt: &str, _system: &str, model: &str, purpose: &str) -> Result<String, LlmError> {
-        self.record(purpose, model, prompt);
+    async fn text(&self, prompt: &str, system: &str, model: &str, purpose: &str) -> Result<String, LlmError> {
+        self.record(purpose, model, prompt, system);
         match (self.responder)(purpose, prompt, None).await {
             FakeReply::Text(text) => Ok(text),
             FakeReply::Json(value) => Ok(tellfold_models::json::py_str(&value)),
@@ -108,12 +112,12 @@ impl Llm for FakeLlm {
     async fn json_value(
         &self,
         prompt: &str,
-        _system: &str,
+        system: &str,
         model: &str,
         purpose: &str,
         schema: &Schema,
     ) -> Result<Value, LlmError> {
-        self.record(purpose, model, prompt);
+        self.record(purpose, model, prompt, system);
         let value = match (self.responder)(purpose, prompt, Some(schema)).await {
             FakeReply::Error(e) => return Err(e),
             FakeReply::Json(value) => value,
