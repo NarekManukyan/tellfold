@@ -209,10 +209,11 @@ column is ever read. A spreadsheet with a quote that never closes is refused wit
 of the file, other columns included, would otherwise be read as one answer.
 
 Limits: 300 items at most, 600 characters per item, and items under 12 characters are skipped. Repeats are dropped,
-then items are redacted in an even sample across the files until 300 distinct ones are kept; `dropped` counts the
-ones never looked at, and a warning says so. Items that only differ in a hidden detail (two names, one complaint)
-count once. Fewer than 30 items adds a warning (a few voices will shape the
-whole crowd), and so do fewer items than people (some people share quotes).
+then items are redacted in an even sample across the files, topped up from the rest while redaction turns some into
+repeats (items that differ only in a hidden detail, such as two names on one complaint, count once), until 300
+distinct ones are kept or 1200 were redacted. `dropped` counts the ones never looked at, and a warning says so.
+Fewer than 30 items adds a warning (a few voices will shape the whole crowd), and so do fewer items than people (some
+people share quotes).
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/api/runs \

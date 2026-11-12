@@ -37,6 +37,8 @@ pub const MAX_ITEM_CHARS: usize = 600;
 pub const MIN_ITEM_CHARS: usize = 12;
 /// Fewer items than this is thin material: a few voices shape the whole crowd.
 pub const THIN_ITEMS: usize = 30;
+/// Pieces redacted at most to find [`MAX_ITEMS`] distinct items; any more are left out.
+pub const MAX_LOOKED: usize = 4 * MAX_ITEMS;
 /// Real quotes each grounded persona is written from.
 pub const QUOTES_PER_PERSONA: usize = 3;
 /// Most words or phrases the user may add to hide.
@@ -150,8 +152,9 @@ fn suffix(name: &str) -> String {
 /// Reads, splits, redacts and caps the material. `hide` are extra words or phrases to hide as names (staff, pupils,
 /// customers the fixed rules would miss). `agents`, when known, warns when there are few items per person.
 ///
-/// Pieces that say the same thing are dropped first, then pieces are redacted in an even sample across the files
-/// until [`MAX_ITEMS`] distinct ones are kept, so a large export costs no more than a small one.
+/// Pieces that say the same thing are dropped first. Pieces are then redacted in an even sample across the files,
+/// topped up from the rest while redaction turns some into repeats, until [`MAX_ITEMS`] distinct ones are kept or
+/// [`MAX_LOOKED`] were redacted: a large export costs a bounded amount of work.
 pub fn read_material(files: &[MaterialFile], hide: &[String], agents: Option<i64>) -> Result<Material, MaterialError> {
     if files.is_empty() {
         return Err(MaterialError("add at least one file of audience material".into()));
@@ -293,11 +296,12 @@ struct Chosen {
     items: Vec<MaterialItem>,
     /// what was hidden in the chosen items
     redacted: Redactions,
-    /// distinct pieces left out because the cap was reached before they were looked at
+    /// distinct pieces left out because a cap was reached before they were looked at
     dropped: usize,
 }
 
-/// Redacts pieces in [`sample_order`] until [`MAX_ITEMS`] distinct ones are kept or none are left. A piece that
+/// Redacts pieces in [`sample_order`] until [`MAX_ITEMS`] distinct ones are kept, [`MAX_LOOKED`] were redacted, or
+/// none are left. A piece that
 /// redacts to the text of one kept before (two names, one complaint) or to too little is passed over, so it never
 /// counts as dropped by the cap. The items keep the pieces' order and are numbered in it.
 fn choose_items(pieces: &[Piece], reports: &[FileReport], redactor: &Redactor) -> Chosen {
@@ -306,7 +310,7 @@ fn choose_items(pieces: &[Piece], reports: &[FileReport], redactor: &Redactor) -
     let mut kept: Vec<(usize, String)> = Vec::new();
     let mut looked = 0;
     for i in sample_order(pieces.len(), MAX_ITEMS) {
-        if kept.len() == MAX_ITEMS {
+        if kept.len() == MAX_ITEMS || looked == MAX_LOOKED {
             break;
         }
         looked += 1;
@@ -341,7 +345,7 @@ fn size_warnings(kept: usize, dropped: usize, counts: &IndexMap<String, i64>, ag
     let mut warnings = Vec::new();
     if dropped > 0 {
         warnings.push(format!(
-            "Kept {kept} items, the most a run reads; {dropped} more were left out evenly across your files."
+            "Kept {kept} items, the most a run reads; {dropped} more were left out, sampled evenly across your files."
         ));
     }
     if kept < THIN_ITEMS {
@@ -460,15 +464,16 @@ pub fn split_items(text: &str, kind: &str, markdown: bool) -> Vec<String> {
     out
 }
 
-/// Support emails: an .eml file is one message; a text file holds one, or several that start with a `From:` line or
-/// are split by separator lines. Headers, quoted replies, forwarded parts and signatures are dropped; a subject is
+/// Support emails: an .eml file is one message; a text file holds one, or several that each start with a `From:`
+/// header ([`message_starts`]) or, in a file without one, are split by separator lines. Headers, quoted replies, forwarded parts and signatures are dropped; a subject is
 /// kept as the first line.
 pub fn split_emails(text: &str, eml: bool) -> Vec<String> {
+    let starts = if eml { Vec::new() } else { message_starts(text) };
+    let headers = starts.iter().filter(|s| **s).count();
     let messages: Vec<String> = if eml {
         vec![eml_text(text)]
-    } else if message_starts(text).iter().filter(|s| **s).count() >= 2 {
+    } else if headers >= 2 {
         let mut out: Vec<String> = Vec::new();
-        let starts = message_starts(text);
         for (line, starts) in text.lines().zip(starts) {
             if starts || out.is_empty() {
                 out.push(String::new());
@@ -478,7 +483,8 @@ pub fn split_emails(text: &str, eml: bool) -> Vec<String> {
             last.push('\n');
         }
         out
-    } else if re_separator().is_match(text) {
+    } else if headers == 0 && re_separator().is_match(text) {
+        // one message with a header may have a rule above a quoted reply: only header-less files split on rules
         re_separator().split(text).map(str::to_string).collect()
     } else {
         vec![text.to_string()]
@@ -486,18 +492,26 @@ pub fn split_emails(text: &str, eml: bool) -> Vec<String> {
     messages.iter().map(|m| email_body(m)).filter(|m| !m.trim().is_empty()).collect()
 }
 
-/// For every line of a text file of emails, whether it starts a message: a `From:` line that opens a header block of
-/// its own, not the `From:` of an Outlook-style quote (a `Sent:` line follows) or of a forwarded or quoted part (a
-/// marker line comes just before it).
+/// For every line of a text file of emails, whether it starts a message, decided by where a `From:` line sits:
+/// - a `From:` right after a quote or forward marker line ("On ... wrote:", "Original message", a rule of
+///   underscores) opens a quoted part, never a message;
+/// - an Outlook-style `From:`/`Sent:` block that directly continues the text above it, with no blank line between,
+///   is a quoted reply;
+/// - any other `From:` at the start of a line opens a message: the first one in the file, one after a blank line,
+///   and a plain `From:` header (no `Sent:`) wherever it is.
 fn message_starts(text: &str) -> Vec<bool> {
     let lines: Vec<&str> = text.lines().collect();
     let mut after_marker = false;
+    let mut after_text = false;
     let mut out = Vec::with_capacity(lines.len());
     for i in 0..lines.len() {
-        out.push(re_header_from().is_match(lines[i]) && !after_marker && !quoted_header(&lines[i..], false));
-        if !lines[i].trim().is_empty() {
+        let continues_text = after_text && quoted_header(&lines[i..], false);
+        out.push(re_header_from().is_match(lines[i]) && !after_marker && !continues_text);
+        let blank = lines[i].trim().is_empty();
+        if !blank {
             after_marker = re_quoted_reply().is_match(lines[i]);
         }
+        after_text = !blank;
     }
     out
 }
@@ -1133,16 +1147,41 @@ Subject: Re: refund\n\nWe are looking into it";
         assert_eq!(split_emails(outlook, false), vec!["Still waiting on this.\n"]);
     }
 
+    fn outlook_email(n: usize) -> String {
+        format!(
+            "From: Rider {n} <r{n}@x.com>\nSent: Monday, {n} March 2026 09:00\nTo: help@ferry.example\n\
+Subject: Fares {n}\n\nThe fare went up again, email {n} of mine about it.\n\nThanks\n"
+        )
+    }
+
+    #[test]
+    fn a_text_file_of_outlook_emails_is_split_per_email() {
+        for n in [2, 3] {
+            let text: String = (1..=n).map(|i| format!("{}\n", outlook_email(i))).collect();
+            let emails = split_emails(&text, false);
+            assert_eq!(emails.len(), n, "{emails:?}");
+            for (i, email) in emails.iter().enumerate() {
+                assert!(email.contains(&format!("email {} of mine", i + 1)), "{email}");
+                assert!(!email.contains("Sent:"), "{email}");
+            }
+        }
+    }
+
     #[test]
     fn a_text_file_of_emails_is_not_split_on_quoted_headers() {
-        let text = "From: a@x.com\nSubject: One\n\nStill waiting on my refund.\n\n\
-From: Support Team <help@x.com>\nSent: Monday, 3 March\nTo: a@x.com\nSubject: Re: refund\n\nWe are looking into it\n\
+        let text = "From: a@x.com\nSubject: One\n\nStill waiting on my refund.\n\
+From: Support Team <help@x.com>\nSent: Monday, 3 March\nTo: a@x.com\nSubject: Re: refund\n\nWe are looking into it\n\n\
 From: b@x.com\nSubject: Two\n\nPlease bring back the yearly plan.\n\n\
 ---------- Forwarded message ---------\nFrom: Carol <c@x.com>\nDate: Tue\n\nOld forwarded text\n";
         let emails = split_emails(text, false);
         assert_eq!(emails.len(), 2, "{emails:?}");
         assert!(emails[0].contains("Still waiting") && !emails[0].contains("looking into it"), "{emails:?}");
         assert!(emails[1].contains("yearly plan") && !emails[1].contains("forwarded text"), "{emails:?}");
+        // a quoted Outlook header after a rule of underscores, blank line or not
+        let ruled = format!("{}\n________________________________\n\n{}", outlook_email(1), outlook_email(2));
+        let emails = split_emails(&ruled, false);
+        assert_eq!(emails.len(), 1, "{emails:?}");
+        assert!(!emails[0].contains("email 2 of mine"), "{emails:?}");
     }
 
     #[test]
@@ -1183,7 +1222,8 @@ From: b@x.com\nSubject: Two\n\nPlease bring back the yearly plan.\n\n\
                 format!("Hi {name},\nthe export button does nothing again\n\n")
             })
             .collect();
-        let material = read_material(&[file("r.txt", Some("emails"), None, &replies)], &[], None).unwrap();
+        let material = read_material(&[file("r.txt", Some("notes"), None, &replies)], &[], None).unwrap();
+        assert_eq!(material.files[0].items, 50, "50 distinct pieces before redaction");
         assert_eq!(material.items.len(), 1);
         assert_eq!(material.summary.dropped, 0);
         assert!(!material.warnings.iter().any(|w| w.contains("the most a run reads")), "{:?}", material.warnings);
@@ -1204,6 +1244,26 @@ From: b@x.com\nSubject: Two\n\nPlease bring back the yearly plan.\n\n\
         let material = read_material(&[file("c.txt", Some("notes"), None, &text)], &[], None).unwrap();
         assert_eq!(material.items.len(), 52, "two complaints and the 50 distinct comments");
         assert_eq!(material.summary.dropped, 0);
+    }
+
+    #[test]
+    fn the_refill_is_bounded() {
+        // 2000 pieces that redact to 2 complaints: the work stops after MAX_LOOKED of them
+        let text: String = (0..2000)
+            .map(|i| {
+                let name = format!(
+                    "X{}{}{}",
+                    (b'a' + (i / 676 % 26) as u8) as char,
+                    (b'a' + (i / 26 % 26) as u8) as char,
+                    (b'a' + (i % 26) as u8) as char
+                );
+                format!("Hi {name}, comment {} about the price\n\n", i % 2)
+            })
+            .collect();
+        let material = read_material(&[file("c.txt", Some("notes"), None, &text)], &[], None).unwrap();
+        assert_eq!(material.items.len(), 2);
+        assert_eq!(material.summary.dropped, (2000 - MAX_LOOKED) as i64);
+        assert!(material.warnings.iter().any(|w| w.contains("the most a run reads")), "{:?}", material.warnings);
     }
 
     #[test]

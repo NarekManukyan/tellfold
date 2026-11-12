@@ -421,6 +421,40 @@ async fn read_material_items(
     Ok(Some(Some(Grounded { material, clusters })))
 }
 
+/// Holds a `review_cast` run until a client confirms its people, then writes the cast it confirmed (and its size,
+/// when that changed). None when the run was stopped meanwhile.
+async fn review_cast(
+    gate: &dyn CastGate,
+    personas: Vec<Persona>,
+    config: &mut SimConfig,
+    run_dir: &Path,
+    track: &Tracker<'_>,
+    stopping: &dyn Fn() -> bool,
+) -> Result<Option<Vec<Persona>>, PipelineError> {
+    track.update(|s| {
+        s.pause = Some(PAUSE_PERSONAS.into());
+        s.detail = format!("{} people ready: waiting for you to check them", personas.len());
+    })?;
+    track.emit("personas_ready", json!({"personas": personas}));
+    let Some(personas) = gate.review(personas).await.filter(|_| !stopping()) else {
+        track.finish_stopped()?;
+        return Ok(None);
+    };
+    if personas.is_empty() {
+        return Err(PipelineError::Other("the cast is empty: add at least one person".into()));
+    }
+    write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
+    if config.num_agents != personas.len() as i64 {
+        config.num_agents = personas.len() as i64;
+        write_json(&run_dir.join(CONFIG_FILE), &*config)?;
+    }
+    track.update(|s| {
+        s.pause = None;
+        s.detail = format!("cast confirmed: {} people", personas.len());
+    })?;
+    Ok(Some(personas))
+}
+
 async fn pipeline(
     llm: &dyn Llm,
     run_dir: &Path,
@@ -536,28 +570,10 @@ async fn pipeline(
             return Ok(None);
         }
         if let Some(gate) = cast_gate.filter(|_| config.review_cast) {
-            track.update(|s| {
-                s.pause = Some(PAUSE_PERSONAS.into());
-                s.detail = format!("{} people ready: waiting for you to check them", personas.len());
-            })?;
-            track.emit("personas_ready", json!({"personas": personas}));
-            let Some(reviewed) = gate.review(personas).await.filter(|_| !stopping()) else {
-                track.finish_stopped()?;
+            let Some(reviewed) = review_cast(gate, personas, &mut config, run_dir, track, &stopping).await? else {
                 return Ok(None);
             };
-            if reviewed.is_empty() {
-                return Err(PipelineError::Other("the cast is empty: add at least one person".into()));
-            }
             personas = reviewed;
-            write_json_list(&run_dir.join(PERSONAS_FILE), &personas)?;
-            if config.num_agents != personas.len() as i64 {
-                config.num_agents = personas.len() as i64;
-                write_json(&run_dir.join(CONFIG_FILE), &config)?;
-            }
-            track.update(|s| {
-                s.pause = None;
-                s.detail = format!("cast confirmed: {} people", personas.len());
-            })?;
         }
         world = World::open(&run_dir.join(WORLD_FILE), config.seed)?;
         world.add_personas(&personas)?;
