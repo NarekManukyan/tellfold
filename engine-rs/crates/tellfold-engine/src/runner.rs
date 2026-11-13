@@ -487,9 +487,16 @@ async fn pipeline(
     track.stage(RunStage::Reading, &format!("reading {} seed file{plural}", seeds.len()), json!({}))?;
     let docs = load_documents(seeds).map_err(|e| RunError(format!("could not read seed files: {e}")))?;
     let chunks = chunk_text_default(&docs);
-    // only the fact check of a run with the stake rules reads it, and only its first SOURCE_CHARS characters
+    // only the fact check of a run with the stake rules reads it, and only its first SOURCE_CHARS characters (one
+    // more is kept so the engine can tell the text was cut)
     let source = if config.crowd_rules >= STAKE_RULES {
-        docs.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n").chars().take(SOURCE_CHARS).collect()
+        docs.iter()
+            .map(|(_, text)| text.as_str())
+            .collect::<Vec<_>>()
+            .join("\n\n")
+            .chars()
+            .take(SOURCE_CHARS + 1)
+            .collect()
     } else {
         String::new()
     };

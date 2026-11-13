@@ -102,9 +102,10 @@ struct NewRunRequest: Hashable, Sendable {
         let active = max(1, (Double(agents) * estimatedActiveShare).rounded(.up))
         let perRound = Int((active / batch).rounded(.up)) + 1
         let material = reusesCast ? 0 : MaterialText.calls(items: materialItems)
-        // crowd rules 2 and later: a stakes plan for a cast written from the announcement, a fact check a round
+        // crowd rules 2 and later: a stakes plan for a cast written from the announcement, and a fact check for the
+        // opening and each round
         let castGiven = reusesCast || materialItems > 0
-        let crowd = crowdRules >= 2 ? (castGiven ? 0 : 1) + max(0, rounds) : 0
+        let crowd = crowdRules >= 2 ? (castGiven ? 0 : 1) + max(0, rounds) + 1 : 0
         return (opening + rounds * perRound, graph + personas + material + 1 + crowd)
     }
 

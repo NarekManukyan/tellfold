@@ -35,18 +35,20 @@ pub fn estimate_call_split(config: &SimConfig, chunks: i64) -> (i64, i64) {
     let active = 1.max((config.num_agents as f64 * ESTIMATED_ACTIVE_SHARE).ceil() as i64);
     let per_round = ceil_div(active, batch) + 1; // decisions + sentiment
     let rounds = if branched { config.rounds - config.branch_round.unwrap_or(0) } else { config.rounds };
-    let crowd = crowd_rules_calls(config.crowd_rules, reused || config.material.is_some(), rounds);
+    let checks = rounds + i64::from(!branched); // the opening posts are checked too
+    let crowd = crowd_rules_calls(config.crowd_rules, reused || config.material.is_some(), checks);
     (opening + rounds * per_round, graph + personas + material + 1 + crowd)
 }
 
 /// Planner calls the crowd rules add, none before [`STAKE_RULES`]: the stakes plan of a cast written from the
-/// announcement (not a reused or grounded one), and about one fact check of organisation posts per round (5 a run in
-/// the fourth accuracy pass, of 6 rounds). A report retry is not counted, as no other retry is.
-pub fn crowd_rules_calls(crowd_rules: i64, cast_given: bool, rounds: i64) -> i64 {
+/// announcement (not a reused or grounded one), and at most one fact check of organisation posts for the opening and
+/// each round, `checks` in all (5 a run of 7 in the fourth accuracy pass, as some batches hold no organisation post).
+/// A report retry is not counted, as no other retry is.
+pub fn crowd_rules_calls(crowd_rules: i64, cast_given: bool, checks: i64) -> i64 {
     if crowd_rules < STAKE_RULES {
         return 0;
     }
-    i64::from(!cast_given) + rounds.max(0)
+    i64::from(!cast_given) + checks.max(0)
 }
 
 /// Planner calls that read a run's audience material (0 without any): the extra usage grounding costs.
@@ -81,12 +83,12 @@ mod tests {
         let mut config = SimConfig::new("q", Vec::new());
         let before = estimate_call_split(&config, 10);
         config.crowd_rules = STAKE_RULES;
-        assert_eq!(estimate_call_split(&config, 10), (before.0, before.1 + 1 + config.rounds));
+        assert_eq!(estimate_call_split(&config, 10), (before.0, before.1 + 1 + config.rounds + 1));
         // a cast that is given (reused here) needs no stakes plan, and is still fact-checked
         config.cast_from = Some("other".into());
         let mut plain_reused = config.clone();
         plain_reused.crowd_rules = 0;
-        assert_eq!(estimate_call_split(&config, 10).1, estimate_call_split(&plain_reused, 10).1 + config.rounds);
+        assert_eq!(estimate_call_split(&config, 10).1, estimate_call_split(&plain_reused, 10).1 + config.rounds + 1);
     }
 
     #[test]

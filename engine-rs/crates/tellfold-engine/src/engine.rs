@@ -319,6 +319,8 @@ pub struct Engine<'a> {
     situation: String,
     /// the source material itself, which organisation posts are checked against ([`Engine::with_source`])
     source: String,
+    /// whether the seed text ran past [`SOURCE_CHARS`] and `source` is its start
+    source_cut: bool,
 }
 
 impl<'a> Engine<'a> {
@@ -330,6 +332,7 @@ impl<'a> Engine<'a> {
             emit: on_event.unwrap_or_else(|| Box::new(|_, _| {})),
             situation: String::new(),
             source: String::new(),
+            source_cut: false,
         }
     }
 
@@ -344,6 +347,7 @@ impl<'a> Engine<'a> {
     /// organisation post is checked against it, and dropped when it states something the source doesn't.
     pub fn with_source(mut self, text: &str) -> Self {
         self.source = text.chars().take(SOURCE_CHARS).collect();
+        self.source_cut = text.chars().nth(SOURCE_CHARS).is_some();
         self
     }
 
@@ -363,7 +367,7 @@ impl<'a> Engine<'a> {
             .map(|(i, (p, text))| format!("[{}] @{} ({}): {}", i + 1, p.handle, p.name, squash(text)))
             .collect();
         // a longer source is cut at SOURCE_CHARS: the checker is told, so a post about the part it can't see passes
-        let cut = if self.source.chars().count() >= SOURCE_CHARS { SOURCE_CUT } else { "" };
+        let cut = if self.source_cut { SOURCE_CUT } else { "" };
         let prompt = format!(
             "SOURCE MATERIAL (everything that is known):\n{}{cut}\n\nPOSTS BY ORGANISATION ACCOUNTS:\n{}\n\n\
 Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list when none does.",

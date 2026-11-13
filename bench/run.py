@@ -133,6 +133,9 @@ CALL_CHARS = {
     "engine.round": (27_000, 3_300),
     "engine.sentiment": (2_000, 160),
     "report.write": (21_000, 10_500),
+    # crowd rules 2 and later, from the 129 runs of the fourth pass (13 Nov 2026)
+    "personas.stakes": (4_800, 2_000),
+    "engine.factcheck": (3_300, 20),
     "judge": (16_000, 2_000),
     "zero_shot": (4_000, 5_000),
 }
@@ -147,10 +150,15 @@ PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00), "opus": (5.00, 25.00)}
 CHUNK_SIZE, CHUNK_OVERLAP = 1800, 200
 
 
-def estimate_calls(agents: int, rounds: int, batch: int, chunks: int) -> dict[str, int]:
-    """Model calls by purpose for one run, the same formula as `tellfold-store/src/estimate.rs`."""
+# The crowd rules a new run follows (`CROWD_RULES` in tellfold-models), for the estimate.
+CROWD_RULES = 3
+
+
+def estimate_calls(agents: int, rounds: int, batch: int, chunks: int, crowd_rules: int = 0) -> dict[str, int]:
+    """Model calls by purpose for one run, the same formula as `tellfold-store/src/estimate.rs`. From crowd rules 2
+    a run also plans its stakes and fact-checks organisation posts in the opening and each round."""
     active = max(1, math.ceil(agents * 0.4))
-    return {
+    calls = {
         "graph.extract": math.ceil(min(chunks, 64) / 4),
         "personas.batch": math.ceil(agents / 10),
         "engine.seed": math.ceil(round(0.3 * agents) / batch),
@@ -158,6 +166,9 @@ def estimate_calls(agents: int, rounds: int, batch: int, chunks: int) -> dict[st
         "engine.sentiment": rounds + 1,
         "report.write": 1,
     }
+    if crowd_rules >= 2:
+        calls.update({"personas.stakes": 1, "engine.factcheck": rounds + 1})
+    return calls
 
 
 def chunk_count(text: str) -> int:
@@ -194,10 +205,11 @@ def estimate(cases: list[dict], settings: dict, repeats: int, zero_shot: bool, j
 
     for case in cases:
         chunks = chunk_count(case["input"].read_text(encoding="utf-8"))
-        calls = estimate_calls(settings["agents"], settings["rounds"], settings["batch"], chunks)
+        calls = estimate_calls(settings["agents"], settings["rounds"], settings["batch"], chunks, CROWD_RULES)
         for _ in range(repeats):
             for purpose, n in calls.items():
-                add(purpose, agent_model if purpose.startswith("engine.") else planner_model, n)
+                agent = purpose.startswith("engine.") and purpose != "engine.factcheck"
+                add(purpose, agent_model if agent else planner_model, n)
             add("judge", judge_model, 1)
         if zero_shot:
             add("zero_shot", planner_model, 1)

@@ -63,6 +63,9 @@ def test_estimate_matches_the_engine_formula():
     agent = sum(n for p, n in calls.items() if p.startswith("engine."))
     planner = sum(n for p, n in calls.items() if not p.startswith("engine."))
     assert (agent, planner) == (20, 4)
+    # crowd rules 2 and later add the stakes plan and a fact check a round, both on the planner model
+    ruled = bench.estimate_calls(20, 6, 6, 1, crowd_rules=3)
+    assert ruled == {**calls, "personas.stakes": 1, "engine.factcheck": 7}
     case = bench.load_cases(folder_root=FIXTURE_CASES)
     est = bench.estimate(case, bench.SETTINGS, repeats=2, zero_shot=True, judge_model="sonnet")
     assert est["rows"]["judge"]["calls"] == 3
