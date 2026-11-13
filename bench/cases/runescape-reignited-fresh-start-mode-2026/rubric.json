@@ -1,0 +1,19 @@
+{
+  "slug": "runescape-reignited-fresh-start-mode-2026",
+  "title": "Jagex announces RuneScape Reignited, a fresh-start mode with a separate economy",
+  "category": "product-change",
+  "announced_on": "2026-10-03",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will RuneScape players react to this over the first two weeks, which groups will push back and why, and is Jagex likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "It would split the player base and shrink the veteran population.", "source": "https://runescape.wiki/w/RuneScape_Reignited"},
+    {"id": "o2", "text": "It favours new players at the expense of long-time veterans.", "source": "https://kotaku.com/runescape-announces-then-quickly-cancels-its-reignited-project-due-to-player-feedback-2000746746"},
+    {"id": "o3", "text": "It would become the default for new and returning players and drain the main game, with no way to carry accounts over.", "source": "https://www.gosugamers.net/entertainment/news/79372-jagex-cancels-runescape-reignited-following-community-feedback"},
+    {"id": "o4", "text": "Fixing current problems would attract and keep more players than wiping the board.", "source": "https://kotaku.com/runescape-announces-then-quickly-cancels-its-reignited-project-due-to-player-feedback-2000746746"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-10-15", "summary": "After saying it was re-evaluating (6 Oct) and floating concessions (9 Oct), Jagex cancelled Reignited on 15 October; other new-player updates went ahead.", "source": "http://worthplaying.com/article/2026/10/15/news/151257-runescape-reignited-update-canceled-mere-days-after-being-announced-trailer/"},
+  "pushback_groups": ["long-time RuneScape (RS3) players", "community on social media and forums"],
+  "notes": "Negative, full backdown within 12 days. The 6 and 9 October interim steps come from the RuneScape Wiki only. Not to be confused with Old School RuneScape, which was not affected."
+}

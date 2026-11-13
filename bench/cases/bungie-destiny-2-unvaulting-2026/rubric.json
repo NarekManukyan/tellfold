@@ -1,0 +1,19 @@
+{
+  "slug": "bungie-destiny-2-unvaulting-2026",
+  "title": "Bungie says Destiny 2 will continue and vaulted campaigns, destinations and raids will return",
+  "category": "product-change",
+  "announced_on": "2026-09-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Destiny 2 players and content creators react to this over the first two weeks, which groups will push back and why, and is Bungie likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "Bungie has a history of making and breaking commitments, so players want delivery before trusting it.", "source": "https://games.gg/news/bungie-destiny-revival-unvaulting-announcement/"},
+    {"id": "o2", "text": "No timeline or dates were given for the content's return.", "source": "https://finalboss.io/destiny-2-did-players-save-bungie-trust-metrics-after-the-u-turn"},
+    {"id": "o3", "text": "A smaller studio after several layoffs may not have the resources to rebuild the content.", "source": "https://www.theouterhaven.net/bungie-wants-to-bring-destiny-back-and-restore-vaulted-content-but-it-has-a-lot-to-prove/"},
+    {"id": "o4", "text": "Restored campaigns and raids will take a lot more storage on consoles and PCs.", "source": "https://www.theouterhaven.net/bungie-wants-to-bring-destiny-back-and-restore-vaulted-content-but-it-has-a-lot-to-prove/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The restoration plan stands; a later unconfirmed report says campaigns will not return until early 2028.", "source": "https://finalboss.io/destiny-2-did-players-save-bungie-trust-metrics-after-the-u-turn"},
+  "pushback_groups": ["long-time players sceptical of Bungie's record", "some content creators"],
+  "notes": "Positive case: players and creators who campaigned against the end of Destiny 2 celebrated; coverage calls it cautiously positive and no opposition to the restoration was found. The 'objections' are doubts about delivery. The PC Gamer reaction piece and the early-2028 timeline report rest on search snippets only. The announcement follows a May 2026 end-of-development decision that drew organised player pressure, so the input mentions that background."
+}

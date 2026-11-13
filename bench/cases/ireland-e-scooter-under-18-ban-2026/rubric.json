@@ -1,0 +1,20 @@
+{
+  "slug": "ireland-e-scooter-under-18-ban-2026",
+  "title": "Irish government raises the e-scooter age limit to 18 and makes helmets and hi-vis mandatory, stopping short of a full ban",
+  "category": "policy",
+  "announced_on": "2026-07-20",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will e-scooter users, parents and road users in Ireland react to this over the first two weeks, which groups will push back and why, and is the Irish government likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "Raising the age to 18 does not address the root problem of younger children riding and parents buying scooters for them.", "source": "https://www.thejournal.ie/ireland-e-scooter-ban-2-7109534-Jul2026/"},
+    {"id": "o2", "text": "The rules will mean nothing without resourced Garda enforcement.", "source": "https://www.rte.ie/news/ireland/2026/0720/1584291-escooter-ban-reactions/"},
+    {"id": "o3", "text": "Licensing plus helmet and hi-vis rules amount to an effective ban on a cheap, green way to commute and will push people back into cars.", "source": "https://www.thejournal.ie/dublin-commuter-coalition-says-e-scooter-ban-will-result-in-more-cars-and-more-congestion-7108218-Jul2026/"},
+    {"id": "o4", "text": "Sales of scooters marketed to children should be banned and parents who buy them penalised.", "source": "https://www.rte.ie/news/ireland/2026/0720/1584291-escooter-ban-reactions/"},
+    {"id": "o5", "text": "It does not go far enough: an outright ban must stay firmly on the table.", "source": "https://www.thejournal.ie/dublin-commuter-coalition-says-e-scooter-ban-will-result-in-more-cars-and-more-congestion-7108218-Jul2026/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Helmet and hi-vis rules took effect in early September 2026. The under-18 rule was delayed to a year-end target because it had to be notified to the European Commission, not because of the reaction.", "source": "https://www.rte.ie/news/ireland/2026/0902/1590016-e-scooter-age-delay/"},
+  "pushback_groups": ["commuter campaigners (Dublin Commuter Coalition)", "opposition parties (Sinn Féin on enforcement, People Before Profit against the age ban)", "e-scooter retailers", "advocates of an outright ban"],
+  "notes": "Mixed: supported by government parties, Labour, the Oireachtas transport committee chair and partly by retailers; opposed from one side by commuter campaigners and People Before Profit and from the other by those wanting a full ban; enforcement doubts were widespread. The September delay to the age rule was procedural (EU notification), so backdown is recorded as none; a scorer could reasonably treat the timing slip as a minor change. No rider or parent poll found."
+}

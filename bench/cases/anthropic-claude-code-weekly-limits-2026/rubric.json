@@ -1,0 +1,19 @@
+{
+  "slug": "anthropic-claude-code-weekly-limits-2026",
+  "title": "Anthropic ends a temporary 50% Claude Code boost and sets permanent weekly limits 25% above the old standard",
+  "category": "pricing",
+  "announced_on": "2026-08-29",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will paying Claude Code subscribers react to this over the first two weeks, which groups will push back and why, and is Anthropic likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "A 17% cut in current weekly capacity was framed as a 25% increase.", "source": "https://www.bleepingcomputer.com/news/artificial-intelligence/anthropic-is-cutting-claude-codes-current-weekly-limits-by-17-percent/"},
+    {"id": "o2", "text": "The admission was buried in a reply, so users added a Community Note.", "source": "https://www.notebookcheck.net/Anthropic-announces-a-25-increase-to-Claude-Code-limits-but-there-s-a-17-catch.1382735.0.html"},
+    {"id": "o3", "text": "Heavy users must ration and constantly check usage.", "source": "https://www.implicator.ai/anthropic-claude-code-weekly-limits-september-14/"},
+    {"id": "o4", "text": "Vague limits and plan labels erode trust and goodwill.", "source": "https://www.implicator.ai/anthropic-claude-code-weekly-limits-september-14/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Anthropic clarified the 17% figure but kept the 14 September change; no reversal reported.", "source": "https://www.implicator.ai/anthropic-claude-code-weekly-limits-september-14/"},
+  "pushback_groups": ["paying Claude Code subscribers, especially heavy Max users", "developer bloggers and tech press"],
+  "notes": "Negative, mainly about framing; some users noted the boost was always temporary and said they would stay. Reaction evidence is tech press plus anecdotal Reddit/X activity. Similar in kind to the OpenAI ChatGPT Pro usage case but a different company and event. Post-14-September developments were not checked."
+}

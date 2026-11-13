@@ -1,0 +1,19 @@
+{
+  "slug": "google-pixel-11-launch-price-rise-2026",
+  "title": "Google launches the Pixel 11 range at $100 more per model, with 256 GB base storage",
+  "category": "product-change",
+  "announced_on": "2026-08-12",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Pixel owners and Android phone buyers react to this over the first two weeks, which groups will push back and why, and is Google likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "Every model costs $100 or more extra.", "source": "https://www.techadvisor.com/article/3207041/pixel-11-launch-7-major-takeaways-from-made-by-google.html"},
+    {"id": "o2", "text": "An iterative update with few meaningful changes from the Pixel 10.", "source": "https://www.engadget.com/2240042/google--11-review/"},
+    {"id": "o3", "text": "HiLight and the Pixel Watch 5 are underwhelming extras.", "source": "https://www.techadvisor.com/article/3207041/pixel-11-launch-7-major-takeaways-from-made-by-google.html"},
+    {"id": "o4", "text": "Lower RAM on the Pro models and shallow AI features; the Fold crease is not improved.", "source": "https://www.ifanr.com/1675041"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No price or product change reported.", "source": "https://www.engadget.com/2240042/google--11-review/"},
+  "pushback_groups": ["Pixel enthusiasts and Android-focused tech media", "Pixel 10 owners"],
+  "notes": "Mixed, leaning critical: good review scores (Engadget 9.2) and welcome for doubled storage, but launch coverage focused on a $100 rise for an iterative update. Evidence is tech media and reviewers only; PhoneArena and Android Authority reaction pieces were blocked (search snippets only). Not a public outcry: no organised pushback. Pro RAM figures conflict between sources."
+}
