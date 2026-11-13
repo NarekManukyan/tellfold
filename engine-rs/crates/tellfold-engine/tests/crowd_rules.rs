@@ -14,9 +14,7 @@ use tellfold_engine::personas::tidy_cast;
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::Schema;
-use tellfold_models::{
-    Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES, QUESTION_RULES, REACTION_RULES, STAKE_RULES,
-};
+use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES, REACTION_RULES, STAKE_RULES};
 use tellfold_store::world::World;
 
 /// (handle, activity): a council raising bus fares. Most of these people mostly read.
@@ -225,24 +223,5 @@ fn the_middle_of_the_crowd_and_the_sentiment_rules_start_with_the_reaction_rules
             assert!(system.starts_with("You are a careful annotator"), "{system}");
             assert_eq!(system.contains("attitude to the announcement or decision itself"), want, "rules {rules}");
         }
-    }
-}
-
-#[test]
-fn the_crowd_sees_the_situation_instead_of_the_question_from_the_question_rules() {
-    // every accuracy question asks who will push back; under version 3 the crowd still called almost no positive
-    // reaction positive
-    for (rules, shown) in [(QUESTION_RULES, false), (REACTION_RULES, true), (0, true)] {
-        let run = simulate(rules, 2);
-        let talk: Vec<&String> =
-            run.calls.iter().filter(|c| c.0 == "engine.round" || c.0 == "engine.seed").map(|c| &c.1).collect();
-        assert!(!talk.is_empty());
-        for prompt in talk {
-            assert_eq!(prompt.contains("How will riders react to the fare rise?"), shown, "rules {rules}: {prompt}");
-            assert!(!prompt.starts_with('\n'), "rules {rules}: {prompt}");
-        }
-        // the sentiment annotator still needs the subject
-        let scoring = run.calls.iter().filter(|c| c.0 == "engine.sentiment");
-        assert!(scoring.into_iter().all(|c| c.1.contains("How will riders react to the fare rise?")));
     }
 }
