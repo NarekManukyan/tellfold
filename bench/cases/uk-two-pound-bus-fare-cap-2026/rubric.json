@@ -1,0 +1,19 @@
+{
+  "slug": "uk-two-pound-bus-fare-cap-2026",
+  "title": "UK government cuts the England bus fare cap from £3 to £2 for 2027, funded from climate finance",
+  "category": "public-service",
+  "announced_on": "2026-07-22",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will bus passengers in England outside London react to this over the first two weeks, which groups will push back and why, and is the UK government likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "The cap is temporary (one year) and there is no long-term funding model for bus networks.", "source": "https://www.localgov.co.uk/Councils-cautiously-welcome-2-bus-fare-cap-/64717"},
+    {"id": "o2", "text": "Cheap fares do not help rural areas where bus services have been cut or have disappeared.", "source": "https://www.countycouncilsnetwork.org.uk/news/bus-fares-to-be-capped-at-ps2-in-2027-ccn-responds"},
+    {"id": "o3", "text": "Funding it by turning international climate grants into loans hurts climate-vulnerable countries.", "source": "https://www.ibtimes.co.uk/uk-bus-fare-cap-funding-controversy-1810199"},
+    {"id": "o4", "text": "The government has not explained how it will pay for its new commitments.", "source": "https://www.ibtimes.co.uk/uk-bus-fare-cap-funding-controversy-1810199"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The £2 cap for 2027 was confirmed in the 28 October 2026 Budget.", "source": "https://www.which.co.uk/news/article/what-cost-of-living-support-did-the-government-announce-in-the-budget-a50vz4X02zeY"},
+  "pushback_groups": ["development charities (ActionAid UK, Bond)", "Conservative opposition"],
+  "notes": "Welcomed by councils (LGA, CCN), Campaign for Better Transport and cost-of-living campaigners, with caveats about permanence and rural service cuts. The main criticism targeted the funding source (climate grants to loans) rather than the cap. No passenger survey found; reaction comes from organisations and politicians. Bus operator (CPT) reaction seen only in search snippets and not used."
+}

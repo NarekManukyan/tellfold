@@ -31,6 +31,7 @@ HEADERS = ["cache-control", "content-disposition", "www-authenticate", "x-accel-
 TIMEOUT = 60.0
 
 TIMING = re.compile(r'"seconds":\s?-?\d+(?:\.\d+)?(?:e[+-]?\d+)?')
+LLM_TIMING = re.compile(r'"llm_seconds":\s?-?\d+(?:\.\d+)?(?:e[+-]?\d+)?')
 PID = re.compile(r'"pid":\s?\d+')
 STAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)?")
 GOOD_RUN = {"question": QUESTION, "agents": "4", "rounds": "2", "batch": "2", "seed": "7",
@@ -199,7 +200,8 @@ def normalise(text: str, root: Path, runs: list[str], studies: list[str]) -> str
     names += [(name, masked_study(i, name)) for i, name in enumerate(studies)]
     for name, placeholder in sorted(names, key=lambda n: -len(n[0])):
         text = text.replace(name, placeholder)
-    return TIMING.sub('"seconds":0', PID.sub('"pid":0', STAMP.sub("<time>", text)))
+    text = TIMING.sub('"seconds":0', PID.sub('"pid":0', STAMP.sub("<time>", text)))
+    return LLM_TIMING.sub('"llm_seconds":0.0', text)
 
 
 def new_names(folder: Path, known: list[str]) -> list[str]:

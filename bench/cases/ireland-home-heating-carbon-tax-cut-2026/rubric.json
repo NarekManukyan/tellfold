@@ -1,0 +1,19 @@
+{
+  "slug": "ireland-home-heating-carbon-tax-cut-2026",
+  "title": "Ireland's Budget 2027 cuts carbon tax on home heating oil and gas and freezes it for the government's term",
+  "category": "pricing",
+  "announced_on": "2026-10-06",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will households and climate campaigners in Ireland react to this over the first two weeks, which groups will push back and why, and is the Irish government likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "It abandons the legislated carbon tax path and weakens climate policy.", "source": "https://www.thejournal.ie/carbon-tax-pause-ireland-7183368-Oct2026/"},
+    {"id": "o2", "text": "Lower carbon tax revenue means less money for retrofits and home energy upgrades.", "source": "https://www.rte.ie/news/budget-2027/2026/1006/1594236-climate-carbon-tax-budget-2027/"},
+    {"id": "o3", "text": "It is a short-sighted fix that will not protect families from future fuel price shocks; other measures (e.g. VAT) would help more.", "source": "https://www.thejournal.ie/carbon-tax-pause-ireland-7183368-Oct2026/"},
+    {"id": "o4", "text": "The cut is too small: the tax on home heating should have been removed, and other fuel supports were trimmed.", "source": "https://www.thejournal.ie/budget-carbon-tax-home-heating-factcheck-government-aontu-pbp-sinn-fein-7184533-Oct2026/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No change to the cut or the freeze was reported.", "source": "https://www.thejournal.ie/carbon-tax-pause-ireland-7183368-Oct2026/"},
+  "pushback_groups": ["environmental groups and the Green Party", "Fuels for Ireland (fuel distributors)", "Sinn Féin and Aontú (wanted bigger cuts)"],
+  "notes": "Mixed: households get a modest saving and the government framed it as cost-of-living help, while climate groups and the Greens opposed it and Sinn Féin/Aontú said it did not go far enough. Coverage found is concentrated on Budget day (RTÉ, TheJournal.ie); no household polling or follow-up within two weeks was found. Separate from the NTA fare increase case, though both were debated around the same Budget."
+}

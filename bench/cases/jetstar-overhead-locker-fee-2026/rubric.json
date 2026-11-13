@@ -1,0 +1,20 @@
+{
+  "slug": "jetstar-overhead-locker-fee-2026",
+  "title": "Jetstar charges for overhead locker cabin bags from February 2027",
+  "category": "pricing",
+  "announced_on": "2026-08-05",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Jetstar passengers in Australia react to this over the first two weeks, which groups will push back and why, and is Jetstar likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "It is a cash grab: a revenue move dressed up as a boarding improvement.", "source": "https://www.fox7austin.com/news/jetstar-overhead-carry-on-bag-fee-2027"},
+    {"id": "o2", "text": "Yet another add-on cost, with doubts about how transparent the total fare will be.", "source": "https://thenightly.com.au/australia/passengers-and-former-flight-attendant-weigh-in-on-jetstar-carry-on-cost-changes-c-22678859"},
+    {"id": "o3", "text": "Families with young children need overhead space and cannot check everything.", "source": "https://thenightly.com.au/australia/passengers-and-former-flight-attendant-weigh-in-on-jetstar-carry-on-cost-changes-c-22678859"},
+    {"id": "o4", "text": "Low-cost flying gets harder; some would rather pay more for Qantas, which includes bags and a meal.", "source": "https://thenightly.com.au/australia/passengers-and-former-flight-attendant-weigh-in-on-jetstar-carry-on-cost-changes-c-22678859"},
+    {"id": "o5", "text": "Fees already charged for food, seats and checked bags; a locker fee feels like the next step towards charging for everything.", "source": "https://travelradar.aero/jetstar-introduces-controversial-carry-on-charges/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No change or delay reported in the sources checked; the fee is due to start in February 2027.", "source": "https://www.ibtimes.co.uk/jetstar-overhead-bin-fees-global-airline-changes-1813248"},
+  "pushback_groups": ["passengers and social media users", "federal opposition (Senator Bridget McKenzie)", "families travelling with children"],
+  "notes": "Reaction sources run 5-10 August 2026; nothing later was checked, so a later change cannot be excluded. The Transport Minister asked for clear fee disclosure but did not oppose the policy. A minority view (AirlineRatings, one passenger) said dropping the 7 kg limit and gate weighing is a genuine improvement. IBTimes UK and AP attribute the 'ruffle feathers' remark to different people."
+}

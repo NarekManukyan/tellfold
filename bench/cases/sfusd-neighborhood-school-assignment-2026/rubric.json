@@ -1,0 +1,20 @@
+{
+  "slug": "sfusd-neighborhood-school-assignment-2026",
+  "title": "San Francisco school board votes 5-2 to replace the elementary school lottery with neighbourhood assignment",
+  "category": "school",
+  "announced_on": "2026-10-13",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will San Francisco public school families react to this over the first two weeks, which groups will push back and why, and is the San Francisco Board of Education likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "Families lose choice; parents wanted a neighbourhood guarantee plus the right to apply anywhere with room (Option B).", "source": "https://missionlocal.org/2026/10/san-francisco-school-board-new-elementary-enrollment-policy/"},
+    {"id": "o2", "text": "Equity: lower-income and southeast families could be locked into weaker schools, and neighbourhood schools could be more segregated.", "source": "https://www.kqed.org/news/12104230/sfusd-moves-closer-to-neighborhood-based-enrollment-in-historic-vote"},
+    {"id": "o3", "text": "Families may leave the district rather than accept their assigned school.", "source": "https://sfstandard.com/2026/10/15/late-pitch-split-board-grieving-parents-sfusd-s-lottery-vote/"},
+    {"id": "o4", "text": "The board ignored its own survey and parents' wishes, and the procedure favoured Option C.", "source": "https://sfstandard.com/2026/10/15/late-pitch-split-board-grieving-parents-sfusd-s-lottery-vote/"},
+    {"id": "o5", "text": "Poverty could become concentrated in some neighbourhood schools.", "source": "https://sfstandard.com/2026/10/15/late-pitch-split-board-grieving-parents-sfusd-s-lottery-vote/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The vote stands; staff are drafting the policy for a final vote planned in April 2027 and a fall 2028 start.", "source": "https://missionlocal.org/2026/10/san-francisco-school-board-new-elementary-enrollment-policy/"},
+  "pushback_groups": ["SF Parent Coalition and parents backing Option B", "two dissenting board members", "families in the southeast and lower-income families"],
+  "notes": "Real split: parent groups and survey respondents preferred Option B, while the mayor, superintendent and board majority backed the change. The decision is a direction to staff, not the final policy (final vote planned April 2027), so a later change is possible. SF Standard misdates the vote as 14 Oct; it was Tuesday 13 Oct 2026."
+}

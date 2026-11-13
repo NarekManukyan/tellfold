@@ -1,0 +1,18 @@
+{
+  "slug": "delta-medallion-thresholds-unchanged-2026",
+  "title": "Delta keeps SkyMiles Medallion spending thresholds unchanged for a third year",
+  "category": "policy",
+  "announced_on": "2026-10-22",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Delta SkyMiles members and frequent flyers react to this over the first two weeks, which groups will push back and why, and is Delta Air Lines likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "The thresholds are still a lot of money; unchanged only means not worse.", "source": "https://thriftytraveler.com/?p=147883"},
+    {"id": "o2", "text": "Status matters to a tiny share of travellers and chasing it is often not worth it.", "source": "https://thriftytraveler.com/?p=147883"},
+    {"id": "o3", "text": "Qualification is spending-based; high tiers via card spend need a big financial commitment and some cheap fares earn no MQDs.", "source": "https://www.insideflyer.com/posts/delta-keeps-2027-medallion-qualification-requirements-unchanged/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Thresholds stand as confirmed; no pressure to change.", "source": "https://thepointsguy.com/news/delta-medallion-2027-requirements/"},
+  "pushback_groups": [],
+  "notes": "Positive case: loyalty media called it welcome, especially after United's 13 October tightening. 'Objections' are caveats, not complaints. Reaction comes from loyalty commentators, not member surveys. Year labels differ between outlets (status for 2027 vs. 2028 Medallion year). A model predicting a broadly positive reception and no reversal should score well."
+}

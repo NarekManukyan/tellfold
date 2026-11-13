@@ -1,0 +1,19 @@
+{
+  "slug": "samsung-galaxy-z-fold-8-launch-2026",
+  "title": "Samsung launches a passport-shaped Galaxy Z Fold 8, a Fold 8 Ultra and Z Flip 8, each $100 dearer",
+  "category": "product-change",
+  "announced_on": "2026-07-22",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Samsung foldable buyers and the tech press react to this over the first two weeks, which groups will push back and why, and is Samsung likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "Prices rise $100 on every model, with the Ultra above $2,000.", "source": "https://itwire.com/your-it-news/home-it/samsungs-z-fold8-ultra-passport-style-z-fold8-and-z-flip8-priced-for-australia-from-1-949-watches-from-649-but-the-s-pen-stays-s-gone"},
+    {"id": "o2", "text": "No S Pen support again, a loss for note-takers.", "source": "https://www.androidauthority.com/samsung-galaxy-z-fold-8-3688636/"},
+    {"id": "o3", "text": "The Fold 8 has no dedicated telephoto camera.", "source": "https://view.asiae.co.kr/en/article/2026072405481836987"},
+    {"id": "o4", "text": "Only $200 separates the Fold 8 from the more capable Ultra, weakening its case.", "source": "https://www.newsweek.com/samsung-now-has-three-foldables-for-three-completely-different-buyers-12231454"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No change; pre-orders opened 22 July and sales began 7 August as announced.", "source": "https://www.androidauthority.com/samsung-galaxy-z-fold-8-3688636/"},
+  "pushback_groups": ["S Pen users", "price-sensitive buyers"],
+  "notes": "Positive with caveats: broad praise for design, weight and crease across international tech media; analysts judged the $100 rise smaller than feared. Evidence is press, reviewer and analyst reaction at launch, not consumer surveys. Predicting a broadly favourable reception with price and S Pen grumbles and no change should score well; predicting backlash should not."
+}
