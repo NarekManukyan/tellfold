@@ -14,7 +14,7 @@ use tellfold_engine::personas::tidy_cast;
 use tellfold_llm::canned::fake_responder;
 use tellfold_llm::fake::{FakeLlm, FakeReply};
 use tellfold_llm::Schema;
-use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES, STAKE_RULES};
+use tellfold_models::{Entity, KnowledgeGraph, Persona, SimConfig, CROWD_RULES, REACTION_RULES, STAKE_RULES};
 use tellfold_store::world::World;
 
 /// (handle, activity): a council raising bus fares. Most of these people mostly read.
@@ -94,7 +94,7 @@ struct Run {
     posted: Vec<HashSet<String>>,
     /// the text of every post
     texts: Vec<String>,
-    /// (purpose, prompt, system) of every round and opening call
+    /// (purpose, prompt, system) of every round, opening, fact check and sentiment call
     calls: Vec<(String, String, String)>,
     cast: Vec<Persona>,
 }
@@ -129,7 +129,9 @@ fn simulate(rules: i64, rounds: i64) -> Run {
     let calls = prompts
         .into_iter()
         .zip(systems)
-        .filter(|(c, _)| ["engine.round", "engine.seed", "engine.factcheck"].contains(&c.0.as_str()))
+        .filter(|(c, _)| {
+            ["engine.round", "engine.seed", "engine.factcheck", "engine.sentiment"].contains(&c.0.as_str())
+        })
         .map(|(c, s)| (c.0, c.2, s.1))
         .collect();
     Run { posted, texts: posts.iter().map(|p| p.content.clone()).collect(), calls, cast }
@@ -167,7 +169,7 @@ fn the_fact_rules_are_in_the_system_prompts_only_under_the_rules() {
     for (rules, want) in [(CROWD_RULES, true), (0, false)] {
         let run = simulate(rules, 1);
         assert!(run.calls.iter().any(|c| c.0 == "engine.seed") && run.calls.iter().any(|c| c.0 == "engine.round"));
-        for (_, _, system) in run.calls.iter().filter(|c| c.0 != "engine.factcheck") {
+        for (_, _, system) in run.calls.iter().filter(|c| c.0 == "engine.round" || c.0 == "engine.seed") {
             assert_eq!(system.contains("never announces anything it doesn't"), want, "{system}");
             assert_eq!(system.contains("Stay on the announcement"), want, "{system}");
         }
@@ -200,5 +202,26 @@ fn organisation_posts_that_invent_something_are_dropped_under_the_stake_rules() 
         assert_eq!(checks > 0, rules >= STAKE_RULES, "rules {rules}");
         // the council's honest posts stay
         assert!(run.posted[4].contains(&run.cast[0].id));
+    }
+}
+
+#[test]
+fn the_middle_of_the_crowd_and_the_sentiment_rules_start_with_the_reaction_rules() {
+    // from the balanced accuracy cases: undecided people opened with complaints, and supporters asking what comes
+    // next were scored as opposition
+    for (rules, want) in [(REACTION_RULES, true), (STAKE_RULES, false), (0, false)] {
+        let run = simulate(rules, 2);
+        let talk: Vec<&String> =
+            run.calls.iter().filter(|c| c.0 == "engine.round" || c.0 == "engine.seed").map(|c| &c.2).collect();
+        let scoring: Vec<&String> = run.calls.iter().filter(|c| c.0 == "engine.sentiment").map(|c| &c.2).collect();
+        assert!(!talk.is_empty() && !scoring.is_empty(), "rules {rules}");
+        for system in talk {
+            assert_eq!(system.contains("The middle of the crowd:"), want, "rules {rules}: {system}");
+            assert_eq!(system.contains("Once a user has made their point, they mostly read."), want, "rules {rules}");
+        }
+        for system in scoring {
+            assert!(system.starts_with("You are a careful annotator"), "{system}");
+            assert_eq!(system.contains("attitude to the announcement or decision itself"), want, "rules {rules}");
+        }
     }
 }

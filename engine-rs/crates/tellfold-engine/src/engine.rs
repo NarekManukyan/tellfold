@@ -21,7 +21,8 @@ use tellfold_models::json::{py_repr, py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{
-    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, STAKE_RULES,
+    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, REACTION_RULES,
+    STAKE_RULES,
 };
 use tellfold_store::world::{World, WorldError};
 
@@ -226,6 +227,32 @@ Facts and topic:
 - Stay on the announcement in the situation and on what users have actually said in the feed. Don't bring in other
   plans, decisions, events or controversies that neither of them mentions."#;
 
+/// Added to the round and opening system prompts of a run with [`REACTION_RULES`]. Without it, the undecided and
+/// indifferent people of the balanced accuracy cases mostly opened with a complaint, and supporters who had made their
+/// point kept posting until they sounded like critics.
+const REACTION_RULES_TEXT: &str = r#"
+
+The middle of the crowd:
+- A user whose starting stance is undecided or conflicted stays that way until something specific in their feed
+  persuades them. Their posts weigh what they like against what worries them, or ask a question; they don't only
+  complain.
+- An indifferent user mostly scrolls past. When they do post, it is about the practical effect on them, without
+  taking a side.
+- Supporters can ask for more, sooner, or in writing and still be supporters: wanting a good thing done well is not
+  turning against it.
+- Once a user has made their point, they mostly read. A user who got what they wanted, or whose question was
+  answered, rarely keeps posting about it, and nobody grows angrier round after round unless something new in their
+  feed gives them a reason."#;
+
+/// Added to the sentiment prompt of a run with [`REACTION_RULES`]: supporters' posts asking what comes next were
+/// scored as opposition to the decision itself.
+const SENTIMENT_RULES: &str = r#"
+
+Score the attitude to the announcement or decision itself, not to the conversation around it:
+- A post that welcomes it but asks for more, sooner, clearer details or a written guarantee is positive.
+- A post that weighs good and bad points about evenly, or mainly asks a question, is close to 0.
+- Agreeing or disagreeing with another user counts only through what the post says about the announcement."#;
+
 /// The characters of the seed documents an organisation post is checked against ([`Engine::with_source`]).
 pub const SOURCE_CHARS: usize = 12_000;
 
@@ -373,13 +400,25 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
         flagged
     }
 
-    /// A round or opening system prompt, with the fact rules in a run with the crowd rules.
+    /// A round or opening system prompt, with the fact rules in a run with the crowd rules and the rules for the
+    /// middle of the crowd from [`REACTION_RULES`].
     fn system(&self, template: &str) -> String {
-        let system = with_language(template, &self.config.language);
+        let mut system = with_language(template, &self.config.language);
         if self.rules() {
-            system + FACT_RULES
+            system += FACT_RULES;
+        }
+        if self.config.crowd_rules >= REACTION_RULES {
+            system += REACTION_RULES_TEXT;
+        }
+        system
+    }
+
+    /// The sentiment system prompt: scored against the announcement itself from [`REACTION_RULES`].
+    fn sentiment_system(&self) -> String {
+        if self.config.crowd_rules >= REACTION_RULES {
+            format!("{SENTIMENT_SYSTEM}{SENTIMENT_RULES}")
         } else {
-            system
+            SENTIMENT_SYSTEM.to_string()
         }
     }
 
@@ -787,16 +826,17 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
             lines.push(format!("#{}: {text}", post.id));
         }
         let prompt = format!("Question: {}\n\nPosts from round {r}:\n{}", self.config.question, lines.join("\n"));
-        let out = match self.call::<SentimentScores>(&prompt, SENTIMENT_SYSTEM, "engine.sentiment", ledger).await {
-            Ok(out) => out,
-            Err(e) => {
-                self.emit(
-                    "batch_failed",
-                    json!({"round": r, "batch": "sentiment", "agents": [], "error": e.to_string()}),
-                );
-                return Ok(None);
-            }
-        };
+        let out =
+            match self.call::<SentimentScores>(&prompt, &self.sentiment_system(), "engine.sentiment", ledger).await {
+                Ok(out) => out,
+                Err(e) => {
+                    self.emit(
+                        "batch_failed",
+                        json!({"round": r, "batch": "sentiment", "agents": [], "error": e.to_string()}),
+                    );
+                    return Ok(None);
+                }
+            };
         let wanted: HashSet<i64> = posts.iter().map(|p| p.id).collect();
         let mut per_post: IndexMap<i64, f64> = IndexMap::new();
         for s in out.scores.iter().filter(|s| wanted.contains(&s.post_id)) {

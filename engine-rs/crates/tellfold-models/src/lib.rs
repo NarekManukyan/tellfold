@@ -504,11 +504,18 @@ pub struct CastStakes {
 /// gets a turn in the first rounds, and the report's direction comes from the crowd's first reaction. Version 2
 /// ([`STAKE_RULES`]) adds: the public is cast from the groups the announcement affects with a stance mix the planner
 /// expects for it (bounded, see [`CastStakes`]), organisation posts that state something the source doesn't are
-/// dropped, and the report lists every objection.
-pub const CROWD_RULES: i64 = 2;
+/// dropped, and the report lists every objection. Version 3 ([`REACTION_RULES`]) adds: undecided and indifferent
+/// people don't open with a complaint, people who have made their point mostly go quiet instead of escalating, and
+/// sentiment is scored as the attitude to the announcement itself.
+pub const CROWD_RULES: i64 = 3;
 
 /// The first [`SimConfig::crowd_rules`] version with the planned cast, the fact check and the objections section.
 pub const STAKE_RULES: i64 = 2;
+
+/// The first [`SimConfig::crowd_rules`] version with the rules for the middle of the crowd, going quiet, and scoring
+/// the attitude to the announcement. In the balanced accuracy cases, half of the undecided people's first posts
+/// scored against and 8% in favour, and supporters' later posts scored 0.55 lower than their first (docs/ACCURACY.md).
+pub const REACTION_RULES: i64 = 3;
 
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
 /// does (its parity tests set it).
