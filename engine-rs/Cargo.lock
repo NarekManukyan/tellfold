@@ -1835,6 +1835,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tellfold-bench"
+version = "0.7.0"
+dependencies = [
+ "chrono",
+ "libc",
+ "regex",
+ "rusqlite",
+ "serde_json",
+ "tellfold-models",
+ "tellfold-store",
+ "tempfile",
+]
+
+[[package]]
 name = "tellfold-cli"
 version = "0.7.0"
 dependencies = [
@@ -1849,6 +1863,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "tellfold-bench",
  "tellfold-engine",
  "tellfold-llm",
  "tellfold-models",

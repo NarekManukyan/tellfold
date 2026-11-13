@@ -26,6 +26,11 @@ pub fn py_dumps<T: Serialize + ?Sized>(value: &T) -> String {
     write_with(value, PyDumps)
 }
 
+/// `json.dumps(value, indent=2, ensure_ascii=False)`: serde_json's two-space layout with Python's float repr.
+pub fn py_dumps_pretty<T: Serialize + ?Sized>(value: &T) -> String {
+    write_with(value, PyPretty(PrettyFormatter::with_indent(b"  ")))
+}
+
 /// `json.dumps(value, ensure_ascii=False, separators=(",", ":"))`: compact, with Python's float repr.
 pub fn py_dumps_compact<T: Serialize + ?Sized>(value: &T) -> String {
     write_with(value, PyCompact)
@@ -175,6 +180,29 @@ impl Formatter for PyDumps {
     }
     fn begin_object_value<W: ?Sized + Write>(&mut self, w: &mut W) -> io::Result<()> {
         w.write_all(b": ")
+    }
+    fn write_f64<W: ?Sized + Write>(&mut self, w: &mut W, value: f64) -> io::Result<()> {
+        w.write_all(py_float_repr(value).as_bytes())
+    }
+    fn write_f32<W: ?Sized + Write>(&mut self, w: &mut W, value: f32) -> io::Result<()> {
+        self.write_f64(w, value as f64)
+    }
+}
+
+/// serde_json's pretty layout (which is `json.dumps(indent=2)`'s) with Python's float repr.
+struct PyPretty<'a>(PrettyFormatter<'a>);
+
+impl Formatter for PyPretty<'_> {
+    delegate!(begin_array, end_array, begin_object, end_object, end_array_value, end_object_value);
+
+    fn begin_array_value<W: ?Sized + Write>(&mut self, w: &mut W, first: bool) -> io::Result<()> {
+        self.0.begin_array_value(w, first)
+    }
+    fn begin_object_key<W: ?Sized + Write>(&mut self, w: &mut W, first: bool) -> io::Result<()> {
+        self.0.begin_object_key(w, first)
+    }
+    fn begin_object_value<W: ?Sized + Write>(&mut self, w: &mut W) -> io::Result<()> {
+        self.0.begin_object_value(w)
     }
     fn write_f64<W: ?Sized + Write>(&mut self, w: &mut W, value: f64) -> io::Result<()> {
         w.write_all(py_float_repr(value).as_bytes())
