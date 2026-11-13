@@ -1,0 +1,2905 @@
+{
+  "benchmark": "tellfold-accuracy",
+  "version": 2,
+  "label": "sonnet-haiku",
+  "date": "2026-11-13",
+  "dry_run": false,
+  "git_commit": "e54bdd5",
+  "tellfold": [
+    "/Volumes/external_ssd/my/shoal-wt/accuracy-fixes/engine-rs/target/release/tellfold"
+  ],
+  "settings": {
+    "agents": 20,
+    "rounds": 6,
+    "batch": 6,
+    "agent_model": "haiku",
+    "planner_model": "sonnet",
+    "concurrency": 4,
+    "language": "English",
+    "runtime": "claude-code"
+  },
+  "repeats": 3,
+  "judge": {
+    "model": "sonnet",
+    "prompt": "bench/judge_prompt.md"
+  },
+  "summary": {
+    "all": {
+      "graded": 30,
+      "direction_accuracy": 0.1,
+      "objection_recall": 0.565,
+      "backdown_accuracy": 0.867,
+      "group_recall": 0.522,
+      "sentiment_direction_accuracy": 0.278
+    },
+    "after_cutoff": {
+      "graded": 30,
+      "direction_accuracy": 0.1,
+      "objection_recall": 0.565,
+      "backdown_accuracy": 0.867,
+      "group_recall": 0.522,
+      "sentiment_direction_accuracy": 0.278
+    },
+    "known_to_model": {
+      "graded": 0,
+      "direction_accuracy": null,
+      "objection_recall": null,
+      "backdown_accuracy": null,
+      "group_recall": null,
+      "sentiment_direction_accuracy": null
+    }
+  },
+  "zero_shot_summary": null,
+  "baselines": {
+    "always_negative_direction": 0.0,
+    "majority_direction": "positive",
+    "majority_direction_accuracy": 1.0,
+    "always_no_backdown": 1.0,
+    "always_backdown": 0.0
+  },
+  "planner_vs_crowd": {
+    "runs": 30,
+    "planner_direction_accuracy": 0.467,
+    "crowd_direction_accuracy": 0.1,
+    "moved": 13,
+    "moved_right": 0,
+    "moved_wrong": 11,
+    "moved_neither": 2,
+    "agrees_with_zero_shot": null,
+    "planner_agrees_with_zero_shot": null
+  },
+  "usage": {
+    "simulation_calls": 926,
+    "judge": {
+      "calls": 30,
+      "input_tokens": 282071,
+      "output_tokens": 60994,
+      "cost_usd": 1.531087
+    },
+    "zero_shot": null
+  },
+  "cases": [
+    {
+      "slug": "barnet-mays-lane-parking-2026",
+      "rubric": {
+        "slug": "barnet-mays-lane-parking-2026",
+        "title": "Barnet Council cuts Mays Lane paid parking to one weekday hour after trader complaints",
+        "category": "local-government",
+        "announced_on": "2026-07-23",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Mays Lane traders, shoppers and nearby residents react to this over the first two weeks, which groups will push back and why, and is Barnet Council likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "It is only an 18-month trial and could be reversed.",
+            "source": "https://www.barnetsociety.org.uk/reprieve-for-mays-lane-traders-as-barnet-council-lifts-all-day-parking-charges-outside-their-parade-of-shops/"
+          },
+          {
+            "id": "o2",
+            "text": "Shoppers may still stay away for fear of getting a penalty ticket.",
+            "source": "https://www.barnetsociety.org.uk/reprieve-for-mays-lane-traders-as-barnet-council-lifts-all-day-parking-charges-outside-their-parade-of-shops/"
+          },
+          {
+            "id": "o3",
+            "text": "A paid hour remains when traders had asked for free short stays.",
+            "source": "https://www.barnetsociety.org.uk/despair-among-mays-lane-traders-as-introduction-of-pay-by-phone-parking-charges-leads-to-a-dramatic-loss-in-customers"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "The reduced hours took effect on 3 August 2026 as announced, on an experimental basis with consultation to February 2027.",
+          "source": "https://publicnoticeportal.uk/notice/traffic-and-roads/6a635675f0130fae7d1e46cc"
+        },
+        "pushback_groups": [],
+        "notes": "Positive case: the announcement is itself a concession to an earlier campaign, so the expected reaction is relief with caveats about the trial. Thin coverage (civic society plus statutory notice). Objection o3 is inferred from traders' earlier request for 20-30 minutes free; treat it as low-weight."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/barnet-mays-lane-parking-2026/seed-7/20261113-222948-how-will-mays-lane-traders-shoppers-and",
+          "calls": 29,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 2,
+            "in_favour": 12,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.55,
+            "critical": 0.15,
+            "undecided": 0.2,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Shopkeepers and residents who drove the petition see the reduced hours as a clear win restoring footfall and cheap parking, so most react positively; a smaller critical share worries the change reopens the door to all-day commuter parking the original scheme was meant to stop, while others remain undecided since it's only an 18-month experiment with a six-month objection period that could still be reversed.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "positive",
+            "direction_evidence": "\"The simulated crowd's first reactions to Barnet Council's reduced 2pm-3pm charging window were strongly positive: 12 of 17 people in favour versus only 2 against... shoppers, drivers and most traders will stay net-positive.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"Barnet Council is likely to keep the experimental order unchanged in this window... rather than amend or reverse it.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "the council's promise to 'monitor usage over 18 months before any permanent decision' (@barnetcouncil #19)... @colin_commutes's prediction that Barnet will 'flip again in 18 months when traders moan' (#21)"
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "extra_objections": [
+              "Fear that commuters will creep back into bays once novelty/January routines reset, undermining footfall gains",
+              "Council's 'monitoring' pledge seen as vague, demand for published monthly bay-occupancy data",
+              "Policy seen as an abrupt all-or-nothing swing (8am-6:30pm to one hour) without proper consultation",
+              "Risk that the new policy sets a precedent being watched instrumentally by Underhill South residents for a separate CPZ fight",
+              "Risk that uniform agent/model convergence overstates real-world consensus on the 'publish data' demand"
+            ]
+          },
+          "scores": {
+            "direction_match": true,
+            "direction_distance": 0,
+            "objection_recall": 0.333,
+            "objection_verdicts": [
+              "covered",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/barnet-mays-lane-parking-2026/seed-8/20261113-224304-how-will-mays-lane-traders-shoppers-and",
+          "calls": 23,
+          "failed_calls": 1,
+          "final_round": 6,
+          "final_sentiment": 0.675,
+          "sentiment_direction": "positive",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 13,
+            "in_favour": 2,
+            "neither": 5
+          },
+          "planner_mix": {
+            "supportive": 0.1,
+            "critical": 0.5,
+            "undecided": 0.25,
+            "indifferent": 0.15
+          },
+          "planner_reason": "Without detail confirming the scheme's benefits (safety, pollution, pedestrian space), the groups most likely to post first are traders and drivers who feel an immediate loss of access or custom, so criticism dominates early; others wait to see real-world effects over the two weeks before forming a firm view.",
+          "planner_direction": "negative",
+          "grade": {
+            "predicted_direction": "negative",
+            "direction_evidence": "\"The simulated reaction to the Mays Lane parking scheme was decisively negative: 13 of 20 agents' first posts opposed it, only 2 favoured it and 5 were undecided.\"",
+            "predicted_backdown": "partial",
+            "backdown_evidence": "\"Barnet Council looks more likely to be pushed into a formal pause and published consultation than to either hold firm in silence or reverse the scheme outright.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "Elderly or less mobile shoppers simply not travelling to Mays Lane if parking gets harder — @eileen_barnet65 (#18)"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "Create short-stay bays for quick errands near the shops... Several occasional shoppers asked specifically for short-stay parking rather than opposing the scheme outright, e.g. @chenry_nwld 'where IS the plan for short-stay bays?' (#29)"
+              }
+            ],
+            "extra_objections": [
+              "Lack of prior trader/resident consultation before announcement",
+              "No published traffic or footfall modelling data to justify the scheme",
+              "Risk that traffic/noise simply displaces onto residential side streets",
+              "Disabled/blue-badge bays need explicit protection, not just general safety framing",
+              "No dated formal meeting scheduled despite repeated trader requests"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.333,
+            "objection_verdicts": [
+              "missed",
+              "partial",
+              "partial"
+            ],
+            "backdown_predicted": "partial",
+            "backdown_match": false,
+            "backdown_kind_match": false,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/barnet-mays-lane-parking-2026/seed-9/20261113-225433-how-will-mays-lane-traders-shoppers-and",
+          "calls": 28,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.6,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 4,
+            "in_favour": 12,
+            "neither": 2
+          },
+          "planner_mix": {
+            "supportive": 0.5,
+            "critical": 0.15,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Shopkeepers and petitioners will feel vindicated since the council responded to their complaints by slashing charged hours to just one hour a day, but some residents and traders will stay undecided about whether a mere 2pm-3pm charge is enough or whether commuters will now flood the bays, and will wait to see if the 18-month experiment becomes permanent.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"it has already published the statutory order and framed it as an 18-month 'experimental' trial... keeps pressing the council publicly without triggering an actual reversal\"",
+            "direction_evidence": "\"The single most likely path over the first two weeks is that Mays Lane traders and most shoppers accept the 2pm-3pm change as a welcome improvement and give it 'a fair go' ... while a vocal minority ... keeps pressing the council publicly\"",
+            "extra_objections": [
+              "Council accused of unequal treatment vs Underhill South CPZ residents (data asymmetry)",
+              "Skepticism that a single charged hour actually deters all-day commuter parking",
+              "Demand for a written commitment that hours won't revert after the trial",
+              "18-month wait seen as too long for shopkeepers to plan stock/staffing; want 6-month data",
+              "One-hour charging window criticized as arbitrary/random by some younger residents"
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "it has already framed the order as an 18-month \"experimental\" trial (#1, #2), which traders and residents alike treat with suspicion as a possible \"get-out clause\""
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.333,
+            "objection_verdicts": [
+              "covered",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "bungie-destiny-2-unvaulting-2026",
+      "rubric": {
+        "slug": "bungie-destiny-2-unvaulting-2026",
+        "title": "Bungie says Destiny 2 will continue and vaulted campaigns, destinations and raids will return",
+        "category": "product-change",
+        "announced_on": "2026-09-21",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Destiny 2 players and content creators react to this over the first two weeks, which groups will push back and why, and is Bungie likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "Bungie has a history of making and breaking commitments, so players want delivery before trusting it.",
+            "source": "https://games.gg/news/bungie-destiny-revival-unvaulting-announcement/"
+          },
+          {
+            "id": "o2",
+            "text": "No timeline or dates were given for the content's return.",
+            "source": "https://finalboss.io/destiny-2-did-players-save-bungie-trust-metrics-after-the-u-turn"
+          },
+          {
+            "id": "o3",
+            "text": "A smaller studio after several layoffs may not have the resources to rebuild the content.",
+            "source": "https://www.theouterhaven.net/bungie-wants-to-bring-destiny-back-and-restore-vaulted-content-but-it-has-a-lot-to-prove/"
+          },
+          {
+            "id": "o4",
+            "text": "Restored campaigns and raids will take a lot more storage on consoles and PCs.",
+            "source": "https://www.theouterhaven.net/bungie-wants-to-bring-destiny-back-and-restore-vaulted-content-but-it-has-a-lot-to-prove/"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "The restoration plan stands; a later unconfirmed report says campaigns will not return until early 2028.",
+          "source": "https://finalboss.io/destiny-2-did-players-save-bungie-trust-metrics-after-the-u-turn"
+        },
+        "pushback_groups": [
+          "long-time players sceptical of Bungie's record",
+          "some content creators"
+        ],
+        "notes": "Positive case: players and creators who campaigned against the end of Destiny 2 celebrated; coverage calls it cautiously positive and no opposition to the restoration was found. The 'objections' are doubts about delivery. The PC Gamer reaction piece and the early-2028 timeline report rest on search snippets only. The announcement follows a May 2026 end-of-development decision that drew organised player pressure, so the input mentions that background."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/bungie-destiny-2-unvaulting-2026/seed-7/20261113-230405-how-will-destiny-2-players-and-content-c",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 1,
+            "in_favour": 7,
+            "neither": 7
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.4,
+            "undecided": 0.25,
+            "indifferent": 0.05
+          },
+          "planner_reason": "Many players and creators welcome the apology and the concrete promise to restore Forsaken, but the layoffs, the prior reversal from 'ending development' to 'Destiny is foundational,' and years of broken trust from vaulting make a large share skeptical that Bungie will actually deliver or sustain this reversal.",
+          "planner_direction": "mixed",
+          "grade": {
+            "backdown_evidence": "\"The most likely outcome over two weeks is that Bungie keeps the restoration commitment rather than reversing it\"",
+            "direction_evidence": "\"7 of 15 individual players opened in favour of the restoration announcement versus just 1 against... sentiment crashed from +0.52 in round 3 to -0.55 in round 4 and stayed negative through round 5\"",
+            "extra_objections": [
+              "Fear that Marathon's own roadmap/updates get buried under Destiny 2 goodwill",
+              "Dead matchmaking pool for newer players even with restored raids",
+              "New players without Forsaken-era nostalgia may not care about the restoration",
+              "Worry that restored content could simply be vaulted again later",
+              "Unanswered structural question 'what stops them from doing it again' distinct from patch-notes demand"
+            ],
+            "groups": [
+              {
+                "group": "long-time players sceptical of Bungie's record",
+                "named": true
+              },
+              {
+                "group": "some content creators",
+                "named": true
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "@forsaken_refund #26 explicitly rejects 'trust the process' as the same dodge heard in 2019, and @guardian_since_d1 #27 makes the identical point about 'working to have specifics.'"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "@guardian_since_d1 #3 and @forsaken_refund #4 demanded patch notes and dates in the very first posts"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "The team that actually built Forsaken was laid off months before the restoration was announced — @formerbungieanon #15."
+              },
+              {
+                "id": "o4",
+                "verdict": "partial",
+                "evidence": "unless concrete patch notes, a Forsaken launch date, and download scope are published"
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.75,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "partial"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/bungie-destiny-2-unvaulting-2026/seed-8/20261113-231353-how-will-destiny-2-players-and-content-c",
+          "calls": 32,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": 0.5,
+          "sentiment_direction": "positive",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "mixed",
+            "against": 5,
+            "in_favour": 7,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.35,
+            "undecided": 0.3,
+            "indifferent": 0.05
+          },
+          "planner_reason": "Core players are glad to get paid-for content back but many remain wary after years of broken trust and a round of layoffs, so excitement is tempered by 'wait and see' skepticism about whether new leadership can actually deliver, while Marathon fans and ex-players voice sharper pushback over shifted priorities and a too-late apology.",
+          "planner_direction": "mixed",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "The report states reactions were \"mixed — roughly even between favourable, against, and neutral.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "The report concludes \"Bungie is likely to keep the announced plan rather than change or reverse it, provided it follows through on those specifics.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "Agents say they need to 'log in and see Forsaken in my quest log before I trust it' and note 'Five years of inaction makes the apology feel too late to matter on its own.'"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "'No concrete dates or timeline attached to the announcement: @forsaken_or_fraud in #4.'"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "'the team that could have maintained it all along got laid off four months ago' is raised mainly as a credibility/PR-distraction complaint rather than an explicit doubt about capacity to rebuild."
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "groups": [
+              {
+                "group": "long-time players sceptical of Bungie's record",
+                "named": true
+              },
+              {
+                "group": "some content creators",
+                "named": true
+              }
+            ],
+            "extra_objections": [
+              "Marathon's extraction-to-co-op pivot feels like a different game replacing the one purchased",
+              "No itemized breakdown of scope/rollout order (what comes first)",
+              "Emotional exhaustion from already having quit, unsure whether to re-engage",
+              "Restoration promise framed as a PR distraction from the layoffs rather than a genuine fix",
+              "Creators' production schedules at risk if delivery dates slip or scope changes mid-rollout"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs1/2026-11-13-sonnet-haiku/bungie-destiny-2-unvaulting-2026/seed-9/20261113-232531-how-will-destiny-2-players-and-content-c",
+          "calls": 34,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": 0.65,
+          "sentiment_direction": "positive",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 5,
+            "neither": 8
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.35,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Many longtime players welcome getting paid-for content like Forsaken back, but a large critical contingent sees this as Bungie reversing its own decision only after backlash, layoffs, and Marathon's weak launch, fueling distrust about whether promises will hold; others are undecided pending concrete dates and details, while casual or lapsed players remain indifferent until they see actual delivery.",
+          "planner_direction": "mixed",
+          "grade": {
+            "backdown_evidence": "Bungie's simulated leadership keeps and doubles down on the reversal rather than walking it back, but trust among the largest camp remains conditional on concrete dates and compensation.",
+            "direction_evidence": "Sentiment dipped sharply to -0.70 at r3... before recovering to +0.65 by r6... but trust among the largest camp remains conditional on concrete dates and compensation, and the largest camp...never fully converts to enthusiasm.",
+            "extra_objections": [
+              "Players feel they paid twice for Forsaken and want refunds/compensation",
+              "Reversal reads as reactive damage control after Marathon's flop rather than genuine leadership",
+              "Uncertainty over what happens to the paid Marathon extraction PvP loop under the rework",
+              "Fear content could be vaulted again after players re-invest",
+              "Clans scattered for years with no clear sign of when they can actually play together again"
+            ],
+            "groups": [
+              {
+                "group": "long-time players sceptical of Bungie's record",
+                "named": true
+              },
+              {
+                "group": "some content creators",
+                "named": true
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "The largest camp...never fully converts to enthusiasm...conditioning trust on delivery of the timeline and refund talks; the reversal reads as stabilization, not strength."
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "No concrete dates attached to the Forsaken return, per @shaxxspodcast #7 and @exguardianelena #13"
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "The team that built Forsaken was laid off, making \"the team is excited\" framing feel hollow, per @formerbungiedev #25 and @retiredpixelpusher #26"
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "partial",
+              "covered",
+              "covered",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "delta-medallion-thresholds-unchanged-2026",
+      "rubric": {
+        "slug": "delta-medallion-thresholds-unchanged-2026",
+        "title": "Delta keeps SkyMiles Medallion spending thresholds unchanged for a third year",
+        "category": "policy",
+        "announced_on": "2026-10-22",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Delta SkyMiles members and frequent flyers react to this over the first two weeks, which groups will push back and why, and is Delta Air Lines likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "The thresholds are still a lot of money; unchanged only means not worse.",
+            "source": "https://thriftytraveler.com/?p=147883"
+          },
+          {
+            "id": "o2",
+            "text": "Status matters to a tiny share of travellers and chasing it is often not worth it.",
+            "source": "https://thriftytraveler.com/?p=147883"
+          },
+          {
+            "id": "o3",
+            "text": "Qualification is spending-based; high tiers via card spend need a big financial commitment and some cheap fares earn no MQDs.",
+            "source": "https://www.insideflyer.com/posts/delta-keeps-2027-medallion-qualification-requirements-unchanged/"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "Thresholds stand as confirmed; no pressure to change.",
+          "source": "https://thepointsguy.com/news/delta-medallion-2027-requirements/"
+        },
+        "pushback_groups": [],
+        "notes": "Positive case: loyalty media called it welcome, especially after United's 13 October tightening. 'Objections' are caveats, not complaints. Reaction comes from loyalty commentators, not member surveys. Year labels differ between outlets (status for 2027 vs. 2028 Medallion year). A model predicting a broadly positive reception and no reversal should score well."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/delta-medallion-thresholds-unchanged-2026/seed-7/20261113-222948-how-will-delta-skymiles-members-and-freq",
+          "calls": 25,
+          "failed_calls": 3,
+          "final_round": 6,
+          "final_sentiment": -0.63,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 8,
+            "in_favour": 2,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.1,
+            "critical": 0.45,
+            "undecided": 0.3,
+            "indifferent": 0.15
+          },
+          "planner_reason": "Loyalty-program changes are usually perceived as devaluations by the most vocal segment (elites and points hobbyists who feel they're losing value they'd already earned), so criticism dominates early; many casual members are undecided because they don't yet know how the change affects their specific habits, while a smaller group remains indifferent since they rarely engage with program mechanics.",
+          "planner_direction": "negative",
+          "grade": {
+            "predicted_direction": "negative",
+            "direction_evidence": "\"The simulated crowd's first reactions were negative overall — 8 of 13 posting members reacted against the change versus only 2 in favour... and that negative lean hardened rather than faded.\"",
+            "predicted_backdown": "partial",
+            "backdown_evidence": "\"Delta keeps the substance of the change but faces two weeks of intensifying, data-driven backlash... forcing some form of public clarification rather than a reversal.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "The simulated population is skewed toward points/miles hobbyists and content creators, not a representative sample of average SkyMiles members who may never notice the change."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "extra_objections": [
+              "Concealment/non-disclosure of the partner-award cut is itself the core offense, not just the cut (\"the worst part is always buried\")",
+              "Frontline gate staff not briefed by corporate, creating operational friction with confused elites at the counter",
+              "Lack of tier-specific clarity on whether lounge access/upgrade odds are affected (unanswered question for some elites)",
+              "Uneven impact framing: domestic flyers may benefit while international/partner-award-dependent flyers are hit harder"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.167,
+            "objection_verdicts": [
+              "missed",
+              "partial",
+              "missed"
+            ],
+            "backdown_predicted": "partial",
+            "backdown_match": false,
+            "backdown_kind_match": false,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/delta-medallion-thresholds-unchanged-2026/seed-8/20261113-224123-how-will-delta-skymiles-members-and-freq",
+          "calls": 29,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.65,
+          "sentiment_direction": "negative",
+          "report_confidence": "low",
+          "first_reaction": {
+            "direction": "mixed",
+            "against": 5,
+            "in_favour": 5,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.3,
+            "undecided": 0.15,
+            "indifferent": 0.25
+          },
+          "planner_reason": "Keeping thresholds flat for a third straight year reads to many loyal flyers as a rare bit of stability worth welcoming, especially next to United's harder 2027 bar, but a vocal minority still resents that the 2023 overhaul's high spending requirements were never rolled back and see 'unchanged' as Delta simply refusing to fix an already unpopular system.",
+          "planner_direction": "mixed",
+          "grade": {
+            "backdown_evidence": "\"The single most likely outcome is that Delta keeps the unchanged 2027 thresholds as announced, because the digest shows no coordinated push for a reversal\"",
+            "direction_evidence": "\"The simulated crowd's first reaction was genuinely mixed, split 5 in favour, 5 against and 4 neutral among the 14 people who posted\"",
+            "extra_objections": [
+              "Competitive disadvantage vs United's and Southwest's more generous 2027 tier changes",
+              "Lack of inflation adjustment to thresholds over multiple years makes qualifying effectively harder",
+              "Delta's silence/non-engagement on the platform during the backlash",
+              "Deflecting fairness complaints onto 'partner agreements' rather than Delta's own policy reads as evasive"
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "@golddash_frank explicitly argues his Platinum push 'costs more in real dollars than 2023' and that 'Delta knows this' (#21) -- implying unchanged thresholds still represent a real, unreduced cost, but the report frames this as an inflation/fairness complaint rather than explicitly stating 'unchanged only means not worse.'"
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "\"@flyingwithwalt (#11), @edgarflyssilver (#18) and @camdenonwifi (#5) show low engagement and say the threshold doesn't change their behavior either way\" and @flyingwithwalt is described as 'a 71-year-old non-status-chaser' -- this gestures at a segment indifferent to status but never generalizes that status matters to only a tiny share of travelers or that chasing it is often not worth it."
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "\"a fairness bloc led by @golddash_frank and @diamondgrind argued partner-flight and basic-economy dollars have 'counted 40% less for three years straight'\" combined with the 'AmEx head-start mechanic' discussion of card-spend reliance directly addresses spending-based qualification, card-spend commitment, and cheap fares earning reduced MQDs."
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.667,
+            "objection_verdicts": [
+              "partial",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/delta-medallion-thresholds-unchanged-2026/seed-9/20261113-225145-how-will-delta-skymiles-members-and-freq",
+          "calls": 34,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.25,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 4,
+            "in_favour": 8,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.45,
+            "critical": 0.1,
+            "undecided": 0.15,
+            "indifferent": 0.3
+          },
+          "planner_reason": "Most vocal SkyMiles members benefit directly from a status quo that keeps their qualifying bar unchanged for a third straight year, especially favorable next to United's tougher new top-tier requirement, so the loudest reaction skews positive or relieved; criticism is muted because the 2023 overhaul (and its painful threshold hikes) is the real sore memory, not this freeze, while many ordinary members are simply indifferent since the news doesn't change their day-to-day travel.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"Most likely, Delta keeps the Medallion threshold freeze unchanged through 2027, since no simulated agent ... asked Delta to move the MQD numbers.\"",
+            "direction_evidence": "\"The simulated crowd's first reaction to Delta's 2027 Medallion threshold freeze was net positive (8 of 16 personas favourable vs 4 against) ... That approval eroded over the simulated two weeks ... dragging round sentiment from +0.31 at r0 to -0.55 by r5.\"",
+            "extra_objections": [
+              "Freeze is a card-revenue play, not a loyalty reward",
+              "Lounge/upgrade/companion-cert perks eroding regardless of threshold freeze",
+              "Freeze doesn't clarify situation for occasional/light flyers (3-4 trips/year)",
+              "Uncertainty for members near the Platinum cutoff about what changes for them",
+              "Delta's 'stability' framing may lose to United/Southwest's more ambitious 2027 overhauls"
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "@pointsparser ... 'quietly raising the real bar for frequent flyers since 2023' — the freeze still favors Amex card spend over actual flying"
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "Amex-driven elites ... said frozen bars mean 'my flying plan still works' ... the card-driven head start directly for making Platinum or Silver reachable without extra flying"
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.333,
+            "objection_verdicts": [
+              "partial",
+              "missed",
+              "partial"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "grossmont-librarians-reinstated-2026",
+      "rubric": {
+        "slug": "grossmont-librarians-reinstated-2026",
+        "title": "Grossmont Union High School District settles with its union and brings back teacher-librarians from 2027-28",
+        "category": "school",
+        "announced_on": "2026-10-21",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will students, parents and staff in the Grossmont Union High School District react to this over the first two weeks, which groups will push back and why, and is the Grossmont Union High School District board likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "Only the nine teacher-librarians return, not the other posts cut in 2025.",
+            "source": "https://timesofsandiego.com/?p=406322"
+          },
+          {
+            "id": "o2",
+            "text": "The librarians do not return until 2027-28 and get no back pay or damages.",
+            "source": "https://timesofsandiego.com/?p=406322"
+          },
+          {
+            "id": "o3",
+            "text": "It took a labour charge and over a year of protest; questions remain about how the board majority made the cuts.",
+            "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"
+          },
+          {
+            "id": "o4",
+            "text": "Lawsuits by former staff are still pending.",
+            "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "The settlement stands as announced.",
+          "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"
+        },
+        "pushback_groups": [],
+        "notes": "Positive case: the settlement restores posts whose loss had drawn protests in 2025; the union and former librarians called it a victory. 'Objections' are limitations of the deal and continuing criticism of the board, not opposition to the reinstatement. Thin: two outlets, both on the announcement day, and no post-announcement student or parent quotes."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/grossmont-librarians-reinstated-2026/seed-7/20261113-230232-how-will-students-parents-and-staff-in-t",
+          "calls": 36,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.6,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "mixed",
+            "against": 5,
+            "in_favour": 4,
+            "neither": 5
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.35,
+            "undecided": 0.2,
+            "indifferent": 0.15
+          },
+          "planner_reason": "The GEA, librarians, and many parents/students will welcome reinstatement as vindication, but the year-plus delay, no back pay, no admission of wrongdoing, and the unresolved fate of 40 other cut positions and pending lawsuits will fuel criticism that the board is doing the minimum; others will wait to see how the board explains itself or simply tune out a staffing dispute that doesn't touch them directly.",
+          "planner_direction": "mixed",
+          "grade": {
+            "predicted_direction": "negative",
+            "direction_evidence": "\"sentiment collapsed from +0.11 to -0.57 by round 3 and stayed negative through round 6 (-0.60), driven mainly by solidarity anger that 40 other cut staff were left out of the deal\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"nothing in the digest points toward the board reversing or materially changing the deal within two weeks\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "40 other cut staff outside the librarian roles were left out, with civil suits still open (@deshawn_formerstaff #2, @coachrmendoza #4, @ms_patterson_ela #6, @derek_fiscalwatch #25)"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "No back pay for the two years librarians were out of work (@msmacceca_lib #10...); The 2027-28 start date is nearly two years away, leaving families without research/college-prep support in the meantime"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "The same board members who made the 2025 cuts are still voting on district matters, undercutting trust (@mr_delacruz_lib #22); The GEA had to drop its unfair practice charge to get the deal, losing legal leverage"
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "The civil lawsuits by former staff (referenced via @deshawn_formerstaff's mother #2, #28) could produce a real legal ruling that forces the board's hand"
+              }
+            ],
+            "extra_objections": [
+              "No acknowledgment or apology from the district for the original cuts",
+              "Suspicion the settlement is a PR move benefiting already financially stable staff while worse-off former staff get nothing",
+              "Other non-librarian roles like cafeteria crew and custodians are being forgotten in the public narrative",
+              "Doubt the union will keep fighting for the other 40 now that its own members' jobs are secured",
+              "Fiscal inconsistency: if the budget justified cutting 49 positions, it should justify restoring all 49, not just 9"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.875,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/grossmont-librarians-reinstated-2026/seed-8/20261113-231454-how-will-students-parents-and-staff-in-t",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 7,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.35,
+            "critical": 0.3,
+            "undecided": 0.2,
+            "indifferent": 0.15
+          },
+          "planner_reason": "Teacher-librarians and the union see this as a clear win and will post supportively, while parents/students welcome the restoration but are frustrated by the year-plus delay and lack of back pay; staff left out of the settlement (other cut positions, civil plaintiffs) and taxpayers questioning the board's reversal will push back hardest, and many in the wider community will stay undecided or indifferent since it's a narrow, delayed fix to a two-year-old dispute.",
+          "planner_direction": "mixed",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "\"sentiment falling from +0.37 in round 0 to -0.65 by round 5, as a selective-justice critique took hold\" alongside \"early goodwill\" from 7 of 13 agents welcoming the deal.",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"the most likely path is that the board keeps the settlement exactly as negotiated rather than changing or reversing it in the near term.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "the board negotiated with the organized union but left 40+ other cut staff untouched"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "reinstating the nine teacher-librarians in 2027-28 with layoff protection through 2029 and no back pay"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "it took two years and a PERB unfair-practice charge to reach the obvious right answer, per 30-year teacher @ruthannbarlow (#9)"
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "The civil lawsuits over the other 40+ cut positions remain open and outside this digest's scope; their outcome could change public perception of the settlement regardless of board intent."
+              }
+            ],
+            "extra_objections": [
+              "No admission of fault in the settlement lets the board avoid accountability",
+              "Unclear full cost of the settlement makes it hard to judge as good governance vs mismanagement",
+              "Board and district accounts posted once and never re-engaged with critics",
+              "System favors organized labor (PERB charge) over individual civil-suit plaintiffs with no seat at the table"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.875,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs2/2026-11-13-sonnet-haiku/grossmont-librarians-reinstated-2026/seed-9/20261113-232544-how-will-students-parents-and-staff-in-t",
+          "calls": 33,
+          "failed_calls": 1,
+          "final_round": 6,
+          "final_sentiment": -0.8,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 2,
+            "in_favour": 4,
+            "neither": 6
+          },
+          "planner_mix": {
+            "supportive": 0.3,
+            "critical": 0.32,
+            "undecided": 0.23,
+            "indifferent": 0.15
+          },
+          "planner_reason": "GEA members, librarians, and many parents will welcome the reinstatement as a long-sought win, but the lack of back pay, the year-plus delay until 2027-28, the board's no-admission-of-wrongdoing stance, and the unresolved lawsuits over the other 40 cut positions give parents, excluded former staff, and budget-conscious residents real grounds for criticism; others will wait to see how the board handles the still-open civil suits and budget before forming a firm view.",
+          "planner_direction": "mixed",
+          "grade": {
+            "direction_evidence": "The report says first reactions were \"net positive\" with sentiment peaking at \"+0.50 in r1\" but then \"curdled over the next five rounds\" into suspicion, with \"Sentiment's steep late slide to -0.80 by r6,\" indicating a mix of initial support and growing opposition rather than a uniformly negative or positive reaction.",
+            "predicted_direction": "mixed",
+            "backdown_evidence": "\"The most likely outcome is that the GUHSD board keeps the librarian settlement unchanged through the first two weeks and beyond, since even the most hostile voices... object to what the settlement omits... rather than to the reinstatement itself.\"",
+            "predicted_backdown": "none",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "\"the 40 non-librarian staff still suing\" / \"The other 40 non-librarian cut staff getting nothing while still suing, raised by a former counselor in @formercounselorjen's #9 and #19...\""
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "\"the 2027-28 timeline costing two more years of research support\" and \"No apology or back pay for the two years of lost income, raised by a reinstated staff member in @shelvedbydistrict's #3\""
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "\"why did it take 18 months to admit this was a mistake\" and \"accountability or just good PR before the next election\" touch on the delay and accountability questions, but the report never mentions a labor charge or specifically questions how the board majority made the original cut decision."
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "\"this holds as long as the civil lawsuits over the other 40 cut positions stay unresolved\""
+              }
+            ],
+            "extra_objections": [
+              "Suspicion settlement timed as pre-election PR move",
+              "Unexplained funding source for nine new salaries after a budget-driven cut",
+              "Board/district officials went silent after the initial r0 announcement, never rebutting criticism",
+              "Selective settlement of only union-represented librarians seen as unfair to non-union staff"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.875,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "mbta-fare-pilots-2026",
+      "rubric": {
+        "slug": "mbta-fare-pilots-2026",
+        "title": "MBTA launches unlimited-transfer, express-bus and car-free-senior fare pilots",
+        "category": "public-service",
+        "announced_on": "2026-07-28",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will MBTA riders in the Boston region react to this over the first two weeks, which groups will push back and why, and is the MBTA (and the Healey administration) likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "The savings are temporary: six-month pilots and commuter rail discounts only through November.",
+            "source": "https://www.wbur.org/news/2026/07/28/mbta-fare-discounts-fall-commuter-rail-express-bus"
+          },
+          {
+            "id": "o2",
+            "text": "The free-fare pilot for car-free seniors had no start date.",
+            "source": "https://wgbh.org/news/local/2026-09-01/mbta-launches-new-programs-to-cut-riders-costs"
+          },
+          {
+            "id": "o3",
+            "text": "Free Summer Fridays on commuter rail were not extended.",
+            "source": "https://www.wbur.org/news/2026/07/28/mbta-fare-discounts-fall-commuter-rail-express-bus"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "Transfer and express-bus pilots launched on 1 September 2026 as announced; senior pilot still in development.",
+          "source": "https://wgbh.org/news/local/2026-09-01/mbta-launches-new-programs-to-cut-riders-costs"
+        },
+        "pushback_groups": [],
+        "notes": "Positive control case: advocates (TransitMatters, disability advocates) welcomed it and no organised opposition was found. 'Objections' here are limitations noted in coverage, not complaints from organised groups. A model that predicts a broadly positive reaction with minor caveats and no reversal should score well; predicting backlash should score poorly."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/mbta-fare-pilots-2026/seed-7/20261113-222948-how-will-mbta-riders-in-the-boston-regio",
+          "calls": 37,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 8,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.4,
+            "critical": 0.2,
+            "undecided": 0.25,
+            "indifferent": 0.15
+          },
+          "planner_reason": "Most riders see clear, near-term savings from the transfer pilot, express bus cut and commuter rail extensions, so initial reaction leans supportive-to-curious; but Silver Line riders left out of the express discount and Summer Fridays users losing their free perk have concrete grievances, and many riders stay undecided until the pilots actually start on September 1 and the senior program's details (RMV eligibility, start date) are finalized.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "\"The simulated crowd's first reactions to Healey's fare pilots were net positive (8 of 14 people in favour versus 3 against)... That early goodwill was quickly complicated by a recurring worry... a late-round slide to -0.30 by round 5.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"the most likely path is that the MBTA and Healey administration keep running the pilots as scheduled through their windows, but rider trust stays shaky\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "\"the administration keep the three pilots running on their announced six-month/November timelines\" and \"Even the commuter rail discount extension through November is still temporary, not permanent policy (@mia_bu_transit #14)\""
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "\"RMV eligibility rules for the free car-free senior fare pilot were not yet announced, leaving riders unable to plan (@frankie_nocar_75 #2)\" — this flags missing eligibility details but not specifically the absence of a start date."
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "\"Summer Fridays' free commuter-rail promo is ending just as other perks are being added (@fridaycommuter_jen #5)\""
+              }
+            ],
+            "extra_objections": [
+              "Silver Line routes excluded from the express-bus fare cut despite comparable ridership",
+              "Fear that the real permanence decision will be made in a budget meeting rather than via 'real data'",
+              "Pilot results could quietly expire without ever being published",
+              "Six months may not be long enough to measure crowding impact",
+              "Day-to-day service reliability problems undercut the value of fare savings"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.833,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/mbta-fare-pilots-2026/seed-8/20261113-224032-how-will-mbta-riders-in-the-boston-regio",
+          "calls": 26,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "mixed",
+            "against": 5,
+            "in_favour": 7,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.42,
+            "critical": 0.2,
+            "undecided": 0.22,
+            "indifferent": 0.16
+          },
+          "planner_reason": "Most riders see direct, quantified savings (transfers, express bus, extended discounts) so initial reaction leans positive, but Silver Line riders and Summer Fridays users who feel left out of the discounts are a vocal, concrete source of pushback, while many riders wait to see real-world savings and senior eligibility details before judging, since start dates and RMV coordination remain unresolved.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"the most likely outcome is that the MBTA and the Healey administration keep the three pilots on their announced track ... without reversing course\"",
+            "direction_evidence": "\"The simulated MBTA riders' first reactions were mixed overall - 7 in favour, 5 against, 4 neither of 16 persons\"",
+            "extra_objections": [
+              "Fear the two-hour transfer app will glitch/fail mid-route",
+              "Pilots framed as election-year 'theater' / PR distraction from 20 years of reliability neglect",
+              "Silver Line (SL1/SL2/SL3/SLW) excluded from the express-bus local-fare cut despite express service to Logan",
+              "Two-hour transfer pilot only saves '50 cents per trip' while underlying bus/train service remains poor",
+              "Half-price commuter rail pass should be made permanent rather than re-expiring, since it's hard to plan trips when it expires"
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "\"commuter-rail discounts through November\" and \"Replace 'fall 2026' with a specific senior-fare date\" / \"hard to plan trips when it expires\" (@ellaridesrail #16) re-expiring after November"
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "@walter_nofuss says \"fall 2026 is too vague\" and the report recommends \"Replace 'fall 2026' with a specific senior-fare date\" — it frames this as a vague season rather than explicitly stating no start date was given at all"
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "@fridaycommuter_sue asks whether ending free Summer Fridays \"was that really necessary to cut, or just budget politics?\" and @maya_fridayrider is listed as unaffected 'on the end of free Fridays'"
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.833,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/mbta-fare-pilots-2026/seed-9/20261113-225105-how-will-mbta-riders-in-the-boston-regio",
+          "calls": 33,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 7,
+            "in_favour": 3,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.45,
+            "critical": 0.2,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most riders see concrete savings (transfers, express bus, future senior fares, extended commuter rail discounts) and react positively at first, but Silver Line riders feel unfairly excluded, advocates question why these are only temporary pilots instead of permanent fixes, and many riders remain undecided because exact start dates and eligibility rules (especially for seniors) are still pending.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"The most likely outcome is that the MBTA and Healey administration keep the three pilots and the commuter-rail discount extension running exactly as announced through their stated windows, continuing to answer permanence questions by pointing to future usage and revenue data.\"",
+            "direction_evidence": "\"The simulated crowd's first reactions leaned negative overall — 7 of 14 individual riders reacted against the announcement, only 3 in favour, and 4 neutral.\"",
+            "extra_objections": [
+              "Silver Line riders excluded from express-bus discount seen as inequitable",
+              "Fare pilots framed as a distraction from unresolved Red Line delays",
+              "Ambiguity in 'same payment method' rule for two-hour transfers could wrongly exclude riders",
+              "Worry that cutting express bus fares could lead to offsetting service cuts"
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "\"fear they will revert like the cancelled Summer Fridays program once the six-month window ends\" and recommendation to \"Test a concrete permanence commitment before the pilots expire\" because \"the single most repeated demand ... is not about the pilot design but about whether it will survive past six months\""
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "\"Frustration that the car-free senior fare pilot has no confirmed start date, raised by a rider whose 78-year-old grandmother is still paying full fare (@jaydenbrighton #17/#27).\""
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "\"Grief over the cancellation of the Summer Fridays free-ride program, raised by a Franklin-line commuter (@checkeredcommute #6) and a North Station commuter (@reneefromreading #7).\""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "negative"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 1.0,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "minneapolis-school-closures-pause-2026",
+      "rubric": {
+        "slug": "minneapolis-school-closures-pause-2026",
+        "title": "Minneapolis Public Schools drops plans to close up to 16 schools and bars closures for 2027-28",
+        "category": "school",
+        "announced_on": "2026-10-13",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Minneapolis Public Schools families and staff react to this over the first two weeks, which groups will push back and why, and is Minneapolis Public Schools likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "Distrust of the board's intentions after how the closure plans were handled.",
+            "source": "https://mndaily.com/city/minneapolis-parents-feel-relief-as-school-board-votes-against-closing-schools/10/14/2026/eicmndaily-com/"
+          },
+          {
+            "id": "o2",
+            "text": "Families should be consulted before proposals are made; the district should admit the plan was a mess.",
+            "source": "https://fox9.com/news/what-changed-mps-superintendent-reverses-course-closures"
+          },
+          {
+            "id": "o3",
+            "text": "Parents want follow-through: a financial audit, an enrollment-growth plan and a racial impact analysis.",
+            "source": "https://www.mprnews.org/episode/2026/10/14/minneapolis-reverses-school-closure-plans-parent-calls-for-more-engagement-from-district"
+          },
+          {
+            "id": "o4",
+            "text": "Enrollment and budget problems are unresolved, so closures may only be postponed.",
+            "source": "https://mndaily.com/city/minneapolis-parents-feel-relief-as-school-board-votes-against-closing-schools/10/14/2026/eicmndaily-com/"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "The pause on closures for 2027-28 stands.",
+          "source": "https://www.mprnews.org/story/2026/10/14/minneapolis-public-schools-backs-off-school-closure-plan"
+        },
+        "pushback_groups": [],
+        "notes": "Positive case: the announcement withdraws an unpopular plan, and parents, family groups and the teachers' union welcomed it with relief; 'objections' are caveats about trust, process and follow-through. Some board members objected to how the resolution was drafted, not to its substance. Coverage after the first two days is thin. Linked to the separate case minneapolis-school-closure-plans-2026 (the September proposals)."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/minneapolis-school-closures-pause-2026/seed-7/20261113-230501-how-will-minneapolis-public-schools-fami",
+          "calls": 36,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 8,
+            "neither": 3
+          },
+          "planner_mix": {
+            "supportive": 0.5,
+            "critical": 0.15,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most vocal families and staff at threatened schools feel heard and relieved after overwhelming listening-session pushback led directly to the reversal, so early reaction skews supportive; but a meaningful undecided/critical slice worries the $40M shortfall is merely deferred, not solved, setting up a repeat fight before the 2027-28 budget cycle and the pending November election.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "\"The simulated reaction to Minneapolis Public Schools' decision to rule out closures through 2027-28 starts clearly positive... That relief curdles fast within the modeled two weeks — sentiment falls from +0.56 in round 0 to -0.75 by round 3.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"The single most likely outcome is that MPS keeps the no-closures resolution through the first two weeks and beyond — no agent in the digest calls for reversing it.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "@skeptical_mpls_20 #23 warns \"don't sleep on this 'win,'\"... frame the pause as an election-year stunt delaying rather than solving the problem"
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "@mplsbudgetnerd #29's call to \"publish a budget roadmap by December—not final numbers, but what they're exploring. Revenue options, staffing scenarios, timeline\" / \"Enrollment decline is a deeper, unaddressed problem behind the shortfall, per community elder @grandpa_chuck_mn #21\""
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "@mr_halvorsen_ret #14 predicts \"they'll cut programs instead of buildings. Same pain, slower\" ... frame the pause as an election-year stunt delaying rather than solving the problem"
+              }
+            ],
+            "extra_objections": [
+              "Fear that TA/staffing positions specifically will be cut (@exstudent_now_watchi #20)",
+              "Spring-only budget disclosure framed as 'theater, not transparency' rather than genuine transparency",
+              "Demand that 'real solutions' rhetoric be replaced with a concrete timeline/framework",
+              "Concern the fight over closures will return worse once election-season pressure eases ('won a battle, not the war')",
+              "Request to explore revenue options before locking in cuts"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.5,
+            "objection_verdicts": [
+              "partial",
+              "missed",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/minneapolis-school-closures-pause-2026/seed-8/20261113-232201-how-will-minneapolis-public-schools-fami",
+          "calls": 34,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": 0.275,
+          "sentiment_direction": "positive",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 2,
+            "in_favour": 7,
+            "neither": 6
+          },
+          "planner_mix": {
+            "supportive": 0.45,
+            "critical": 0.2,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Families and staff whose schools were spared are relieved and credit community pushback for the reversal, but a meaningful minority worry the district just postponed hard choices on its $40 million shortfall and excess building capacity, leaving many undecided about what comes next in spring 2027 budgeting.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "mixed",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"The single most likely outcome is that MPS keeps the no-closures resolution unchanged through 2027-28 — no agent in the digest signals a reversal of that decision (#2)\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "@jordan_skeptic_mpls calling it an 'election-year dodge' (#6) ... Fear that the resolution is simply an election-year delay rather than a real fix"
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "@omar_budgetwatch wants 'enrollment recovery scenarios with actual revenue numbers by February' (#35) and @deshawn_nokomis wants 'actual numbers on enrollment recovery and staffing by February' (#36)"
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "the $40M shortfall is unresolved ... 'postponed the same disaster until after the election' (#6)"
+              }
+            ],
+            "extra_objections": [
+              "Union demands specific staffing/layoff numbers separate from general enrollment talk",
+              "Vague 'details will come' messaging frustrates families who have waited since October",
+              "Skepticism about district's basic enrollment math (system built for 42,000 serving 29,000)",
+              "Concern that avoiding closures just shifts pain to staff cuts or program slashing",
+              "Charter/private school families not represented in reaction (noted as a modeling gap, not a predicted objection)"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.5,
+            "objection_verdicts": [
+              "partial",
+              "missed",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs3/2026-11-13-sonnet-haiku/minneapolis-school-closures-pause-2026/seed-9/20261113-233446-how-will-minneapolis-public-schools-fami",
+          "calls": 33,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 2,
+            "in_favour": 7,
+            "neither": 5
+          },
+          "planner_mix": {
+            "supportive": 0.45,
+            "critical": 0.2,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Families and staff at threatened schools and their allies are relieved after \"overwhelming\" opposition at listening sessions won out, but a meaningful minority is critical or undecided because the $40 million shortfall is unresolved, savings from closures are now gone, and the fight is likely just delayed into the spring 2027 budget process and the November 2026 board election.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "\"The simulated crowd's first reactions to the Board's resolution ruling out closures were net positive... That goodwill did not hold steady: sentiment fell from +0.47 in round 1 to +0.05 in round 2 and -0.25 in round 4 as the crowd's largest thread... filled with worries that avoiding closures just defers the $40M gap.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"On balance, MPS is likely to keep the decision through the two-week window and beyond, with the real test deferred to the spring 2027 budget reveal rather than resolved now.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "\"A critical voice accused the Board of timing the reversal to avoid election-season backlash while leaving the underlying shortfall unresolved (@zoe_underfunded #22).\" / \"A longtime paraprofessional distrusted the 'sustainable solutions' language, noting 30 years of staff cuts without ever solving the underlying budget (@paraprof_patricia #21).\""
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "\"Pushback is concentrated among budget-literate parents and finance-minded observers who want the spring 2027 budget plan before trusting the decision\" and recommendation to \"Publish the spring 2027 budget plan with specific line items early\" — but no mention of a financial audit, enrollment-growth plan, or racial impact analysis."
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "\"avoiding closures just defers the $40M gap\" and \"the vote just defers the $40M problem past the November election rather than solving it (@kwhitfield_mn #20/#26, @zoe_underfunded #22)\"."
+              }
+            ],
+            "extra_objections": [
+              "Fear that even without building closures, counselors/librarians/art programs could still be cut (@mpsparent_southside #18)",
+              "Concern that charter/private school enrollment already covers nearly half of school-age children, undermining the no-closures fix",
+              "Skepticism that the reversal is a politically timed stopgap ahead of the November board election",
+              "Distrust of vague 'sustainable solutions' rhetoric as empty after decades of staff cuts",
+              "Worry that the November 2026 board election could reshape the coalition and reopen the closures question"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.5,
+            "objection_verdicts": [
+              "partial",
+              "missed",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": null,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "samsung-galaxy-z-fold-8-launch-2026",
+      "rubric": {
+        "slug": "samsung-galaxy-z-fold-8-launch-2026",
+        "title": "Samsung launches a passport-shaped Galaxy Z Fold 8, a Fold 8 Ultra and Z Flip 8, each $100 dearer",
+        "category": "product-change",
+        "announced_on": "2026-07-22",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Samsung foldable buyers and the tech press react to this over the first two weeks, which groups will push back and why, and is Samsung likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "Prices rise $100 on every model, with the Ultra above $2,000.",
+            "source": "https://itwire.com/your-it-news/home-it/samsungs-z-fold8-ultra-passport-style-z-fold8-and-z-flip8-priced-for-australia-from-1-949-watches-from-649-but-the-s-pen-stays-s-gone"
+          },
+          {
+            "id": "o2",
+            "text": "No S Pen support again, a loss for note-takers.",
+            "source": "https://www.androidauthority.com/samsung-galaxy-z-fold-8-3688636/"
+          },
+          {
+            "id": "o3",
+            "text": "The Fold 8 has no dedicated telephoto camera.",
+            "source": "https://view.asiae.co.kr/en/article/2026072405481836987"
+          },
+          {
+            "id": "o4",
+            "text": "Only $200 separates the Fold 8 from the more capable Ultra, weakening its case.",
+            "source": "https://www.newsweek.com/samsung-now-has-three-foldables-for-three-completely-different-buyers-12231454"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "No change; pre-orders opened 22 July and sales began 7 August as announced.",
+          "source": "https://www.androidauthority.com/samsung-galaxy-z-fold-8-3688636/"
+        },
+        "pushback_groups": [
+          "S Pen users",
+          "price-sensitive buyers"
+        ],
+        "notes": "Positive with caveats: broad praise for design, weight and crease across international tech media; analysts judged the $100 rise smaller than feared. Evidence is press, reviewer and analyst reaction at launch, not consumer surveys. Predicting a broadly favourable reception with price and S Pen grumbles and no change should score well; predicting backlash should not."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/samsung-galaxy-z-fold-8-launch-2026/seed-7/20261113-222948-how-will-samsung-foldable-buyers-and-the",
+          "calls": 33,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": 0.4,
+          "sentiment_direction": "positive",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 12,
+            "in_favour": 6,
+            "neither": 0
+          },
+          "planner_mix": {
+            "supportive": 0.18,
+            "critical": 0.42,
+            "undecided": 0.25,
+            "indifferent": 0.15
+          },
+          "planner_reason": "The repeated $100 price hikes across all three devices and the permanent loss of S Pen support on the Fold line give price-sensitive buyers and former stylus users concrete reasons to push back hard in the first two weeks, while tech press coverage stays split between praise for the Fold 8 Ultra's specs/AI features and skepticism about value versus Apple's looming foldable iPhone, keeping a large undecided bloc until reviews and sales data arrive.",
+          "planner_direction": "negative",
+          "grade": {
+            "backdown_evidence": "\"Nothing in the digest suggests Samsung is likely to change course soon\" and the report predicts \"Samsung keeps both the price increase and the S-Pen removal unchanged\"",
+            "direction_evidence": "\"Over six rounds that negativity softened rather than reversed: sentiment fell further to -0.65 at r1, then climbed to +0.05 by r4 and +0.40 by r6... Budget-priced-out buyers... and daily S-Pen users... never moved off their negative stance despite that testing narrative.\"",
+            "extra_objections": [
+              "Skepticism that the $100 price bump actually funds real battery/thermal gains vs. padding margin",
+              "'Flagging in testing' rhetoric feels like sidestepping or papering over the real S-Pen loss",
+              "Gemini AI and Quick Share don't actually replace what the S Pen did for real work",
+              "Pattern framing that Samsung is charging more and removing features for the second year running",
+              "Doubt over whether the Flip 8's extra $100 is justified for existing owners"
+            ],
+            "groups": [
+              {
+                "group": "S Pen users",
+                "named": true
+              },
+              {
+                "group": "price-sensitive buyers",
+                "named": true
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "\"The Flip 8's extra $100 is hard to justify for an existing budget owner, per @danwrenches #15\" and general references to the $100 price increase, but no mention of per-model breakdown or the Ultra being priced above $2,000."
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "\"Removing the S Pen for a second straight generation abandons creative and productivity users who relied on it daily, per @kenji_foldlife #3, @walt_foldnote #23, @paul_workflow #4, and @deborah_pmtools #29.\""
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "partial",
+              "covered",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/samsung-galaxy-z-fold-8-launch-2026/seed-8/20261113-224428-how-will-samsung-foldable-buyers-and-the",
+          "calls": 30,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.5,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 13,
+            "in_favour": 3,
+            "neither": 1
+          },
+          "planner_mix": {
+            "supportive": 0.15,
+            "critical": 0.45,
+            "undecided": 0.25,
+            "indifferent": 0.15
+          },
+          "planner_reason": "The combination of a second consecutive year without S Pen support and a $100 price hike across all three devices gives committed buyers and press a concrete, repeatable grievance, while Samsung's own 'low usage' justification invites skepticism rather than acceptance; undecided buyers will wait for hands-on reviews and Apple's rumored foldable before judging, and indifferent users are drawn more to the AI/ecosystem additions than the core design debate.",
+          "planner_direction": "negative",
+          "grade": {
+            "direction_evidence": "\"The simulated crowd's first reactions ran heavily negative (13 against vs. 3 in favour of 17 people)... buyer sentiment stays net-negative but stabilizes somewhat.\"",
+            "predicted_direction": "negative",
+            "backdown_evidence": "\"Within this simulation nothing suggests Samsung backing off the decision in the two-week window—no agent reports a price cut or S Pen reversal—so the crowd's expectation... is that Samsung keeps the pricing and S Pen cut for now.\"",
+            "predicted_backdown": "none",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "the $100 price jump... A $1,899.99 starting price plus a $1,199.99 Flip prices out fixed-income buyers — pensioner saver @pattiraye1958 (#12, #24)"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "the second straight year of dropped S Pen support (@pattiraye1958 #12, @devynfoldlife #7, @devon_briefs_it #10)... 'S Pen widow' (#7, #32)"
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "groups": [
+              {
+                "group": "S Pen users",
+                "named": true
+              },
+              {
+                "group": "price-sensitive buyers",
+                "named": true
+              }
+            ],
+            "extra_objections": [
+              "Marketing the Ultra as a 'productivity' device while cutting stylus support is a contradictory message",
+              "On-screen note-taking alternatives have latency and palm-rejection gaps, not a true stylus substitute",
+              "A rumored cheaper Apple foldable with stylus support threatens to break Samsung's ecosystem lock-in",
+              "Two consecutive years of S Pen removal erodes trust in Samsung valuing loyal buyers",
+              "No trade-in deals offered to cushion the price hike and feature loss for existing Fold/Flip owners"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "partial",
+              "covered",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/samsung-galaxy-z-fold-8-launch-2026/seed-9/20261113-225547-how-will-samsung-foldable-buyers-and-the",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.85,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 14,
+            "in_favour": 4,
+            "neither": 0
+          },
+          "planner_mix": {
+            "supportive": 0.15,
+            "critical": 0.45,
+            "undecided": 0.25,
+            "indifferent": 0.15
+          },
+          "planner_reason": "The simultaneous price hike and permanent S Pen removal on the Fold/Fold Ultra hit the most vocal, stylus-loyal buyer base hardest, while reviewers and casual upgraders remain split between praising the redesign/AI features and flagging the cost-to-value trade-off; Samsung has shown no sign of reversing a two-generation-old decision backed by a stated cost rationale, so expect it to hold firm through the first two weeks with only messaging tweaks, not a reversal.",
+          "planner_direction": "negative",
+          "grade": {
+            "backdown_evidence": "\"Nothing in Samsung's own posts (#1, #7, #16) signals a plan to change price or restore the S Pen, so this simulated crowd suggests Samsung keeps the decision through the first two weeks\"",
+            "direction_evidence": "\"The simulated crowd's first reactions ran 14-against to 4-in-favour, and measured sentiment worsened from -0.25 at launch to -0.85 by the final round, as buyers and reviewers hammered the $100 price hike and the permanent loss of the S Pen\"",
+            "extra_objections": [
+              "Samsung's 'usage data' justification contradicts marketing the Ultra as productivity-focused for creative pros",
+              "No clarity on trade-in value for repeat Fold owners against the new premium",
+              "No clear replacement workflow for stylus-dependent professional tasks like circuit design or sketching",
+              "No incentive for Note-line switchers who adopted the Fold specifically for the S Pen",
+              "Pairing a price hike with a feature cut on the same tier feels like asking buyers 'not to notice'"
+            ],
+            "groups": [
+              {
+                "group": "S Pen users",
+                "named": true
+              },
+              {
+                "group": "price-sensitive buyers",
+                "named": true
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "A second consecutive $100 price hike straining budget-conscious buyers... The Flip 8's own $100 increase cutting into money earmarked for tuition (#3 @ravi_flipfan)... whether the wider screen alone justifies the Ultra's $2,099 premium (#21 @denise_tech_mom)"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "Permanent loss of the S Pen on the 'Ultra' despite its productivity branding (#9 @ameliadraws; #20 @harold_writes; #26 @walter_penandpaper)."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "negative"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.5,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 1.0,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "uk-electricity-vat-cut-2026",
+      "rubric": {
+        "slug": "uk-electricity-vat-cut-2026",
+        "title": "UK government removes VAT from household electricity bills from October 2026",
+        "category": "pricing",
+        "announced_on": "2026-07-21",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will households in Great Britain react to this over the first two weeks, which groups will push back and why, and is the UK government likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "The saving (about £45 a year) is small and does not match the scale of energy costs households face.",
+            "source": "https://www.irishnews.com/news/uk/energy-vat-cut-does-not-address-scale-of-what-households-are-facing-FABXPZ75QJIIHBWLBDEE3Y75OU/"
+          },
+          {
+            "id": "o2",
+            "text": "It is temporary and favours households with the highest bills; targeted support or moving levies to taxation would help more.",
+            "source": "https://www.irishnews.com/news/uk/energy-vat-cut-does-not-address-scale-of-what-households-are-facing-FABXPZ75QJIIHBWLBDEE3Y75OU/"
+          },
+          {
+            "id": "o3",
+            "text": "The funding is questionable because the digital ID programme it replaces was itself unfunded.",
+            "source": "https://www.lbc.co.uk/news/cost-living/energy-bills-business-secretary-unfunded-tax-cut/"
+          },
+          {
+            "id": "o4",
+            "text": "Northern Ireland is left out of the VAT cut and gets a much smaller substitute payment.",
+            "source": "https://www.irishnews.com/news/northern-ireland/andy-burnhams-flagship-cost-of-living-measure-to-be-worth-less-than-5-a-month-to-ni-households-this-winter-LLQOEPGJTFCVNA6TD6VK4WMJPM/"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "Took effect on 1 October 2026; the 28 October Budget extended it to July 2027.",
+          "source": "https://www.which.co.uk/news/article/what-cost-of-living-support-did-the-government-announce-in-the-budget-a50vz4X02zeY"
+        },
+        "pushback_groups": [
+          "fuel poverty campaigners and consumer groups wanting bigger, targeted help",
+          "critics of the funding (Darren Jones, Conservative leader)"
+        ],
+        "notes": "Consumer, fuel-poverty and industry groups all welcomed it with caveats; nobody opposed the tax cut itself, so positive rather than mixed. The political dispute was about funding. The Northern Ireland objection surfaced on 27 Aug, outside the first two weeks, and is a minor point. No household polling found."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/uk-electricity-vat-cut-2026/seed-7/20261113-230705-how-will-households-in-great-britain-rea",
+          "calls": 30,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 5,
+            "neither": 6
+          },
+          "planner_mix": {
+            "supportive": 0.35,
+            "critical": 0.3,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most households welcome any bill reduction, especially one billed as the new government's first cost-of-living move, but the modest £45 saving against a ~£1,862 price cap and uncertainty over whether it survives the Budget fuel skepticism and wait-and-see reactions, while the digital ID trade-off splits opinion between privacy wins and lost-investment complaints.",
+          "planner_direction": "mixed",
+          "grade": {
+            "predicted_direction": "mixed",
+            "direction_evidence": "\"The simulated crowd's first reaction to the VAT cut was net positive (5 in favour, 3 against, 6 neutral...), ... That early goodwill curdled once agents did the arithmetic against the £1,862 price cap.\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"the most likely real-world government posture is to keep the cut in place through the winter while facing mounting pressure... to commit to it beyond the Budget rather than let it lapse unannounced.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "The £45 saving is tiny next to the roughly £1,862 typical bill (about 2.4%), raised by Dave the electrician in #10 and Chantelle in #11."
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "The cut may disappear once the March 2027 Budget hits, a fear first raised by econ grad Tom Ledger in #3 and repeated by carer Martyn in #18 and retiree Eileen in #8."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "groups": [
+              {
+                "group": "fuel poverty campaigners and consumer groups wanting bigger, targeted help",
+                "named": false
+              },
+              {
+                "group": "critics of the funding (Darren Jones, Conservative leader)",
+                "named": false
+              }
+            ],
+            "extra_objections": [
+              "Cut is dismissed as 'PR, not policy' / a token gesture rather than a real cost-of-living fix",
+              "The October Ofgem price-cap rise could swallow the £45 saving entirely",
+              "Budget-review language is read as evasive wording signalling the policy could be quietly killed",
+              "Energy firms are seen as retaining most of the underlying profit/problem while households get only a token cut",
+              "Broader cost-of-living pressures (rent, food) are rising faster than the saving can offset"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/uk-electricity-vat-cut-2026/seed-8/20261113-231807-how-will-households-in-great-britain-rea",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.7,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 7,
+            "in_favour": 4,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.45,
+            "critical": 0.2,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most households welcome any cut to bills amid a cost-of-living squeeze and see cancelling an unpopular digital ID scheme to pay for it as a good trade-off, but skepticism grows because £45 a year is modest, the funding is only guaranteed to March 2027, and critics (fiscal hawks, digital ID advocates) question the policy's durability and the raid on the digital ID budget, pushing many into a wait-and-see stance ahead of the Budget.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "negative",
+            "direction_evidence": "\"The simulated household reaction to the VAT cut starts negative on balance — among the 15 people who post first, 7 push back against 4 in favour ... and the mood keeps sliding, with measured sentiment falling from +0.16 at launch (r0) to -0.70 by the final round (r6).\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"the simulated signal points to the government keeping the policy as announced rather than changing or reversing it in the near term, while deferring the permanence question to the Budget.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "prepayment-meter/low-income households ... call £45/year \"87p a week\" against meters that cost \"£15 a week to top up\""
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "the £1.8bn \"covers only 2-3 years at current rates\" ... Fear of a cliff-edge at March 2027 with nothing guaranteed beyond it — the report focuses on the temporary/funding-window aspect but never raises that the cut favours high-bill households or that targeted support/moving levies to taxation would be fairer."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "groups": [
+              {
+                "group": "fuel poverty campaigners and consumer groups wanting bigger, targeted help",
+                "named": true
+              },
+              {
+                "group": "critics of the funding (Darren Jones, Conservative leader)",
+                "named": false
+              }
+            ],
+            "extra_objections": [
+              "Funding cliff-edge: the £1.8bn repurposed digital-ID money only covers the VAT cut for about 2-3 years, raising 'what happens after March 2027?'",
+              "Renters with gas-heavy bills barely benefit because the cut only touches electricity and landlords won't upgrade heating",
+              "Scrapping digital ID removes its stated fraud-prevention rationale with no replacement plan",
+              "Distrust/uncertainty over implementation mechanics (whether the saving will actually show automatically on prepayment top-ups/statements)",
+              "Government's 'families first'/'real choices' messaging is seen as hollow and not matching the underlying maths"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.5,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs4/2026-11-13-sonnet-haiku/uk-electricity-vat-cut-2026/seed-9/20261113-233316-how-will-households-in-great-britain-rea",
+          "calls": 33,
+          "failed_calls": 1,
+          "final_round": 6,
+          "final_sentiment": -0.35,
+          "sentiment_direction": "negative",
+          "report_confidence": "low",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 6,
+            "in_favour": 3,
+            "neither": 1
+          },
+          "planner_mix": {
+            "supportive": 0.35,
+            "critical": 0.3,
+            "undecided": 0.25,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most households welcome any cut to bills amid a cost-of-living squeeze, but the modest £45 saving, its funding from a cancelled IT project, and its expiry before the Budget give critics and the fiscally cautious plenty to question, while many will wait to see the October Ofgem price cap before judging the real impact.",
+          "planner_direction": "mixed",
+          "grade": {
+            "backdown_evidence": "\"The single most likely path, based on this run, is that the UK government keeps the VAT cut in place through the stated March 2027 review and continues to defend it as 'properly funded' fiscal discipline.\"",
+            "direction_evidence": "\"household sentiment stays mixed-to-negative until Ofgem's actual October cap figures are published (#7), at which point opinion could swing sharply either way.\"",
+            "extra_objections": [
+              "Fear the October Ofgem cap rise will erase or 'swallow' the £45 saving based on past broken promises",
+              "Policy seen as cynical time-limited rebranding rather than real help",
+              "Uncertainty over what happens to funding/support after the March 2027 review window",
+              "Government/ministers repeatedly deferring concrete answers to the spring Budget instead of answering now"
+            ],
+            "groups": [
+              {
+                "group": "fuel poverty campaigners and consumer groups wanting bigger, targeted help",
+                "named": false
+              },
+              {
+                "group": "critics of the funding (Darren Jones, Conservative leader)",
+                "named": false
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "£45 is too small against much larger bill increases: @maggie_fumes... says her bill went up £400 and 'fifty quid won't touch it' (#5)."
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "@maggie_fumes separately presses 'properly funded for 6 months then what?' (#17) — touches on the temporary nature but does not raise the targeting-favours-high-bills critique or the alternative of moving levies to taxation."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "missed",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.0,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "uk-two-pound-bus-fare-cap-2026",
+      "rubric": {
+        "slug": "uk-two-pound-bus-fare-cap-2026",
+        "title": "UK government cuts the England bus fare cap from £3 to £2 for 2027, funded from climate finance",
+        "category": "public-service",
+        "announced_on": "2026-07-22",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will bus passengers in England outside London react to this over the first two weeks, which groups will push back and why, and is the UK government likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "The cap is temporary (one year) and there is no long-term funding model for bus networks.",
+            "source": "https://www.localgov.co.uk/Councils-cautiously-welcome-2-bus-fare-cap-/64717"
+          },
+          {
+            "id": "o2",
+            "text": "Cheap fares do not help rural areas where bus services have been cut or have disappeared.",
+            "source": "https://www.countycouncilsnetwork.org.uk/news/bus-fares-to-be-capped-at-ps2-in-2027-ccn-responds"
+          },
+          {
+            "id": "o3",
+            "text": "Funding it by turning international climate grants into loans hurts climate-vulnerable countries.",
+            "source": "https://www.ibtimes.co.uk/uk-bus-fare-cap-funding-controversy-1810199"
+          },
+          {
+            "id": "o4",
+            "text": "The government has not explained how it will pay for its new commitments.",
+            "source": "https://www.ibtimes.co.uk/uk-bus-fare-cap-funding-controversy-1810199"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "The £2 cap for 2027 was confirmed in the 28 October 2026 Budget.",
+          "source": "https://www.which.co.uk/news/article/what-cost-of-living-support-did-the-government-announce-in-the-budget-a50vz4X02zeY"
+        },
+        "pushback_groups": [
+          "development charities (ActionAid UK, Bond)",
+          "Conservative opposition"
+        ],
+        "notes": "Welcomed by councils (LGA, CCN), Campaign for Better Transport and cost-of-living campaigners, with caveats about permanence and rural service cuts. The main criticism targeted the funding source (climate grants to loans) rather than the cap. No passenger survey found; reaction comes from organisations and politicians. Bus operator (CPT) reaction seen only in search snippets and not used."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/uk-two-pound-bus-fare-cap-2026/seed-7/20261113-222948-how-will-bus-passengers-in-england-outsi",
+          "calls": 35,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.15,
+          "sentiment_direction": "mixed",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 3,
+            "in_favour": 9,
+            "neither": 2
+          },
+          "planner_mix": {
+            "supportive": 0.55,
+            "critical": 0.15,
+            "undecided": 0.2,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most bus passengers, especially rural, coastal and young commuters, see an immediate concrete saving on fares they pay regularly, so early reaction skews positive; but a vocal minority of climate-finance critics and some operators or skeptics question the funding trick and durability of the cap, while others remain unsure if it will last past 2027 or apply to their specific route.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"the simulated crowd points toward the UK government keeping the £2 cap as announced rather than changing or reversing it, even as doubts about its permanence and funding transparency persist unresolved.\"",
+            "direction_evidence": "\"The simulated crowd's first reaction was clearly positive: of 14 individual agents' first posts, 9 welcomed the £2 cap, 3 objected and 2 were neutral... Engagement and sentiment peaked at round 2 (+0.44...) then slid to -0.12 by round 3 and -0.15 by round 6.\"",
+            "extra_objections": [
+              "London/TfL excluded from the national £2 cap (equity complaint)",
+              "Risk that bus operators dilute or cut routes once reimbursement arrives",
+              "Past fare caps 'got dodgy' once operators were involved (compliance risk)",
+              "No concrete timeline for franchising rollout to fix reliability",
+              "Administrative burden of reimbursement scheme for operators"
+            ],
+            "groups": [
+              {
+                "group": "development charities (ActionAid UK, Bond)",
+                "named": false
+              },
+              {
+                "group": "Conservative opposition",
+                "named": false
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "the cap only runs to December 2027 with no stated plan beyond that, raised by ... @becca_coastroad (#9, \"is this permanent or just until after the next election?\") and ... @coastalcolin (#33, \"does this stick after 31 Dec 2027 or do we go back to £9 fares?\")"
+              },
+              {
+                "id": "o2",
+                "verdict": "partial",
+                "evidence": "@derek_busrant's #7 \"doesn't fix a broken system\" and @kayleigh_shifts's #19 \"doesn't matter if the 6am bus never arrives\" argue the fare cut ignores the real problem of unreliable services."
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "@fiscal_faye's #3 question about converting \"£100m+ of climate grants to loans\" and @martin_ledger's #4 call for Treasury to \"show the working\""
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "funding-mechanism critics such as @fiscal_faye #3/#11/#26 and @martin_ledger #4 who question converting climate grants into loans... @martin_ledger's #4 call for Treasury to \"show the working\""
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.75,
+            "objection_verdicts": [
+              "covered",
+              "partial",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/uk-two-pound-bus-fare-cap-2026/seed-8/20261113-224051-how-will-bus-passengers-in-england-outsi",
+          "calls": 24,
+          "failed_calls": 2,
+          "final_round": 6,
+          "final_sentiment": -0.571,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 10,
+            "in_favour": 1,
+            "neither": 5
+          },
+          "planner_mix": {
+            "supportive": 0.1,
+            "critical": 0.45,
+            "undecided": 0.3,
+            "indifferent": 0.15
+          },
+          "planner_reason": "Most vocal posters are those who feel an immediate cost or service risk — low-income commuters and rural residents fear losing an affordable, reliable lifeline, while a smaller group reserves judgment until local impacts become clear over the two weeks; genuine support is limited unless the change is framed as expanding rather than cutting support.",
+          "planner_direction": "negative",
+          "grade": {
+            "predicted_direction": "negative",
+            "direction_evidence": "\"First reactions were overwhelmingly negative (10 against vs 1 in favour of 16 people)... Over six simulated rounds sentiment swung from -0.29... and back down to -0.68/-0.57.\"",
+            "predicted_backdown": "partial",
+            "backdown_evidence": "\"The most likely outcome is that the UK government keeps the subsidy-cap reshuffle broadly intact but is pushed into partial, reactive concessions - clarifying guidance or route-specific assurances.\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "\"the subsidy cap rise alone doesn't guarantee\" fare or route safety; @cllr_margaret_h reserves judgment until 'ring-fenced national money' is attached (#8) - the report flags no durable funding guarantee but never states the cap is only a one-year/temporary measure."
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "@joanne_fellside fears her one daily bus is next to be cut, having already lost two routes locally in a decade (#15); @disabledandstuck's #3 'disabled people and rural areas will be abandoned'."
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "@cllr_margaret_h says councils 'absorb the cost. Again.' (#30) and the recommendation to 'test' 'Ring-fenced national funding vs local cost-shift to councils' highlights the crowd questioning whether the funding mechanism is sufficient or even specified."
+              }
+            ],
+            "groups": [
+              {
+                "group": "development charities (ActionAid UK, Bond)",
+                "named": false
+              },
+              {
+                "group": "Conservative opposition",
+                "named": false
+              }
+            ],
+            "extra_objections": [
+              "Government using non-statutory 'guidance' language instead of legally binding protections, which the coalition explicitly rejects",
+              "Unfunded cost-shift onto local councils to cover any funding gap",
+              "Lack of transparency on which specific routes/fares are actually protected (e.g. @colin_bowland's unanswered Exeter route question)",
+              "Young people/students feel unconsulted and expect fares to rise while student discounts stay flat",
+              "No evidence the subsidy cap rise actually fixes route viability rather than just letting fares creep up"
+            ]
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "partial",
+              "covered",
+              "missed",
+              "covered"
+            ],
+            "backdown_predicted": "partial",
+            "backdown_match": false,
+            "backdown_kind_match": false,
+            "group_recall": 0.0,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/uk-two-pound-bus-fare-cap-2026/seed-9/20261113-225650-how-will-bus-passengers-in-england-outsi",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "mixed",
+            "against": 4,
+            "in_favour": 5,
+            "neither": 4
+          },
+          "planner_mix": {
+            "supportive": 0.5,
+            "critical": 0.2,
+            "undecided": 0.2,
+            "indifferent": 0.1
+          },
+          "planner_reason": "Most ordinary bus riders, especially in rural/coastal areas and young commuters, welcome a direct cut to a fare they pay regularly, so initial sentiment leans supportive; but climate-finance critics and fiscal skeptics push back quickly on how the £400m is funded, while many riders remain undecided until January 2027 confirms the cap actually applies to their routes and operators.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"the simulated debate points toward the UK government keeping the £2 cap as announced while facing pressure to clarify — rather than reverse — the reimbursement mechanics.\"",
+            "direction_evidence": "\"5 of 13 individual agents favourable, 4 against, 4 undecided on first post\"",
+            "extra_objections": [
+              "Operators demand an indexed reimbursement formula published before January",
+              "Franchising timeline uncertainty in West Yorkshire and fear of disruption during transition",
+              "'Levelling up' framing questioned because wages haven't moved / early and late shifts poorly served",
+              "Operators warn of route cuts/dragging feet if reimbursement formula isn't clarified in time"
+            ],
+            "groups": [
+              {
+                "group": "development charities (ActionAid UK, Bond)",
+                "named": false
+              },
+              {
+                "group": "Conservative opposition",
+                "named": false
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "a Fenland resident notes rural routes have been cut for years (@owen_fenland #12)"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "the £400m comes from climate finance switching grants to loans for developing countries, which is a trade-off not 'savings elsewhere'"
+              },
+              {
+                "id": "o4",
+                "verdict": "covered",
+                "evidence": "funding-transparency questions from @fiscalhawk_tom #5"
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "mixed"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 1,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "missed",
+              "covered",
+              "partial",
+              "covered"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.0,
+            "unmatched": []
+          }
+        }
+      ]
+    },
+    {
+      "slug": "witcher-3-free-remaster-upgrade-2026",
+      "rubric": {
+        "slug": "witcher-3-free-remaster-upgrade-2026",
+        "title": "CD Projekt Red makes The Witcher 3 Remastered a free upgrade",
+        "category": "product-change",
+        "announced_on": "2026-08-25",
+        "known_to_model": false,
+        "model_cutoff": "2026-06",
+        "question": "How will Witcher 3 owners and players react to this over the first two weeks, which groups will push back and why, and is CD Projekt Red likely to keep, change or reverse the decision?",
+        "direction": "positive",
+        "objections": [
+          {
+            "id": "o1",
+            "text": "The update may break existing PC mods",
+            "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"
+          },
+          {
+            "id": "o2",
+            "text": "It is unclear whether existing save files will carry over",
+            "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"
+          },
+          {
+            "id": "o3",
+            "text": "Higher system requirements may hurt older PCs and Steam Deck",
+            "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"
+          },
+          {
+            "id": "o4",
+            "text": "Players want the original version to stay available",
+            "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"
+          }
+        ],
+        "backdown": {
+          "happened": false,
+          "kind": "none",
+          "date": null,
+          "summary": "Not applicable; the free upgrade went ahead as announced",
+          "source": null
+        },
+        "pushback_groups": [
+          "PC modders",
+          "players on older hardware or Steam Deck",
+          "visual purists (later, over a comparison clip)"
+        ],
+        "notes": "POSITIVE-reaction case. The 'objections' are practical concerns, not opposition. Expect the model to recognise strong goodwill (fans contrasting it with paid remasters) and suspicion of a hidden catch. A later visual-comparison backlash (23-24 Sep) falls outside the two-week window."
+      },
+      "runs": [
+        {
+          "seed": 7,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/witcher-3-free-remaster-upgrade-2026/seed-7/20261113-231159-how-will-witcher-3-owners-and-players-re",
+          "calls": 26,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": -0.817,
+          "sentiment_direction": "negative",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "negative",
+            "against": 9,
+            "in_favour": 1,
+            "neither": 9
+          },
+          "planner_mix": {
+            "supportive": 0.15,
+            "critical": 0.35,
+            "undecided": 0.3,
+            "indifferent": 0.2
+          },
+          "planner_reason": "Without concrete details on what exactly changed, reactions skew critical-to-undecided by default because gaming communities historically distrust changes that risk breaking mods or dropping older-platform support, while a smaller supportive contingent assumes CD Projekt Red's track record of goodwill from The Witcher 3's post-launch support justifies trust in the decision.",
+          "planner_direction": "negative",
+          "grade": {
+            "backdown_evidence": "\"meaning a 'keep the decision but clarify loudly' response is the likeliest real-world analogue\" and CDPR is predicted to be \"forced by mounting, cross-segment pressure to break silence with some written clarification on modding API plans, save/trophy compatibility, and last-gen support\"",
+            "direction_evidence": "\"The simulated crowd's first reaction skewed negative overall (9 against vs. 1 in favour of 19, with 9 neutral)... Sentiment worsened across the two-week window, falling from -0.40 at r0 to -0.82 by r6\"",
+            "extra_objections": [
+              "CDPR's prolonged silence past the in-scenario 'Day 14' milestone itself became the dominant grievance, more than the underlying decision",
+              "Distrust rooted in CDPR's history of big promises followed by silent/broken rollouts (invoking Cyberpunk 2077)",
+              "Modders fear repeated unpaid rework, recalling past 'compatibility-friendly' updates that broke load orders",
+              "Confusion among newer players about what 'support' for the remaster even means",
+              "Last-gen (PS4/Xbox One) console owners feel sidelined despite paying full price for their copies"
+            ],
+            "groups": [
+              {
+                "group": "PC modders",
+                "named": true
+              },
+              {
+                "group": "players on older hardware or Steam Deck",
+                "named": true
+              },
+              {
+                "group": "visual purists (later, over a comparison clip)",
+                "named": false
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "Modders fear unpaid rework and breakage if the API changes without warning, with 40k downloads at stake (@forge_modsmith #3, #12)"
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "A trophy hunter needs confirmation that old saves and trophies will carry over before losing two Gwent cards from 100% completion (@platinum_hunt_cj #2)"
+              },
+              {
+                "id": "o3",
+                "verdict": "partial",
+                "evidence": "Last-gen (PS4/Xbox One) owners feel sidelined despite paying full price for their copies (@oldgen_gary #14, #42; @shiftdad_mike #1; @ps4_vinny #39)"
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "predicted_direction": "negative",
+            "predicted_backdown": "partial"
+          },
+          "scores": {
+            "direction_match": false,
+            "direction_distance": 2,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "covered",
+              "covered",
+              "partial",
+              "missed"
+            ],
+            "backdown_predicted": "partial",
+            "backdown_match": false,
+            "backdown_kind_match": false,
+            "group_recall": 0.667,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 8,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/witcher-3-free-remaster-upgrade-2026/seed-8/20261113-233057-how-will-witcher-3-owners-and-players-re",
+          "calls": 27,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 1,
+            "in_favour": 11,
+            "neither": 6
+          },
+          "planner_mix": {
+            "supportive": 0.62,
+            "critical": 0.1,
+            "undecided": 0.18,
+            "indifferent": 0.1
+          },
+          "planner_reason": "The dominant reaction is strongly positive because the remaster, missing expansions, and a new native Switch 2 release all come at zero extra cost to existing owners, echoing CDPR's past goodwill with the 2022 free next-gen update; the main friction comes from a vocal minority who feel burned by paying full price for remasters elsewhere and from fans worried this signals delay for The Witcher 4, while others remain undecided pending actual graphical/performance comparisons before the September 2026 release.",
+          "planner_direction": "positive",
+          "grade": {
+            "predicted_direction": "positive",
+            "direction_evidence": "\"The simulated crowd's overall first reaction was positive — 11 of 18 person-agents reacted favourably to the free remaster-plus-expansions announcement versus only 1 critical\"",
+            "predicted_backdown": "none",
+            "backdown_evidence": "\"The most likely path is that CD Projekt Red keeps the decision exactly as announced — free remaster plus both expansions for existing owners... because no camp in the digest... asked for a different offer, only for proof that old bugs are fixed\"",
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "partial",
+                "evidence": "\"Real players include a much larger modding community with higher stakes on save/mod compatibility than the single modder-persona (@sixty_and_still_modd #25) in this run.\""
+              },
+              {
+                "id": "o2",
+                "verdict": "covered",
+                "evidence": "\"@marta_ontheroad asks about save-file carryover (#14), echoed by @jankowalski (#26: 'Hope saves carry over')\""
+              },
+              {
+                "id": "o3",
+                "verdict": "covered",
+                "evidence": "\"path-tracing performance on older GPUs (#25, #30)\" ... \"@frametime_ryszard, who notes 'path tracing scales badly on older hardware' (#30)\""
+              },
+              {
+                "id": "o4",
+                "verdict": "missed",
+                "evidence": ""
+              }
+            ],
+            "groups": [
+              {
+                "group": "PC modders",
+                "named": false
+              },
+              {
+                "group": "players on older hardware or Steam Deck",
+                "named": true
+              },
+              {
+                "group": "visual purists (later, over a comparison clip)",
+                "named": false
+              }
+            ],
+            "extra_objections": [
+              "Suspicion the free remaster is a marketing/hype vehicle for Witcher 4",
+              "Worry CDPR is overextending itself across remaster, new paid expansion, and Witcher 4 simultaneously",
+              "Unresolved navmesh/pop-in engine bugs from the original 2015 release not actually fixed",
+              "Lack of incentive for other studios to match CDPR's free-upgrade generosity",
+              "Demand that CDPR confirm the Songs of the Past/remaster team is organizationally separate from the Witcher 4 team"
+            ]
+          },
+          "scores": {
+            "direction_match": true,
+            "direction_distance": 0,
+            "objection_recall": 0.625,
+            "objection_verdicts": [
+              "partial",
+              "covered",
+              "covered",
+              "missed"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.333,
+            "unmatched": []
+          }
+        },
+        {
+          "seed": 9,
+          "run_dir": "bench/runs/rules4/runs5/2026-11-13-sonnet-haiku/witcher-3-free-remaster-upgrade-2026/seed-9/20261113-234443-how-will-witcher-3-owners-and-players-re",
+          "calls": 31,
+          "failed_calls": 0,
+          "final_round": 6,
+          "final_sentiment": null,
+          "sentiment_direction": null,
+          "sentiment_note": "round 6, the last, has no sentiment score",
+          "report_confidence": "medium",
+          "first_reaction": {
+            "direction": "positive",
+            "against": 4,
+            "in_favour": 13,
+            "neither": 1
+          },
+          "planner_mix": {
+            "supportive": 0.62,
+            "critical": 0.1,
+            "undecided": 0.18,
+            "indifferent": 0.1
+          },
+          "planner_reason": "A genuinely free overhaul with free expansions and a free native Switch 2 port, consistent with CDPR's prior free next-gen update, reads as pro-consumer against an industry norm of charging for remasters, so most owners react with immediate enthusiasm; the main friction points are modders worried about compatibility and some skepticism that the free remaster is a setup for monetizing the paid Songs of the Past expansion later, but nothing in the announcement gives real grounds for a reversal, so CDPR is very likely to keep the decision as announced.",
+          "planner_direction": "positive",
+          "grade": {
+            "backdown_evidence": "\"CDPR is likely to keep the free-upgrade decision as announced, with the real test shifting to how it prices and communicates the paid Songs of the Past expansion\"",
+            "direction_evidence": "\"The simulated crowd's first reactions were clearly positive: 13 of 18 people reacted favourably to the free remaster, against only 4 critical and 1 neutral first post\"",
+            "extra_objections": [
+              "Remaster seen as distraction from shipping The Witcher 4 (stalling criticism)",
+              "Suspicion that free remaster is goodwill cover to soften backlash for paid Songs of the Past expansion/Witcher 4 launch",
+              "Songs of the Past expansion may be priced too high (above €15-20 threshold)",
+              "CDPR's reassurance ('trust the timeline') seen as vague, faith-based rather than a concrete technical answer"
+            ],
+            "groups": [
+              {
+                "group": "PC modders",
+                "named": true
+              },
+              {
+                "group": "players on older hardware or Steam Deck",
+                "named": false
+              },
+              {
+                "group": "visual purists (later, over a comparison clip)",
+                "named": false
+              }
+            ],
+            "objections": [
+              {
+                "id": "o1",
+                "verdict": "covered",
+                "evidence": "\"modders worried about load-order breakage who never got a concrete answer (@shader_sylwia #22, #30; @modqueen_wren #18; @regex_radek #21; @overclock_viktor #4)\""
+              },
+              {
+                "id": "o2",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o3",
+                "verdict": "missed",
+                "evidence": ""
+              },
+              {
+                "id": "o4",
+                "verdict": "partial",
+                "evidence": "\"will the old version stay playable or am I nuking my load order either way?\" (@shader_sylwia #22)"
+              }
+            ],
+            "predicted_backdown": "none",
+            "predicted_direction": "positive"
+          },
+          "scores": {
+            "direction_match": true,
+            "direction_distance": 0,
+            "objection_recall": 0.375,
+            "objection_verdicts": [
+              "covered",
+              "missed",
+              "missed",
+              "partial"
+            ],
+            "backdown_predicted": "none",
+            "backdown_match": true,
+            "backdown_kind_match": true,
+            "group_recall": 0.333,
+            "unmatched": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -346,6 +346,14 @@ puts critics in every cast, the others answer them with worries and requests for
 divided. Where the news is a price rise with something new attached (the iPhone Duo, the Pixel 11), the
 planner and the crowd both call it negative, while the model alone, and the real reaction, were mixed.
 
+One other cause was tested and ruled out. Every case's question asks "which groups will push back and why, and is X
+likely to keep, change or reverse the decision", and the crowd saw that question in every prompt. A trial version
+(commit `e54bdd5`, not kept) showed the crowd only the situation and kept the question for the planner, the sentiment
+scorer and the report. On the 10 positive cases, 3 seeds each (`bench/results/2026-11-13-sonnet-haiku-rules4-positive.json`),
+it called 3 of 30 runs right, the same as version 3, while the planner's mix in those runs called 14. Objection
+recall didn't change (57% against 56%). The crowd's lean against good news doesn't come from the wording of the
+question.
+
 What we take from this, as hypotheses for the next pass: on this benchmark the simulated crowd does not add accuracy
 to one call of the same model, and on the direction it takes some away. A Tellfold report is better read as a
 rehearsal of the arguments people may raise than as a forecast of how the reaction will go. The next things to
