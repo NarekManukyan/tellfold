@@ -127,7 +127,8 @@ matches the planner, the crowd adds nothing to the planner's guess, and the resu
 The third pass and the 23 balanced cases (both 13 November, [below](#third-and-fourth-passes-13-november)) showed
 that the catch was real, and that the crowd moved the wrong way. On the balanced cases its direction moved away from
 the planner's in 28 of 64 runs and never once to the right answer, and in the 28 runs of either set whose real
-reaction was positive it called 2 positive. Since commit `62357bc`, new runs follow version 3 (`crowd_rules: 3`),
+reaction was positive it called 2 positive. In the balanced runs the mean sentiment of public posts (organisation
+accounts left out) fell from −0.15 in the opening round to −0.40 by round 6. Since commit `62357bc`, new runs follow version 3 (`crowd_rules: 3`),
 which keeps every rule above and adds these:
 
 - **The middle of the crowd behaves like a middle.** The round and opening prompts say that an undecided user stays
