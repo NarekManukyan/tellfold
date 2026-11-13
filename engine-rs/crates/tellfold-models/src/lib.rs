@@ -513,8 +513,10 @@ pub const CROWD_RULES: i64 = 3;
 pub const STAKE_RULES: i64 = 2;
 
 /// The first [`SimConfig::crowd_rules`] version with the rules for the middle of the crowd, going quiet, and scoring
-/// the attitude to the announcement. In the balanced accuracy cases, half of the undecided people's first posts
-/// scored against and 8% in favour, and supporters' later posts scored 0.55 lower than their first (docs/ACCURACY.md).
+/// the attitude to the announcement. Measured on the crowd rules 2 runs of the 23 balanced accuracy cases, with
+/// organisation accounts left out: the people written as undecided posted first against in about half the runs and in
+/// favour in 8% (matched by their written stance), and people whose first post was in favour posted on average 0.55
+/// lower afterwards. "Third and fourth passes" in docs/ACCURACY.md has what version 3 changed.
 pub const REACTION_RULES: i64 = 3;
 
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
