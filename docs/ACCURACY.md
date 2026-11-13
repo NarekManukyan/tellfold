@@ -96,8 +96,8 @@ keeps every rule above and adds these:
   It then estimates how those people lean when they first hear the news (supportive, critical, undecided or
   indifferent) and gives a short reason. The public is spread over the groups, and each person's starting stance is
   drawn from that mix, after the bounds below, instead of from one fixed mix of about a third supportive and a third
-  critical. With the fixed mix, the first reaction came out close to even in 12 of the 19 runs of the second pass,
-  whatever the announcement was. The groups, the planner's mix, its reason and the bounded mix are saved in the run's
+  critical. With the fixed mix, the first reaction came out mixed in 12 of the 19 runs of the second pass (in 11 the
+  sides were close to even, in one most people took no side), whatever the announcement was. The groups, the planner's mix, its reason and the bounded mix are saved in the run's
   `config.json` as `stakes`, so a reader can see why the crowd leaned the way it did.
 - **Organisation posts are checked.** Before a post by an organisation account goes into the feed, the planner model
   checks it against the seed text, and the post is dropped if it states, offers or announces anything the seed
@@ -142,6 +142,11 @@ which keeps every rule above and adds these:
 - **Sentiment is the attitude to the announcement.** The sentiment prompt scores what a post says about the
   announcement itself. A post that welcomes it but asks for more or for a guarantee is positive; one that weighs both
   sides about evenly, or mainly asks a question, is close to 0.
+
+What version 3 answers, measured on the version 2 balanced runs with organisation accounts left out: about half of
+the first posts of people written as undecided (matched by their written stance) scored against and 8% in favour, so
+the first reaction leaned negative whatever the planner expected; and people whose first post was in favour posted on
+average 0.55 lower afterwards, those in the middle 0.27 lower, while critics posted 0.10 higher.
 
 Unlike versions 1 and 2, version 3 was written after looking at the cases it was then measured on (the balanced
 cases), so its scores on those cases are not an independent test.
@@ -227,7 +232,8 @@ The first 20 cases leaned negative (15 of 20): well-sourced positive reactions w
 
 Four passes so far, with the same models, settings and judge, each with the zero-shot baseline. The first two
 ran the original 20 cases with one seed (7), the third the same 20 with three seeds (7, 8 and 9), and the fourth all
-43 cases with three seeds:
+43 cases with three seeds. A separate run put the 23 new cases through the third pass's engine, so version 2 can be
+compared on all 43; it is listed with the passes but not counted as one:
 
 - **11 November 2026, commit `a92638f`:** the engine as released. All 20 runs and all 20 zero-shot answers were
   graded. Results: [`2026-11-11-sonnet-haiku.json`](../bench/results/2026-11-11-sonnet-haiku.json), per-case table in
@@ -258,8 +264,9 @@ Every judge verdict and the quote behind it is in the JSON files.
 ### Third and fourth passes (13 November)
 
 All 43 cases. Version 2 is the third pass and the balanced cases together; version 3 is the fourth pass. "Planner's
-mix" is the direction the planner's starting stance mix implies, by the same first-reaction rule, before anyone in
-the crowd posts. The two zero-shot columns are separate samples of the same prompt.
+mix" is the direction the mix the planner gave implies, by the same first-reaction rule, before anyone in the crowd
+posts. It is scored as the planner gave it, before the bounds that keep 15% on each side; the crowd is drawn from the
+bounded mix. The two zero-shot columns are separate samples of the same prompt.
 
 | | Tellfold v2 | Planner's mix v2 | No crowd (v2 pass) | Tellfold v3 | Planner's mix v3 | No crowd (v3 pass) | Ignoring the announcement |
 |---|---|---|---|---|---|---|---|
@@ -588,7 +595,7 @@ Read the results with these in mind. Some of them we can measure; some we can on
 - **The judge is an LLM.** Grading objection recall needs judgement, so a model does it. It can be lenient, strict or
   inconsistent. Its prompt is public, it sees only the report, the seed's headline and the rubric's objections and
   groups (never the true direction or backdown), and every verdict comes with a quote
-  from the report so it can be checked by hand. The [judge check](#judge-check) below compares six of its gradings
+  from the report so it can be checked by hand. The [judge check](#judge-check) above compares six of its gradings
   with a second reading; that second reading was also done by a Claude model, so a check by a person is still owed.
 - **Few cases.** With 20 cases, one case moves a percentage by five points; with 43, by more than two. Three seeds
   per case show the spread of one case, but they are not three more cases. Differences of a few points between two
@@ -596,6 +603,11 @@ Read the results with these in mind. Some of them we can measure; some we can on
   by three cases on direction and two on backdown, and it got 8 of the 20 original cases in the third pass.
 - **"Direction" is a judgement too.** Reporting rarely says "62% of people were against". The rubric's direction is
   our reading of the coverage, and mixed reactions are the hardest to call.
+- **The judge was sometimes asked twice.** Until the review of this page's pull request, the harness took any reply
+  containing the word "network" for a dropped connection and asked again, so a judge or zero-shot answer that
+  mentioned a bus, rail or social network was replaced by a later one that didn't. That changed which of several
+  equally valid answers was graded in a few transport and social media cases. It is fixed for the next pass; the
+  numbers on this page were graded before the fix.
 - **Runs vary.** The same case can come out differently with another seed. A single-seed pass is a sample, not a
   measurement; `--repeats 3` shows the spread.
 - **Two weeks, one question.** The test checks the first reaction and whether there was a backdown. It doesn't
@@ -604,9 +616,10 @@ Read the results with these in mind. Some of them we can measure; some we can on
 ## Cost of a pass
 
 `python3 bench/run.py --estimate` prints the calls and tokens a pass needs, using the engine's own call estimate and
-the average prompt and reply sizes of real runs. For the 20 cases, one seed each, with the zero-shot baseline: about
-540 model calls, 3.0M input and 0.6M output tokens, roughly **$5** at API list prices (Haiku 5.5 $0.10/$0.50, Sonnet
-5.5 $2/$10 per million tokens). With `--repeats 3` it is about 1,540 calls and $15. On a Claude Code subscription
+the average prompt and reply sizes of real runs, including the stakes plan and fact checks of the current crowd rules.
+For the 43 cases, one seed each, with the zero-shot baseline: about 1,460 model calls, 7.1M input and 1.3M output
+tokens, roughly **$13** at API list prices (Haiku 5.5 $0.10/$0.50, Sonnet 5.5 $2/$10 per million tokens). With
+`--repeats 3` it is about 4,210 calls and $37. The fourth pass really cost about $66, so read the estimate as a floor. On a Claude Code subscription
 nothing is billed per token; the pass counts against the plan's usage limits instead. Most of the money is the
 Sonnet report and persona calls; most of the calls are Haiku agent rounds.
 
