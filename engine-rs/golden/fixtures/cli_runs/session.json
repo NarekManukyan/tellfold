@@ -358,7 +358,7 @@
    "stdin": null,
    "env": {},
    "exit": 0,
-   "stdout": "tellfold 0.6.0\n",
+   "stdout": "tellfold 0.7.0\n",
    "stderr": ""
   },
   {
