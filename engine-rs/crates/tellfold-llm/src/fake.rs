@@ -92,8 +92,10 @@ impl FakeLlm {
         self.calls.lock().expect("not poisoned").iter().map(|c| c.0.clone()).collect()
     }
 
+    /// Both lists under the calls lock, so their entries stay in step for tests that zip them.
     fn record(&self, purpose: &str, model: &str, prompt: &str, system: &str) {
-        self.calls.lock().expect("not poisoned").push((purpose.into(), model.into(), prompt.into()));
+        let mut calls = self.calls.lock().expect("not poisoned");
+        calls.push((purpose.into(), model.into(), prompt.into()));
         self.systems.lock().expect("not poisoned").push((purpose.into(), system.into()));
     }
 }

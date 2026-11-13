@@ -509,23 +509,28 @@ pub struct CastStakes {
 /// sentiment is scored as the attitude to the announcement itself.
 pub const CROWD_RULES: i64 = 3;
 
+/// The first [`SimConfig::crowd_rules`] version: the fact and topic rules, the situation in every round, everyone's first
+/// turn, and the report's direction from the first reaction.
+pub const TOPIC_RULES: i64 = 1;
+
 /// The first [`SimConfig::crowd_rules`] version with the planned cast, the fact check and the objections section.
 pub const STAKE_RULES: i64 = 2;
 
 /// The first [`SimConfig::crowd_rules`] version with the rules for the middle of the crowd, going quiet, and scoring
-/// the attitude to the announcement. Measured on the crowd rules 2 runs of the 23 balanced accuracy cases, with
-/// organisation accounts left out: about half of the first posts of people written as undecided (matched by their
-/// written stance) scored against and 8% in favour, and people whose first post was in favour posted on average 0.55
-/// lower afterwards. "Third and fourth passes" in docs/ACCURACY.md has what version 3 changed.
+/// the attitude to the announcement. "Crowd rules" in docs/ACCURACY.md has the measurements behind it.
 pub const REACTION_RULES: i64 = 3;
 
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
 /// does (its parity tests set it).
 pub const CROWD_RULES_ENV: &str = "TELLFOLD_CROWD_RULES";
 
-/// The crowd rules a new run follows: [`CROWD_RULES`] unless [`CROWD_RULES_ENV`] holds a number.
+/// The crowd rules a new run follows: [`CROWD_RULES`] unless [`CROWD_RULES_ENV`] holds a number, kept within the
+/// versions that exist, so a run never records rules it did not follow.
 pub fn new_crowd_rules() -> i64 {
-    std::env::var(CROWD_RULES_ENV).ok().and_then(|v| v.trim().parse().ok()).unwrap_or(CROWD_RULES)
+    std::env::var(CROWD_RULES_ENV)
+        .ok()
+        .and_then(|v| v.trim().parse::<i64>().ok())
+        .map_or(CROWD_RULES, |v| v.clamp(0, CROWD_RULES))
 }
 
 fn is_false(b: &bool) -> bool {

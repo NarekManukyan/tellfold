@@ -19,9 +19,8 @@ use tellfold_engine::material::{
     MAX_MATERIAL_FILE_BYTES,
 };
 use tellfold_engine::personas::{tidy_cast, MAX_CAST};
-use tellfold_models::new_crowd_rules;
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{GodEvent, KnowledgeGraph, MaterialSummary, Persona, SimConfig, MATERIAL_KINDS};
+use tellfold_models::{new_crowd_rules, GodEvent, KnowledgeGraph, MaterialSummary, Persona, SimConfig, MATERIAL_KINDS};
 use tellfold_runtimes::load_settings;
 use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE, WORLD_FILE};
 use tellfold_store::study::{join_study, plan_variant};
@@ -626,6 +625,7 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 // a version changes the text only: it keeps the source's turn rule, whatever the form says
                 config.fair_turns = source.fair_turns;
                 config.crowd_rules = source.crowd_rules;
+                config.stakes = source.stakes.clone();
                 // and was grounded in the same material, which the report names
                 config.material = source.material.clone();
                 study = Some(planned_study);

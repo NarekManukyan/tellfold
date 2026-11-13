@@ -8,8 +8,8 @@ use tellfold_llm::{json, Llm};
 use tellfold_models::json::{py_round, py_sum};
 use tellfold_models::text::{py_split, py_strip};
 use tellfold_models::{
-    Camp, CitationAudit, FirstReaction, KnowledgeGraph, Recommendation, RecommendationAction, Report, SimConfig,
-    STAKE_RULES,
+    Camp, CitationAudit, FirstReaction, KnowledgeGraph, Persona, Recommendation, RecommendationAction, Report,
+    SimConfig, STAKE_RULES, TOPIC_RULES,
 };
 use tellfold_store::world::World;
 
@@ -122,8 +122,7 @@ pub fn first_reaction(ev: &Evidence) -> Option<FirstReaction> {
     let mut seen: HashSet<&str> = HashSet::new();
     let (mut against, mut in_favour, mut neither) = (0i64, 0i64, 0i64);
     for post in posts {
-        let organisation =
-            ev.people.get(&post.author_id).is_some_and(|p| p.entity_id.as_deref().is_some_and(|e| !e.is_empty()));
+        let organisation = ev.people.get(&post.author_id).is_some_and(is_organisation);
         if organisation || !seen.insert(post.author_id.as_str()) {
             continue;
         }
@@ -141,6 +140,11 @@ pub fn first_reaction(ev: &Evidence) -> Option<FirstReaction> {
         return None;
     }
     Some(FirstReaction { direction: direction_of(against, in_favour, neither).into(), against, in_favour, neither })
+}
+
+/// An organisation account speaks for a side by definition, so the first reaction and the first posts leave it out.
+fn is_organisation(person: &Persona) -> bool {
+    person.entity_id.as_deref().is_some_and(|e| !e.is_empty())
 }
 
 /// The direction rule of [`first_reaction`], on its counts.
@@ -181,7 +185,7 @@ pub fn objections_block(ev: &Evidence) -> Option<String> {
     let mut lines: Vec<String> = Vec::new();
     for post in posts {
         let Some(person) = ev.people.get(&post.author_id) else { continue };
-        if person.entity_id.as_deref().is_some_and(|e| !e.is_empty()) || !seen.insert(post.author_id.as_str()) {
+        if is_organisation(person) || !seen.insert(post.author_id.as_str()) {
             continue;
         }
         lines.push(format!("- @{} #{}: {}", person.handle, post.id, clip(&post.content, FIRST_POST_CHARS)));
@@ -256,7 +260,7 @@ pub async fn build_report(
     let ev = collect_evidence(world)?;
     let digest = digest_text(&ev, Some(graph));
     let mut prompt = fill(REPORT_TASK, &[("question", &config.question), ("digest", &digest)]);
-    let reaction = if config.crowd_rules >= 1 { first_reaction(&ev) } else { None };
+    let reaction = if config.crowd_rules >= TOPIC_RULES { first_reaction(&ev) } else { None };
     if let Some(reaction) = &reaction {
         prompt = format!("{prompt}\n\n{}", direction_block(reaction));
     }
@@ -270,7 +274,10 @@ pub async fn build_report(
     let draft = match json::<Report>(llm, &prompt, &system, model, "report.write").await {
         Ok(draft) => draft,
         Err(first) if config.crowd_rules >= STAKE_RULES => {
-            json::<Report>(llm, &prompt, &system, model, "report.write").await.map_err(|_| first)?
+            json::<Report>(llm, &prompt, &system, model, "report.write").await.map_err(|second| {
+                tellfold_models::log::warning("tellfold.report", &format!("the report retry failed too\n{second}"));
+                first
+            })?
         }
         Err(first) => return Err(first.into()),
     };

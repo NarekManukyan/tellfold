@@ -22,7 +22,7 @@ use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{
     Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, REACTION_RULES,
-    STAKE_RULES,
+    STAKE_RULES, TOPIC_RULES,
 };
 use tellfold_store::world::{World, WorldError};
 
@@ -253,6 +253,10 @@ Score the attitude to the announcement or decision itself, not to the conversati
 - A post that weighs good and bad points about evenly, or mainly asks a question, is close to 0.
 - Agreeing or disagreeing with another user counts only through what the post says about the announcement."#;
 
+/// After a source cut at [`SOURCE_CHARS`] in the fact check: posts about the part not shown are not failed for it.
+const SOURCE_CUT: &str = "\n[The source material continues beyond this point but is not shown. Don't fail a post only \
+because it states something that could come from the part not shown.]";
+
 /// The characters of the seed documents an organisation post is checked against ([`Engine::with_source`]).
 pub const SOURCE_CHARS: usize = 12_000;
 
@@ -344,7 +348,7 @@ impl<'a> Engine<'a> {
     }
 
     fn rules(&self) -> bool {
-        self.config.crowd_rules >= 1
+        self.config.crowd_rules >= TOPIC_RULES
     }
 
     /// The indexes of the organisation posts (author, text) that state something the source doesn't, checked by
@@ -358,18 +362,17 @@ impl<'a> Engine<'a> {
             .enumerate()
             .map(|(i, (p, text))| format!("[{}] @{} ({}): {}", i + 1, p.handle, p.name, squash(text)))
             .collect();
+        // a longer source is cut at SOURCE_CHARS: the checker is told, so a post about the part it can't see passes
+        let cut = if self.source.chars().count() >= SOURCE_CHARS { SOURCE_CUT } else { "" };
         let prompt = format!(
-            "SOURCE MATERIAL (everything that is known):\n{}\n\nPOSTS BY ORGANISATION ACCOUNTS:\n{}\n\n\
+            "SOURCE MATERIAL (everything that is known):\n{}{cut}\n\nPOSTS BY ORGANISATION ACCOUNTS:\n{}\n\n\
 Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list when none does.",
             self.source,
             lines.join("\n")
         );
-        let started = Instant::now();
-        let result =
-            json::<FactCheck>(self.llm, &prompt, FACT_CHECK_SYSTEM, &self.config.planner_model, "engine.factcheck")
-                .await;
-        ledger.calls.set(ledger.calls.get() + 1);
-        ledger.seconds.set(ledger.seconds.get() + started.elapsed().as_secs_f64());
+        let result = self
+            .call_on::<FactCheck>(&self.config.planner_model, &prompt, FACT_CHECK_SYSTEM, "engine.factcheck", ledger)
+            .await;
         let flagged: HashSet<usize> = match result {
             Ok(out) => out
                 .invented
@@ -565,14 +568,15 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
         let news = events.iter().any(|e| e.round == r);
         let mut active = sample_active(&personas, r, self.config.seed, news)?;
         let mut turns: HashMap<String, &'static str> = HashMap::new();
+        let first_turn_round = self.rules() && r <= FIRST_TURN_ROUNDS;
+        let posted = if self.config.fair_turns || first_turn_round { self.world.authors()? } else { HashSet::new() };
         if self.config.fair_turns {
-            let (posted, last_active) = (self.world.authors()?, self.world.last_active_rounds()?);
+            let last_active = self.world.last_active_rounds()?;
             let (extra, given) = fair_turns(&personas, &active, &posted, &last_active, r);
             active.extend(extra);
             turns = given;
         }
-        if self.rules() && r <= FIRST_TURN_ROUNDS {
-            let posted = self.world.authors()?;
+        if first_turn_round {
             let (extra, given) = first_turns(&personas, &active, &posted, r);
             active.extend(extra);
             for (id, note) in given {
@@ -802,8 +806,20 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
         purpose: &str,
         ledger: &Ledger,
     ) -> std::result::Result<T, LlmError> {
+        self.call_on(&self.config.agent_model, prompt, system, purpose, ledger).await
+    }
+
+    /// [`Self::call`] on another model (the planner's, for the fact check), counted in the same ledger.
+    async fn call_on<T: JsonModel>(
+        &self,
+        model: &str,
+        prompt: &str,
+        system: &str,
+        purpose: &str,
+        ledger: &Ledger,
+    ) -> std::result::Result<T, LlmError> {
         let started = Instant::now();
-        let result = json::<T>(self.llm, prompt, system, &self.config.agent_model, purpose).await;
+        let result = json::<T>(self.llm, prompt, system, model, purpose).await;
         ledger.calls.set(ledger.calls.get() + 1);
         ledger.seconds.set(ledger.seconds.get() + started.elapsed().as_secs_f64());
         result

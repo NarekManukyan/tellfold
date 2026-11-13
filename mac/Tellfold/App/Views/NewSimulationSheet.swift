@@ -710,7 +710,8 @@ struct NewSimulationSheet: View {
         let chunks = NewRunRequest.estimatedChunks(files: allFiles, sizes: fileBytes, inlineDocuments: text.isEmpty ? [] : [.description(text)])
         let materialItems = usedMaterial.isEmpty ? 0 : materialPreview?.summary.items ?? 0
         let split = NewRunRequest.estimatedCallSplit(agents: crowdSize, rounds: rounds, batch: batch, chunks: chunks,
-                                                     reusesCast: audience != nil, materialItems: materialItems)
+                                                     reusesCast: audience != nil, materialItems: materialItems,
+                                                     crowdRules: NewRunRequest.crowdRules)
         return NewSimulationRules.costLine(
             agentCalls: split.agent, plannerCalls: split.planner, materialCalls: MaterialText.calls(items: materialItems),
             agentRuntime: model.runtime(agentRuntime)?.name ?? agentRuntime, agentModel: agentModel,

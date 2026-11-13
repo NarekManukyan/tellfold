@@ -30,7 +30,7 @@ use tellfold_store::files::{
 };
 use tellfold_store::world::{World, WorldError};
 
-use crate::engine::{Engine, EngineError};
+use crate::engine::{Engine, EngineError, SOURCE_CHARS};
 use crate::graph::{extract_graph, select_chunks, MAX_EXTRACT_CHUNKS};
 use crate::material::{cluster, count_kinds, load_material, read_items, Cluster, StoredMaterial};
 use crate::personas::{generate_planned_cast, CastPlan, Ground};
@@ -487,7 +487,12 @@ async fn pipeline(
     track.stage(RunStage::Reading, &format!("reading {} seed file{plural}", seeds.len()), json!({}))?;
     let docs = load_documents(seeds).map_err(|e| RunError(format!("could not read seed files: {e}")))?;
     let chunks = chunk_text_default(&docs);
-    let source = docs.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n");
+    // only the fact check of a run with the stake rules reads it, and only its first SOURCE_CHARS characters
+    let source = if config.crowd_rules >= STAKE_RULES {
+        docs.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n").chars().take(SOURCE_CHARS).collect()
+    } else {
+        String::new()
+    };
     if chunks.is_empty() {
         return Err(RunError("no readable text found in the seed files".into()).into());
     }

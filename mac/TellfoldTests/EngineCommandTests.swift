@@ -164,6 +164,17 @@ struct EstimateTests {
                 == agentCalls + plannerCalls)
     }
 
+    /// Crowd rules 2 and later add a stakes plan and a fact check a round on the planner side
+    /// (`crowd_rules_calls` in tellfold-store's estimate).
+    @Test func crowdRulesAddPlannerCalls() {
+        let plain = NewRunRequest.estimatedCallSplit(agents: 20, rounds: 6, batch: 6, chunks: 3)
+        let ruled = NewRunRequest.estimatedCallSplit(agents: 20, rounds: 6, batch: 6, chunks: 3, crowdRules: 3)
+        #expect(ruled.agent == plain.agent && ruled.planner == plain.planner + 1 + 6)
+        let saved = NewRunRequest.estimatedCallSplit(agents: 20, rounds: 6, batch: 6, chunks: 3, reusesCast: true,
+                                                     crowdRules: 3)
+        #expect(saved.planner == 1 + 6)
+    }
+
     /// A saved audience brings its people; the same rows are in tests/test_server.py and the engine's golden tests.
     @Test(arguments: [(20, 6, 6, 3, 20, 1), (25, 10, 4, 9, 43, 1), (5, 4, 2, 7, 10, 1)])
     func savedAudienceSkipsCasting(agents: Int, rounds: Int, batch: Int, chunks: Int, agentCalls: Int,

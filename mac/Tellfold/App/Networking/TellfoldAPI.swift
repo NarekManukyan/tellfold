@@ -83,12 +83,17 @@ struct NewRunRequest: Hashable, Sendable {
     /// Share of the crowd expected to act in a round (`ESTIMATED_ACTIVE_SHARE` in tellfold/runner.py).
     static let estimatedActiveShare = 0.4
 
+    /// The crowd rules a new run follows (`CROWD_RULES` in tellfold-models).
+    static let crowdRules = 3
+
     /// The same formula as `tellfold.runner.estimate_call_split`: model calls for the crowd (agent runtime) and for
     /// planning (graph, personas, report) when nothing needs a retry.
     /// `reusesCast` (a saved audience) skips the graph and persona calls; `materialItems` of audience material add
-    /// the planner calls that read them (Rust-only, `material_calls` in tellfold-store/src/estimate.rs).
+    /// the planner calls that read them (Rust-only, `material_calls` in tellfold-store/src/estimate.rs). From
+    /// `crowdRules` 2, a stakes plan and a fact check a round (`crowd_rules_calls`, Rust-only too).
     static func estimatedCallSplit(agents: Int, rounds: Int, batch: Int, chunks: Int,
-                                   reusesCast: Bool = false, materialItems: Int = 0) -> (agent: Int, planner: Int) {
+                                   reusesCast: Bool = false, materialItems: Int = 0,
+                                   crowdRules: Int = 0) -> (agent: Int, planner: Int) {
         let batch = Double(max(1, batch))
         let graph = reusesCast ? 0 : Int((Double(min(chunks, maxExtractChunks)) / 4).rounded(.up))
         let personas = reusesCast ? 0 : Int((Double(agents) / 10).rounded(.up))
@@ -97,7 +102,10 @@ struct NewRunRequest: Hashable, Sendable {
         let active = max(1, (Double(agents) * estimatedActiveShare).rounded(.up))
         let perRound = Int((active / batch).rounded(.up)) + 1
         let material = reusesCast ? 0 : MaterialText.calls(items: materialItems)
-        return (opening + rounds * perRound, graph + personas + material + 1)
+        // crowd rules 2 and later: a stakes plan for a cast written from the announcement, a fact check a round
+        let castGiven = reusesCast || materialItems > 0
+        let crowd = crowdRules >= 2 ? (castGiven ? 0 : 1) + max(0, rounds) : 0
+        return (opening + rounds * perRound, graph + personas + material + 1 + crowd)
     }
 
     /// The same formula as `tellfold.runner.estimate_calls`.
