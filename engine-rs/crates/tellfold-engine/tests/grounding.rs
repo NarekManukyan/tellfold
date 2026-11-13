@@ -118,7 +118,7 @@ fn the_plan_is_deterministic_and_unread_material_changes_nothing() {
 fn grounded_personas_record_their_source() {
     let (items, clusters) = material();
     let llm = FakeLlm::new(tellfold_llm::canned::fake_responder);
-    let plan = CastPlan { fair: false, ground: Some(Ground { items: &items, clusters: &clusters }) };
+    let plan = CastPlan { ground: Some(Ground { items: &items, clusters: &clusters }), ..Default::default() };
     let cast = run(generate_cast(&llm, &KnowledgeGraph::default(), QUESTION, 8, "sonnet", "English", plan)).unwrap();
     assert_eq!(cast.len(), 8);
     for p in &cast {

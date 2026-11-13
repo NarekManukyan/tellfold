@@ -20,7 +20,7 @@ use tellfold_engine::material::{
 };
 use tellfold_engine::personas::{tidy_cast, MAX_CAST};
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{GodEvent, KnowledgeGraph, MaterialSummary, Persona, SimConfig, MATERIAL_KINDS};
+use tellfold_models::{new_crowd_rules, GodEvent, KnowledgeGraph, MaterialSummary, Persona, SimConfig, MATERIAL_KINDS};
 use tellfold_runtimes::load_settings;
 use tellfold_store::files::{now_iso, write_json, write_json_list, GRAPH_FILE, PERSONAS_FILE, WORLD_FILE};
 use tellfold_store::study::{join_study, plan_variant};
@@ -523,6 +523,7 @@ fn plan(form: &Form, app: &AppState) -> Result<Planned, ApiError> {
     let variant = Some(str_field(form, "variant", "", 60, None)?).filter(|s| !s.is_empty());
     config.review_cast = bool_field(form, "review_cast");
     config.fair_turns = bool_field(form, "fair_turns");
+    config.crowd_rules = new_crowd_rules();
     let audience = audience_field(form)?;
     if audience.is_some() && !cast_from.is_empty() {
         return Err(ApiError::new(400, "use either cast_from or audience, not both"));
@@ -623,6 +624,8 @@ pub async fn create_run(app: AppState, request: Request) -> ApiResult {
                 config.num_agents = source.num_agents;
                 // a version changes the text only: it keeps the source's turn rule, whatever the form says
                 config.fair_turns = source.fair_turns;
+                config.crowd_rules = source.crowd_rules;
+                config.stakes = source.stakes.clone();
                 // and was grounded in the same material, which the report names
                 config.material = source.material.clone();
                 study = Some(planned_study);

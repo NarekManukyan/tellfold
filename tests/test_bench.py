@@ -63,6 +63,9 @@ def test_estimate_matches_the_engine_formula():
     agent = sum(n for p, n in calls.items() if p.startswith("engine."))
     planner = sum(n for p, n in calls.items() if not p.startswith("engine."))
     assert (agent, planner) == (20, 4)
+    # crowd rules 2 and later add the stakes plan and a fact check a round, both on the planner model
+    ruled = bench.estimate_calls(20, 6, 6, 1, crowd_rules=3)
+    assert ruled == {**calls, "personas.stakes": 1, "engine.factcheck": 7}
     case = bench.load_cases(folder_root=FIXTURE_CASES)
     est = bench.estimate(case, bench.SETTINGS, repeats=2, zero_shot=True, judge_model="sonnet")
     assert est["rows"]["judge"]["calls"] == 3
@@ -260,3 +263,42 @@ def test_unknown_model_has_no_price():
     assert bench.price_for("claude-haiku-5-5") == bench.PRICES["haiku"]
     with pytest.raises(SystemExit):
         bench.price_for("gpt-9")
+
+
+def test_a_reply_that_mentions_a_network_is_kept(tmp_path):
+    # judge and zero-shot answers about bus, rail or social networks used to be taken for a dropped connection and
+    # asked again up to six times
+    model = bench.ClaudeModel(str(fake_claude(tmp_path, {"ok": "riders on the bus network ECONNRESET"})), "haiku")
+    assert model.call("sys", "user", {"type": "object", "required": ["ok"]})["ok"].startswith("riders")
+    assert len(read_calls(tmp_path)) == 1
+
+
+def test_a_saved_zero_shot_answer_is_kept_only_when_resuming(tmp_path):
+    saved = tmp_path / "zero-shot.json"
+    saved.write_text(json.dumps({"answer": "old"}))
+
+    class Model:
+        calls = 0
+
+        def call(self, system, user, schema):
+            Model.calls += 1
+            return {"summary": "new"}
+
+    class Judge:
+        def grade(self, case, answer, final):
+            return {}
+
+    case = bench.load_cases(folder_root=FIXTURE_CASES)[0]
+    assert bench.run_zero_shot(case, ("sys", "{{SEED}} {{QUESTION}}"), Model(), Judge(), saved, reuse=True) == {
+        "answer": "old"
+    }
+    assert Model.calls == 0
+    bench.run_zero_shot(case, ("sys", "{{SEED}} {{QUESTION}}"), Model(), Judge(), saved)
+    assert Model.calls == 1
+    assert json.loads(saved.read_text())["answer"] == {"summary": "new"}
+
+
+def test_a_pass_records_its_crowd_rules_and_warns_when_they_differ(capsys):
+    assert bench.crowd_rules_of([{"runs": [{"crowd_rules": 3}, {"crowd_rules": 3}]}]) == [3]
+    assert bench.crowd_rules_of([{"runs": [{"crowd_rules": 2}]}, {"runs": [{"crowd_rules": 3}, {}]}]) == [2, 3]
+    assert "more than one crowd rules version" in capsys.readouterr().err

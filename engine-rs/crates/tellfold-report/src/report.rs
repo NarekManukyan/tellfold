@@ -7,7 +7,10 @@ use tellfold_engine::pytext::decimal_int;
 use tellfold_llm::{json, Llm};
 use tellfold_models::json::{py_round, py_sum};
 use tellfold_models::text::{py_split, py_strip};
-use tellfold_models::{Camp, CitationAudit, KnowledgeGraph, Recommendation, RecommendationAction, Report, SimConfig};
+use tellfold_models::{
+    Camp, CitationAudit, FirstReaction, KnowledgeGraph, Persona, Recommendation, RecommendationAction, Report,
+    SimConfig, STAKE_RULES, TOPIC_RULES,
+};
 use tellfold_store::world::World;
 
 use crate::audit::{all_ok, audit_citations, map_texts, mark_unverified_texts, UNVERIFIED};
@@ -82,7 +85,118 @@ removed. These are hypotheses from a simulated crowd, to be tested with real peo
 EVIDENCE DIGEST
 {digest}";
 
+/// Added to the report task in a run with [`STAKE_RULES`], after the FIRST POSTS block. The digest's top posts and
+/// threads favour the loudest few, so in the first two accuracy passes most objections real people raised never
+/// reached the report even when someone in the crowd had raised them.
+pub const OBJECTIONS_TASK: &str = "\
+OBJECTIONS RULE: one of the sections is titled \"What people objected to\". Its body is a \"- \" list of every \
+distinct objection, worry or complaint people raised anywhere in the digest, including the FIRST POSTS block, each \
+naming who raised it (their situation, not only a handle) with a citation. Keep objections only one or two people \
+raised; merge only ones that make the same point.";
+
+/// The most characters of a first post shown in the FIRST POSTS block.
+const FIRST_POST_CHARS: usize = 280;
+
+/// Added to the report task in a run with the crowd rules, after the digest's FIRST REACTION block.
+pub const DIRECTION_TASK: &str = "\
+DIRECTION RULE: the FIRST REACTION block gives the overall direction of the crowd's reaction, counted from each \
+person's first post. The summary's first sentence states it plainly, and the title and prediction agree with it. \
+Describe later changes in sentiment as shifts after that first reaction, not as the overall answer. Call the reaction \
+mixed only when the block says mixed.";
+
+/// A first post scoring beyond this, either way, takes a side.
+pub const SIDE_SCORE: f64 = 0.2;
+/// The share of the people taking a side that one side needs for the reaction to lean its way (3 to 2).
+pub const MAJORITY: f64 = 0.6;
+/// The share of the people who must take a side at all; below it the reaction is mostly indifferent, so mixed.
+pub const MIN_SIDED: f64 = 0.5;
+
 pub const MAX_RECOMMENDATIONS: usize = 6;
+
+/// How the people first reacted: each one's first scored post (organisation accounts left out, since they speak for
+/// a side by definition). The direction leans one way only when most people took a side and at least [`MAJORITY`]
+/// of those took the same one; otherwise it is mixed. None when no person's post was scored.
+pub fn first_reaction(ev: &Evidence) -> Option<FirstReaction> {
+    let mut posts: Vec<_> = ev.posts.values().filter(|p| ev.post_sentiment.contains_key(&p.id)).collect();
+    posts.sort_by_key(|p| (p.round, p.id));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let (mut against, mut in_favour, mut neither) = (0i64, 0i64, 0i64);
+    for post in posts {
+        let organisation = ev.people.get(&post.author_id).is_some_and(is_organisation);
+        if organisation || !seen.insert(post.author_id.as_str()) {
+            continue;
+        }
+        let score = ev.post_sentiment[&post.id];
+        if score < -SIDE_SCORE {
+            against += 1;
+        } else if score > SIDE_SCORE {
+            in_favour += 1;
+        } else {
+            neither += 1;
+        }
+    }
+    let people = against + in_favour + neither;
+    if people == 0 {
+        return None;
+    }
+    Some(FirstReaction { direction: direction_of(against, in_favour, neither).into(), against, in_favour, neither })
+}
+
+/// An organisation account speaks for a side by definition, so the first reaction and the first posts leave it out.
+fn is_organisation(person: &Persona) -> bool {
+    person.entity_id.as_deref().is_some_and(|e| !e.is_empty())
+}
+
+/// The direction rule of [`first_reaction`], on its counts.
+pub fn direction_of(against: i64, in_favour: i64, neither: i64) -> &'static str {
+    let sided = (against + in_favour) as f64;
+    let people = sided + neither as f64;
+    if people == 0.0 || sided < MIN_SIDED * people {
+        "mixed"
+    } else if against as f64 >= MAJORITY * sided {
+        "negative"
+    } else if in_favour as f64 >= MAJORITY * sided {
+        "positive"
+    } else {
+        "mixed"
+    }
+}
+
+/// The digest block and task note that give the report its direction, for a run with the crowd rules.
+fn direction_block(reaction: &FirstReaction) -> String {
+    format!(
+        "FIRST REACTION (each person's first post; organisation accounts left out)\n\
+- against {}, in favour {}, neither {}, of {} people\n\
+- overall direction: {}\n\n{DIRECTION_TASK}",
+        reaction.against,
+        reaction.in_favour,
+        reaction.neither,
+        reaction.against + reaction.in_favour + reaction.neither,
+        reaction.direction
+    )
+}
+
+/// The digest block and task note that make the report list every objection, for a run with [`STAKE_RULES`]: each
+/// person's first post (organisation accounts left out), in the order they were written. None when nobody posted.
+pub fn objections_block(ev: &Evidence) -> Option<String> {
+    let mut posts: Vec<_> = ev.posts.values().filter(|p| p.repost_of.is_none() && !p.content.is_empty()).collect();
+    posts.sort_by_key(|p| (p.round, p.id));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let mut lines: Vec<String> = Vec::new();
+    for post in posts {
+        let Some(person) = ev.people.get(&post.author_id) else { continue };
+        if is_organisation(person) || !seen.insert(post.author_id.as_str()) {
+            continue;
+        }
+        lines.push(format!("- @{} #{}: {}", person.handle, post.id, clip(&post.content, FIRST_POST_CHARS)));
+    }
+    (!lines.is_empty()).then(|| {
+        format!(
+            "FIRST POSTS (each person's first post; organisation accounts left out)\n{}\n\n{OBJECTIONS_TASK}",
+            lines.join("\n")
+        )
+    })
+}
 
 /// `{"keep": "Keep", ...}`: the same words are in the web Studio and the Mac app.
 pub fn action_label(action: RecommendationAction) -> &'static str {
@@ -145,9 +259,28 @@ pub async fn build_report(
 ) -> Result<Report, ReportError> {
     let ev = collect_evidence(world)?;
     let digest = digest_text(&ev, Some(graph));
-    let prompt = fill(REPORT_TASK, &[("question", &config.question), ("digest", &digest)]);
+    let mut prompt = fill(REPORT_TASK, &[("question", &config.question), ("digest", &digest)]);
+    let reaction = if config.crowd_rules >= TOPIC_RULES { first_reaction(&ev) } else { None };
+    if let Some(reaction) = &reaction {
+        prompt = format!("{prompt}\n\n{}", direction_block(reaction));
+    }
+    if let Some(block) = objections_block(&ev).filter(|_| config.crowd_rules >= STAKE_RULES) {
+        prompt = format!("{prompt}\n\n{block}");
+    }
     let system = fill(REPORT_SYSTEM, &[("language", &config.language)]);
-    let draft = json::<Report>(llm, &prompt, &system, model, "report.write").await?;
+    // A reply that fails validation even after the JSON repair is rare and does not repeat (UT Austin in the second
+    // accuracy pass lost its `summary` once, and the same prompt worked when run again), so the report gets one more
+    // full try before the run fails.
+    let draft = match json::<Report>(llm, &prompt, &system, model, "report.write").await {
+        Ok(draft) => draft,
+        Err(first) if config.crowd_rules >= STAKE_RULES => {
+            json::<Report>(llm, &prompt, &system, model, "report.write").await.map_err(|second| {
+                tellfold_models::log::warning("tellfold.report", &format!("the report retry failed too\n{second}"));
+                first
+            })?
+        }
+        Err(first) => return Err(first.into()),
+    };
     let mut report = finalize(draft.clone(), &ev, config);
     let handles = handle_set(&ev);
     let mut audit = audit_citations(&report, &ev.posts, handles.iter().map(String::as_str));
@@ -167,7 +300,9 @@ pub async fn build_report(
             ),
         }
     }
-    Ok(mark_unverified(report, audit, &ev, repaired))
+    let mut report = mark_unverified(report, audit, &ev, repaired);
+    report.first_reaction = reaction;
+    Ok(report)
 }
 
 /// Repairs what the model may get wrong and adds the caveats that can be stated with certainty.
@@ -450,6 +585,12 @@ pub fn render_markdown(report: &Report) -> String {
         report.summary.clone(),
         format!("## Prediction\n\n{}\n\n**Confidence:** {}", report.prediction, confidence_value(report.confidence)),
     ];
+    if let Some(r) = &report.first_reaction {
+        parts.push(format!(
+            "**First reaction:** {} (against {}, in favour {}, neither {})",
+            r.direction, r.against, r.in_favour, r.neither
+        ));
+    }
     parts.extend(report.sections.iter().map(|s| format!("## {}\n\n{}", s.title, s.body_markdown)));
     if !report.recommendations.is_empty() {
         let recs = report.recommendations.iter().map(recommendation_markdown).collect::<Vec<_>>().join("\n");

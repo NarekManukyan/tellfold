@@ -244,6 +244,8 @@ impl Client {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn a_session_of_requests_matches_python() {
+    // the Python engine has no crowd rules: its runs follow the original ones (the only test in this binary)
+    std::env::set_var(tellfold_models::CROWD_RULES_ENV, "0");
     let session = fixture();
     let tmp = tempfile::tempdir().unwrap();
     let root: PathBuf = tmp.path().to_path_buf();

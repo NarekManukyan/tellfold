@@ -165,6 +165,8 @@ fn a_session_of_commands_matches_python() {
             }
         }
         command.env("TELLFOLD_FAKE_LLM", "1").env("TELLFOLD_HOME", &home).env("COLUMNS", "100").env("LINES", "40");
+        // the Python engine has no crowd rules: its runs follow the original ones
+        command.env("TELLFOLD_CROWD_RULES", "0");
         command.envs(&step.env);
         command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
         let mut child = command.spawn().expect("the tellfold binary");
