@@ -1,13 +1,13 @@
-# Checks the accuracy benchmark's case files and tests the harness whenever they change. Runs no model: the tests use
-# a fake Claude CLI and the Python CLI's offline model.
+# Checks the accuracy benchmark's case files and tests the harness (engine-rs/crates/tellfold-bench) whenever they
+# change. Runs no model: the tests use a fake Claude CLI and the tellfold CLI's offline model.
 name: Bench
 
 on:
   push:
     branches: [main]
-    paths: ["bench/**", "tests/test_bench.py", "tests/fixtures/bench_case/**", ".github/workflows/bench.yml"]
+    paths: ["bench/**", "engine-rs/crates/tellfold-bench/**", ".github/workflows/bench.yml"]
   pull_request:
-    paths: ["bench/**", "tests/test_bench.py", "tests/fixtures/bench_case/**", ".github/workflows/bench.yml"]
+    paths: ["bench/**", "engine-rs/crates/tellfold-bench/**", ".github/workflows/bench.yml"]
 
 permissions:
   contents: read
@@ -15,10 +15,18 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine-rs
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine-rs
       - name: Validate the cases
-        run: uv run --python 3.13 python bench/run.py --validate
+        run: cargo run --locked -p tellfold-bench -- --validate
       - name: Test the harness
-        run: uv run --python 3.13 pytest -q tests/test_bench.py
+        run: cargo test --locked -p tellfold-bench
+      - name: A whole dry run on the CLI's offline model
+        run: cargo test --locked -p tellfold-cli --test bench

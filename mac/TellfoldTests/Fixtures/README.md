@@ -1,6 +1,6 @@
 # Test fixtures
 
-Captured from a real engine run in offline mode (`TELLFOLD_FAKE_LLM=1 uv run tellfold ui --runs /private/tmp/tellfold-mac-fixtures --port 8796 --no-open`),
+Captured from a real engine run in offline mode (`TELLFOLD_FAKE_LLM=1 tellfold ui --runs /private/tmp/tellfold-mac-fixtures --port 8796 --no-open`),
 with one small run created over HTTP (6 agents, 3 rounds) and one larger run (120 agents, 4 rounds) for the live
 detail and the full event stream:
 

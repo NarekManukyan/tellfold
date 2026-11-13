@@ -1,13 +1,13 @@
 # Judge prompt
 
-The harness (`bench/run.py`) sends this to the judge model once per report. The judge sees a checklist taken from
-the case (the seed's headline, the question, the objections and any pushback groups) and Tellfold's report. It never sees the true
+The harness (`tellfold-bench`, in `engine-rs/crates/tellfold-bench`) sends this to the judge model once per report.
+The judge sees a checklist taken from the case (the seed's headline, the question, the objections and any pushback groups) and Tellfold's report. It never sees the true
 direction or backdown, `outcome.md` or any source: it classifies the report's forecast blind, and the harness
 compares that with the rubric afterwards. It is also told not to use what it may know about the real event.
 Everything between `## System` and `## User` is the system prompt; the rest is the user prompt, with `{{CHECKLIST}}`
 and `{{REPORT}}` filled in. Text between `{{#groups}}` and `{{/groups}}` is kept only for a case that has pushback
 groups; for a case without any it is cut, so the prompt never shows the judge that a case has no groups (which
-would hint that nobody pushed back). The reply must match `judge_schema()` in `bench/run.py`.
+would hint that nobody pushed back). The reply must match `judge_schema()` in `tellfold-bench`'s `judge.rs`.
 
 ## System
 

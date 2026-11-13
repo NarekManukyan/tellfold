@@ -32,7 +32,8 @@ pub const OVERHEAD_TOKENS: i64 = 1_500;
 pub const REPORT_THINKING_TOKENS: i64 = 8_000;
 /// USD per million tokens (input, output), API list prices for prompts under 100k tokens, Nov 2026. A Claude Code
 /// subscription is not billed per token; this is the API-equivalent cost, to compare against plan limits.
-pub const PRICES: &[(&str, (f64, f64))] = &[("haiku", (0.10, 0.50)), ("sonnet", (2.00, 10.00)), ("opus", (5.00, 25.00))];
+pub const PRICES: &[(&str, (f64, f64))] =
+    &[("haiku", (0.10, 0.50)), ("sonnet", (2.00, 10.00)), ("opus", (5.00, 25.00))];
 pub const CHUNK_SIZE: i64 = 1800;
 pub const CHUNK_OVERLAP: i64 = 200;
 
@@ -165,7 +166,7 @@ fn grouped(n: i64) -> String {
     let digits = n.unsigned_abs().to_string();
     let mut out = String::new();
     for (i, c) in digits.chars().enumerate() {
-        if i > 0 && (digits.len() - i) % 3 == 0 {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
             out.push(',');
         }
         out.push(c);
@@ -186,7 +187,8 @@ pub fn format_estimate(est: &Value) -> String {
         int(&est["repeats"]),
         if est["zero_shot"].as_bool() == Some(true) { " + zero-shot baseline" } else { "" }
     );
-    out += &format!("{:<18}{:<8}{:>7}{:>12}{:>12}{:>9}\n", "purpose", "model", "calls", "tokens in", "tokens out", "USD");
+    out +=
+        &format!("{:<18}{:<8}{:>7}{:>12}{:>12}{:>9}\n", "purpose", "model", "calls", "tokens in", "tokens out", "USD");
     for (purpose, r) in est["rows"].as_object().into_iter().flatten() {
         out += &format!(
             "{:<18}{:<8}{:>7}{:>12}{:>12}{:>9.2}\n",

@@ -1,6 +1,6 @@
 # Fixture outcome (fictional)
 
-Test fixture for `tests/test_bench.py`. Not a real event; the links are placeholders.
+Test fixture for the `tellfold-bench` tests. Not a real event; the links are placeholders.
 
 ## Sources
 - https://example.com/a

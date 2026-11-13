@@ -1,0 +1,15 @@
+[package]
+name = "tellfold-brand"
+description = "Builds every Tellfold logo file in brand/ from one geometry."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "tellfold-brand"
+path = "src/main.rs"
+
+[dependencies]
+regex.workspace = true

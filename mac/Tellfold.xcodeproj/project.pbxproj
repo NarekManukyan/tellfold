@@ -18,7 +18,6 @@
 		0F4F368E4DD538BB7D229ED2 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFDB15C4387BADEF5CF4ED19 /* MainView.swift */; };
 		0FADD73D5A38BC9B27B50B12 /* EngineIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64563444DC2642FB625725D3 /* EngineIntegrationTests.swift */; };
 		0FDF4AD50CFB05E33146AFEA /* Notifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D49412A37CFE44BAE00946 /* Notifier.swift */; };
-		105014F4F3D7BBB5CCCCB056 /* UVOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D79E3980A71BE652A2CCF7A /* UVOnboardingView.swift */; };
 		107959F98A34283825D50BF2 /* RunStore+Crowd.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35C23FA5158DB41A0E29CE3 /* RunStore+Crowd.swift */; };
 		11F675A88B08A18205C7F191 /* Examples in Resources */ = {isa = PBXBuildFile; fileRef = D5AC57907DB38029784913EE /* Examples */; };
 		11FE784C3AAD941A4679C383 /* RunUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABBB3CD9649D94EC60F4C7C /* RunUI.swift */; };
@@ -195,7 +194,6 @@
 		64563444DC2642FB625725D3 /* EngineIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineIntegrationTests.swift; sourceTree = "<group>"; };
 		6A79B21029287C62D4592592 /* CrowdScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrowdScene.swift; sourceTree = "<group>"; };
 		6B6A4E16E4D32AECEA25317A /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fixtures; path = TellfoldTests/Fixtures; sourceTree = SOURCE_ROOT; };
-		6D79E3980A71BE652A2CCF7A /* UVOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UVOnboardingView.swift; sourceTree = "<group>"; };
 		6E49AABC692BDB07D512BE02 /* RunLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLog.swift; sourceTree = "<group>"; };
 		6F2EF9D87195C57B24BD2F19 /* CanvasOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasOverlays.swift; sourceTree = "<group>"; };
 		6F9FB2CFC7F3F23A124FB36A /* CanvasCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasCamera.swift; sourceTree = "<group>"; };
@@ -349,7 +347,6 @@
 				2B1E116E13AA290DE8278CB9 /* NewSimulationParts.swift */,
 				3B689DC17C4F5B0391173685 /* NewSimulationSheet.swift */,
 				9A2768FB61E9F826B4DE3DD6 /* RunSidebar.swift */,
-				6D79E3980A71BE652A2CCF7A /* UVOnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -688,7 +685,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path still runs\n# the Python package through uv instead.\n\"${PROJECT_DIR}/scripts/bundle-engine.sh\" \"${PROJECT_DIR}/..\" \\\n  \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\" \"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\n";
+			shellScript = "# Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path runs another\n# tellfold build instead.\n\"${PROJECT_DIR}/scripts/bundle-engine.sh\" \"${PROJECT_DIR}/..\" \\\n  \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine\" \"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -819,7 +816,6 @@
 				D3C96ED51E062B27CE461C6F /* TellfoldApp.swift in Sources */,
 				0E562371C90ED9CD81DD855D /* TellfoldCommands.swift in Sources */,
 				FA764F7496F7A3B5FAB2F9CF /* Theme.swift in Sources */,
-				105014F4F3D7BBB5CCCCB056 /* UVOnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

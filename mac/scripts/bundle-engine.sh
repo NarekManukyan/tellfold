@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds the engine into an app bundle's Resources/engine, so Tellfold runs without uv, Python or the repository:
+# Builds the engine into an app bundle's Resources/engine, so Tellfold runs without the repository:
 #
 #   engine/tellfold   the Rust engine (engine-rs/, the `tellfold-cli` package), one Mach-O for Apple silicon
 #

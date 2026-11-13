@@ -10,24 +10,32 @@ bench/
   cases/<slug>/rubric.json   direction, top objections, backdown, groups that pushed back
   judge_prompt.md            the grading prompt (the judge never sees the true direction or backdown)
   zero_shot_prompt.md        the no-crowd baseline prompt (--zero-shot)
-  run.py                     the harness (Python standard library only)
   results/                   one JSON and one Markdown file per real pass: <date>-<label>.json and .md
 ```
 
-Run from the repository root:
+The harness is the `tellfold-bench` crate in `engine-rs/`. Build it once, from the repository root:
 
 ```bash
-python3 bench/run.py --validate          # check every case file
-python3 bench/run.py --estimate          # calls, tokens and API-equivalent cost of a full pass
-python3 bench/run.py --dry-run           # whole pass on the offline model: free, numbers meaningless,
-                                         # results in bench/runs/results/ (ignored by git)
-python3 bench/run.py --zero-shot         # a real pass, plus the no-crowd baseline
-python3 bench/run.py --repeats 3         # three seeds per case (7, 8, 9)
-python3 bench/run.py --cases a,b         # only these cases
+cargo build --release --manifest-path engine-rs/Cargo.toml -p tellfold-bench -p tellfold-cli
+alias tellfold-bench=engine-rs/target/release/tellfold-bench
+```
+
+Then:
+
+```bash
+tellfold-bench --validate          # check every case file
+tellfold-bench --estimate          # calls, tokens and API-equivalent cost of a full pass
+tellfold-bench --dry-run           # whole pass on the offline model: free, numbers meaningless,
+                                   # results in bench/runs/results/ (ignored by git)
+tellfold-bench --zero-shot         # a real pass, plus the no-crowd baseline
+tellfold-bench --repeats 3         # three seeds per case (7, 8, 9)
+tellfold-bench --cases a,b         # only these cases
+tellfold-bench --merge a.json,b.json   # one result from the parts of a pass run in parallel with --cases
+tellfold-bench --resume bench/runs/<date>-<label>   # finish an interrupted pass
 ```
 
 The harness uses `engine-rs/target/release/tellfold` when it is built (`cargo build --release -p tellfold-cli` in
-`engine-rs/`), else `tellfold` on your PATH; `--tellfold "uv run tellfold"` runs the Python engine instead. The
+`engine-rs/`), else `tellfold` on your PATH; `--tellfold <command>` runs another build. The
 judge and the zero-shot baseline go through the Claude Code CLI (`--claude`, `--judge-model`).
 
 Every case runs with the same settings: 20 agents, 6 rounds, batch 6, haiku agents, sonnet planner, seed 7 (8, 9
@@ -42,6 +50,6 @@ with `--repeats`), Claude Code for both roles. Simulation folders go to `bench/r
    before or after a cutoff): that belongs in `rubric.json`. `--validate` rejects benchmark words and warns about
    words such as "backlash" or "petition".
 3. Write `outcome.md` with a dated timeline and every source.
-4. Write `rubric.json` (see any existing case; `validate_case` in `run.py` lists the rules). The question always
+4. Write `rubric.json` (see any existing case; `validate_case` in `engine-rs/crates/tellfold-bench/src/cases.rs` lists the rules). The question always
    follows the same template, so no case is asked a more leading question than another.
-5. `python3 bench/run.py --validate`, then commit the folder.
+5. `tellfold-bench --validate`, then commit the folder.

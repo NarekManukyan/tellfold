@@ -76,7 +76,7 @@ const ICONS = {
 };
 
 // The five kinds of "What to do next" step in the report: label, icon, and what the label means. The labels and
-// meanings match ACTION_LABELS / ACTION_MEANINGS in tellfold/report.py (tests/test_report.py checks).
+// meanings match action_label / action_meaning in tellfold-report (its tests check).
 const REC_ACTIONS = {
   keep: { label: "Keep", icon: "check", tip: "The crowd valued this. Protect it." },
   change: { label: "Change", icon: "pencil", tip: "This drew pushback that a change could fix." },

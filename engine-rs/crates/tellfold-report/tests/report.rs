@@ -103,7 +103,7 @@ fn stats(round: i64, actions: &[(&str, i64)], new_posts: i64, active: i64, senti
     st
 }
 
-/// `report_world` in make.py (the world of tests/test_report.py plus a third round).
+/// The world the golden report fixtures were made from (the Python report tests' world plus a third round).
 fn report_world(path: &Path) -> World {
     let w = World::open(path, 0).unwrap();
     w.add_personas(&[
@@ -174,14 +174,6 @@ fn setup() -> Fixture {
     let tmp = tempfile::tempdir().unwrap();
     let world = report_world(&tmp.path().join("world.db"));
     Fixture { want, config, graph, _tmp: tmp, world }
-}
-
-#[test]
-fn the_template_is_the_python_template() {
-    let python =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tellfold/templates/report.html"))
-            .unwrap();
-    assert_eq!(include_str!("../templates/report.html"), python);
 }
 
 #[test]
@@ -502,5 +494,30 @@ fn write_report_writes_three_files() {
     assert_eq!(path, tmp.path().join("report.html"));
     for file in ["report.json", "report.md", "report.html"] {
         assert!(tmp.path().join(file).is_file(), "{file}");
+    }
+}
+
+#[test]
+fn action_words_match_in_the_studio_and_the_mac_app() {
+    // the labels, their meanings and the note are written out here, in the Studio's app.js and in Models.swift
+    use tellfold_models::RecommendationAction::{Add, Change, Drop, Keep, Test};
+    use tellfold_report::report::{action_label, action_meaning, action_value, RECOMMENDATIONS_NOTE};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let js = std::fs::read_to_string(root.join("engine-rs/crates/tellfold-server/web/static/js/app.js")).unwrap();
+    let swift = std::fs::read_to_string(root.join("mac/Tellfold/App/Models/Models.swift")).unwrap();
+    assert!(js.contains(&format!("const REC_NOTE = \"{RECOMMENDATIONS_NOTE}\";")));
+    assert!(swift.contains(&format!("static let note = \"{RECOMMENDATIONS_NOTE}\"")));
+    for action in [Keep, Change, Add, Drop, Test] {
+        let (value, label, meaning) = (action_value(action), action_label(action), action_meaning(action));
+        let entry = fancy_regex::Regex::new(&format!(
+            r#"{}: \{{ label: "{}", icon: "\w+", tip: "{}" \}}"#,
+            fancy_regex::escape(value),
+            fancy_regex::escape(label),
+            fancy_regex::escape(meaning)
+        ))
+        .unwrap();
+        assert!(entry.is_match(&js).unwrap(), "{value} in app.js");
+        assert!(swift.contains(&format!("case .{value}: \"{label}\"")), "{value} label in Models.swift");
+        assert!(swift.contains(&format!("case .{value}: \"{meaning}\"")), "{value} meaning in Models.swift");
     }
 }

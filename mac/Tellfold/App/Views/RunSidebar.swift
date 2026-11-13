@@ -423,7 +423,6 @@ struct EngineStatusBar: View {
         case .starting: "Starting engine…"
         case .waitingToRestart(_, let s): "Engine restarting in \(s) s"
         case .failed: "Engine unavailable"
-        case .uvMissing: "uv not installed"
         case .stopped: "Engine stopped"
         }
     }
@@ -432,7 +431,7 @@ struct EngineStatusBar: View {
         switch model.engine.state {
         case .running: Theme.positive
         case .starting, .waitingToRestart: Theme.muted
-        case .failed, .uvMissing: Theme.negative
+        case .failed: Theme.negative
         case .stopped: Theme.muted
         }
     }

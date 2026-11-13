@@ -1849,6 +1849,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tellfold-brand"
+version = "0.7.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "tellfold-cli"
 version = "0.7.0"
 dependencies = [

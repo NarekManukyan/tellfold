@@ -21,6 +21,7 @@ pub mod process;
 pub mod run;
 pub mod score;
 
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use serde_json::{json, Value};
@@ -41,9 +42,10 @@ pub const SENTIMENT_BAND: f64 = 0.2;
 
 /// The repository this harness was built from: `bench/` and the default tellfold build are found there.
 pub fn repo() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..").canonicalize().unwrap_or_else(|_| {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")
-    })
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../..")
+        .canonicalize()
+        .unwrap_or_else(|_| Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."))
 }
 
 pub fn bench_dir() -> PathBuf {
@@ -153,8 +155,8 @@ options:
                         run nothing
   --repeats REPEATS     runs per case, seeds 7, 8, 9...
   --zero-shot           also grade one direct planner-model answer per case
-  --tellfold TELLFOLD   command that runs the CLI, e.g. \"target/debug/tellfold\" (default: the engine-rs release
-                        build, else tellfold on PATH)
+  --tellfold TELLFOLD   command that runs the CLI, e.g. \"engine-rs/target/debug/tellfold\" (default: the
+                        engine-rs release build, else tellfold on PATH)
   --claude CLAUDE       Claude Code CLI for the judge and zero-shot calls (default: claude)
   --judge-model JUDGE_MODEL
                         (default: sonnet)
@@ -250,7 +252,10 @@ pub fn parse_args(argv: &[String]) -> Result<Args, Option<String>> {
             _ => (arg.as_str(), None),
         };
         let mut value = || -> Result<String, Option<String>> {
-            inline.clone().or_else(|| it.next().cloned()).ok_or_else(|| Some(format!("argument {name}: expected one argument")))
+            inline
+                .clone()
+                .or_else(|| it.next().cloned())
+                .ok_or_else(|| Some(format!("argument {name}: expected one argument")))
         };
         match name {
             "-h" | "--help" => return Err(None),
@@ -349,6 +354,17 @@ pub fn shell_split(text: &str) -> Result<Vec<String>, String> {
     Ok(words)
 }
 
+/// The command with a relative program path made absolute from where the harness was started, since the CLI runs
+/// with the repository as its working directory. A bare name (`tellfold`) is still looked up on PATH.
+pub fn absolute_command(mut cmd: Vec<String>) -> Vec<String> {
+    if let Some(program) = cmd.first_mut() {
+        if program.contains('/') && Path::new(program.as_str()).is_relative() {
+            *program = resolve(Path::new(program.as_str())).display().to_string();
+        }
+    }
+    cmd
+}
+
 /// `engine-rs/target/release/tellfold` when it is built, else `tellfold` on PATH.
 pub fn default_tellfold() -> Result<Vec<String>, String> {
     let built = repo().join("engine-rs/target/release/tellfold");
@@ -410,8 +426,11 @@ fn try_main(argv: &[String]) -> Result<i32, String> {
         .as_deref()
         .map(|c| c.split(',').map(str::trim).filter(|s| !s.is_empty()).map(String::from).collect());
     let cases = load_cases(only.as_deref(), &args.cases_dir)?;
-    let settings =
-        Settings { agent_model: args.agent_model.clone(), planner_model: args.planner_model.clone(), ..Default::default() };
+    let settings = Settings {
+        agent_model: args.agent_model.clone(),
+        planner_model: args.planner_model.clone(),
+        ..Default::default()
+    };
     if args.validate {
         return Ok(if validate_all(&cases) { 0 } else { 1 });
     }
@@ -429,23 +448,25 @@ fn try_main(argv: &[String]) -> Result<i32, String> {
         return Ok(1);
     }
     let cmd = match &args.tellfold {
-        Some(text) => shell_split(text)?,
+        Some(text) => absolute_command(shell_split(text)?),
         None => default_tellfold()?,
     };
     if cmd.is_empty() {
         return Err("--tellfold is empty".into());
     }
-    let mut env: Vec<(String, String)> =
-        std::env::vars().filter(|(k, _)| k != tellfold_llm_fake_env()).collect();
+    let mut env: Vec<(OsString, OsString)> =
+        std::env::vars_os().filter(|(k, _)| k != tellfold_llm_fake_env()).collect();
     let (mut judge, mut zero_model, label): (Box<dyn Judge>, Option<Box<dyn Model>>, String) = if args.dry_run {
         env.push((tellfold_llm_fake_env().into(), "1".into()));
         let zero: Option<Box<dyn Model>> = args.zero_shot.then(|| Box::new(DryModel::default()) as Box<dyn Model>);
         (Box::new(DryJudge::default()), zero, args.label.clone().unwrap_or_else(|| "dry-run".into()))
     } else {
-        let judge = LlmJudge::new(ClaudeModel::new(&args.claude, &args.judge_model), &bench_dir().join("judge_prompt.md"))?;
+        let judge =
+            LlmJudge::new(ClaudeModel::new(&args.claude, &args.judge_model), &bench_dir().join("judge_prompt.md"))?;
         let zero: Option<Box<dyn Model>> =
             args.zero_shot.then(|| Box::new(ClaudeModel::new(&args.claude, &settings.planner_model)) as Box<dyn Model>);
-        let label = args.label.clone().unwrap_or_else(|| format!("{}-{}", settings.planner_model, settings.agent_model));
+        let label =
+            args.label.clone().unwrap_or_else(|| format!("{}-{}", settings.planner_model, settings.agent_model));
         (Box::new(judge), zero, label)
     };
     let zero_prompt =

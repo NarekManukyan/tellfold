@@ -114,8 +114,7 @@ pub fn graded_entries<'a>(case: &'a Value, key: &str) -> Vec<&'a Value> {
 }
 
 fn block(selected: &[&Value], key: &str) -> Value {
-    let scores: Vec<&Value> =
-        selected.iter().flat_map(|c| graded_entries(c, key)).map(|e| get(e, "scores")).collect();
+    let scores: Vec<&Value> = selected.iter().flat_map(|c| graded_entries(c, key)).map(|e| get(e, "scores")).collect();
     let field = |name: &str, f: fn(&Value) -> Option<f64>| mean(scores.iter().map(|s| f(get(s, name))));
     let sentiment = selected.iter().flat_map(|c| {
         let actual = get(get(c, "rubric"), "direction");
@@ -152,7 +151,8 @@ pub fn baselines(cases: &[Value]) -> Value {
     let directions: Vec<&Value> = cases.iter().map(|c| get(get(c, "rubric"), "direction")).collect();
     let count = |d: &str| directions.iter().filter(|x| x.as_str() == Some(d)).count();
     // the first of the most common, as Python's max() picks
-    let majority = DIRECTIONS.iter().copied().fold(DIRECTIONS[0], |best, d| if count(d) > count(best) { d } else { best });
+    let majority =
+        DIRECTIONS.iter().copied().fold(DIRECTIONS[0], |best, d| if count(d) > count(best) { d } else { best });
     let changed =
         cases.iter().filter(|c| get(get(get(c, "rubric"), "backdown"), "kind").as_str() != Some("none")).count();
     let share = |k: usize| py_round(k as f64 / n as f64, 3);
@@ -200,8 +200,7 @@ pub fn planner_vs_crowd(cases: &[Value]) -> Value {
     let planner = |r: &Value| get(r, "planner_direction").clone();
     let flag = |b: bool| Some(if b { 1.0 } else { 0.0 });
     let moved: Vec<&(&Value, &Value)> = runs.iter().filter(|(_, r)| crowd(r) != planner(r)).collect();
-    let zero: Vec<&(&Value, &Value)> =
-        runs.iter().filter(|(c, _)| truthy(get(get(c, "zero_shot"), "grade"))).collect();
+    let zero: Vec<&(&Value, &Value)> = runs.iter().filter(|(c, _)| truthy(get(get(c, "zero_shot"), "grade"))).collect();
     let zero_direction = |c: &Value| get(get(get(c, "zero_shot"), "grade"), "predicted_direction").clone();
     json!({
         "runs": runs.len(),

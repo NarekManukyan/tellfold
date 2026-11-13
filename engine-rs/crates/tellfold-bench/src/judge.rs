@@ -216,9 +216,23 @@ fn type_name(v: &Value) -> &'static str {
 impl Model for ClaudeModel {
     fn call(&mut self, system: &str, user: &str, schema: &Value) -> Result<Value, String> {
         let argv: Vec<String> = [
-            self.cli.as_str(), "-p", "--output-format", "json", "--system-prompt", system, "--tools", "",
-            "--max-turns", "3", "--model", &self.model, "--strict-mcp-config", "--setting-sources=",
-            "--no-session-persistence", "--json-schema", &py_dumps(schema),
+            self.cli.as_str(),
+            "-p",
+            "--output-format",
+            "json",
+            "--system-prompt",
+            system,
+            "--tools",
+            "",
+            "--max-turns",
+            "3",
+            "--model",
+            &self.model,
+            "--strict-mcp-config",
+            "--setting-sources=",
+            "--no-session-persistence",
+            "--json-schema",
+            &py_dumps(schema),
         ]
         .iter()
         .map(|s| s.to_string())
@@ -429,16 +443,21 @@ pub fn report_for_judge(report: &Value) -> Value {
     );
     out.insert(
         "sections".into(),
-        list("sections").iter().map(|s| json!({"title": field(s, "title"), "body": field(s, "body_markdown")})).collect(),
+        list("sections")
+            .iter()
+            .map(|s| json!({"title": field(s, "title"), "body": field(s, "body_markdown")}))
+            .collect(),
     );
     out.insert(
         "recommendations".into(),
         list("recommendations")
             .iter()
             .map(|r| {
-                let kept = r.as_object().into_iter().flatten().filter(|(k, _)| {
-                    matches!(k.as_str(), "action" | "title" | "why" | "expected_effect")
-                });
+                let kept = r
+                    .as_object()
+                    .into_iter()
+                    .flatten()
+                    .filter(|(k, _)| matches!(k.as_str(), "action" | "title" | "why" | "expected_effect"));
                 Value::Object(kept.map(|(k, v)| (k.clone(), v.clone())).collect())
             })
             .collect(),
@@ -452,7 +471,8 @@ mod tests {
 
     #[test]
     fn split_prompt_needs_both_headings_once() {
-        let (system, user) = split_prompt_text("intro mentions ## System inline\n## System\n s \n## User\nu\n").unwrap();
+        let (system, user) =
+            split_prompt_text("intro mentions ## System inline\n## System\n s \n## User\nu\n").unwrap();
         assert_eq!((system.as_str(), user.as_str()), ("s", "u"));
         assert!(split_prompt_text("## System\na\n## System\nb\n").is_none());
         assert!(split_prompt_text("## System\na\n").is_none());

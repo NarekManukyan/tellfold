@@ -65,4 +65,3 @@ fn dry_run_end_to_end() {
     let resumed: Value = serde_json::from_str(&std::fs::read_to_string(&found[1]).unwrap()).unwrap();
     assert_eq!(resumed["cases"], result["cases"]);
 }
-

@@ -12,12 +12,27 @@ use crate::{truthy, BACKDOWNS, CATEGORIES, DIRECTIONS};
 
 /// Words that suggest input.md describes the reaction instead of the announcement. Warnings, not errors.
 pub const LEAK_WORDS: &[&str] = &[
-    "backlash", "outrage", "outcry", "u-turn", "reversed", "reversal", "backtrack", "uproar", "furious", "criticised",
-    "criticized", "petition", "boycott", "walked back", "climbdown", "controversial",
+    "backlash",
+    "outrage",
+    "outcry",
+    "u-turn",
+    "reversed",
+    "reversal",
+    "backtrack",
+    "uproar",
+    "furious",
+    "criticised",
+    "criticized",
+    "petition",
+    "boycott",
+    "walked back",
+    "climbdown",
+    "controversial",
 ];
 /// Phrases that can only be about the benchmark itself. A seed holds only the announcement; case metadata lives in
 /// rubric.json. Errors. The bare word "benchmark" only warns, since an announcement can be about a benchmark rate.
-pub const META_PHRASES: &[&str] = &["benchmark seed", "accuracy test", "control case", "training cutoff", "known to the model"];
+pub const META_PHRASES: &[&str] =
+    &["benchmark seed", "accuracy test", "control case", "training cutoff", "known to the model"];
 pub const META_WARN_WORDS: &[&str] = &["benchmark"];
 
 /// One case folder: `input.md` (the seed), `outcome.md` and `rubric.json` (empty when missing).
@@ -113,7 +128,8 @@ fn iso_date(v: &Value, suffix: &str) -> Result<NaiveDate, String> {
         Value::Null => suffix.to_string(),
         other => return Err(format!("fromisoformat: argument must be str, not {}", py_type(other))),
     };
-    NaiveDate::parse_from_str(&text, "%Y-%m-%d").map_err(|_| format!("Invalid isoformat string: {}", py_repr(&Value::String(text))))
+    NaiveDate::parse_from_str(&text, "%Y-%m-%d")
+        .map_err(|_| format!("Invalid isoformat string: {}", py_repr(&Value::String(text))))
 }
 
 fn py_type(v: &Value) -> &'static str {

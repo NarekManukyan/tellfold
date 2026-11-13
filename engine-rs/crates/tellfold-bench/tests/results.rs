@@ -37,8 +37,13 @@ fn every_markdown_summary_comes_out_of_its_result() {
         let ours = markdown(&value);
         if ours != md {
             let first = ours.lines().zip(md.lines()).position(|(a, b)| a != b);
-            panic!("{}: first differing line {:?}\nours:  {:?}\nfile:  {:?}", path.display(), first,
-                   first.map(|i| ours.lines().nth(i)), first.map(|i| md.lines().nth(i)));
+            panic!(
+                "{}: first differing line {:?}\nours:  {:?}\nfile:  {:?}",
+                path.display(),
+                first,
+                first.map(|i| ours.lines().nth(i)),
+                first.map(|i| md.lines().nth(i))
+            );
         }
     }
 }

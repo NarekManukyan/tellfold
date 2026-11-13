@@ -19,9 +19,6 @@ struct MainView: View {
         .sheet(isPresented: $model.isNewSimulationPresented) {
             NewSimulationSheet()
         }
-        .sheet(isPresented: uvMissingBinding) {
-            UVOnboardingView()
-        }
         .sheet(isPresented: $model.isAgentSetupPresented) {
             AgentSetupView()
         }
@@ -76,10 +73,6 @@ struct MainView: View {
             ContentUnavailableView("No Simulation Selected", systemImage: "sidebar.left",
                                    description: Text("Choose a simulation in the sidebar."))
         }
-    }
-
-    private var uvMissingBinding: Binding<Bool> {
-        Binding(get: { model.engine.state == .uvMissing }, set: { _ in })
     }
 }
 
@@ -158,9 +151,6 @@ struct EngineUnavailableView: View {
                     Button("Open Diagnostics") { openWindow(id: "diagnostics") }
                 }
             }
-        case .uvMissing:
-            ContentUnavailableView("uv Is Required", systemImage: "shippingbox",
-                                   description: Text("Tellfold runs its engine with uv. Install it, then try again."))
         case .stopped:
             ContentUnavailableView {
                 Label("Engine Stopped", systemImage: "stop.circle")

@@ -2,39 +2,34 @@
 
 This page is for people who want to build Tellfold from source, use the command-line engine, or cut a release. If you just want to use the app, see the [README](../README.md).
 
-The engine is a Python package (`tellfold/`) with a Rust port in `engine-rs/` that behaves the same. The Mac app (`mac/`) bundles the Rust build. The logo and brand files live in `brand/` (see `brand/README.md`).
+The engine is written in Rust (`engine-rs/`): the `tellfold` command-line tool, which the Mac app (`mac/`) also bundles. All code and tooling in the repository are Rust, apart from the Swift app. The logo and brand files live in `brand/` (see `brand/README.md`).
 
 > **Clean-room note.** Tellfold takes its general idea (seed documents in, simulated crowd reaction and forecast out) from public descriptions of swarm-simulation tools such as MiroFish. Its code, prompts, schemas, data layout and UI text were written from scratch against this project's own `ARCHITECTURE.md`, without looking at MiroFish, its forks or the OASIS / camel-ai source.
 
 ## Requirements
 
 - **Claude Code CLI**, installed and logged in. Run `claude` once and use `/login` if you have not already. Tellfold uses your normal subscription through the CLI.
-- **[uv](https://docs.astral.sh/uv/)** for Python and dependencies. Python 3.11 or newer; uv installs it for you if needed.
-- **[Rust](https://rustup.rs)** (stable) to build the Mac app, which bundles the Rust engine, or to work on `engine-rs/`.
+- **[Rust](https://rustup.rs)** (stable, 1.88 or newer) to build the engine and the Mac app, which bundles it.
 - macOS or Linux. Windows should work under WSL, but nobody has tested it.
 
 ## Install
 
 ```sh
 git clone https://github.com/NarekManukyan/tellfold.git && cd tellfold
-uv sync
-uv run tellfold doctor
+cargo install --path engine-rs/crates/tellfold-cli
+tellfold doctor
 ```
 
-`doctor` checks that `claude` is on your PATH, that the Python SDK imports, and that a one-word haiku call succeeds. If all four rows say `ok`, you are ready.
+`doctor` checks that `claude` is on your PATH and that a one-word haiku call succeeds. If every row says `ok`, you are ready.
 
-To get a global `tellfold` command instead of `uv run tellfold`:
-
-```sh
-uv tool install .
-```
+Without installing, `cargo build --release -p tellfold-cli` in `engine-rs/` builds `engine-rs/target/release/tellfold`.
 
 ## Quick start
 
 The repository includes a fictional seed document: a plant-care app called Mossbook switching from a one-time purchase to a subscription.
 
 ```sh
-uv run tellfold run examples/mossbook_pricing.md \
+tellfold run examples/mossbook_pricing.md \
   -q "How will existing Mossbook buyers react to the new subscription pricing over the first two weeks?" \
   --agents 12 --rounds 4 --open
 ```
@@ -137,7 +132,7 @@ Tips:
 
 ## How it works
 
-1. **Ingest.** Text is pulled out of the seed files and cut into overlapping chunks on paragraph boundaries. The Python package reads PDFs with PyMuPDF and the Rust engine (the one in the app) with `pdf-extract`, so a PDF's chunks can differ in whitespace and reading order between the two (see "Risks" in `docs/rust-port.md`).
+1. **Ingest.** Text is pulled out of the seed files and cut into overlapping chunks on paragraph boundaries. PDFs are read with `pdf-extract`.
 2. **Knowledge graph.** The planner model reads the chunks in small groups and lists the actors who would react to the question (people, companies, groups, media) and how they relate. Tellfold merges and deduplicates the results itself, without a model call.
 3. **Personas.** The planner turns the most important actors into official accounts and public figures, then fills the rest of the cast with ordinary members of the affected public: different ages, jobs, incentives and starting views, including people who simply do not care.
    In the Mac app, "Review the cast before the run" pauses here: the run's status gets `pause: "personas_ready"`, and `GET`/`PUT /api/runs/{id}/personas` read and replace the cast, `POST /api/runs/{id}/personas/group` writes a group described in words (`{description, count}`), and `POST /api/runs/{id}/personas/confirm` lets the run go on. Edits stay with the waiting run until the confirm, when the run writes `personas.json`. The cast may be empty while the run waits (a group can still be added); the confirm needs at least one person. A cast holds at most 200 people: a group that would pass that is refused before the model is called, and its places are held while the model writes it. A run whose cast was never checked (still waiting, or stopped at the pause) cannot lend its people to another (`cast_from` answers 409), and a new version of a run (`cast_from`) keeps that run's `fair_turns`. A cast saved as an audience can start a later run (`audience` on `POST /api/runs`), which skips the graph and persona stages.
@@ -157,20 +152,20 @@ Tips:
 ## Development
 
 ```sh
-uv run pytest -q
+cd engine-rs && cargo test --workspace
 ```
 
 Tests never call the real CLI. Setting `TELLFOLD_FAKE_LLM=1` makes every command use a built-in offline model that returns valid but meaningless placeholder output, which is handy for trying the CLI without spending usage. The other environment variables are `TELLFOLD_HOME`, `TELLFOLD_FAKE_DELAY`, `TELLFOLD_SERVE_TOKEN`, `TELLFOLD_ALLOW_UNSAFE_RUNTIMES`, `TELLFOLD_KEY_<ID>` and `TELLFOLD_REAL_RUNTIMES`; the old `SHOAL_*` names are still read as fallbacks. Settings and runs live in `~/Library/Application Support/Tellfold`; an old `.../Shoal` folder is moved there automatically on first launch:
 
 ```sh
-TELLFOLD_FAKE_LLM=1 uv run tellfold run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
+TELLFOLD_FAKE_LLM=1 tellfold run examples/mossbook_pricing.md -q "test" --agents 6 --rounds 2
 ```
 
 ### Mac app
 
-The Mac app lives in `mac/` (XcodeGen). Every build is self-contained: `mac/scripts/bundle-engine.sh` builds the Rust engine (`engine-rs/`) for macOS 15 on Apple silicon and puts the one binary in `Tellfold.app/Contents/Resources/engine/tellfold`, so the app needs neither `uv` nor Python on the user's Mac. Building the app needs a Rust toolchain ([rustup](https://rustup.rs)). The app still needs an AI tool such as Claude Code installed and signed in, because every model call goes through the user's own CLI.
+The Mac app lives in `mac/` (XcodeGen). Every build is self-contained: `mac/scripts/bundle-engine.sh` builds the Rust engine (`engine-rs/`) for macOS 15 on Apple silicon and puts the one binary in `Tellfold.app/Contents/Resources/engine/tellfold`, so the app needs nothing else installed to run its engine. Building the app needs a Rust toolchain ([rustup](https://rustup.rs)). The app still needs an AI tool such as Claude Code installed and signed in, because every model call goes through the user's own CLI.
 
-To run the app on the Python package instead, set Settings > Advanced > Engine path to this repository. The app then starts it with `uv run --project <path> tellfold serve`.
+To run the app on another engine build, set Settings > Advanced > Engine path to a `tellfold` binary, the folder holding it, or this repository (the app then runs `engine-rs/target/release/tellfold`, so build it with `cargo build --release -p tellfold-cli` first). A path that holds no engine, such as one saved for the old Python engine, falls back to the engine built into the app, with a note in Diagnostics.
 
 ```sh
 cd mac && xcodegen generate

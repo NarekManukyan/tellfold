@@ -56,7 +56,9 @@ pub fn markdown(result: &Value) -> String {
         );
         lines.push(String::new());
     }
-    lines.push("| | graded | direction | objection recall | backdown | groups named | direction from sentiment |".into());
+    lines.push(
+        "| | graded | direction | objection recall | backdown | groups named | direction from sentiment |".into(),
+    );
     lines.push("|---|---|---|---|---|---|---|".into());
     for (name, label) in
         [("all", "all cases"), ("after_cutoff", "after the model's cutoff"), ("known_to_model", "known to the model")]
@@ -146,7 +148,8 @@ pub fn markdown(result: &Value) -> String {
             } else {
                 " ✗"
             };
-            let backdown_predicted = if sc.is_object() { str_or(sc, "backdown_predicted", "–") } else { "–".into() };
+            let backdown_predicted =
+                if sc.is_object() { str_or(sc, "backdown_predicted", "–") } else { "–".into() };
             lines.push(format!(
                 "| {} (seed {}) | {} | {pred}{mark} | {} | {recall} | {} / {backdown_predicted} | {zero} | {} |",
                 py_str(get(c, "slug")),
@@ -282,8 +285,7 @@ pub fn merge_results(paths: &[PathBuf], results_dir: &Path, cases_dir: &Path) ->
         object.insert(k.into(), v);
     }
     object.insert("cases".into(), Value::Array(cases));
-    let out_json =
-        results_path(results_dir, &py_str(get(first, "label")), &py_str(get(first, "date")));
+    let out_json = results_path(results_dir, &py_str(get(first, "label")), &py_str(get(first, "date")));
     std::fs::write(&out_json, result_text(&result)).map_err(|e| format!("{}: {e}", out_json.display()))?;
     let md = markdown_path(&out_json);
     write_markdown(&md, &result)?;

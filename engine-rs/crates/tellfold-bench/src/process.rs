@@ -1,6 +1,7 @@
 //! Child processes: the tellfold CLI in its own session (killed as a group on a timeout, an error or Ctrl-C), the
 //! Claude Code CLI with a timeout, and waiting for a dropped network.
 
+use std::ffi::OsString;
 use std::io::{Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
@@ -11,7 +12,13 @@ use std::time::{Duration, Instant};
 /// Signs in a failed CLI's output that the network, not the request, failed: worth waiting for and trying again. Only
 /// checked on a call or run that failed, since a model's own answer may mention a network of any kind.
 pub const NETWORK_ERRORS: &[&str] = &[
-    "ENOTFOUND", "Can't reach the API", "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN", "getaddrinfo",
+    "ENOTFOUND",
+    "Can't reach the API",
+    "ECONNRESET",
+    "ECONNREFUSED",
+    "ETIMEDOUT",
+    "EAI_AGAIN",
+    "getaddrinfo",
     "socket hang up",
 ];
 /// How many times one run or call waits for the network and tries again before it fails.
@@ -45,9 +52,12 @@ pub fn head(text: &str, n: usize) -> String {
 pub fn wait_for_network(check_every: Duration) {
     use std::net::{TcpStream, ToSocketAddrs};
     loop {
-        let reachable = ("api.anthropic.com", 443).to_socket_addrs().ok().into_iter().flatten().any(|addr| {
-            TcpStream::connect_timeout(&addr, Duration::from_secs(10)).is_ok()
-        });
+        let reachable = ("api.anthropic.com", 443)
+            .to_socket_addrs()
+            .ok()
+            .into_iter()
+            .flatten()
+            .any(|addr| TcpStream::connect_timeout(&addr, Duration::from_secs(10)).is_ok());
         if reachable {
             return;
         }
@@ -65,7 +75,15 @@ static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 
 extern "C" fn on_signal(sig: libc::c_int) {
     let group = GROUP.load(Ordering::SeqCst);
-    if group > 0 {
+    if group > 0 && INTERRUPTED.load(Ordering::SeqCst) {
+        // a second Ctrl-C while the group is still stopping: kill it outright and quit now
+        // SAFETY: killpg, signal and raise are async-signal-safe.
+        unsafe {
+            libc::killpg(group, libc::SIGKILL);
+            libc::signal(sig, libc::SIG_DFL);
+            libc::raise(sig);
+        }
+    } else if group > 0 {
         INTERRUPTED.store(true, Ordering::SeqCst);
         // SAFETY: killpg is async-signal-safe.
         unsafe { libc::killpg(group, libc::SIGTERM) };
@@ -152,7 +170,7 @@ pub enum CliEnd {
 pub fn run_cli(
     argv: &[String],
     log: &Path,
-    env: &[(String, String)],
+    env: &[(OsString, OsString)],
     cwd: &Path,
     timeout: Duration,
 ) -> Result<CliEnd, String> {
@@ -196,7 +214,19 @@ pub struct Captured {
     pub stderr: String,
 }
 
-/// Runs a command with `input` on stdin; None when it ran past `timeout` (it is killed).
+/// Reads a pipe to its end on a thread of its own; the bytes arrive on the returned channel.
+fn read_all(mut pipe: impl Read + Send + 'static) -> std::sync::mpsc::Receiver<Vec<u8>> {
+    let (send, receive) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = pipe.read_to_end(&mut buf);
+        let _ = send.send(buf);
+    });
+    receive
+}
+
+/// Runs a command with `input` on stdin; None when it ran past `timeout` (it is killed). The timeout covers reading
+/// its output too: a process it started that keeps the pipes open counts as no reply.
 pub fn run_captured(argv: &[String], input: &str, timeout: Duration) -> Result<Option<Captured>, String> {
     let mut child = Command::new(&argv[0])
         .args(&argv[1..])
@@ -210,18 +240,8 @@ pub fn run_captured(argv: &[String], input: &str, timeout: Duration) -> Result<O
     let writer = std::thread::spawn(move || {
         let _ = stdin.write_all(input.as_bytes());
     });
-    let mut stdout = child.stdout.take().expect("piped");
-    let mut stderr = child.stderr.take().expect("piped");
-    let out_reader = std::thread::spawn(move || {
-        let mut buf = Vec::new();
-        let _ = stdout.read_to_end(&mut buf);
-        buf
-    });
-    let err_reader = std::thread::spawn(move || {
-        let mut buf = Vec::new();
-        let _ = stderr.read_to_end(&mut buf);
-        buf
-    });
+    let out_reader = read_all(child.stdout.take().expect("piped"));
+    let err_reader = read_all(child.stderr.take().expect("piped"));
     let deadline = Instant::now() + timeout;
     let status = loop {
         if interrupted() {
@@ -244,8 +264,12 @@ pub fn run_captured(argv: &[String], input: &str, timeout: Duration) -> Result<O
         let _ = child.wait();
         return Ok(None);
     };
+    let left = || deadline.saturating_duration_since(Instant::now());
+    let (Ok(stdout), Ok(stderr)) = (out_reader.recv_timeout(left()), err_reader.recv_timeout(left())) else {
+        return Ok(None);
+    };
     let _ = writer.join();
-    let stdout = String::from_utf8_lossy(&out_reader.join().unwrap_or_default()).into_owned();
-    let stderr = String::from_utf8_lossy(&err_reader.join().unwrap_or_default()).into_owned();
+    let stdout = String::from_utf8_lossy(&stdout).into_owned();
+    let stderr = String::from_utf8_lossy(&stderr).into_owned();
     Ok(Some(Captured { code: status.code().unwrap_or(-1), stdout, stderr }))
 }

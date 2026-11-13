@@ -23,7 +23,7 @@ pub const REPORT_TIMEOUT: Duration = Duration::from_secs(45 * 60);
 /// every path it is given is absolute).
 pub struct Cli {
     pub cmd: Vec<String>,
-    pub env: Vec<(String, String)>,
+    pub env: Vec<(std::ffi::OsString, std::ffi::OsString)>,
     pub cwd: PathBuf,
 }
 
@@ -191,7 +191,7 @@ pub fn count_calls(run_dir: &Path) -> Result<(i64, i64), String> {
         for line in text.lines().filter(|l| !l.trim().is_empty()) {
             calls += 1;
             let entry: Value = serde_json::from_str(line).map_err(|e| format!("calls.jsonl: {e}"))?;
-            failed += i64::from(!entry.get("ok").map_or(true, truthy));
+            failed += i64::from(entry.get("ok").is_some_and(|ok| !truthy(ok)));
         }
     }
     Ok((calls, failed))

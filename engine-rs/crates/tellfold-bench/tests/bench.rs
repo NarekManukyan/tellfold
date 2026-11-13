@@ -124,7 +124,11 @@ fn the_estimate_is_the_engines_own_for_every_crowd_rules_version() {
             let on_agents = |p: &str| p.starts_with("engine.") && p != "engine.factcheck";
             let bench_agent: i64 = calls.iter().filter(|(p, _)| on_agents(p)).map(|(_, n)| n).sum();
             let bench_planner: i64 = calls.iter().filter(|(p, _)| !on_agents(p)).map(|(_, n)| n).sum();
-            assert_eq!((bench_agent, bench_planner), (agent, planner), "{crowd_rules} {agents} {rounds} {batch} {chunks}");
+            assert_eq!(
+                (bench_agent, bench_planner),
+                (agent, planner),
+                "{crowd_rules} {agents} {rounds} {batch} {chunks}"
+            );
         }
     }
 }
@@ -222,8 +226,8 @@ fn llm_judge_grades_blind() {
         "objections": [{"id": "O1", "verdict": "covered", "evidence": "q"}],
         "groups": [{"group": "Regular  customers", "named": true}, {"group": "teachers", "named": true}],
     });
-    let mut judge = LlmJudge::new(ClaudeModel::new(&fake_claude(dir.path(), &reply, false), "sonnet"), &judge_prompt())
-        .unwrap();
+    let mut judge =
+        LlmJudge::new(ClaudeModel::new(&fake_claude(dir.path(), &reply, false), "sonnet"), &judge_prompt()).unwrap();
     let report = json!({"title": "T", "summary": "Regulars grumble about the coffee price.", "prediction": "P",
                         "camps": [{"name": "Regulars", "summary": "s", "members": ["a1"]}], "citations": ["x"]});
     let grade = judge.grade(&case, &report, Some(-0.5)).unwrap();
@@ -276,8 +280,8 @@ fn a_case_without_groups_shows_no_trace_of_them() {
     case.rubric["pushback_groups"] = json!([]);
     let reply = json!({"predicted_direction": "positive", "predicted_backdown": "none",
                        "objections": [{"id": "o1", "verdict": "missed", "evidence": ""}]});
-    let mut judge = LlmJudge::new(ClaudeModel::new(&fake_claude(dir.path(), &reply, false), "sonnet"), &judge_prompt())
-        .unwrap();
+    let mut judge =
+        LlmJudge::new(ClaudeModel::new(&fake_claude(dir.path(), &reply, false), "sonnet"), &judge_prompt()).unwrap();
     let grade = judge.grade(&case, &json!({"summary": "S"}), None).unwrap();
     let calls = read_calls(dir.path());
     let call = &calls[0];
@@ -359,7 +363,10 @@ fn results_path_keeps_dotted_labels() {
     let first = results_path(dir.path(), "sonnet-5.5", "2026-11-11");
     assert_eq!(first.file_name().unwrap(), "2026-11-11-sonnet-5.5.json");
     std::fs::write(&first, "{}").unwrap();
-    assert_eq!(results_path(dir.path(), "sonnet-5.5", "2026-11-11").file_name().unwrap(), "2026-11-11-sonnet-5.5-2.json");
+    assert_eq!(
+        results_path(dir.path(), "sonnet-5.5", "2026-11-11").file_name().unwrap(),
+        "2026-11-11-sonnet-5.5-2.json"
+    );
     assert_eq!(tellfold_bench::output::markdown_path(&first).file_name().unwrap(), "2026-11-11-sonnet-5.5.md");
 }
 
@@ -367,7 +374,9 @@ fn results_path_keeps_dotted_labels() {
 fn validate_reports_null_dates_and_benchmark_words() {
     let dir = tempfile::tempdir().unwrap();
     let input = format!("Written for the accuracy test. {}", "word ".repeat(300));
-    for bad in [json!({"announced_on": null, "model_cutoff": null}), json!({"announced_on": 20260801, "model_cutoff": 2026})] {
+    for bad in
+        [json!({"announced_on": null, "model_cutoff": null}), json!({"announced_on": 20260801, "model_cutoff": 2026})]
+    {
         let mut rubric = fixture_rubric();
         for (k, v) in bad.as_object().unwrap() {
             rubric[k] = v.clone();
@@ -463,15 +472,38 @@ fn a_hung_cli_is_killed_with_its_whole_process_group() {
     use tellfold_bench::process::{run_cli, CliEnd};
     let dir = tempfile::tempdir().unwrap();
     // the CLI starts a child of its own (as the engine starts model CLIs) and both hang
-    let cli = script(dir.path(), "tellfold", "#!/bin/sh\nsleep 600 &\necho $! > \"$1/child\"\necho $$ > \"$1/parent\"\nwait\n");
+    let cli = script(
+        dir.path(),
+        "tellfold",
+        "#!/bin/sh\nsleep 600 &\necho $! > \"$1/child\"\necho $$ > \"$1/parent\"\nwait\n",
+    );
     let argv = vec![cli.display().to_string(), dir.path().display().to_string()];
-    let env: Vec<(String, String)> = std::env::vars().collect();
+    let env: Vec<_> = std::env::vars_os().collect();
     let end = run_cli(&argv, &dir.path().join("log"), &env, dir.path(), Duration::from_secs(2)).unwrap();
     assert!(matches!(end, CliEnd::TimedOut), "{end:?}");
     let pid = |name: &str| std::fs::read_to_string(dir.path().join(name)).unwrap().trim().parse::<i32>().unwrap();
     std::thread::sleep(Duration::from_millis(200));
     assert!(!alive(pid("parent")), "the CLI is still running");
     assert!(!alive(pid("child")), "the CLI's child is still running");
+}
+
+#[test]
+fn a_reply_whose_pipes_stay_open_after_the_cli_exits_counts_as_none() {
+    // a process the CLI started keeps stdout open: reading it must not outlast the timeout
+    let dir = tempfile::tempdir().unwrap();
+    let cli = script(dir.path(), "claude", "#!/bin/sh\nsleep 30 &\necho '{}'\n");
+    let started = std::time::Instant::now();
+    let out = tellfold_bench::process::run_captured(&[cli.display().to_string()], "", Duration::from_secs(1)).unwrap();
+    assert!(out.is_none());
+    assert!(started.elapsed() < Duration::from_secs(10));
+}
+
+#[test]
+fn a_relative_tellfold_command_is_made_absolute() {
+    let cmd = tellfold_bench::absolute_command(vec!["engine-rs/target/debug/tellfold".into(), "-v".into()]);
+    assert!(Path::new(&cmd[0]).is_absolute() && cmd[0].ends_with("engine-rs/target/debug/tellfold"));
+    assert_eq!(cmd[1], "-v");
+    assert_eq!(tellfold_bench::absolute_command(vec!["tellfold".into()]), ["tellfold"]);
 }
 
 #[test]

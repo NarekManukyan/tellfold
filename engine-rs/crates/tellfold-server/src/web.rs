@@ -12,7 +12,7 @@ include!(concat!(env!("OUT_DIR"), "/web_files.rs"));
 
 const MISSING_FRONTEND: &str =
     "<!doctype html><title>Tellfold Studio</title><p>The Tellfold Studio frontend files are \
-missing from this installation (tellfold/web/index.html).</p>";
+missing from this installation (web/index.html in tellfold-server).</p>";
 
 pub fn embedded(path: &str) -> Option<&'static [u8]> {
     FILES.iter().find(|(name, _)| *name == path).map(|(_, data)| *data)

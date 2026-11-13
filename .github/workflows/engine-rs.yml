@@ -1,24 +1,24 @@
-# Tests the Rust engine (engine-rs/), which the Mac app bundles. The golden fixtures pin the Python engine
-# (tellfold/), so a change on either side runs everything here.
+# Tests the Rust engine (engine-rs/), which the Mac app bundles, and the Rust tooling next to it (the benchmark
+# harness and the brand generator).
 name: Engine (Rust)
 
 on:
   pull_request:
     paths:
       - "engine-rs/**"
-      - "tellfold/**"
-      - "pyproject.toml"
-      - "uv.lock"
+      - "bench/**"
+      - "brand/**"
       - "mac/scripts/bundle-engine.sh"
+      - "mac/project.yml"
       - ".github/workflows/engine-rs.yml"
   push:
     branches: [main]
     paths:
       - "engine-rs/**"
-      - "tellfold/**"
-      - "pyproject.toml"
-      - "uv.lock"
+      - "bench/**"
+      - "brand/**"
       - "mac/scripts/bundle-engine.sh"
+      - "mac/project.yml"
       - ".github/workflows/engine-rs.yml"
 
 permissions:
@@ -55,24 +55,6 @@ jobs:
         with:
           workspaces: engine-rs
       - run: cargo check --workspace --all-targets --locked
-
-  # The fixtures must be what the Python engine produces today: regenerate them and fail on any difference.
-  golden:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - name: Regenerate the golden fixtures
-        run: |
-          uv run --python 3.13 python engine-rs/golden/make.py
-          uv run --python 3.13 python engine-rs/golden/make_cli_help.py
-          uv run --python 3.13 python engine-rs/golden/make_cli_runs.py
-          uv run --python 3.13 python engine-rs/golden/make_api.py
-      - name: Fail if they changed
-        run: |
-          git status --short engine-rs/golden engine-rs/schemas
-          git diff --exit-code -- engine-rs/golden engine-rs/schemas
-          test -z "$(git status --porcelain engine-rs/golden engine-rs/schemas)"
 
   # The binary the app ships: Apple silicon, macOS 15, built and smoke-tested by the app's own script.
   bundle:

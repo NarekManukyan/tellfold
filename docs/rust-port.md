@@ -3,6 +3,12 @@
 Status: November 2026. Python 0.3.1 is the reference. Milestones 1 to 9 left what ships unchanged; milestone 10
 switches the Mac app to the Rust engine (see "The switch").
 
+> **Done.** After 0.7.0 the Python engine (`tellfold/`), its tests, the golden generators (`engine-rs/golden/make*.py`),
+> the benchmark harness (`bench/run.py`, now `tellfold-bench`) and the brand script (now `tellfold-brand`) were
+> removed: the repository is Rust and Swift only. This page is kept as the record of how the port was done; the
+> paths to Python files below no longer exist. The golden fixtures are frozen at what the Python engine returned
+> when it was retired (see `engine-rs/README.md`).
+
 ## Why
 
 The app bundles CPython and the engine's dependencies: 186 MB of the 195 MB app, pymupdf alone 57 MB. A run spends
