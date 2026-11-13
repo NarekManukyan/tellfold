@@ -519,6 +519,12 @@ pub const STAKE_RULES: i64 = 2;
 /// lower afterwards. "Third and fourth passes" in docs/ACCURACY.md has what version 3 changed.
 pub const REACTION_RULES: i64 = 3;
 
+/// A [`SimConfig::crowd_rules`] version still on trial, so not yet [`CROWD_RULES`]: the people in the crowd no longer see
+/// the study question, only the situation. Every accuracy question asks "which groups will push back and why, and is X
+/// likely to keep, change or reverse the decision", and under version 3 the crowd still called 10% of the positive
+/// reactions positive against the planner's 53%. Set [`CROWD_RULES_ENV`] to 4 to run it.
+pub const QUESTION_RULES: i64 = 4;
+
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
 /// does (its parity tests set it).
 pub const CROWD_RULES_ENV: &str = "TELLFOLD_CROWD_RULES";

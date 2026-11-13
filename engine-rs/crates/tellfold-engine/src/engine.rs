@@ -21,8 +21,8 @@ use tellfold_models::json::{py_repr, py_round, py_round_int, py_sum};
 use tellfold_models::lax;
 use tellfold_models::text::{py_prefix, py_strip};
 use tellfold_models::{
-    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, REACTION_RULES,
-    STAKE_RULES,
+    Action, ActionType, AgentMemory, GodEvent, KnowledgeGraph, Persona, Post, RoundStats, SimConfig, QUESTION_RULES,
+    REACTION_RULES, STAKE_RULES,
 };
 use tellfold_store::world::{World, WorldError};
 
@@ -413,6 +413,16 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
         system
     }
 
+    /// The study question as the crowd sees it, above the situation: left out from [`QUESTION_RULES`], so people react
+    /// to the news rather than to an analyst asking who will push back, unless there is no situation to show instead.
+    fn question_line(&self, situation: &str) -> String {
+        if self.config.crowd_rules >= QUESTION_RULES && !situation.is_empty() {
+            String::new()
+        } else {
+            format!("Question being simulated: {}", self.config.question)
+        }
+    }
+
     /// The sentiment system prompt: scored against the announcement itself from [`REACTION_RULES`].
     fn sentiment_system(&self) -> String {
         if self.config.crowd_rules >= REACTION_RULES {
@@ -500,7 +510,7 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
 
     fn opening_prompt(&self, batch: &[Persona], context: &str, events: &[GodEvent]) -> Result<String> {
         let mut parts = vec![
-            format!("Question being simulated: {}", self.config.question),
+            self.question_line(context),
             if context.is_empty() {
                 String::new()
             } else {
@@ -511,6 +521,10 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
         ];
         for p in batch {
             parts.push(persona_block(p, &self.world.memory(&p.id)?));
+        }
+        // the question line is empty only under [`QUESTION_RULES`]; older prompts keep their exact text
+        if parts[0].is_empty() {
+            parts.remove(0);
         }
         Ok(parts.join("\n\n"))
     }
@@ -733,8 +747,9 @@ Return {{\"invented\": [the numbers of the posts that fail]}}, an empty list whe
 
     fn round_prompt(&self, r: i64, views: &[&AgentView], events: &[GodEvent]) -> Result<String> {
         let handles: HashMap<String, String> = self.world.personas()?.into_iter().map(|p| (p.id, p.handle)).collect();
+        let situation = if self.rules() { self.situation.as_str() } else { "" };
         let mut blocks = vec![
-            format!("Question being simulated: {}", self.config.question),
+            self.question_line(situation),
             format!("Round {r} of {}.", self.config.rounds),
             if self.rules() && !self.situation.is_empty() {
                 format!("Situation (from the source material):\n{}", self.situation)
