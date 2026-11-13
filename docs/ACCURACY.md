@@ -86,7 +86,7 @@ response to things that never happened. The 60% bar is the smallest majority tha
 half bar matches the judge's definition of mixed, which includes "mostly indifferent".
 
 The second pass (12 November) showed what version 1 didn't fix, listed under [Where it still goes
-wrong](#where-it-still-goes-wrong). Since commit `STAKE_COMMIT`, new runs follow version 2 (`crowd_rules: 2`), which
+wrong](#where-it-still-goes-wrong). Since commit `599845a`, new runs follow version 2 (`crowd_rules: 2`), which
 keeps every rule above and adds these:
 
 - **A cast of the people it affects, leaning the way they would.** Before writing the cast, the planner lists the
