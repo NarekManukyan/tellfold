@@ -1,10 +1,11 @@
 # How accurate is Tellfold?
 
-**Not accurate enough yet.** In the first real pass (one seed per case, 11 November 2026), Tellfold called the
-overall reaction right in 6 of 20 cases. After fixing four faults that pass found, the second pass (12 November)
-called 7 of the 19 cases it graded. Asking the same model once, with no simulated crowd, got 14 of 20 and then 11 of
-20, and answering "negative" every time would have got 15 of 20. Tellfold makes no accuracy claim. This page
-describes the test, holds every result and lists every case it got wrong.
+**Not accurate enough yet.** There have been four passes. In the latest (13 November 2026: 43 cases, three
+seeds each), Tellfold called the overall reaction right in 55% of runs. Asking the same model once, with no simulated
+crowd, got 62%. The stance mix Tellfold's planner picks before anyone in the crowd posts got 66% on its own, and
+answering "negative" every time would get 49%. The simulated crowd beats a fixed guess by a few points, but it does
+worse than the model's own answer and worse than the mix it started from. Tellfold makes no accuracy claim. This
+page describes the test, holds every result and lists where it goes wrong.
 
 Tellfold calls itself a rehearsal, not a survey. A rehearsal is still only worth doing if it points the right way
 more often than a guess. So we took real announcements whose public reaction is well documented, gave Tellfold only
@@ -123,6 +124,27 @@ same first-reaction rule, as a row of its own, counts the runs where the crowd's
 and whether each move was right, and counts how often Tellfold agrees with the zero-shot answer. If Tellfold only
 matches the planner, the crowd adds nothing to the planner's guess, and the results say so.
 
+The third pass and the 23 balanced cases (both 13 November, [below](#third-and-fourth-passes-13-november)) showed
+that the catch was real, and that the crowd moved the wrong way. On the balanced cases its direction moved away from
+the planner's in 28 of 64 runs and never once to the right answer, and in the 28 runs of either set whose real
+reaction was positive it called 2 positive. Since commit `62357bc`, new runs follow version 3 (`crowd_rules: 3`),
+which keeps every rule above and adds these:
+
+- **The middle of the crowd behaves like a middle.** The round and opening prompts say that an undecided user stays
+  undecided until something specific in their feed persuades them, and weighs what they like against what worries
+  them or asks a question rather than only complaining. An indifferent user mostly scrolls past, and posts about the
+  practical effect on them without taking a side. A supporter can ask for more, sooner or in writing and still be a
+  supporter.
+- **People who have made their point go quiet.** A user who got what they wanted, or whose question was answered,
+  rarely keeps posting about it, and nobody grows angrier round after round unless something new in their feed gives
+  them a reason.
+- **Sentiment is the attitude to the announcement.** The sentiment prompt scores what a post says about the
+  announcement itself. A post that welcomes it but asks for more or for a guarantee is positive; one that weighs both
+  sides about evenly, or mainly asks a question, is close to 0.
+
+Unlike versions 1 and 2, version 3 was written after looking at the cases it was then measured on (the balanced
+cases), so its scores on those cases are not an independent test.
+
 ### Scoring
 
 One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads Tellfold's
@@ -150,37 +172,61 @@ Two baselines sit next to the scores, because a number means little on its own:
 
 ## Cases
 
-20 cases: 18 announced after the cutoff and 2 controls. Reactions: 15 negative, 2 mixed, 3 positive. Backdowns: 4 full, 3 partial, 13 none.
+43 cases: 41 announced after the cutoff and 2 controls. Reactions: 21 negative, 12 mixed, 10 positive. Backdowns: 6 full, 4 partial, 33 none.
 
-The set leans negative: well-sourced positive reactions were hard to find, because quiet approval is rarely reported. Always answering "negative" would get 75% of directions right, so that is the bar to beat, not 33%. Some outcomes may still move: the most recent cases were only a few weeks old when written, and each case's `notes` field says where the facts are thin or the dates uncertain.
+The first 20 cases leaned negative (15 of 20): well-sourced positive reactions were hard to find, because quiet approval is rarely reported. On 13 November we added 23 cases chosen to balance the set ([PR #22](https://github.com/NarekManukyan/tellfold/pull/22)): 6 negative, 10 mixed and 7 positive. Always answering "negative" now gets 49% of directions right, against 75% on the first 20 alone, so that is the bar to beat, not 33%. Some outcomes may still move: the most recent cases were only a few weeks old when written, and each case's `notes` field says where the facts are thin or the dates uncertain.
 
 | case | type | announced | reaction | backdown | |
 |---|---|---|---|---|---|
 | [HubSpot terms let enrichment data be shared across customers by default](../bench/cases/hubspot-contact-data-sharing-terms-2026/) | policy | 2026-07-01 | negative | full |  |
 | [Sony ends physical disc production for new PlayStation games from 2028](../bench/cases/sony-playstation-ends-physical-discs-2026/) | product-change | 2026-07-01 | negative | none |  |
 | [Hillsborough County schools restrict leggings and spandex in 2026-27 dress code](../bench/cases/hillsborough-leggings-dress-code-2026/) | school | 2026-07-14 | negative | full |  |
+| [Irish government raises the e-scooter age limit to 18 and makes helmets and hi-vis mandatory, stopping short of a full ban](../bench/cases/ireland-e-scooter-under-18-ban-2026/) | policy | 2026-07-20 | mixed | none |  |
 | [Garmin launches CIRQA band with live workout heart rate behind Connect+](../bench/cases/garmin-cirqa-live-heart-rate-paywall-2026/) | product-change | 2026-07-21 | negative | partial |  |
+| [UK government removes VAT from household electricity bills from October 2026](../bench/cases/uk-electricity-vat-cut-2026/) | pricing | 2026-07-21 | positive | none |  |
+| [Samsung launches a passport-shaped Galaxy Z Fold 8, a Fold 8 Ultra and Z Flip 8, each $100 dearer](../bench/cases/samsung-galaxy-z-fold-8-launch-2026/) | product-change | 2026-07-22 | positive | none |  |
+| [UK government cuts the England bus fare cap from £3 to £2 for 2027, funded from climate finance](../bench/cases/uk-two-pound-bus-fare-cap-2026/) | public-service | 2026-07-22 | positive | none |  |
 | [Barnet Council cuts Mays Lane paid parking to one weekday hour after trader complaints](../bench/cases/barnet-mays-lane-parking-2026/) | local-government | 2026-07-23 | positive | none |  |
 | [MBTA launches unlimited-transfer, express-bus and car-free-senior fare pilots](../bench/cases/mbta-fare-pilots-2026/) | public-service | 2026-07-28 | positive | none |  |
+| [Jetstar charges for overhead locker cabin bags from February 2027](../bench/cases/jetstar-overhead-locker-fee-2026/) | pricing | 2026-08-05 | negative | none |  |
+| [University of Michigan's LSA will show freshmen's first-semester grades as Pass/No Credit from fall 2027](../bench/cases/umich-first-semester-pass-fail-2026/) | school | 2026-08-06 | mixed | partial |  |
+| [Google launches the Pixel 11 range at $100 more per model, with 256 GB base storage](../bench/cases/google-pixel-11-launch-price-rise-2026/) | product-change | 2026-08-12 | mixed | none |  |
 | [Instagram refreshes its wordmark for the first time in a decade](../bench/cases/instagram-wordmark-refresh-2026/) | rebrand | 2026-08-13 | mixed | none |  |
 | [Barclays requires UK staff in the office three days a week from October 2026](../bench/cases/barclays-three-day-office-2026/) | workplace | 2026-08-17 | negative | partial |  |
+| [Rebel Wolves confirms The Blood of Dawnwalker tops out at 40fps on consoles, with no 60fps mode](../bench/cases/blood-of-dawnwalker-40fps-console-cap-2026/) | product-change | 2026-08-21 | negative | full |  |
 | [Iron County School District (Utah) votes 4-3 to adopt a four-day school week from 2027-28](../bench/cases/iron-county-four-day-week-2026/) | school | 2026-08-25 | mixed | none |  |
 | [CD Projekt Red makes The Witcher 3 Remastered a free upgrade](../bench/cases/witcher-3-free-remaster-upgrade-2026/) | product-change | 2026-08-25 | positive | none |  |
+| [Anthropic ends a temporary 50% Claude Code boost and sets permanent weekly limits 25% above the old standard](../bench/cases/anthropic-claude-code-weekly-limits-2026/) | pricing | 2026-08-29 | negative | none |  |
 | [Ireland's National Transport Authority raises adult bus and rail fares 15% on average from January 2027](../bench/cases/ireland-nta-fare-increase-2026/) | public-service | 2026-09-03 | negative | none |  |
 | [Olathe Public Schools recommends closing five elementary schools and one middle school](../bench/cases/olathe-school-closures-2026/) | school | 2026-09-03 | negative | none |  |
 | [Xbox caps Game Pass cloud gaming at 5-15 hours a month](../bench/cases/xbox-cloud-gaming-monthly-caps-2026/) | product-change | 2026-09-03 | negative | none |  |
+| [Apple unveils the $1,999 iPhone Duo foldable and iPhone 18 Pro, and raises prices of existing iPhones by $100](../bench/cases/apple-iphone-duo-and-price-rises-2026/) | pricing | 2026-09-09 | mixed | none |  |
+| [Blizzard announces World of Warcraft: Forever, with its new Skyborne race sold in $30+ packs](../bench/cases/wow-forever-skyborne-paid-race-2026/) | product-change | 2026-09-12 | mixed | none |  |
 | [UT Austin stops new enrolment in African diaspora, Mexican American/Latino and women's and gender studies majors](../bench/cases/ut-austin-ethnic-gender-majors-2026/) | school | 2026-09-16 | negative | none |  |
+| [Costco brings the Twisted Churro back to US food courts for a limited time](../bench/cases/costco-churro-return-2026/) | product-change | 2026-09-17 | mixed | none |  |
+| [Bungie says Destiny 2 will continue and vaulted campaigns, destinations and raids will return](../bench/cases/bungie-destiny-2-unvaulting-2026/) | product-change | 2026-09-21 | positive | none |  |
+| [McLaren replaces its wordmark with a design based on Bruce McLaren's family service station sign](../bench/cases/mclaren-heritage-wordmark-2026/) | rebrand | 2026-09-22 | mixed | none |  |
+| [Quake Champions drops free-to-play for a paid Steam release and ends content updates](../bench/cases/quake-champions-goes-paid-2026/) | pricing | 2026-09-23 | mixed | none |  |
 | [OpenAI halves the ChatGPT Pro 200 usage allowance and adds Pro 500](../bench/cases/openai-chatgpt-pro-200-usage-cut-2026/) | pricing | 2026-09-29 | negative | full |  |
+| [Reddit ends RSS feeds on 13 November and closes its public API by March 2027](../bench/cases/reddit-ends-rss-and-public-api-2026/) | product-change | 2026-09-30 | negative | none |  |
+| [Jagex announces RuneScape Reignited, a fresh-start mode with a separate economy](../bench/cases/runescape-reignited-fresh-start-mode-2026/) | product-change | 2026-10-03 | negative | full |  |
+| [Ireland's Budget 2027 cuts carbon tax on home heating oil and gas and freezes it for the government's term](../bench/cases/ireland-home-heating-carbon-tax-cut-2026/) | pricing | 2026-10-06 | mixed | none |  |
+| [Minneapolis Public Schools drops plans to close up to 16 schools and bars closures for 2027-28](../bench/cases/minneapolis-school-closures-pause-2026/) | school | 2026-10-13 | positive | none |  |
+| [San Francisco school board votes 5-2 to replace the elementary school lottery with neighbourhood assignment](../bench/cases/sfusd-neighborhood-school-assignment-2026/) | school | 2026-10-13 | mixed | none |  |
+| [United drops flight-based MileagePlus status and raises Premier 1K to 32,000 PQPs for 2027](../bench/cases/united-mileageplus-spend-only-status-2026/) | policy | 2026-10-13 | negative | none |  |
 | [Meta's new Commercial Terms let it crawl business-linked websites](../bench/cases/meta-commercial-terms-website-crawling-2026/) | policy | 2026-10-15 | negative | full |  |
 | [NatWest ends remote-first working and requires two office days a week from February 2027](../bench/cases/natwest-office-attendance-2026/) | workplace | 2026-10-20 | negative | none |  |
 | [Apple Music drops its red icon for a black-and-white identity](../bench/cases/apple-music-black-and-white-rebrand-2026/) | rebrand | 2026-10-21 | negative | none |  |
+| [Grossmont Union High School District settles with its union and brings back teacher-librarians from 2027-28](../bench/cases/grossmont-librarians-reinstated-2026/) | school | 2026-10-21 | positive | none |  |
+| [Delta keeps SkyMiles Medallion spending thresholds unchanged for a third year](../bench/cases/delta-medallion-thresholds-unchanged-2026/) | policy | 2026-10-22 | positive | none |  |
 | [Dublin City Council extends its ban on street bin bags to residential Dublin 7](../bench/cases/dublin-7-bin-bag-ban-2026/) | local-government | 2026-05-07 | negative | partial | control: known to model |
 | [Nintendo raises the Switch 2 price to $499.99](../bench/cases/nintendo-switch-2-price-rise-2026/) | pricing | 2026-05-08 | negative | none | control: known to model |
 
 ## Results
 
-Two passes so far, on the same 20 cases with the same models, settings, seed (7 only) and judge, each with the
-zero-shot baseline:
+Four passes so far, with the same models, settings and judge, each with the zero-shot baseline. The first two
+ran the original 20 cases with one seed (7), the third the same 20 with three seeds (7, 8 and 9), and the fourth all
+43 cases with three seeds:
 
 - **11 November 2026, commit `a92638f`:** the engine as released. All 20 runs and all 20 zero-shot answers were
   graded. Results: [`2026-11-11-sonnet-haiku.json`](../bench/results/2026-11-11-sonnet-haiku.json), per-case table in
@@ -190,8 +236,123 @@ zero-shot baseline:
   `summary` field twice, and the harness leaves a failed run out of the averages. All 20 zero-shot answers were
   graded. Results: [`2026-11-12-sonnet-haiku.json`](../bench/results/2026-11-12-sonnet-haiku.json), per-case table in
   [`2026-11-12-sonnet-haiku.md`](../bench/results/2026-11-12-sonnet-haiku.md).
+- **13 November 2026, third pass, commit `5ba314c`:** crowd rules version 2 on the 20 cases, three seeds each. All
+  60 runs and all 20 zero-shot answers were graded. A network outage stopped the pass overnight; the harness resumed
+  it, kept the finished runs and reran only the rest. Results:
+  [`2026-11-13-sonnet-haiku.json`](../bench/results/2026-11-13-sonnet-haiku.json), per-case table in
+  [`2026-11-13-sonnet-haiku.md`](../bench/results/2026-11-13-sonnet-haiku.md).
+- **13 November 2026, the 23 balanced cases, same engine:** version 2 on the cases added that day, three seeds
+  each. 64 of the 69 runs are graded. The API refused sign-in for part of the afternoon, and by the time the harness
+  resumed, the engine in the working copy had moved to version 3, so five resumed runs (Delta seeds 8 and 9, McLaren
+  seeds 8 and 9, SFUSD seed 9) ran version 3 and are left out. All 23 zero-shot answers were graded. Results:
+  [`2026-11-13-sonnet-haiku-balanced.json`](../bench/results/2026-11-13-sonnet-haiku-balanced.json), per-case table
+  in [`2026-11-13-sonnet-haiku-balanced.md`](../bench/results/2026-11-13-sonnet-haiku-balanced.md).
+- **13 November 2026, fourth pass, commit `62357bc`:** crowd rules version 3 on all 43 cases, three seeds each. All
+  129 runs and 42 of the 43 zero-shot answers were graded (one zero-shot call failed). Results:
+  [`2026-11-13-sonnet-haiku-rules3.json`](../bench/results/2026-11-13-sonnet-haiku-rules3.json), per-case table in
+  [`2026-11-13-sonnet-haiku-rules3.md`](../bench/results/2026-11-13-sonnet-haiku-rules3.md).
 
 Every judge verdict and the quote behind it is in the JSON files.
+
+### Third and fourth passes (13 November)
+
+All 43 cases. Version 2 is the third pass and the balanced cases together; version 3 is the fourth pass. "Planner's
+mix" is the direction the planner's starting stance mix implies, by the same first-reaction rule, before anyone in
+the crowd posts. The two zero-shot columns are separate samples of the same prompt.
+
+| | Tellfold v2 | Planner's mix v2 | No crowd (v2 pass) | Tellfold v3 | Planner's mix v3 | No crowd (v3 pass) | Ignoring the announcement |
+|---|---|---|---|---|---|---|---|
+| graded | 124 runs | 124 runs | 43 cases | 129 runs | 129 runs | 42 cases | 43 cases |
+| direction | 51% | 71% | 58% | 55% | 66% | 62% | 49% |
+| objection recall | 52% | – | 65% | 52% | – | 67% | – |
+| backdown | 72% | – | 65% | 70% | – | 64% | 77% |
+| groups named | 57% | – | 71% | 56% | – | 76% | – |
+| direction from sentiment | 50% | – | – | 49% | – | – | – |
+
+Direction by set:
+
+| | Tellfold v2 | Planner's mix v2 | No crowd (v2 pass) | Tellfold v3 | Planner's mix v3 | No crowd (v3 pass) | Always "negative" |
+|---|---|---|---|---|---|---|---|
+| original 20 cases | 47 of 60 | 48 of 60 | 8 of 20 | 44 of 60 | 48 of 60 | 10 of 19 | 15 of 20 |
+| 23 balanced cases | 16 of 64 | 40 of 64 | 17 of 23 | 27 of 69 | 37 of 69 | 16 of 23 | 6 of 23 |
+
+Direction by the real reaction, in runs:
+
+| real reaction | runs v2 | Tellfold v2 | Planner's mix v2 | runs v3 | Tellfold v3 | Planner's mix v3 |
+|---|---|---|---|---|---|---|
+| negative | 63 | 53 | 53 | 63 | 50 | 52 |
+| mixed | 33 | 8 | 18 | 36 | 18 | 17 |
+| positive | 28 | 2 | 17 | 30 | 3 | 16 |
+
+What this says:
+
+- **The crowd makes the planner's guess worse.** In both versions the planner's starting mix called more directions
+  right than the crowd that started from it: 71% against 51% with version 2, 66% against 55% with version 3. With
+  version 2 the crowd's final direction moved away from the planner's in 48 of 124 runs: 9 times to the right answer,
+  34 times away from it and 5 times from one wrong answer to another. On the balanced cases alone it moved 28 times
+  and never to the right answer. With version 3 it moved in 51 of 129 runs: 16 right, 30 away, 5 from wrong to wrong.
+- **The crowd almost never says positive.** It predicted a positive reaction in 8 of 124 runs with version 2 and 8
+  of 129 with version 3, in a set where 10 of the 43 reactions were positive. In the runs whose real reaction was
+  positive it was right 2 times of 28 and 3 of 30; the planner's mix was right 17 and 16 times. In the MBTA fare
+  pilots, the Minneapolis closures pause and the UK £2 bus fare cap, the planner's mix was positive in all six runs
+  and the crowd came out mixed in all six. The UK electricity VAT cut came out negative in four of six.
+- **The third pass looked good because the first 20 cases lean negative.** On those cases version 2 got 47 of 60,
+  above always "negative" (15 of 20). On the balanced cases it got 16 of 64, level with always "negative" (6 of 23),
+  while asking the model once got 17 of 23.
+- **Version 3 helped on mixed reactions and cost a little on negative ones.** Mixed reactions went from 8 of 33 right
+  to 18 of 36, negative ones from 53 to 50 of 63, and positive ones didn't move. Overall that is 51% to 55%, a small
+  change on 43 cases, and version 3 was written after seeing the balanced cases. Backdown on the original 20 cases
+  fell from 40 to 32 of 60 runs right.
+- **The model alone still names more of what people said.** Its objection recall (65% and 67%) and groups named
+  (71% and 76%) beat Tellfold's in every pass. Tellfold's backdown (72% and 70%) beats the model's (65% and 64%) but
+  not always "no backdown" (77%).
+- **The controls don't show recall.** On the two cases known to the model, version 2 got all 6 directions and
+  version 3 got 4 of 6. That is too few runs to say more than that the controls don't stand out.
+
+### What still goes wrong on 13 November
+
+Every case whose real reaction was not negative, with the direction of each run (seeds 7, 8, 9; "–" is a run left
+out):
+
+| case | actual | Tellfold v2 | Planner's mix v2 | Tellfold v3 | Planner's mix v3 | No crowd (v2 pass) |
+|---|---|---|---|---|---|---|
+| Apple iPhone Duo and price rises | mixed | neg neg neg | neg neg neg | neg neg neg | neg neg neg | mixed |
+| Barnet parking | positive | mixed mixed mixed | pos pos pos | mixed pos mixed | mixed pos pos | pos |
+| Bungie Destiny 2 unvaulting | positive | mixed mixed mixed | mixed mixed mixed | mixed mixed mixed | mixed neg mixed | mixed |
+| Costco churro return | mixed | mixed pos pos | mixed pos pos | mixed mixed pos | pos pos pos | pos |
+| Delta Medallion thresholds unchanged | positive | mixed – – | pos – – | mixed mixed pos | mixed mixed pos | pos |
+| Google Pixel 11 price rise | mixed | neg neg neg | neg neg neg | neg neg neg | neg neg neg | mixed |
+| Grossmont librarians reinstated | positive | neg mixed mixed | mixed mixed mixed | mixed neg mixed | mixed mixed mixed | mixed |
+| Instagram wordmark | mixed | mixed mixed neg | mixed mixed mixed | mixed mixed mixed | mixed mixed mixed | mixed |
+| Ireland e-scooter under-18 ban | mixed | pos neg mixed | mixed mixed mixed | neg mixed neg | mixed mixed mixed | mixed |
+| Ireland home heating carbon tax cut | mixed | neg neg neg | mixed mixed mixed | neg mixed neg | mixed pos pos | mixed |
+| Iron County four-day week | mixed | neg mixed mixed | pos pos pos | mixed mixed neg | pos pos mixed | pos |
+| MBTA fare pilots | positive | mixed mixed mixed | pos pos pos | mixed mixed mixed | pos pos pos | pos |
+| McLaren heritage wordmark | mixed | pos – – | mixed – – | pos mixed mixed | mixed mixed neg | mixed |
+| Minneapolis school closures pause | positive | mixed mixed mixed | pos pos pos | mixed mixed mixed | pos pos pos | pos |
+| Quake Champions goes paid | mixed | neg neg neg | neg mixed mixed | mixed neg mixed | mixed mixed neg | mixed |
+| Samsung Galaxy Z Fold 8 launch | positive | neg neg mixed | neg neg neg | neg neg neg | neg neg neg | mixed |
+| SFUSD school assignment | mixed | neg neg – | neg neg – | mixed neg neg | neg neg neg | mixed |
+| UK electricity VAT cut | positive | mixed neg neg | mixed pos pos | neg neg mixed | mixed neg pos | mixed |
+| UK £2 bus fare cap | positive | mixed mixed mixed | pos pos pos | mixed mixed mixed | pos pos pos | pos |
+| UMich first-semester pass/fail | mixed | mixed mixed neg | mixed mixed mixed | pos neg mixed | mixed mixed mixed | mixed |
+| Witcher 3 free remaster upgrade | positive | neg pos pos | neg pos pos | pos mixed mixed | pos pos pos | pos |
+| WoW Forever paid race | mixed | neg neg neg | mixed mixed neg | mixed mixed mixed | mixed neg mixed | mixed |
+
+Two patterns stand out. Where the news is good for the people in the cast (a fare cap, a tax cut, closures paused,
+librarians reinstated), the crowd still lands on mixed or negative. A likely reason, not yet tested: the 15% floor
+puts critics in every cast, the others answer them with worries and requests for more, and the conversation reads as
+divided. Where the news is a price rise with something new attached (the iPhone Duo, the Pixel 11), the
+planner and the crowd both call it negative, while the model alone, and the real reaction, were mixed.
+
+What we take from this, as hypotheses for the next pass: on this benchmark the simulated crowd does not add accuracy
+to one call of the same model, and on the direction it takes some away. A Tellfold report is better read as a
+rehearsal of the arguments people may raise than as a forecast of how the reaction will go. The next things to
+test are whether the 15% floor on each side should apply when the planner expects a clear lean, and whether the
+direction should come from the planner's mix with the crowd used only for the arguments. Both need a pass on cases
+that weren't used to design them.
+
+### The first two passes
 
 All cases:
 
@@ -410,8 +571,8 @@ Read the results with these in mind. Some of them we can measure; some we can on
   into what it stresses. We kept each one to the facts of the day, and the harness warns about words that describe a
   reaction, but a reader should check a few against the sources.
 - **We chose the cases.** Well-documented reactions are the loud ones. Quiet acceptance rarely makes the news, so
-  the set leans towards negative reactions however hard we tried to balance it. The "always negative" baseline makes
-  that lean visible.
+  the first 20 cases leaned towards negative reactions however hard we tried to balance them. The 23 cases added on 13
+  November were chosen to balance the set, and the "always negative" baseline makes any lean visible.
 - **The crowd is small.** Twenty simulated people over six rounds is a town meeting, not the internet. Tellfold can't
   model press coverage, virality, organised campaigns or the decision-makers' own politics, which often decide
   whether an organisation backs down.
@@ -420,9 +581,10 @@ Read the results with these in mind. Some of them we can measure; some we can on
   groups (never the true direction or backdown), and every verdict comes with a quote
   from the report so it can be checked by hand. The [judge check](#judge-check) below compares six of its gradings
   with a second reading; that second reading was also done by a Claude model, so a check by a person is still owed.
-- **Few cases.** With 20 cases, one case moves a percentage by five points. Differences of a few points
-  between two passes mean nothing. The zero-shot baseline, which didn't change at all between the two passes, still
-  moved by three cases on direction and two on backdown.
+- **Few cases.** With 20 cases, one case moves a percentage by five points; with 43, by more than two. Three seeds
+  per case show the spread of one case, but they are not three more cases. Differences of a few points between two
+  passes mean little. The zero-shot baseline, which didn't change at all between the first two passes, still moved
+  by three cases on direction and two on backdown, and it got 8 of the 20 original cases in the third pass.
 - **"Direction" is a judgement too.** Reporting rarely says "62% of people were against". The rubric's direction is
   our reading of the coverage, and mixed reactions are the hardest to call.
 - **Runs vary.** The same case can come out differently with another seed. A single-seed pass is a sample, not a
@@ -450,6 +612,20 @@ The 12 November pass, counted the same way, made 550 calls: 491 for the simulati
 failed UT Austin report) and 20 for zero-shot. It would have cost about **$10.40**: judge $1.75, zero-shot $0.96,
 and simulations about 0.98M output tokens ($6.70) and an estimated 2.5M input tokens ($1.00). It took about four
 hours and fifty-five minutes, close to 15 minutes a case.
+
+The 13 November passes, counted the same way, ran with three seeds and cost three to six times as much:
+
+- **Third pass** (20 cases): 2,075 calls, 1,975 of them for the simulations, 80 for the judge and 20 for zero-shot.
+  About **$31**: simulations $25.80 (3.1M output tokens and an estimated 7.9M input), judge $4.10, zero-shot $0.93.
+- **Balanced cases** (23 cases, version 2): 2,331 calls, 2,216 of them for the simulations (including the attempts
+  that failed when sign-in was refused and the five version 3 runs), 92 for the judge and 23 for zero-shot. About
+  **$34**: simulations $28.70 (3.4M output, an estimated 8.8M input), judge $4.60, zero-shot $0.80.
+- **Fourth pass** (43 cases, version 3): 4,411 calls, 4,198 of them for the simulations, 171 for the judge and 42
+  for zero-shot. About **$66**: simulations $56 (6.8M output, an estimated 17.2M input), judge $8.60, zero-shot
+  $1.70.
+
+These ran on a Claude Code plan too, so none of it was billed per token. They ran in four to six parallel parts, so
+their wall-clock time says little about a single run.
 
 ## Rerun it
 
