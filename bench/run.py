@@ -28,6 +28,8 @@ import sqlite3
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 BENCH = Path(__file__).resolve().parent
@@ -366,9 +368,10 @@ def extract_json(text: str) -> dict:
     return obj
 
 
-# Signs in a CLI's output that the network, not the request, failed: worth waiting for and trying again.
+# Signs in a failed CLI's output that the network, not the request, failed: worth waiting for and trying again. Only
+# checked on a call or run that failed, since a model's own answer may mention a network of any kind.
 NETWORK_ERRORS = ("ENOTFOUND", "Can't reach the API", "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN",
-                  "getaddrinfo", "socket hang up", "network")
+                  "getaddrinfo", "socket hang up")
 # How long one simulation, and one rebuilt report, may take before it counts as hung (a dropped network once left
 # five runs waiting on the CLI overnight).
 RUN_TIMEOUT_S = 3 * 3600
@@ -378,13 +381,12 @@ NETWORK_TRIES = 6
 
 
 def network_error(text: str) -> bool:
-    return any(sign.lower() in text.lower() for sign in NETWORK_ERRORS)
+    text = text.lower()
+    return any(sign.lower() in text for sign in NETWORK_ERRORS)
 
 
 def wait_for_network(check_every_s: float = 60) -> None:
     """Returns once api.anthropic.com answers at all (any HTTP status counts)."""
-    import urllib.error
-    import urllib.request
     while True:
         try:
             urllib.request.urlopen("https://api.anthropic.com", timeout=10)
@@ -397,23 +399,31 @@ def wait_for_network(check_every_s: float = 60) -> None:
 
 
 def run_cli(argv: list[str], log: Path, env: dict | None, timeout_s: float) -> int | None:
-    """Runs a CLI into `log` in its own process group; None when it timed out, after killing the whole group."""
+    """Runs a CLI into `log` in its own process group; None when it timed out, after killing the whole group. The
+    group is killed too when the harness itself stops (Ctrl-C), since it no longer shares the terminal's signals."""
     with log.open("w", encoding="utf-8") as fh:
         proc = subprocess.Popen(argv, stdout=fh, stderr=subprocess.STDOUT, env=env, cwd=REPO, start_new_session=True)
         try:
             return proc.wait(timeout=timeout_s)
         except subprocess.TimeoutExpired:
-            for sig in (signal.SIGTERM, signal.SIGKILL):
-                try:
-                    os.killpg(proc.pid, sig)
-                except ProcessLookupError:
-                    break
-                try:
-                    proc.wait(timeout=30)
-                    break
-                except subprocess.TimeoutExpired:
-                    continue
+            kill_group(proc)
             return None
+        except BaseException:
+            kill_group(proc)
+            raise
+
+
+def kill_group(proc: subprocess.Popen) -> None:
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(proc.pid, sig)
+        except ProcessLookupError:
+            return
+        try:
+            proc.wait(timeout=30)
+            return
+        except subprocess.TimeoutExpired:
+            continue
 
 
 class ClaudeModel:
@@ -438,7 +448,8 @@ class ClaudeModel:
             except subprocess.TimeoutExpired:
                 last_error = f"no reply within {self.timeout_s:.0f}s"
                 continue
-            if network_error(proc.stdout[-2000:] + proc.stderr[-2000:]) and waits < NETWORK_TRIES:
+            if proc.returncode != 0 and network_error(proc.stdout[-2000:] + proc.stderr[-2000:]) \
+                    and waits < NETWORK_TRIES:
                 # a dropped network is not the model's failure: wait for it and try again without using up a try
                 waits += 1
                 tries += 1
@@ -656,7 +667,8 @@ def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: in
                 text = log.read_text(encoding="utf-8", errors="replace")[-2000:]
                 if code is not None and not network_error(text):
                     raise RuntimeError(f"tellfold report exited {code}: {text[-600:]}")
-                wait_for_network()
+                if attempt < NETWORK_TRIES:
+                    wait_for_network()
                 continue
         returned = _simulate(cmd, case, out, settings, seed, env)
         if isinstance(returned, Path):
@@ -664,11 +676,12 @@ def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: in
         code, tail = returned
         if code is not None and not network_error(tail):
             raise RuntimeError(f"tellfold exited {code} with a broken run folder: {tail[-600:]}")
-        print(f"[{case['slug']}] seed {seed}: {'hung' if code is None else 'network failure'}, "
-              f"waiting to resume (try {attempt + 1})", file=sys.stderr, flush=True)
-        wait_for_network()
+        print(f"[{case['slug']}] seed {seed}: {'hung' if code is None else 'network failure'} "
+              f"(try {attempt + 1} of {NETWORK_TRIES + 1})", file=sys.stderr, flush=True)
+        if attempt < NETWORK_TRIES:
+            wait_for_network()
         resume = True
-    raise RuntimeError(f"tellfold kept failing on the network after {NETWORK_TRIES} tries")
+    raise RuntimeError(f"tellfold kept failing on the network after {NETWORK_TRIES + 1} tries")
 
 
 def _simulate(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict) -> Path | tuple:
@@ -946,7 +959,9 @@ def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, e
     report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
     run["report_confidence"] = report.get("confidence")
     run["first_reaction"] = report.get("first_reaction")
-    stakes = json.loads((run_dir / "config.json").read_text(encoding="utf-8")).get("stakes")
+    config = json.loads((run_dir / "config.json").read_text(encoding="utf-8"))
+    run["crowd_rules"] = config.get("crowd_rules", 0)
+    stakes = config.get("stakes")
     if stakes:
         run["planner_mix"] = stakes["planned"]
         run["planner_reason"] = stakes.get("reason", "")
@@ -981,8 +996,13 @@ def planner_vs_crowd(cases: list[dict]) -> dict | None:
     runs = [(c, r) for c in cases for r in c["runs"] if r.get("planner_direction") and r.get("scores")]
     if not runs:
         return None
-    actual = lambda c: c["rubric"]["direction"]  # noqa: E731
-    crowd = lambda r: r["grade"].get("predicted_direction")  # noqa: E731
+
+    def actual(c: dict) -> str:
+        return c["rubric"]["direction"]
+
+    def crowd(r: dict) -> str | None:
+        return r["grade"].get("predicted_direction")
+
     moved = [(c, r) for c, r in runs if crowd(r) != r["planner_direction"]]
     zero = [(c, r) for c, r in runs if (c.get("zero_shot") or {}).get("grade")]
     return {
@@ -1030,10 +1050,11 @@ def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeat
     return entry
 
 
-def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge, saved: Path | None = None) -> dict:
+def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge, saved: Path | None = None,
+                  reuse: bool = False) -> dict:
     """The no-crowd baseline for one case: one direct call with the same seed and question, graded the same way.
-    With `saved`, a graded answer already there is reused, and a new one is written there."""
-    if saved is not None and saved.exists():
+    A new answer is written to `saved`; with `reuse` (a resumed pass), a graded answer already there is kept."""
+    if reuse and saved is not None and saved.exists():
         return json.loads(saved.read_text(encoding="utf-8"))
     system, template = prompt
     user = template.replace("{{SEED}}", case["input"].read_text(encoding="utf-8")).replace(
@@ -1055,6 +1076,15 @@ def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge, saved: Path
     return zs
 
 
+def crowd_rules_of(cases: list[dict]) -> list[int]:
+    """The crowd rules versions the runs of a pass followed, warning when there is more than one: a resumed pass whose
+    working copy moved on mixes versions (five runs of the version 2 balanced pass ran version 3)."""
+    versions = sorted({r["crowd_rules"] for c in cases for r in c["runs"] if r.get("crowd_rules") is not None})
+    if len(versions) > 1:
+        print(f"warning: the runs follow more than one crowd rules version: {versions}", file=sys.stderr)
+    return versions
+
+
 def build_result(args: argparse.Namespace, settings: dict, cmd: list[str], label: str, date: str,
                  results: list[dict], judge, zero_model) -> dict:
     return {
@@ -1067,6 +1097,7 @@ def build_result(args: argparse.Namespace, settings: dict, cmd: list[str], label
         "tellfold": cmd,
         "settings": settings,
         "repeats": args.repeats,
+        "crowd_rules": crowd_rules_of(results),
         "judge": {"model": "word-overlap (dry run)" if args.dry_run else args.judge_model,
                   "prompt": "bench/judge_prompt.md"},
         "summary": summarise(results),
@@ -1107,6 +1138,7 @@ def merge_results(paths: list[Path], results_dir: Path | None) -> int:
     zero = any(c.get("zero_shot") for c in cases)
     result = {
         **first,
+        "crowd_rules": crowd_rules_of(cases),
         "summary": summarise(cases),
         "zero_shot_summary": summarise(cases, "zero_shot") if zero else None,
         "baselines": baselines(cases),
@@ -1156,6 +1188,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     args.cases_dir = args.cases_dir.resolve()
     args.runs_dir = args.runs_dir.resolve()
     args.results_dir = (args.results_dir or (DRY_RESULTS_DIR if args.dry_run else RESULTS_DIR)).resolve()
+    args.resume = args.resume.resolve() if args.resume else None
     return args
 
 
@@ -1187,7 +1220,7 @@ def main(argv: list[str] | None = None) -> int:
         entry = run_case(case, cmd, runs_root, settings, args.repeats, env, judge, bool(args.resume))
         if zero_model is not None:
             saved = runs_root / case["slug"] / "zero-shot.json"
-            entry["zero_shot"] = run_zero_shot(case, zero_prompt, zero_model, judge, saved)
+            entry["zero_shot"] = run_zero_shot(case, zero_prompt, zero_model, judge, saved, reuse=bool(args.resume))
         results.append(entry)
 
     result = build_result(args, settings, cmd, label, date, results, judge, zero_model)
