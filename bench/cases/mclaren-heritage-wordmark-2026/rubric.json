@@ -1,0 +1,19 @@
+{
+  "slug": "mclaren-heritage-wordmark-2026",
+  "title": "McLaren replaces its wordmark with a design based on Bruce McLaren's family service station sign",
+  "category": "rebrand",
+  "announced_on": "2026-09-22",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will McLaren fans, customers and F1 followers react to this over the first two weeks, which groups will push back and why, and is McLaren likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "The lighter wordmark weakens the brand's sense of speed and aggression.", "source": "https://designcompass.org/en/2026/09/23/mclaren-new-logo-controversy/"},
+    {"id": "o2", "text": "It looks like a luxury fashion or clothing label rather than a car or racing brand.", "source": "https://designcompass.org/en/2026/09/23/mclaren-new-logo-controversy/"},
+    {"id": "o3", "text": "The change is too subtle to notice; the old logo was fine and easier to read at a distance.", "source": "https://designcompass.org/en/2026/09/23/mclaren-new-logo-controversy/"},
+    {"id": "o4", "text": "A new logo does not address McLaren's real problem, which is interest in its road cars.", "source": "https://www.theautopian.com/mclaren-changes-its-logo-in-effort-to-make-anyone-care-about-its-road-cars/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Identity rolled out as announced; no change reported.", "source": "https://supercarblondie.com/mclaren-new-logo-founder-racing-heritage/"},
+  "pushback_groups": ["some McLaren and F1 fans online", "some motoring and design commentators"],
+  "notes": "Low-intensity reaction: outlets noted it was subtle and far less divisive than Jaguar's rebrand. Split between heritage appreciation and 'fashion label / lost speed' criticism. Two reaction sources carry most of the weight (Design Compass, The Autopian); Creative Bloq is cited from its headline only. A model predicting a fierce backlash or a reversal should score poorly."
+}

@@ -1,0 +1,20 @@
+{
+  "slug": "umich-first-semester-pass-fail-2026",
+  "title": "University of Michigan's LSA will show freshmen's first-semester grades as Pass/No Credit from fall 2027",
+  "category": "school",
+  "announced_on": "2026-08-06",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will University of Michigan students and the wider higher-education public react to this over the first two weeks, which groups will push back and why, and is the University of Michigan likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "It lowers academic rigour and shields students from the reality of grades instead of preparing them.", "source": "https://wjla.com/news/nation-world/is-new-university-of-michigan-grade-policy-helping-or-hurting-students-hide-first-semester-grades-transcript-campus-reform"},
+    {"id": "o2", "text": "It could demotivate freshmen and add to grade inflation.", "source": "https://www.michiganpublic.org/2026-08-12/university-of-michigan-wont-use-letter-grades-for-some-freshmen-next-fall"},
+    {"id": "o3", "text": "It is unfair to students who work hard for grades and could backfire.", "source": "https://www.foxnews.com/media/students-divided-university-michigan-hide-first-semester-grades-2027-freshmen.print"},
+    {"id": "o4", "text": "It could hurt Michigan's rankings and standing against peer universities.", "source": "https://www.wcmu.org/local-regional-news/2026-09-29/u-m-students-react-to-suspension-of-planned-policy-to-hide-letter-grades-of-first-semester-freshmen"},
+    {"id": "o5", "text": "The university should invest in mental health and student support directly rather than change grading.", "source": "https://www.wcmu.org/local-regional-news/2026-09-29/u-m-students-react-to-suspension-of-planned-policy-to-hide-letter-grades-of-first-semester-freshmen"}
+  ],
+  "backdown": {"happened": true, "kind": "partial", "date": "2026-09-29", "summary": "The university paused the pilot for further community input and discussion, without cancelling it; the president defended its intentions.", "source": "https://www.wcmu.org/local-regional-news/2026-09-29/u-m-students-react-to-suspension-of-planned-policy-to-hide-letter-grades-of-first-semester-freshmen"},
+  "pushback_groups": ["conservative higher-education commentators (Campus Reform, Legal Insurrection)", "students worried about rigour, fairness and rankings", "some teaching and learning experts"],
+  "notes": "announced_on is the earliest report found (Daily Wire, 6 Aug 2026); the LSA page may have gone up a few days earlier. Students were split, with supporters citing mental health. The pause was reported on 29 Sep 2026 (date of the president's statement not given), about seven weeks after the announcement, so outside the two-week window; it is a pause, not a cancellation, so score as partial. Michigan Public is licensed to the university, though its coverage is NPR newsroom reporting."
+}

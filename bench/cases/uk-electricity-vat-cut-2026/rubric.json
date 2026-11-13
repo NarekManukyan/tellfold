@@ -1,0 +1,19 @@
+{
+  "slug": "uk-electricity-vat-cut-2026",
+  "title": "UK government removes VAT from household electricity bills from October 2026",
+  "category": "pricing",
+  "announced_on": "2026-07-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will households in Great Britain react to this over the first two weeks, which groups will push back and why, and is the UK government likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "The saving (about £45 a year) is small and does not match the scale of energy costs households face.", "source": "https://www.irishnews.com/news/uk/energy-vat-cut-does-not-address-scale-of-what-households-are-facing-FABXPZ75QJIIHBWLBDEE3Y75OU/"},
+    {"id": "o2", "text": "It is temporary and favours households with the highest bills; targeted support or moving levies to taxation would help more.", "source": "https://www.irishnews.com/news/uk/energy-vat-cut-does-not-address-scale-of-what-households-are-facing-FABXPZ75QJIIHBWLBDEE3Y75OU/"},
+    {"id": "o3", "text": "The funding is questionable because the digital ID programme it replaces was itself unfunded.", "source": "https://www.lbc.co.uk/news/cost-living/energy-bills-business-secretary-unfunded-tax-cut/"},
+    {"id": "o4", "text": "Northern Ireland is left out of the VAT cut and gets a much smaller substitute payment.", "source": "https://www.irishnews.com/news/northern-ireland/andy-burnhams-flagship-cost-of-living-measure-to-be-worth-less-than-5-a-month-to-ni-households-this-winter-LLQOEPGJTFCVNA6TD6VK4WMJPM/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Took effect on 1 October 2026; the 28 October Budget extended it to July 2027.", "source": "https://www.which.co.uk/news/article/what-cost-of-living-support-did-the-government-announce-in-the-budget-a50vz4X02zeY"},
+  "pushback_groups": ["fuel poverty campaigners and consumer groups wanting bigger, targeted help", "critics of the funding (Darren Jones, Conservative leader)"],
+  "notes": "Consumer, fuel-poverty and industry groups all welcomed it with caveats; nobody opposed the tax cut itself, so positive rather than mixed. The political dispute was about funding. The Northern Ireland objection surfaced on 27 Aug, outside the first two weeks, and is a minor point. No household polling found."
+}
