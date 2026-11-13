@@ -23,9 +23,11 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import sqlite3
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 BENCH = Path(__file__).resolve().parent
@@ -364,6 +366,56 @@ def extract_json(text: str) -> dict:
     return obj
 
 
+# Signs in a CLI's output that the network, not the request, failed: worth waiting for and trying again.
+NETWORK_ERRORS = ("ENOTFOUND", "Can't reach the API", "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN",
+                  "getaddrinfo", "socket hang up", "network")
+# How long one simulation, and one rebuilt report, may take before it counts as hung (a dropped network once left
+# five runs waiting on the CLI overnight).
+RUN_TIMEOUT_S = 3 * 3600
+REPORT_TIMEOUT_S = 45 * 60
+# How many times one run or call waits for the network and tries again before it fails.
+NETWORK_TRIES = 6
+
+
+def network_error(text: str) -> bool:
+    return any(sign.lower() in text.lower() for sign in NETWORK_ERRORS)
+
+
+def wait_for_network(check_every_s: float = 60) -> None:
+    """Returns once api.anthropic.com answers at all (any HTTP status counts)."""
+    import urllib.error
+    import urllib.request
+    while True:
+        try:
+            urllib.request.urlopen("https://api.anthropic.com", timeout=10)
+            return
+        except urllib.error.HTTPError:
+            return
+        except OSError:
+            print("network down, waiting...", file=sys.stderr, flush=True)
+            time.sleep(check_every_s)
+
+
+def run_cli(argv: list[str], log: Path, env: dict | None, timeout_s: float) -> int | None:
+    """Runs a CLI into `log` in its own process group; None when it timed out, after killing the whole group."""
+    with log.open("w", encoding="utf-8") as fh:
+        proc = subprocess.Popen(argv, stdout=fh, stderr=subprocess.STDOUT, env=env, cwd=REPO, start_new_session=True)
+        try:
+            return proc.wait(timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            for sig in (signal.SIGTERM, signal.SIGKILL):
+                try:
+                    os.killpg(proc.pid, sig)
+                except ProcessLookupError:
+                    break
+                try:
+                    proc.wait(timeout=30)
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
+            return None
+
+
 class ClaudeModel:
     """One structured call through the local Claude Code CLI, with the same isolation flags the engine uses."""
 
@@ -378,11 +430,19 @@ class ClaudeModel:
             "--json-schema", json.dumps(schema),
         ]
         last_error = ""
-        for _ in range(2):
+        tries, waits = 2, 0
+        while tries > 0:
+            tries -= 1
             try:
                 proc = subprocess.run(argv, input=user, capture_output=True, text=True, timeout=self.timeout_s)
             except subprocess.TimeoutExpired:
                 last_error = f"no reply within {self.timeout_s:.0f}s"
+                continue
+            if network_error(proc.stdout[-2000:] + proc.stderr[-2000:]) and waits < NETWORK_TRIES:
+                # a dropped network is not the model's failure: wait for it and try again without using up a try
+                waits += 1
+                tries += 1
+                wait_for_network()
                 continue
             try:
                 reply = json.loads(proc.stdout)
@@ -569,8 +629,50 @@ def last_sentiment(run_dir: Path) -> tuple[int | None, float | None]:
     return row[0], json.loads(row[1]).get("sentiment")
 
 
-def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict) -> Path:
-    """Runs one simulation into a fresh `out` folder and returns the run directory."""
+def run_status(run_dir: Path) -> dict:
+    try:
+        return json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict,
+                 resume: bool = False) -> Path:
+    """Runs one simulation into `out` and returns the run directory. With `resume`, a finished run already in `out`
+    is kept, and one whose simulation finished but whose report failed only gets its report rebuilt. A run that
+    fails or hangs because the network dropped waits for the network and is picked up the same way."""
+    for attempt in range(NETWORK_TRIES + 1):
+        runs = [p for p in out.iterdir() if p.is_dir()] if out.exists() else []
+        if resume and len(runs) == 1:
+            run_dir, status = runs[0], run_status(runs[0])
+            if status.get("state") == "done" and (run_dir / "report.json").exists():
+                return run_dir
+            if status.get("stage") == "report":
+                print(f"[{case['slug']}] seed {seed}: rebuilding the report...", flush=True)
+                log = out / "report.log"
+                code = run_cli([*cmd, "report", str(run_dir)], log, env, REPORT_TIMEOUT_S)
+                if code == 0 and (run_dir / "report.json").exists():
+                    return run_dir
+                text = log.read_text(encoding="utf-8", errors="replace")[-2000:]
+                if code is not None and not network_error(text):
+                    raise RuntimeError(f"tellfold report exited {code}: {text[-600:]}")
+                wait_for_network()
+                continue
+        returned = _simulate(cmd, case, out, settings, seed, env)
+        if isinstance(returned, Path):
+            return returned
+        code, tail = returned
+        if code is not None and not network_error(tail):
+            raise RuntimeError(f"tellfold exited {code} with a broken run folder: {tail[-600:]}")
+        print(f"[{case['slug']}] seed {seed}: {'hung' if code is None else 'network failure'}, "
+              f"waiting to resume (try {attempt + 1})", file=sys.stderr, flush=True)
+        wait_for_network()
+        resume = True
+    raise RuntimeError(f"tellfold kept failing on the network after {NETWORK_TRIES} tries")
+
+
+def _simulate(cmd: list[str], case: dict, out: Path, settings: dict, seed: int, env: dict) -> Path | tuple:
+    """One fresh simulation into `out`: the run directory, or (exit code or None when it hung, log tail)."""
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -582,13 +684,11 @@ def run_tellfold(cmd: list[str], case: dict, out: Path, settings: dict, seed: in
         "--agent-runtime", settings["runtime"], "--planner-runtime", settings["runtime"], "--out", str(out),
     ]
     log = out / "tellfold.log"
-    with log.open("w", encoding="utf-8") as fh:
-        proc = subprocess.run(argv, stdout=fh, stderr=subprocess.STDOUT, env=env, cwd=REPO)
+    code = run_cli(argv, log, env, RUN_TIMEOUT_S)
     runs = [p for p in out.iterdir() if p.is_dir()]
-    if proc.returncode != 0 or len(runs) != 1:
-        tail = log.read_text(encoding="utf-8", errors="replace")[-600:]
-        raise RuntimeError(f"tellfold exited {proc.returncode} with {len(runs)} run folder(s): {tail}")
-    return runs[0]
+    if code == 0 and len(runs) == 1:
+        return runs[0]
+    return code, log.read_text(encoding="utf-8", errors="replace")[-2000:]
 
 
 def count_calls(run_dir: Path) -> dict:
@@ -831,11 +931,12 @@ def make_graders(args: argparse.Namespace, settings: dict) -> tuple[dict, object
     return env, judge, zero, args.label or f"{settings['planner_model']}-{settings['agent_model']}"
 
 
-def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, env: dict, judge) -> None:
+def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, env: dict, judge,
+             resume: bool = False) -> None:
     """One simulation of one case, graded, filled into `run` step by step. On a failure it raises and `run` keeps
     what was already done, so a judge failure does not lose the simulation, its call counts or its sentiment."""
     rubric = case["rubric"]
-    run_dir = run_tellfold(cmd, case, out, settings, run["seed"], env)
+    run_dir = run_tellfold(cmd, case, out, settings, run["seed"], env, resume)
     run["run_dir"] = str(run_dir.relative_to(REPO) if run_dir.is_relative_to(REPO) else run_dir)
     run.update(count_calls(run_dir))
     final_round, final = last_sentiment(run_dir)
@@ -850,7 +951,12 @@ def run_once(run: dict, cmd: list[str], case: dict, out: Path, settings: dict, e
         run["planner_mix"] = stakes["planned"]
         run["planner_reason"] = stakes.get("reason", "")
         run["planner_direction"] = mix_direction(stakes["planned"])
-    run["grade"] = judge.grade(case, report, final)
+    saved = out / "grade.json"
+    if resume and saved.exists():
+        run["grade"] = json.loads(saved.read_text(encoding="utf-8"))
+    else:
+        run["grade"] = judge.grade(case, report, final)
+        saved.write_text(json.dumps(run["grade"], indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     run["scores"] = score(rubric, run["grade"])
 
 
@@ -900,7 +1006,8 @@ def warn_unmatched(slug: str, scores: dict, what: str) -> None:
               file=sys.stderr, flush=True)
 
 
-def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeats: int, env: dict, judge) -> dict:
+def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeats: int, env: dict, judge,
+             resume: bool = False) -> dict:
     """Every seed of one case. A failed run is recorded with its error and the pass goes on."""
     rubric = case["rubric"]
     entry = {"slug": case["slug"], "rubric": rubric, "runs": []}
@@ -908,7 +1015,7 @@ def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeat
         print(f"[{case['slug']}] seed {seed}: simulating...", flush=True)
         run: dict = {"seed": seed}
         try:
-            run_once(run, cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, env, judge)
+            run_once(run, cmd, case, runs_root / case["slug"] / f"seed-{seed}", settings, env, judge, resume)
         # one failed case must not stop a three-hour pass; the error goes into the results and the exit code
         except Exception as e:  # noqa: BLE001
             run["error"] = str(e)
@@ -923,8 +1030,11 @@ def run_case(case: dict, cmd: list[str], runs_root: Path, settings: dict, repeat
     return entry
 
 
-def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge) -> dict:
-    """The no-crowd baseline for one case: one direct call with the same seed and question, graded the same way."""
+def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge, saved: Path | None = None) -> dict:
+    """The no-crowd baseline for one case: one direct call with the same seed and question, graded the same way.
+    With `saved`, a graded answer already there is reused, and a new one is written there."""
+    if saved is not None and saved.exists():
+        return json.loads(saved.read_text(encoding="utf-8"))
     system, template = prompt
     user = template.replace("{{SEED}}", case["input"].read_text(encoding="utf-8")).replace(
         "{{QUESTION}}", case["rubric"]["question"]
@@ -935,6 +1045,9 @@ def run_zero_shot(case: dict, prompt: tuple[str, str], model, judge) -> dict:
         zs["grade"] = judge.grade(case, zs["answer"], None)
         zs["scores"] = score(case["rubric"], zs["grade"])
         warn_unmatched(case["slug"], zs["scores"], "zero-shot")
+        if saved is not None:
+            saved.parent.mkdir(parents=True, exist_ok=True)
+            saved.write_text(json.dumps(zs, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     # same as run_case: a failed baseline call is recorded and counted, not fatal
     except Exception as e:  # noqa: BLE001
         zs["error"] = str(e)
@@ -1036,6 +1149,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--cases-dir", type=Path, default=CASES_DIR)
     p.add_argument("--results-dir", type=Path, help="default: bench/results, or bench/runs/results for a dry run")
     p.add_argument("--runs-dir", type=Path, default=RUNS_DIR)
+    p.add_argument("--resume", type=Path, help="the simulation folder of an interrupted pass (<runs-dir>/<date>-<label>): "
+                   "keep its finished runs, rebuild failed reports, run only what is missing")
     args = p.parse_args(argv)
     # the CLI runs with cwd=REPO, so every path it is given must be absolute
     args.cases_dir = args.cases_dir.resolve()
@@ -1065,13 +1180,14 @@ def main(argv: list[str] | None = None) -> int:
     date = dt.date.today().isoformat()
     args.results_dir.mkdir(parents=True, exist_ok=True)
     out_json = results_path(args.results_dir, label, date)
-    runs_root = args.runs_dir / out_json.stem
+    runs_root = args.resume or args.runs_dir / out_json.stem
 
     results = []
     for case in cases:
-        entry = run_case(case, cmd, runs_root, settings, args.repeats, env, judge)
+        entry = run_case(case, cmd, runs_root, settings, args.repeats, env, judge, bool(args.resume))
         if zero_model is not None:
-            entry["zero_shot"] = run_zero_shot(case, zero_prompt, zero_model, judge)
+            saved = runs_root / case["slug"] / "zero-shot.json"
+            entry["zero_shot"] = run_zero_shot(case, zero_prompt, zero_model, judge, saved)
         results.append(entry)
 
     result = build_result(args, settings, cmd, label, date, results, judge, zero_model)
