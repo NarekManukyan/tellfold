@@ -1,0 +1,18 @@
+[package]
+name = "tellfold-feed"
+version = "0.1.0"
+edition = "2021"
+license = "LicenseRef-Proprietary"
+publish = false
+description = "Serves the Mac app's update feed through Cloudflare and counts the daily update checks."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+worker = { version = "0.9", features = ["d1"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1

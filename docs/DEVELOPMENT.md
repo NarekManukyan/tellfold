@@ -186,3 +186,12 @@ One-time setup on the release Mac:
 4. `gh auth login` for GitHub releases.
 
 The disk image opens as a small white window with Tellfold on top and the Applications folder below it, inside a tinted drop zone with an arrow, the way most Mac apps install (`mac/dmg/preview.png`). `mac/scripts/make-dmg.sh <app> <dmg>` builds it, and `release.sh` calls it: Finder lays the window out through AppleScript and saves the layout in the volume, so it runs in a logged-in session, and macOS asks once to let the terminal control Finder. Run it on its own to try a layout change. The picture is `mac/dmg/background.svg`, rendered to `background.png` and `background@2x.png`; the icon positions in `make-dmg.sh` must match it.
+
+### Usage numbers
+
+Two counts, and nothing that identifies anyone:
+
+- **Copies in use.** The app's update checks go through a small Cloudflare Worker (`feed/`, in Rust) that relays the real `site/appcast.xml` and counts checks per day and app version. A copy that's open on a given day checks about once, so the daily total roughly equals the copies opened that day. `feed/README.md` has the queries and how to deploy it.
+- **Site visits and download clicks.** `site/assets/site.js` sends page views, plus clicks on links marked `data-count` (Download, Sponsor), to GoatCounter at `tellfold.goatcounter.com`. It sets no cookies, counts only on the live site, and its address is allowed in the page's CSP. Open the site with `#toggle-goatcounter` once to stop counting your own visits in that browser.
+
+Downloads per release are on GitHub: `gh api repos/NarekManukyan/tellfold/releases --jq '.[] | [.tag_name, .assets[0].download_count] | @tsv'`.

@@ -319,6 +319,7 @@ h2 {
 .foot-links { display: flex; gap: 24px; }
 .foot-links a { color: var(--ink-2); }
 .legal { padding-top: 18px; }
+.legal + .legal { padding-top: 6px; }
 
 /* ---------- Small screens ---------- */
 
