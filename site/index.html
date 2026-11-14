@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://tellfold-stats.tellfold.workers.dev; media-src 'self'; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Tellfold for Mac: see how people react before you tell them</title>
 <meta name="description" content="A free Mac app that simulates how a crowd reacts to your announcement, price change or plan, then writes a cited report, using the AI tool you already have.">
@@ -87,7 +87,7 @@
       <li class="nav-wide"><a href="#report">The report</a></li>
       <li class="nav-wide"><a href="#install">Install</a></li>
       <li class="nav-wide"><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-      <li><a class="pill pill-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+      <li><a data-count="download-nav" class="pill pill-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
     </ul>
   </nav>
 </header>
@@ -101,8 +101,8 @@
     <h1 id="hero-title">See how people react before you tell&nbsp;them.</h1>
     <p class="lede">Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
     <div class="actions">
-      <a class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
-      <a class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
+      <a data-count="download-hero" class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+      <a data-count="sponsor-hero" class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
     </div>
     <p class="reqs">Free. macOS 15 or later on Apple silicon, with an AI tool signed in: Claude Code, Codex, Gemini CLI, Cursor, Ollama and more.</p>
   </div>
@@ -260,7 +260,7 @@
   </div>
   <div class="install-grid reveal">
     <ol class="install-steps">
-      <li><span>Download <a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Tellfold.dmg</a>.</span></li>
+      <li><span>Download <a data-count="download-install" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Tellfold.dmg</a>.</span></li>
       <li><span>Open it and drag Tellfold to Applications.</span></li>
       <li><span>Open Tellfold. It finds the AI tools on your Mac and suggests one. If yours isn’t signed in yet, open it once in Terminal and sign in.</span></li>
     </ol>
@@ -279,8 +279,8 @@
   <h2 id="close-title" class="reveal">Tellfold is free.</h2>
   <p class="reveal">Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
   <div class="actions reveal">
-    <a class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
-    <a class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
+    <a data-count="download-close" class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+    <a data-count="sponsor-close" class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
   </div>
 </section>
 
@@ -291,11 +291,12 @@
     <a class="brand brand-foot" href="./"><svg class="brand-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>Tellfold</a>
     <ul class="foot-links">
       <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
-      <li><a href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
-      <li><a href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+      <li><a data-count="sponsor-footer" href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
+      <li><a data-count="download-footer" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
     </ul>
   </div>
   <p class="legal">© 2026 Narek Manukyan. All rights reserved. The source is public to read; no licence is granted.</p>
+  <p class="legal">This site counts page views and Download clicks per day, and the app counts its update checks per day and version. No cookies, no IP addresses, nothing that identifies you.</p>
 </footer>
 </body>
 </html>

@@ -186,3 +186,7 @@ One-time setup on the release Mac:
 4. `gh auth login` for GitHub releases.
 
 The disk image opens as a small white window with Tellfold on top and the Applications folder below it, inside a tinted drop zone with an arrow, the way most Mac apps install (`mac/dmg/preview.png`). `mac/scripts/make-dmg.sh <app> <dmg>` builds it, and `release.sh` calls it: Finder lays the window out through AppleScript and saves the layout in the volume, so it runs in a logged-in session, and macOS asks once to let the terminal control Finder. Run it on its own to try a layout change. The picture is `mac/dmg/background.svg`, rendered to `background.png` and `background@2x.png`; the icon positions in `make-dmg.sh` must match it.
+
+### Usage numbers
+
+The app counts its update checks per day and version, and the site counts page views and Download clicks per day and source, through one small Cloudflare Worker in `stats/` (Rust). Nothing that identifies anyone is kept. `stats/README.md` explains what is counted, the queries to read the numbers, and how to deploy changes. The app reads its update feed through that Worker (`SUFeedURL` in `mac/project.yml`), which relays `site/appcast.xml` unchanged, so releasing works as before.

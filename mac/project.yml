@@ -72,7 +72,7 @@ targets:
         LSApplicationCategoryType: public.app-category.developer-tools
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "© 2026 Narek Manukyan. All rights reserved."
-        SUFeedURL: https://narekmanukyan.github.io/tellfold/appcast.xml
+        SUFeedURL: https://tellfold-stats.tellfold.workers.dev/appcast.xml
         SUPublicEDKey: rs9GpYpqyBTNCp+pETdBDGCuN4E1999sSay08HsVHM0=
         SUEnableAutomaticChecks: true
         SUScheduledCheckInterval: 86400

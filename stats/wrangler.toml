@@ -1,0 +1,14 @@
+# The stats Worker: update feed relay and visit counter. Deploy from this folder with `npx wrangler@4 deploy`; README.md has the rest.
+name = "tellfold-stats"
+main = "build/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[build]
+command = "cargo install -q worker-build@0.9.0 --locked && worker-build --release"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tellfold-stats"
+database_id = "ae08517a-cca1-4d0b-9183-124afb60c086"
+migrations_dir = "migrations"
