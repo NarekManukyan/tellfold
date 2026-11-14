@@ -224,6 +224,9 @@ awk -v item="$ITEM" '{ print } /<language>en<\/language>/ { while ((getline line
     "$APPCAST" > "$OUT/appcast.xml"
 xmllint --noout "$OUT/appcast.xml"
 cp "$OUT/appcast.xml" "$APPCAST"
+# The landing page's structured data names the current version for search engines.
+sed -i "" "s/\"softwareVersion\": \"[^\"]*\"/\"softwareVersion\": \"$VERSION\"/" "$ROOT/site/index.html"
+grep -q "\"softwareVersion\": \"$VERSION\"" "$ROOT/site/index.html" || fail "could not set softwareVersion in site/index.html"
 
 SIZE=$(du -h "$DMG" | cut -f1)
 step "Built $DMG ($SIZE)"
@@ -233,7 +236,7 @@ if [ "$PUBLISH" != "--publish" ]; then
 
 Not published. To publish this build:
   gh release create v$VERSION "$DMG" --repo $REPO --title "Tellfold $VERSION" --notes-file "$NOTES" --target $(git -C "$ROOT" rev-parse HEAD)
-Then commit and push site/appcast.xml and site/releases/$VERSION.md; GitHub Pages publishes them.
+Then commit and push site/appcast.xml, site/index.html and site/releases/$VERSION.md; GitHub Pages publishes them.
 EOF
     exit 0
 fi
@@ -243,7 +246,7 @@ gh release create "v$VERSION" "$DMG" --repo "$REPO" --title "Tellfold $VERSION" 
     --target "$(git -C "$ROOT" rev-parse HEAD)"
 
 step "Pushing the appcast (GitHub Pages deploys it)"
-git -C "$ROOT" add site/appcast.xml "site/releases/$VERSION.md"
+git -C "$ROOT" add site/appcast.xml site/index.html "site/releases/$VERSION.md"
 git -C "$ROOT" commit -q -m "release: Tellfold $VERSION appcast"
 git -C "$ROOT" push -q origin HEAD
 

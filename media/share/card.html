@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- The link preview for the landing page (og:image), drawn at 1200x630 like the hero: icon, name, the line, and the
+     real app window rising from the bottom edge over the indigo glow. render.sh turns it into a JPEG. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #000; }
+  body {
+    position: relative;
+    color: #f5f5f7;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    letter-spacing: -0.022em;
+    -webkit-font-smoothing: antialiased;
+    text-align: center;
+  }
+  .head { position: relative; z-index: 2; padding-top: 44px; }
+  .name { display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 26px; font-weight: 600; }
+  .name img { width: 56px; height: 56px; }
+  h1 { margin: 18px 0 0; font-size: 60px; font-weight: 700; line-height: 1.04; letter-spacing: -0.035em; }
+  .sub { margin: 14px 0 0; color: #a1a1a6; font-size: 24px; }
+  .glow {
+    position: absolute; left: 50%; top: 300px; width: 1000px; height: 420px; transform: translateX(-50%);
+    background: radial-gradient(60% 55% at 50% 45%, rgba(79, 70, 229, 0.5), rgba(79, 70, 229, 0) 70%);
+    filter: blur(40px);
+  }
+  .shot { position: absolute; z-index: 1; left: 50%; top: 292px; width: 980px; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="name"><img src="../../site/assets/img/app-icon-512.webp" alt="">Tellfold for Mac</div>
+    <h1>See how people react before you tell&nbsp;them.</h1>
+    <p class="sub">A crowd of simulated people talks it over, then folds into one answer. Free.</p>
+  </div>
+  <div class="glow"></div>
+  <img class="shot" src="../../site/assets/img/app-window-3098.webp" alt="">
+</body>
+</html>
