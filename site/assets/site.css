@@ -20,6 +20,11 @@
   --link: #a5b4fc;
   --link-on-paper: #4338ca;
 
+  /* Sentiment, as the app colours it. */
+  --pos: #30d158;
+  --neg: #ff6961;
+  --mid: #8e8e93;
+
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
@@ -340,42 +345,499 @@ h2 {
   .features li:last-child { grid-column: 1 / -1; }
 }
 
+/* ---------- The run, round by round ---------- */
+/* Built from the café run in the hero picture. Without .motion it is one still picture of the finished run: the
+   people sorted into camps, every round's posts, the whole mood line and the verdict. With .motion the track is tall,
+   the scene pins under the nav, and site.js moves data-step from -1 (not reached) to 4 (folded) as it scrolls. */
+
+.run { padding: clamp(88px, 12vw, 160px) var(--gutter) 0; }
+.run-track { max-width: var(--wide); margin: 0 auto; }
+.run-pin { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 48px); }
+
+.run-captions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 20px 28px; }
+.run-captions h3 { font-size: 19px; font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; }
+.run-captions p { margin-top: 6px; color: var(--fg-2); font-size: 15px; line-height: 1.45; }
+
+.run-stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 48px); align-items: center; }
+@media (min-width: 880px) {
+  .run-stage { grid-template-columns: minmax(0, 1fr) 392px; align-items: start; }
+  /* Still, the feed runs long: the crowd stays beside it while it scrolls. */
+  .run-stage .ring-wrap { position: sticky; top: calc(var(--nav-h) + 32px); }
+  .motion .run-stage { align-items: center; }
+  .motion .run-stage .ring-wrap { position: relative; top: auto; }
+}
+
+.ring-wrap { position: relative; width: 100%; max-width: 560px; aspect-ratio: 1; margin: 0 auto; container-type: inline-size; }
+.edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: rgba(165, 180, 252, 0.55); stroke-width: 0.35; stroke-linecap: round; }
+.e { stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+.question {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 42cqw;
+  translate: -50% -50%;
+  padding: 3.2cqw 3.4cqw;
+  border-radius: 3.6cqw;
+  background: var(--tile);
+  box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0, 0, 0, 0.5);
+  color: var(--fg);
+  font-size: clamp(12px, 2.9cqw, 17px);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ring { position: absolute; inset: 0; }
+.p {
+  --av: clamp(28px, 8.2cqw, 46px);
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(calc(var(--cx) * 1cqw - 50%), calc(var(--cy) * 1cqw - 50%));
+}
+.ring [data-id="a01"] { --x: 12; --y: 50; --cx: 17; --cy: 48; }
+.ring [data-id="a02"] { --x: 17.1; --y: 31; --cx: 11; --cy: 59; }
+.ring [data-id="a03"] { --x: 17.1; --y: 69; --cx: 23; --cy: 59; }
+.ring [data-id="a04"] { --x: 31; --y: 17.1; --cx: 45; --cy: 18; }
+.ring [data-id="a05"] { --x: 69; --y: 82.9; --cx: 74; --cy: 87; }
+.ring [data-id="a06"] { --x: 50; --y: 12; --cx: 55; --cy: 13; }
+.ring [data-id="a07"] { --x: 82.9; --y: 31; --cx: 65; --cy: 18; }
+.ring [data-id="a08"] { --x: 88; --y: 50; --cx: 86; --cy: 54; }
+.ring [data-id="a09"] { --x: 69; --y: 17.1; --cx: 48; --cy: 29; }
+.ring [data-id="a10"] { --x: 31; --y: 82.9; --cx: 58; --cy: 27; }
+.ring [data-id="a11"] { --x: 50; --y: 88; --cx: 28; --cy: 87; }
+.ring [data-id="a12"] { --x: 82.9; --y: 69; --cx: 68; --cy: 30; }
+
+/* Avatars: people are round, organisations are rounded squares in their own colour, as in the app. */
+.av {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--av, 36px);
+  height: var(--av, 36px);
+  border-radius: 50%;
+  background: #2c2c2e;
+  color: var(--ink);
+  font-size: calc(var(--av, 36px) * 0.34);
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.t-lr, .org.t-lr .av { background: #276b62; }
+.t-to, .org.t-to .av { background: #2b5a9c; }
+.t-ha, .org.t-ha .av { background: #5642c9; }
+.org .av, .av.t-lr, .av.t-to, .av.t-ha { border-radius: 26%; }
+.p .av { position: relative; transition: box-shadow 500ms var(--ease); }
+/* Someone who has posted wears the colour of what they said. */
+.p[data-s="pos"][data-posts] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--pos); }
+.p[data-s="neg"][data-posts] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--neg); }
+.p[data-s="mid"][data-posts] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--mid); }
+
+.camps { position: absolute; inset: 0; pointer-events: none; }
+.camp {
+  position: absolute;
+  max-width: 30cqw;
+  translate: -50% -100%;
+  color: var(--fg);
+  font-size: clamp(10px, 2.15cqw, 13px);
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+}
+.camp b { display: block; font-weight: 600; }
+.camp span { color: var(--ink-3); font-family: var(--mono); font-size: 0.92em; letter-spacing: 0; }
+.k-owners { left: 17%; top: 40%; }
+.k-accept { left: 56%; top: 6%; }
+.k-budget { left: 85%; top: 46%; }
+.k-tuesday { left: 76%; top: 80%; }
+.k-event { left: 27%; top: 80%; }
+
+/* The feed and the mood line beside the ring. Pages stack in one grid cell, so the column is always as tall as the
+   tallest page and nothing below it moves when the page changes. */
+.run-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: center; }
+.feed, .mood { border-radius: 22px; background: var(--tile); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.feed { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 18px 18px 20px; }
+.page-wait { display: none; }
+.page-head { padding-bottom: 12px; color: var(--fg-2); font-size: 13px; border-bottom: 1px solid var(--line); }
+.page-head b { margin-right: 6px; color: var(--fg); font-size: 15px; font-weight: 600; }
+.wait { padding-top: 14px; color: var(--fg-2); font-size: 15px; line-height: 1.45; }
+.page-more { padding-top: 10px; color: var(--ink-3); font-size: 13px; }
+
+.posts { display: grid; grid-template-columns: minmax(0, 1fr); }
+.post { display: flex; gap: 11px; padding: 12px 0; --av: 32px; }
+.posts .post + .post { border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.post > div { min-width: 0; flex: 1; }
+.post-who { display: flex; align-items: baseline; gap: 6px; font-size: 14px; line-height: 1.3; white-space: nowrap; }
+.post-who b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.handle { overflow: hidden; color: var(--link); font-family: var(--mono); font-size: 12px; letter-spacing: 0; text-overflow: ellipsis; }
+.post-n { margin-left: auto; color: var(--ink-3); font-family: var(--mono); font-size: 12px; letter-spacing: 0; }
+.post-n .pos, .post-n .neg { margin-right: 4px; }
+.post-reply { margin-top: 2px; color: var(--ink-3); font-family: var(--mono); font-size: 11.5px; letter-spacing: 0; }
+.post-text { margin-top: 4px; color: rgba(245, 245, 247, 0.86); font-size: 14px; line-height: 1.42; letter-spacing: -0.01em; }
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+
+.badges { display: flex; gap: 8px; }
+.badge { padding: 3px 10px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); color: var(--fg); font-size: 12px; font-weight: 500; }
+.badge-done::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--pos); transform: translateY(-1px); }
+.verdict-title { margin-top: 14px; font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: -0.024em; text-wrap: balance; }
+.split-label { margin-top: 18px; color: var(--fg-2); font-size: 13px; }
+.split { display: flex; gap: 3px; height: 8px; margin-top: 8px; }
+.split span { border-radius: 4px; }
+.split-pos { flex: 7; background: var(--pos); }
+.split-mid { flex: 1; background: var(--mid); }
+.split-neg { flex: 1; background: var(--neg); }
+.split-key { margin-top: 8px; color: var(--fg-2); font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.stats dt { color: var(--fg-2); font-size: 12px; }
+.stats dd { margin-top: 2px; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.mood { margin: 0; padding: 16px 18px 12px; }
+.mood figcaption { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 6px; color: var(--fg-2); font-size: 13px; text-align: left; }
+.mood-val { min-width: 3.2em; text-align: right; color: var(--pos); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.mood svg { display: block; width: 100%; height: auto; overflow: visible; }
+.mood .grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; fill: none; }
+.mood .tick, .mood .xl { fill: var(--ink-3); font: 10px var(--mono); letter-spacing: 0; }
+.mood .xl { text-anchor: middle; }
+.mood .xl-quiet { opacity: 0.5; }
+.mood .seg { fill: none; stroke: var(--pos); stroke-width: 2.25; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.mood .dot { fill: var(--pos); stroke: var(--tile); stroke-width: 2; }
+
+@media (max-width: 879px) {
+  .ring-wrap { max-width: 440px; }
+  .motion .run-track { height: 520svh; }
+  .motion .run-pin { gap: 14px; padding-block: 12px; }
+  .motion .run-captions h3 { font-size: 24px; }
+  .motion .run-captions p { margin-top: 6px; font-size: 15px; line-height: 1.4; }
+  .motion .run-stage { align-content: start; gap: 12px; }
+  .motion .ring-wrap { width: min(100%, 38svh); }
+  .motion .post-wide, .motion .page-more, .motion .mood { display: none; }
+  .motion .feed { padding: 12px 14px 14px; }
+  .motion .post { padding: 8px 0; --av: 28px; }
+  .motion .post-text { font-size: 13px; }
+  .motion .post-reply { display: none; }
+  .motion .verdict-title { margin-top: 10px; font-size: 18px; }
+  .motion .split-label { margin-top: 12px; }
+  .motion .stats { margin-top: 12px; padding-top: 10px; }
+  .motion .stats dd { font-size: 20px; }
+}
+
+/* ---------- Citations ---------- */
+/* An excerpt of the same run's report. Each citation opens the post behind it in the card beside the text. */
+
+.cites { display: grid; gap: 20px; max-width: var(--wide); margin: 0 auto clamp(56px, 7vw, 88px); }
+@media (min-width: 880px) { .cites { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: center; } }
+.cites-report { padding: clamp(26px, 3.4vw, 40px); border-radius: 26px; background: var(--tile); }
+.cites-title { font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.18; letter-spacing: -0.024em; text-wrap: balance; }
+.cites-text { margin-top: 16px; color: rgba(245, 245, 247, 0.86); font-size: 17px; line-height: 1.6; }
+.cite {
+  margin: 0;
+  padding: 0 0.2em;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.84em;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+}
+.cite:hover { background: rgba(165, 180, 252, 0.12); }
+.cite.is-on { background: rgba(165, 180, 252, 0.22); color: #fff; box-shadow: 0 0 0 1px rgba(165, 180, 252, 0.45); }
+.audit { display: flex; align-items: center; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--fg-2); font-size: 14px; }
+.audit-check { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--pos); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.audit-check path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.audit-n { display: inline-block; min-width: 3ch; color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+/* Counted numbers keep their final width while they count, so the words around them stay put. */
+.count { display: inline-block; min-width: 2ch; font-variant-numeric: tabular-nums; text-align: right; }
+
+.cites-posts { display: grid; grid-template-columns: minmax(0, 1fr); }
+.card { grid-area: 1 / 1; align-self: center; --av: 40px; gap: 14px; padding: 22px 22px 24px; border-radius: 22px; background: var(--tile); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 60px rgba(0, 0, 0, 0.45); visibility: hidden; }
+.card.is-on { visibility: visible; }
+.card .post-who { font-size: 15px; }
+.card .post-text { margin-top: 8px; font-size: 17px; line-height: 1.5; }
+@media (max-width: 759px) {
+  .cites-text { font-size: 16px; line-height: 1.55; }
+  .card { padding: 18px; }
+  .card .post-text { font-size: 16px; }
+}
+
 /* ---------- Motion ---------- */
 /* .motion is set in <head> only when scripts run and the visitor has not asked for less motion, so the page is
-   complete and still without it. */
+   complete and still without it. Each movement shows a step of a run: people arrive, post, reply, the mood line
+   draws, the crowd folds into camps and a verdict, and the report's citations open the posts behind them. */
 
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
 }
 
+/* Hero: the name and the icon arrive first, the promise word by word, then the window rises into place. */
 @keyframes rise {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: none; }
 }
-.motion .hero-copy > * { animation: rise 1100ms var(--ease) both; }
-.motion .hero-copy > :nth-child(2) { animation-delay: 60ms; }
-.motion .hero-copy > :nth-child(3) { animation-delay: 120ms; }
-.motion .hero-copy > :nth-child(4) { animation-delay: 200ms; }
-.motion .hero-copy > :nth-child(5) { animation-delay: 260ms; }
-.motion .hero-copy > :nth-child(6) { animation-delay: 300ms; }
+@keyframes focus-in {
+  from { opacity: 0; transform: scale(0.84); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes word {
+  from { opacity: 0; transform: translateY(0.32em); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+.motion .hero-icon { animation: focus-in 900ms var(--ease) both; }
+.motion .hero-copy > :not(.hero-icon, h1) { animation: rise 900ms var(--ease) both; }
+.motion .hero-name { animation-delay: 60ms; }
+.motion .hero .lede { animation-delay: 360ms; }
+.motion .hero .actions { animation-delay: 420ms; }
+.motion .hero .reqs { animation-delay: 480ms; }
+@keyframes fade { from { opacity: 0; } }
+.motion .hero h1 { animation: fade 400ms ease 100ms both; }
+.motion h1 .w { display: inline-block; animation: word 800ms var(--ease) both; }
+.motion h1 .w:nth-child(1) { animation-delay: 100ms; }
+.motion h1 .w:nth-child(2) { animation-delay: 140ms; }
+.motion h1 .w:nth-child(3) { animation-delay: 180ms; }
+.motion h1 .w:nth-child(4) { animation-delay: 220ms; }
+.motion h1 .w:nth-child(5) { animation-delay: 260ms; }
+.motion h1 .w:nth-child(6) { animation-delay: 300ms; }
+.motion h1 .w:nth-child(7) { animation-delay: 340ms; }
+
+/* Section heads: the heading wipes up out of its own line, the lede follows. */
+.motion .section-head.reveal { opacity: 1; transform: none; }
+.motion .section-head.reveal h2 {
+  clip-path: inset(0 -4% 100% -4%);
+  transform: translateY(0.4em);
+  transition: clip-path 1000ms var(--ease), transform 1000ms var(--ease);
+}
+.motion .section-head.reveal .section-lede { opacity: 0; transform: translateY(16px); transition: opacity 900ms var(--ease) 160ms, transform 900ms var(--ease) 160ms; }
+.motion .section-head.reveal.in h2 { clip-path: inset(-20% -4% -25% -4%); transform: none; }
+.motion .section-head.reveal.in .section-lede { opacity: 1; transform: none; }
 
 .motion .reveal { opacity: 0; transform: translateY(28px); transition: opacity 900ms var(--ease), transform 900ms var(--ease); }
 .motion .reveal.in { opacity: 1; transform: none; }
-.motion .uses-list.reveal, .motion .features.reveal { transition-delay: 80ms; }
 
-/* The app window settles into place as it scrolls up into view: it starts a little small and low, and is full
-   size by the time most of it is on screen. A flat 2D scale keeps the screenshot's text sharp. Only browsers with scroll timelines do this. */
+/* Lists arrive as lists: each tile a beat after the one before. */
+.motion :is(.features, .uses-list, .install-grid).reveal { opacity: 1; transform: none; }
+.motion :is(.features, .uses-list).reveal > li,
+.motion .install-steps > li,
+.motion .specs > div {
+  opacity: 0;
+  transform: translateY(26px) scale(0.98);
+  transition: opacity 800ms var(--ease), transform 800ms var(--ease);
+}
+.motion .reveal.in :is(li, .specs > div) { opacity: 1; transform: none; }
+.motion .reveal > li:nth-child(2), .motion .reveal .install-steps > li:nth-child(2), .motion .specs > div:nth-child(2) { transition-delay: 70ms; }
+.motion .reveal > li:nth-child(3), .motion .reveal .install-steps > li:nth-child(3), .motion .specs > div:nth-child(3) { transition-delay: 140ms; }
+.motion .reveal > li:nth-child(4), .motion .specs > div:nth-child(4) { transition-delay: 210ms; }
+.motion .reveal > li:nth-child(5), .motion .specs > div:nth-child(5) { transition-delay: 280ms; }
+.motion .reveal > li:nth-child(6) { transition-delay: 350ms; }
+.motion .reveal > li:nth-child(7) { transition-delay: 420ms; }
+.motion .reveal > li:nth-child(n + 8) { transition-delay: 480ms; }
+/* The install steps light up in order, like a checklist being done. */
+.motion .install-steps li::before { transition: background-color 500ms ease, color 500ms ease, box-shadow 500ms ease; }
+.motion .reveal.in .install-steps li::before { background: var(--accent); box-shadow: none; color: #fff; }
+.motion .reveal.in .install-steps li:nth-child(1)::before { transition-delay: 500ms; }
+.motion .reveal.in .install-steps li:nth-child(2)::before { transition-delay: 800ms; }
+.motion .reveal.in .install-steps li:nth-child(3)::before { transition-delay: 1100ms; }
+
+/* ---- The run ---- */
+
+.motion .run-track { height: 460svh; }
+.motion .run-pin {
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100svh - var(--nav-h));
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: center;
+  gap: clamp(16px, 3vh, 36px);
+  padding-block: clamp(12px, 3vh, 32px);
+}
+.motion .run-captions { grid-template-columns: minmax(0, 1fr); text-align: center; }
+.motion .run-captions li { grid-area: 1 / 1; opacity: 0; transform: translateY(14px); filter: blur(6px); transition: opacity 500ms var(--ease), transform 600ms var(--ease), filter 500ms var(--ease); }
+.motion .run-captions h3 { font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -0.028em; }
+.motion .run-captions p { max-width: 36em; margin: 10px auto 0; font-size: clamp(16px, 1.5vw, 18px); }
+.motion .run-stage { min-height: 0; }
+.motion .ring-wrap { width: min(100%, 60svh, 600px); }
+/* On shorter screens each round shows its first posts only; the full feed is in the report. */
+@media (max-height: 940px) { .motion :is(.post-wide, .page-more) { display: none; } }
+
+.motion .run-track:is([data-step="-1"], [data-step="0"]) .run-captions [data-at="0"],
+.motion .run-track[data-step="1"] .run-captions [data-at="1"],
+.motion .run-track[data-step="2"] .run-captions [data-at="2"],
+.motion .run-track[data-step="3"] .run-captions [data-at="3"],
+.motion .run-track[data-step="4"] .run-captions [data-at="4"] { opacity: 1; transform: none; filter: none; }
+
+/* People take their seats around the question one by one, then walk to their camp when the run folds. */
+.motion .question { transition: opacity 700ms var(--ease), scale 700ms var(--ease); }
+.motion .run-track[data-step="-1"] .question { opacity: 0; scale: 0.94; }
+.motion .run-track[data-step="4"] .question { opacity: 0.4; scale: 0.94; }
+.motion .p {
+  transition: transform 1100ms cubic-bezier(0.77, 0, 0.175, 1), opacity 600ms var(--ease);
+}
+.motion .run-track:not([data-step="4"]) .p { transform: translate(calc(var(--x) * 1cqw - 50%), calc(var(--y) * 1cqw - 50%)); }
+.motion .run-track[data-step="-1"] .p { opacity: 0; transform: translate(calc(var(--x) * 1cqw - 50%), calc(var(--y) * 1cqw - 50%)) scale(0.6); }
+.motion .run-track[data-step="0"] .p:nth-child(2) { transition-delay: 0ms, 50ms; }
+.motion .run-track[data-step="0"] .p:nth-child(3) { transition-delay: 0ms, 100ms; }
+.motion .run-track[data-step="0"] .p:nth-child(4) { transition-delay: 0ms, 150ms; }
+.motion .run-track[data-step="0"] .p:nth-child(5) { transition-delay: 0ms, 200ms; }
+.motion .run-track[data-step="0"] .p:nth-child(6) { transition-delay: 0ms, 250ms; }
+.motion .run-track[data-step="0"] .p:nth-child(7) { transition-delay: 0ms, 300ms; }
+.motion .run-track[data-step="0"] .p:nth-child(8) { transition-delay: 0ms, 350ms; }
+.motion .run-track[data-step="0"] .p:nth-child(9) { transition-delay: 0ms, 400ms; }
+.motion .run-track[data-step="0"] .p:nth-child(10) { transition-delay: 0ms, 450ms; }
+.motion .run-track[data-step="0"] .p:nth-child(11) { transition-delay: 0ms, 500ms; }
+.motion .run-track[data-step="0"] .p:nth-child(12) { transition-delay: 0ms, 550ms; }
+.motion .run-track[data-step="0"] .p { transition-property: transform, opacity; }
+.motion .run-track[data-step="0"] .p, .motion .run-track[data-step="-1"] .p { transition-duration: 600ms, 600ms; transition-timing-function: var(--ease); }
+
+/* Nobody wears a colour until they have posted. Whoever posts in the round on screen gets a ring that pulses once. */
+.motion .run-track .p[data-posts] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px transparent; }
+.motion .run-track[data-step="1"] .p[data-posts~="0"][data-s="pos"] .av,
+.motion .run-track[data-step="2"] .p:is([data-posts~="0"], [data-posts~="1"])[data-s="pos"] .av,
+.motion .run-track:is([data-step="3"], [data-step="4"]) .p[data-posts][data-s="pos"] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--pos); }
+.motion .run-track[data-step="1"] .p[data-posts~="0"][data-s="mid"] .av,
+.motion .run-track[data-step="2"] .p:is([data-posts~="0"], [data-posts~="1"])[data-s="mid"] .av,
+.motion .run-track:is([data-step="3"], [data-step="4"]) .p[data-posts][data-s="mid"] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--mid); }
+.motion .run-track:is([data-step="3"], [data-step="4"]) .p[data-posts][data-s="neg"] .av { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px var(--neg); }
+
+@keyframes ping {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.9); }
+}
+.motion .p .av::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 2px var(--pos); opacity: 0; pointer-events: none; }
+.motion .p[data-s="neg"] .av::after { box-shadow: 0 0 0 2px var(--neg); }
+.motion .p[data-s="mid"] .av::after { box-shadow: 0 0 0 2px var(--mid); }
+.motion .run-track[data-step="1"] .p[data-posts~="0"] .av::after,
+.motion .run-track[data-step="2"] .p[data-posts~="1"] .av::after,
+.motion .run-track[data-step="3"] .p[data-posts~="2"] .av::after { animation: ping 1200ms var(--ease) 250ms 2 both; }
+
+/* Replies draw as lines from the person replying to the person they answer. */
+.motion .edges { transition: opacity 600ms ease; }
+.motion .e { transition: stroke-dashoffset 1200ms var(--ease); }
+.motion .run-track:is([data-step="2"], [data-step="3"]) .e.r1 { stroke-dashoffset: 0; }
+.motion .run-track[data-step="3"] .e.r2 { stroke-dashoffset: 0; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(5) { transition-delay: 90ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(6) { transition-delay: 180ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(7) { transition-delay: 270ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(8) { transition-delay: 360ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(9) { transition-delay: 450ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(10) { transition-delay: 540ms; }
+.motion .run-track[data-step="3"] .e.r2:nth-child(11) { transition-delay: 630ms; }
+.motion .run-track[data-step="4"] .edges { opacity: 0; }
+
+.motion .camp { opacity: 0; transform: translateY(8px); transition: opacity 500ms var(--ease), transform 500ms var(--ease); }
+.motion .run-track[data-step="4"] .camp { opacity: 1; transform: none; transition-duration: 800ms; transition-delay: 900ms; }
+
+/* The feed shows one round at a time; its posts come in one after another. */
+.motion .feed { grid-template-areas: "page"; }
+.motion .page { grid-area: page; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity 450ms var(--ease), transform 600ms var(--ease), visibility 0s linear 600ms; }
+.motion .page-wait { display: block; }
+.motion .page .post { opacity: 0; transform: translateY(14px); transition: opacity 500ms var(--ease), transform 600ms var(--ease); }
+.motion .run-track:is([data-step="-1"], [data-step="0"]) .page[data-at="0"],
+.motion .run-track[data-step="1"] .page[data-at="1"],
+.motion .run-track[data-step="2"] .page[data-at="2"],
+.motion .run-track[data-step="3"] .page[data-at="3"],
+.motion .run-track[data-step="4"] .page[data-at="4"] { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.motion .run-track[data-step="1"] .page[data-at="1"] .post,
+.motion .run-track[data-step="2"] .page[data-at="2"] .post,
+.motion .run-track[data-step="3"] .page[data-at="3"] .post { opacity: 1; transform: none; }
+.motion .page .post:nth-child(1) { transition-delay: 150ms; }
+.motion .page .post:nth-child(2) { transition-delay: 380ms; }
+.motion .page .post:nth-child(3) { transition-delay: 610ms; }
+.motion .page .post:nth-child(4) { transition-delay: 840ms; }
+
+.motion .verdict > * { opacity: 0; transform: translateY(10px); transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
+.motion .run-track[data-step="4"] .verdict > * { opacity: 1; transform: none; transition-delay: 800ms; }
+.motion .run-track[data-step="4"] .verdict > :nth-child(2) { transition-delay: 950ms; }
+.motion .run-track[data-step="4"] .verdict > :nth-child(n + 3) { transition-delay: 1200ms; }
+.motion .run-track[data-step="4"] .verdict > .stats { transition-delay: 1400ms; }
+.motion .split span { transform: scaleX(0); transform-origin: left; transition: transform 900ms var(--ease) 1400ms; }
+.motion .split-mid { transition-delay: 1700ms; }
+.motion .split-neg { transition-delay: 1800ms; }
+.motion .run-track[data-step="4"] .split span { transform: none; }
+
+/* The mood line draws itself a round at a time. */
+.motion .mood .seg { stroke-dashoffset: 1; transition: stroke-dashoffset 900ms var(--ease) 200ms; }
+.motion .mood .dot { opacity: 0; transform-box: fill-box; transform-origin: center; scale: 0.3; transition: opacity 400ms var(--ease), scale 500ms var(--ease); }
+.motion .run-track:is([data-step="2"], [data-step="3"], [data-step="4"]) .s1,
+.motion .run-track:is([data-step="3"], [data-step="4"]) .s2 { stroke-dashoffset: 0; }
+.motion .run-track:is([data-step="1"], [data-step="2"], [data-step="3"], [data-step="4"]) .d0,
+.motion .run-track:is([data-step="2"], [data-step="3"], [data-step="4"]) .d1,
+.motion .run-track:is([data-step="3"], [data-step="4"]) .d2 { opacity: 1; scale: 1; transition-delay: 900ms; }
+.motion .run-track[data-step="1"] .d0 { transition-delay: 200ms; }
+.motion .mood-val { transition: color 400ms ease; }
+.motion .run-track:is([data-step="-1"], [data-step="0"]) .mood-val { color: var(--ink-3); }
+
+/* ---- Citations ---- */
+
+.motion .cites .cite:not(.is-lit) { color: rgba(165, 180, 252, 0.5); }
+.motion .cites:not(.is-done) .audit-check path { stroke-dashoffset: 1; }
+.motion .audit-check path { transition: stroke-dashoffset 700ms var(--ease); }
+.motion .audit-check circle { transition: opacity 500ms ease; }
+.motion .cites:not(.is-done) .audit-check circle { opacity: 0.3; }
+.motion .card { opacity: 0; transform: translateY(14px) scale(0.98); filter: blur(4px); transition: opacity 400ms var(--ease), transform 500ms var(--ease), filter 400ms var(--ease), visibility 0s linear 500ms; }
+.motion .card.is-on { opacity: 1; transform: none; filter: none; transition-delay: 0s; }
+
+/* ---- Scroll-linked depth, in browsers with scroll timelines ---- */
+/* Without them every picture simply sits in place. */
+
 @supports (animation-timeline: view()) {
+  /* The window settles into place as it comes into view, and its light comes up with it. A flat 2D scale keeps the
+     screenshot sharp and keeps it the largest thing painted at load. */
   @keyframes settle {
     from { transform: translateY(40px) scale(0.92); }
     to { transform: none; }
   }
+  @keyframes glow { from { opacity: 0.25; } to { opacity: 1; } }
   .motion .hero-shot .shot {
     transform-origin: 50% 100%;
     animation: settle linear both;
     animation-timeline: view();
     animation-range: entry 10% cover 45%;
   }
+  .motion .hero-shot::before { animation: glow linear both; animation-timeline: view(); animation-range: entry 20% cover 50%; }
+
+  /* The film opens out to its full width. */
+  @keyframes open-out {
+    from { clip-path: inset(0 10% round 32px); transform: scale(0.96); }
+    to { clip-path: inset(0 0 round clamp(12px, 1.6vw, 20px)); transform: none; }
+  }
+  .motion :is(.film-video, .film-still) { animation: open-out linear both; animation-timeline: view(); animation-range: entry 0% cover 50%; }
+
+  /* Step 1: the New simulation sheet drops down out of its title bar, as sheets do on the Mac. */
+  @keyframes sheet {
+    from { clip-path: inset(0 0 62% 0 round 12px); transform: translateY(-48px); }
+    to { clip-path: inset(0 0 0 0 round 12px); transform: none; }
+  }
+  .motion .step-shot-sheet .shot { animation: sheet linear both; animation-timeline: view(); animation-range: entry 15% cover 50%; }
+  /* The clip would cut off the sheet’s edge and shadow, so the figure draws them around whatever is showing. */
+  .motion .step-shot-sheet { filter: drop-shadow(0 40px 60px rgba(79, 70, 229, 0.22)); }
+  .motion .step-shot-sheet .shot { box-shadow: none; outline: 1px solid rgba(255, 255, 255, 0.12); outline-offset: -1px; }
+
+  /* Steps 2 and 3: the app moves slower than the page, so the screenshots sit behind the text. */
+  @keyframes depth {
+    from { transform: translateY(10%) scale(1.04); }
+    to { transform: translateY(-4%) scale(1); }
+  }
+  @keyframes come-forward {
+    from { transform: translateY(64px) scale(0.92); }
+    to { transform: none; }
+  }
+  .motion .step-shot-fade .shot { animation: depth linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+  .motion .step:last-child .step-shot .shot { transform-origin: 50% 0; animation: come-forward linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+  .motion .step-shot.reveal { opacity: 1; transform: none; }
+
+  /* The closing icon turns up into view. */
+  @keyframes turn-up {
+    from { transform: perspective(800px) rotateX(40deg) scale(0.8); }
+    to { transform: none; }
+  }
+  .motion .close-icon.reveal { animation: turn-up linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
 }
 
 /* ---------- 404 ---------- */

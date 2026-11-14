@@ -98,7 +98,7 @@
   <div class="hero-copy">
     <img class="hero-icon" src="assets/img/app-icon-256.webp" srcset="assets/img/app-icon-256.webp 1x, assets/img/app-icon-512.webp 2x" width="112" height="112" alt="">
     <p class="hero-name">Tellfold for Mac</p>
-    <h1 id="hero-title">See how people react before you tell&nbsp;them.</h1>
+    <h1 id="hero-title"><span class="w">See</span> <span class="w">how</span> <span class="w">people</span> <span class="w">react</span> <span class="w">before</span> <span class="w">you</span> <span class="w">tell&nbsp;them.</span></h1>
     <p class="lede">Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
     <div class="actions">
       <a data-count="download-hero" class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
@@ -112,24 +112,130 @@
   </figure>
 </section>
 
-<section class="film" id="film" aria-labelledby="film-title">
+<section class="run" id="run" aria-labelledby="run-title">
   <div class="section-head reveal">
-    <h2 id="film-title">Watch a run fold into an answer.</h2>
-    <p class="section-lede">A café’s price rise, talked over round by round, then the Mossbook report with every claim tied to a post. Every post and number here comes from a real run.</p>
+    <h2 id="run-title">Twelve people. Four rounds. One&nbsp;answer.</h2>
+    <p class="section-lede">This is the café run in the picture above, round by round. Every person, post and number here comes from it.</p>
   </div>
-  <figure class="film-frame reveal">
-    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" data-poster-narrow="assets/video/tellfold-loop-square-poster.webp" aria-describedby="film-caption">
-      <source src="assets/video/tellfold-loop-square.webm" type="video/webm" media="(max-width: 759px)">
-      <source src="assets/video/tellfold-loop-square.mp4" type="video/mp4" media="(max-width: 759px)">
-      <source src="assets/video/tellfold-loop.webm" type="video/webm">
-      <source src="assets/video/tellfold-loop.mp4" type="video/mp4">
-    </video>
-    <picture>
-      <source srcset="assets/video/tellfold-loop-square-poster.webp" media="(max-width: 759px)" width="720" height="720">
-      <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
-    </picture>
-    <figcaption id="film-caption">Silent, 20 seconds, on repeat. The Linden &amp; Rye café run, then the Mossbook report. The people are simulated.</figcaption>
-  </figure>
+  <div class="run-track" data-scene="run" data-steps="5" data-step="4">
+    <div class="run-pin">
+      <ol class="run-captions">
+        <li data-at="0"><h3>Twelve people read the news.</h3><p>Nine regulars and three café accounts, each with a private stance and a memory.</p></li>
+        <li data-at="1"><h3>Round 0. First reactions.</h3><p>The café posts its note. Priya calls it a fair trade; Mattia mostly wants to know about the free buns.</p></li>
+        <li data-at="2"><h3>Round 1. They start replying.</h3><p>Finn does the Neighbour card maths. Eleanor is glad the bread discount stayed. The mood climbs.</p></li>
+        <li data-at="3"><h3>Round 2. The busiest round.</h3><p>Eight replies. The owners answer, most regulars come round, and Jonah asks why it had to be Tuesday. Rounds 3 and 4 stay quiet.</p></li>
+        <li data-at="4"><h3>It folds into one answer.</h3><p>Five camps, one verdict, and a report where every claim cites the posts behind it.</p></li>
+      </ol>
+
+      <div class="run-stage">
+        <div class="ring-wrap">
+          <svg class="edges" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            <path class="e r1" pathLength="1" d="M88 50Q50 40 12 50"/>
+            <path class="e r1" pathLength="1" d="M31 82.9Q37.2 57.4 12 50"/>
+            <path class="e r1" pathLength="1" d="M50 88Q41.5 58.6 12 50"/>
+            <path class="e r2" pathLength="1" d="M12 50Q50 61 88 50"/>
+            <path class="e r2" pathLength="1" d="M17.1 69Q38.3 61.7 31 82.9"/>
+            <path class="e r2" pathLength="1" d="M31 17.1Q54.3 42.6 88 50"/>
+            <path class="e r2" pathLength="1" d="M69 82.9Q45.7 57.4 12 50"/>
+            <path class="e r2" pathLength="1" d="M82.9 31Q66 45.7 88 50"/>
+            <path class="e r2" pathLength="1" d="M50 12Q41.5 41.5 12 50"/>
+            <path class="e r2" pathLength="1" d="M69 17.1Q45.7 42.6 12 50"/>
+            <path class="e r2" pathLength="1" d="M82.9 69Q64.8 50 82.9 31"/>
+          </svg>
+          <p class="question">How will regular customers react to the new prices and the Tuesday closing?</p>
+          <ul class="ring" aria-label="The twelve people in the run">
+            <li class="p org t-lr" data-id="a01" data-posts="0 2" data-s="pos"><span class="av" aria-hidden="true">L&amp;</span><span class="visually-hidden">Linden &amp; Rye, the café</span></li>
+            <li class="p org t-to" data-id="a02" data-s="pos"><span class="av" aria-hidden="true">TO</span><span class="visually-hidden">Tomás, co-owner</span></li>
+            <li class="p org t-ha" data-id="a03" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">HA</span><span class="visually-hidden">Hanna, co-owner</span></li>
+            <li class="p" data-id="a04" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">MD</span><span class="visually-hidden">Marguerite Dekker</span></li>
+            <li class="p" data-id="a05" data-posts="2" data-s="neg"><span class="av" aria-hidden="true">JF</span><span class="visually-hidden">Jonah Fitzgerald</span></li>
+            <li class="p" data-id="a06" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">DV</span><span class="visually-hidden">Dorotea Vance</span></li>
+            <li class="p" data-id="a07" data-posts="0 2" data-s="pos"><span class="av" aria-hidden="true">PO</span><span class="visually-hidden">Priya Osei</span></li>
+            <li class="p" data-id="a08" data-posts="1" data-s="mid"><span class="av" aria-hidden="true">FL</span><span class="visually-hidden">Finn Lacroix</span></li>
+            <li class="p" data-id="a09" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">SA</span><span class="visually-hidden">Serge Albrecht</span></li>
+            <li class="p" data-id="a10" data-posts="1" data-s="pos"><span class="av" aria-hidden="true">EW</span><span class="visually-hidden">Eleanor Whitfield</span></li>
+            <li class="p" data-id="a11" data-posts="0 1" data-s="mid"><span class="av" aria-hidden="true">MR</span><span class="visually-hidden">Mattia Russo</span></li>
+            <li class="p" data-id="a12" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">NV</span><span class="visually-hidden">Noa Vandermeer</span></li>
+          </ul>
+          <ul class="camps" aria-label="The camps the crowd settled into">
+            <li class="camp k-owners"><b>Café owners explaining the changes</b><span>3 · +0.70</span></li>
+            <li class="camp k-accept"><b>Accepted the trade-off</b><span>6 · +0.74</span></li>
+            <li class="camp k-budget"><b>Budget-conscious but persuaded</b><span>1 · +0.30</span></li>
+            <li class="camp k-tuesday"><b>Lost Tuesday routine, still annoyed</b><span>1 · −0.70</span></li>
+            <li class="camp k-event"><b>Indifferent, there for the event</b><span>1 · +0.30</span></li>
+          </ul>
+        </div>
+
+        <div class="run-side">
+          <div class="feed">
+            <div class="page page-wait" data-at="0">
+              <p class="page-head"><b>Round 0</b> about to start</p>
+              <p class="wait">Each person reads the café’s note and decides whether to post.</p>
+            </div>
+            <div class="page" data-at="1">
+              <p class="page-head"><b>Round 0</b> 3 posts · mean <span class="pos">+0.40</span></p>
+              <ul class="posts">
+                <li class="post"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.70</span> #1</span></p><p class="post-text">After 9 years on Alder Street, we’re raising prices from 2 March and closing Tuesdays from April. Butter, flour, rent—costs have climbed.&nbsp;…</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">PO</span><div><p class="post-who"><b>Priya Osei</b> <span class="handle">@priya_lunchbreak</span><span class="post-n"><span class="pos">+0.60</span> #2</span></p><p class="post-text">Losing Tuesday soup is annoying but honestly? Staff burnout is real and margins on independent cafés are thin.&nbsp;…</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">MR</span><div><p class="post-who"><b>Mattia Russo</b> <span class="handle">@mattia_alderst</span><span class="post-n"><span class="neg">−0.10</span> #3</span></p><p class="post-text">wait free buns at the open evening on the 26th?? what time and also why is everything getting expensive now</p></div></li>
+              </ul>
+            </div>
+            <div class="page" data-at="2">
+              <p class="page-head"><b>Round 1</b> 3 posts · mean <span class="pos">+0.62</span></p>
+              <ul class="posts">
+                <li class="post"><span class="av" aria-hidden="true">FL</span><div><p class="post-who"><b>Finn Lacroix</b> <span class="handle">@finn_altcoffee</span><span class="post-n"><span class="pos">+0.30</span> #4</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">So the Neighbour card is €12/month for a free filter coffee daily?&nbsp;… actually might work if I go most days. Need to do the math before March.</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">EW</span><div><p class="post-who"><b>Eleanor Whitfield</b> <span class="handle">@eleanor_oldbread</span><span class="post-n"><span class="pos">+0.85</span> #5</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">Glad you kept the bread discount and that board. Thirty years on this street, I’ve seen places forget their regulars. You haven’t.&nbsp;…</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">MR</span><div><p class="post-who"><b>Mattia Russo</b> <span class="handle">@mattia_alderst</span><span class="post-n"><span class="pos">+0.70</span> #6</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">7pm on the 26th? I’m there. Free buns + wifi = excuse to avoid my flat that evening lol</p></div></li>
+              </ul>
+            </div>
+            <div class="page" data-at="3">
+              <p class="page-head"><b>Round 2</b> 8 posts · mean <span class="pos">+0.55</span></p>
+              <ul class="posts">
+                <li class="post post-wide"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.60</span> #7</span></p><p class="post-reply">replying to @finn_altcoffee #4</p><p class="post-text">Yes—for daily visitors it works out cheaper than before, even with the price rise.&nbsp;…</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">MD</span><div><p class="post-who"><b>Marguerite Dekker</b> <span class="handle">@marguerite_alder</span><span class="post-n"><span class="pos">+0.70</span> #9</span></p><p class="post-reply">replying to @finn_altcoffee #4</p><p class="post-text">Twelve euros a month is reasonable if I’m there most mornings anyway. Keeps my routine affordable. I’ll try it.</p></div></li>
+                <li class="post post-neg"><span class="av" aria-hidden="true">JF</span><div><p class="post-who"><b>Jonah Fitzgerald</b> <span class="handle">@jonah_soupguy</span><span class="post-n"><span class="neg">−0.70</span> #10</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">Tuesday though? That’s my one proper lunch break. Could you not have picked literally any other day?</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">NV</span><div><p class="post-who"><b>Noa Vandermeer</b> <span class="handle">@noa_vandermeer</span><span class="post-n"><span class="pos">+0.65</span> #14</span></p><p class="post-reply">replying to @priya_lunchbreak #2</p><p class="post-text">… Tuesday’s tough for my schedule but the staff deserve actual rest. I’ll make it work.</p></div></li>
+              </ul>
+              <p class="page-more">And four more replies.</p>
+            </div>
+            <div class="page verdict" data-at="4">
+              <p class="badges"><span class="badge badge-done">Done</span><span class="badge">Medium confidence</span></p>
+              <p class="verdict-title">Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure</p>
+              <p class="split-label">First reactions from the nine regulars</p>
+              <p class="split" aria-hidden="true"><span class="split-pos"></span><span class="split-mid"></span><span class="split-neg"></span></p>
+              <p class="split-key"><span class="pos">7 in favour</span> · 1 neither · <span class="neg">1 against</span></p>
+              <dl class="stats">
+                <div><dt>People</dt><dd data-to="12">12</dd></div>
+                <div><dt>Rounds</dt><dd data-to="4">4</dd></div>
+                <div><dt>Posts</dt><dd data-to="14">14</dd></div>
+                <div><dt>Final mood</dt><dd class="pos" data-to="0.55">+0.55</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <figure class="mood">
+            <figcaption><span>Mood by round</span><output class="mood-val">+0.55</output></figcaption>
+            <svg viewBox="0 0 300 112" aria-hidden="true" focusable="false">
+              <path class="grid" d="M20 10H280M20 50H280M20 90H280"/>
+              <text class="tick" x="0" y="13">+1</text>
+              <text class="tick" x="0" y="53">+.5</text>
+              <text class="tick" x="0" y="93">0</text>
+              <path class="seg s1" pathLength="1" d="M40 58L98 40.6"/>
+              <path class="seg s2" pathLength="1" d="M98 40.6L156 46"/>
+              <circle class="dot d0" cx="40" cy="58" r="4"/>
+              <circle class="dot d1" cx="98" cy="40.6" r="4"/>
+              <circle class="dot d2" cx="156" cy="46" r="4"/>
+              <text class="xl" x="40" y="110">r0</text>
+              <text class="xl" x="98" y="110">r1</text>
+              <text class="xl" x="156" y="110">r2</text>
+              <text class="xl xl-quiet" x="214" y="110">r3</text>
+              <text class="xl xl-quiet" x="272" y="110">r4</text>
+            </svg>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="uses" id="uses" aria-labelledby="uses-title">
@@ -190,10 +296,46 @@
   </ol>
 </section>
 
+<section class="film" id="film" aria-labelledby="film-title">
+  <div class="section-head reveal">
+    <h2 id="film-title">Watch a run fold into an answer.</h2>
+    <p class="section-lede">A café’s price rise, talked over round by round, then the Mossbook report with every claim tied to a post. Every post and number here comes from a real run.</p>
+  </div>
+  <figure class="film-frame reveal">
+    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" data-poster-narrow="assets/video/tellfold-loop-square-poster.webp" aria-describedby="film-caption">
+      <source src="assets/video/tellfold-loop-square.webm" type="video/webm" media="(max-width: 759px)">
+      <source src="assets/video/tellfold-loop-square.mp4" type="video/mp4" media="(max-width: 759px)">
+      <source src="assets/video/tellfold-loop.webm" type="video/webm">
+      <source src="assets/video/tellfold-loop.mp4" type="video/mp4">
+    </video>
+    <picture>
+      <source srcset="assets/video/tellfold-loop-square-poster.webp" media="(max-width: 759px)" width="720" height="720">
+      <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
+    </picture>
+    <figcaption id="film-caption">Silent, 20 seconds, on repeat. The Linden &amp; Rye café run, then the Mossbook report. The people are simulated.</figcaption>
+  </figure>
+</section>
+
 <section class="report" id="report" aria-labelledby="report-title">
   <div class="section-head reveal">
     <h2 id="report-title">Every claim leads back to a&nbsp;post.</h2>
     <p class="section-lede">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite">@handle</span> and <span class="cite">#12</span> open the person and the post behind them.</p>
+  </div>
+  <div class="cites reveal" data-scene="cites">
+    <div class="cites-report">
+      <h3 class="cites-title">Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure</h3>
+      <p class="cites-text">Support consolidates around the idea that the changes are a fair trade for staff wellbeing and that key perks were kept unchanged, as voiced by <button type="button" class="cite" data-post="12" aria-controls="cited-posts">@dorotea_coffeefan #12</button>, <button type="button" class="cite" data-post="5" aria-controls="cited-posts">@eleanor_oldbread #5</button> and <button type="button" class="cite" data-post="11" aria-controls="cited-posts">@priya_lunchbreak #11</button>. A budget-conscious student, <button type="button" class="cite" data-post="4" aria-controls="cited-posts">@finn_altcoffee</button>, moves from wary to persuaded once he runs the Neighbour card numbers himself (<button type="button" class="cite" data-post="4" aria-controls="cited-posts">#4</button>, <button type="button" class="cite" data-post="7" aria-controls="cited-posts">#7</button>, <button type="button" class="cite" data-post="9" aria-controls="cited-posts">#9</button>). The one sustained objection comes from <button type="button" class="cite" data-post="10" aria-controls="cited-posts">@jonah_soupguy</button>, who loses his Tuesday lunch routine and asks “Could you not have picked literally any other day?” (<button type="button" class="cite" data-post="10" aria-controls="cited-posts">#10</button>)</p>
+      <p class="audit"><svg class="audit-check" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8"/><path pathLength="1" d="M6.5 10.25 9 12.5l4.5-4.75"/></svg><span>All <span class="audit-n" data-to="186">186</span> citations checked against the posts</span></p>
+    </div>
+    <div class="cites-posts" id="cited-posts" aria-live="polite">
+      <article class="post card is-on" data-post="12"><span class="av" aria-hidden="true">DV</span><div><p class="post-who"><b>Dorotea Vance</b> <span class="handle">@dorotea_coffeefan</span><span class="post-n"><span class="pos">+0.85</span> #12</span></p><p class="post-reply">Round 2, replying to @lindenandrye #1</p><p class="post-text">Nine years watching you treat staff right and keep the board running—this is fair. I’ll adjust my budget. See you at the 26th.</p></div></article>
+      <article class="post card" data-post="5"><span class="av" aria-hidden="true">EW</span><div><p class="post-who"><b>Eleanor Whitfield</b> <span class="handle">@eleanor_oldbread</span><span class="post-n"><span class="pos">+0.85</span> #5</span></p><p class="post-reply">Round 1, replying to @lindenandrye #1</p><p class="post-text">Glad you kept the bread discount and that board. Thirty years on this street, I’ve seen places forget their regulars. You haven’t. That matters more than the price.</p></div></article>
+      <article class="post card" data-post="11"><span class="av" aria-hidden="true">PO</span><div><p class="post-who"><b>Priya Osei</b> <span class="handle">@priya_lunchbreak</span><span class="post-n"><span class="pos">+0.70</span> #11</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">The math checks out if you’re a regular. And honestly, it’s worth it just to know the staff aren’t burning out.</p></div></article>
+      <article class="post card" data-post="4"><span class="av" aria-hidden="true">FL</span><div><p class="post-who"><b>Finn Lacroix</b> <span class="handle">@finn_altcoffee</span><span class="post-n"><span class="pos">+0.30</span> #4</span></p><p class="post-reply">Round 1, replying to @lindenandrye #1</p><p class="post-text">So the Neighbour card is €12/month for a free filter coffee daily? That’s what, 26 euros in free coffee vs 12 in subscription… actually might work if I go most days. Need to do the math before March.</p></div></article>
+      <article class="post card" data-post="7"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.60</span> #7</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">Yes—for daily visitors it works out cheaper than before, even with the price rise. The maths on our end is tight, which is exactly why we needed the change.</p></div></article>
+      <article class="post card" data-post="9"><span class="av" aria-hidden="true">MD</span><div><p class="post-who"><b>Marguerite Dekker</b> <span class="handle">@marguerite_alder</span><span class="post-n"><span class="pos">+0.70</span> #9</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">Twelve euros a month is reasonable if I’m there most mornings anyway. Keeps my routine affordable. I’ll try it.</p></div></article>
+      <article class="post card post-neg" data-post="10"><span class="av" aria-hidden="true">JF</span><div><p class="post-who"><b>Jonah Fitzgerald</b> <span class="handle">@jonah_soupguy</span><span class="post-n"><span class="neg">−0.70</span> #10</span></p><p class="post-reply">Round 2, replying to @lindenandrye #1</p><p class="post-text">Tuesday though? That’s my one proper lunch break. Could you not have picked literally any other day?</p></div></article>
+    </div>
   </div>
   <ul class="features reveal">
     <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg><h3>Inject breaking news</h3><p>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</p></li>
@@ -249,7 +391,7 @@
     <svg class="nicon" aria-hidden="true" focusable="false"><use href="#i-theatre"/></svg>
     <h3>A rehearsal, not a poll.</h3>
     <p>Think of it as a focus group on your Mac, but the people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
-    <p>We tested it on 43 real announcements whose outcome is known. It found about half of the objections real people raised and called the overall mood right just over half the time, and it rarely calls good news good. Asking the same AI directly did better on both. <a href="https://github.com/NarekManukyan/tellfold/blob/main/docs/ACCURACY.md">Every result is public</a>.</p>
+    <p>We tested it on <span class="count" data-to="43">43</span> real announcements whose outcome is known. It found about half of the objections real people raised and called the overall mood right just over half the time, and it rarely calls good news good. Asking the same AI directly did better on both. <a href="https://github.com/NarekManukyan/tellfold/blob/main/docs/ACCURACY.md">Every result is public</a>.</p>
     <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
   </div>
 </section>
