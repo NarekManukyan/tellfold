@@ -11,6 +11,8 @@
 #     or `xcrun notarytool store-credentials tellfold-notary ...`
 #   - the Sparkle signing key in the keychain (`generate_keys --account tellfold`)
 #   - release notes in docs/releases/<version>.md
+#   - a logged-in session, and permission for the terminal to control Finder: make-dmg.sh has Finder lay out the
+#     disk image window (macOS asks the first time)
 # Optional: TELLFOLD_SIGN_IDENTITY (certificate name or SHA-1), TELLFOLD_ASC_PROFILE (notarize with `asc`),
 # TELLFOLD_NOTARY_PROFILE (notarytool keychain profile, default tellfold-notary, used when TELLFOLD_ASC_PROFILE is unset).
 set -euo pipefail
@@ -185,14 +187,9 @@ notarize "$OUT/Tellfold.zip"
 xcrun stapler staple -q "$APP"
 rm "$OUT/Tellfold.zip"
 
-step "Making Tellfold.dmg"
-STAGE="$OUT/dmg"
-mkdir -p "$STAGE"
-ditto "$APP" "$STAGE/Tellfold.app"
-ln -s /Applications "$STAGE/Applications"
+step "Making Tellfold.dmg (Finder opens the window for a moment while it lays it out)"
 DMG="$OUT/Tellfold.dmg"
-hdiutil create -quiet -volname Tellfold -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"
-rm -rf "$STAGE"
+"$MAC/scripts/make-dmg.sh" "$APP" "$DMG"
 [ "$MODE" = local ] && codesign --sign "$IDENTITY" --timestamp "$DMG"
 
 step "Notarizing the disk image"
