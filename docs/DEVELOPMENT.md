@@ -189,9 +189,4 @@ The disk image opens as a small white window with Tellfold on top and the Applic
 
 ### Usage numbers
 
-Two counts, and nothing that identifies anyone:
-
-- **Copies in use.** The app's update checks go through a small Cloudflare Worker (`feed/`, in Rust) that relays the real `site/appcast.xml` and counts checks per day and app version. A copy that's open on a given day checks about once, so the daily total roughly equals the copies opened that day. `feed/README.md` has the queries and how to deploy it.
-- **Site visits and download clicks.** `site/assets/site.js` sends page views, plus clicks on links marked `data-count` (Download, Sponsor), to GoatCounter at `tellfold.goatcounter.com`. It sets no cookies, counts only on the live site, and its address is allowed in the page's CSP. Open the site with `#toggle-goatcounter` once to stop counting your own visits in that browser.
-
-Downloads per release are on GitHub: `gh api repos/NarekManukyan/tellfold/releases --jq '.[] | [.tag_name, .assets[0].download_count] | @tsv'`.
+The app counts its update checks per day and version, and the site counts page views and Download clicks per day and source, through one small Cloudflare Worker in `stats/` (Rust). Nothing that identifies anyone is kept. `stats/README.md` explains what is counted, the queries to read the numbers, and how to deploy changes. The app reads its update feed through that Worker (`SUFeedURL` in `mac/project.yml`), which relays `site/appcast.xml` unchanged, so releasing works as before.

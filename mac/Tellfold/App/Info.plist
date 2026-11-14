@@ -68,7 +68,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://narekmanukyan.github.io/tellfold/appcast.xml</string>
+	<string>https://tellfold-stats.tellfold.workers.dev/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>rs9GpYpqyBTNCp+pETdBDGCuN4E1999sSay08HsVHM0=</string>
 	<key>SUScheduledCheckInterval</key>

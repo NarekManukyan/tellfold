@@ -1,10 +1,10 @@
 [package]
-name = "tellfold-feed"
+name = "tellfold-stats"
 version = "0.1.0"
 edition = "2021"
 license = "LicenseRef-Proprietary"
 publish = false
-description = "Serves the Mac app's update feed through Cloudflare and counts the daily update checks."
+description = "Counts update checks from the Mac app and visits to the site, and nothing else."
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -10,33 +10,41 @@
   document.addEventListener('DOMContentLoaded', holdFilm);
   document.addEventListener('DOMContentLoaded', countVisit);
 
-  // Visits are counted by GoatCounter, without cookies and only on the live site. Clicks on links marked
-  // data-count (Download, Sponsor) count as events, which shows how many visits end in a download. Open the page
-  // with #toggle-goatcounter once to stop counting your own visits in this browser; open it again to resume.
-  var COUNTER = 'https://tellfold.goatcounter.com/count';
+  // Page views and clicks on links marked data-count (Download, Sponsor) go to Tellfold's own counter
+  // (stats/ in the repo), only from the live site. It keeps a number per day, page or link, and where the visit came
+  // from (a ?ref= tag or the referring site), and nothing about the visitor: no cookies, no IP address. Open the
+  // page with #no-count once to stop counting your own visits in this browser; open it with #count to resume.
+  var COUNTER = 'https://tellfold-stats.tellfold.workers.dev/hit';
 
   function countVisit() {
-    if (location.hostname !== 'narekmanukyan.github.io' || navigator.webdriver) return;
+    if (location.hostname !== 'narekmanukyan.github.io' || navigator.webdriver || !navigator.sendBeacon) return;
     try {
-      if (location.hash === '#toggle-goatcounter') {
-        if (localStorage.getItem('skipgc') === 't') localStorage.removeItem('skipgc');
-        else localStorage.setItem('skipgc', 't');
-      }
-      if (localStorage.getItem('skipgc') === 't') return;
+      if (location.hash === '#no-count') localStorage.setItem('tellfold-no-count', '1');
+      if (location.hash === '#count') localStorage.removeItem('tellfold-no-count');
+      if (localStorage.getItem('tellfold-no-count')) return;
     } catch (e) { /* storage blocked: count as usual */ }
 
-    hit({ p: location.pathname, t: document.title, r: document.referrer, q: location.search, s: screen.width });
+    var from = visitSource();
+    hit(location.pathname, from);
     document.addEventListener('click', function (event) {
       var link = event.target.closest && event.target.closest('a[data-count]');
-      if (link) hit({ p: link.getAttribute('data-count'), t: link.textContent.trim(), e: 'true' });
+      if (link) hit(link.getAttribute('data-count'), from);
     });
   }
 
-  function hit(vars) {
-    vars.rnd = Math.random().toString(36).slice(2, 7);
-    var url = COUNTER + '?' + Object.keys(vars).filter(function (k) { return vars[k] !== '' && vars[k] != null; })
-      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(vars[k]); }).join('&');
-    if (!navigator.sendBeacon || !navigator.sendBeacon(url)) new Image().src = url;
+  function visitSource() {
+    var tag = new URLSearchParams(location.search);
+    tag = tag.get('ref') || tag.get('utm_source');
+    if (tag) return tag;
+    try {
+      var host = new URL(document.referrer).hostname.replace(/^www\./, '');
+      if (host && host !== location.hostname) return host;
+    } catch (e) { /* no referrer */ }
+    return 'direct';
+  }
+
+  function hit(name, from) {
+    navigator.sendBeacon(COUNTER + '?n=' + encodeURIComponent(name) + '&s=' + encodeURIComponent(from));
   }
 
   // The film loop autoplays muted. For people who ask for less motion it never starts (CSS shows its poster instead).
