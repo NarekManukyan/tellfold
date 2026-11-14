@@ -12,7 +12,7 @@
       <sparkle:shortVersionString>0.7.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.7.0.md</sparkle:releaseNotesLink>
-      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.7.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="Vw+UOy8zU7xL+94zNm3a3eE+xPsuSXcw4g94zorZ43BnzXbJZ7Du2dZeHMqBmNtxCIbrfozfU0t/f9R4PMGXAg==" length="12465422" />
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.7.0/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="WHoWNATC2tKLCkQNIxpK6SdfCsSmUHoA5LtLStI47wMnTetSH4STMYRQIGVuJohsDzHEXT0w4o+M+2A3v1HrCw==" length="11438819" />
     </item>
     <item>
       <title>Tellfold 0.6.0</title>
