@@ -1,0 +1,25 @@
+[package]
+name = "tellfold-bench"
+description = "The accuracy benchmark harness: runs bench/cases through the tellfold CLI and grades the reports."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "tellfold-bench"
+path = "src/main.rs"
+
+[dependencies]
+chrono.workspace = true
+libc.workspace = true
+regex.workspace = true
+rusqlite.workspace = true
+serde_json.workspace = true
+tellfold-models.workspace = true
+tellfold-store.workspace = true
+
+[dev-dependencies]
+libc.workspace = true
+tempfile.workspace = true

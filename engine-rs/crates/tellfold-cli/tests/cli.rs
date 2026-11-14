@@ -76,17 +76,17 @@ fn tellfold() -> Command {
 }
 
 #[test]
-fn version_is_the_python_package_version() {
-    let init = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tellfold/__init__.py");
-    let text = std::fs::read_to_string(init).unwrap();
-    let python = text.lines().find_map(|l| l.strip_prefix("__version__ = ")).expect("__version__").trim_matches('"');
-    assert_eq!(tellfold_cli::VERSION, python);
-    let pyproject =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../pyproject.toml")).unwrap();
-    let project = pyproject.lines().find_map(|l| l.strip_prefix("version = ")).expect("version").trim_matches('"');
-    assert_eq!(project, python, "pyproject.toml and tellfold/__init__.py disagree");
+fn version_is_the_mac_app_version() {
+    let project =
+        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../mac/project.yml")).unwrap();
+    let app = project
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("MARKETING_VERSION: "))
+        .expect("MARKETING_VERSION")
+        .trim_matches('"');
+    assert_eq!(tellfold_cli::VERSION, app, "engine-rs/Cargo.toml and mac/project.yml disagree");
     let out = tellfold().arg("--version").output().unwrap();
-    assert_eq!(String::from_utf8_lossy(&out.stdout), format!("tellfold {python}\n"));
+    assert_eq!(String::from_utf8_lossy(&out.stdout), format!("tellfold {app}\n"));
 }
 
 #[test]

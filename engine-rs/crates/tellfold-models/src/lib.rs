@@ -9,8 +9,8 @@ pub mod lax;
 pub mod log;
 pub mod text;
 
-/// The engine's version: `tellfold.__version__` and the version in pyproject.toml, kept equal to the workspace
-/// version in engine-rs/Cargo.toml (tellfold-cli's tests check all three).
+/// The engine's version: the workspace version in engine-rs/Cargo.toml, kept equal to the Mac app's
+/// `MARKETING_VERSION` in mac/project.yml (tellfold-cli's tests check both).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use indexmap::IndexMap;
@@ -521,7 +521,7 @@ pub const STAKE_RULES: i64 = 2;
 pub const REACTION_RULES: i64 = 3;
 
 /// Overrides the crowd rules of a new run: `TELLFOLD_CROWD_RULES=0` runs the original ones, as the Python engine
-/// does (its parity tests set it).
+/// did (the golden-fixture tests set it).
 pub const CROWD_RULES_ENV: &str = "TELLFOLD_CROWD_RULES";
 
 /// The crowd rules a new run follows: [`CROWD_RULES`] unless [`CROWD_RULES_ENV`] holds a number, kept within the

@@ -1,7 +1,8 @@
 # Tellfold engine in Rust
 
-The Rust port of the Python engine in `tellfold/`. The plan, the milestones and the parity rules are in
-[docs/rust-port.md](../docs/rust-port.md). The Mac app bundles this engine (`mac/scripts/bundle-engine.sh`).
+The Tellfold engine: the `tellfold` command-line tool and the binary the Mac app bundles
+(`mac/scripts/bundle-engine.sh`). It began as a port of a Python engine, which was retired after 0.7.0; the port's
+plan and parity rules are in [docs/rust-port.md](../docs/rust-port.md).
 
 ```bash
 cd engine-rs
@@ -11,9 +12,10 @@ cargo test --workspace
 Cargo's target directory is `engine-rs/target`. Do not point `CARGO_TARGET_DIR` at a folder shared with other
 checkouts.
 
-## Crates so far
+## Crates
 
-- `tellfold-models`: the shared types of `tellfold/models.py`, pydantic-compatible JSON in and out.
+- `tellfold-models`: the shared types, with JSON in and out exactly as the Python engine wrote it (pydantic's
+  layout), so run folders from any version still read.
 - `tellfold-store`: run folders, `world.db` (`World`, `RunReader`), studies on disk and the call estimate.
 - `tellfold-llm`: the `Llm` trait, `FakeLlm` with purpose routing, `extract_json`, `AdapterLlm` (retries, repair,
   `calls.jsonl`), and seed loading and chunking.
@@ -22,16 +24,20 @@ checkouts.
 - `tellfold-engine`: CPython's `random.Random`, graph extraction and merge, persona generation, the round loop and
   `run_pipeline` with `status.json` tracking and stopping. The report stage is passed in.
 - `tellfold-report`: the evidence digest, the report call with its citation audit and repair, `report.md` and
-  `report.html` (the Python Jinja template, rendered with minijinja), interviews, report Q&A and the rewrite
+  `report.html` (a Jinja template, rendered with minijinja), interviews, report Q&A and the rewrite
   suggestion. `ReportWriter` is the pipeline's report stage.
 - `tellfold-study`: the cited comparison of a study's runs, the "Check it" agreement across repeats, branching a
   run from a round, and packing a finished run as a built-in example.
 - `tellfold-server`: the Tellfold Studio HTTP API (runs, studies, SSE, settings and runtimes), the run manager on
   its own thread, the watcher for runs started elsewhere, uploads, the local-only and token guards, and the
-  embedded frontend.
+  embedded frontend (`web/`).
 - `tellfold-cli`: the `tellfold` binary with every command, including `serve` (the Mac app's engine) and `ui`, the
   live run view, and typer's help and error screens, plus `mcp`, the MCP server over the HTTP API (only Rust has
   it, so the typer help fixtures leave it out). `TELLFOLD_FAKE_LLM=1` runs it on the canned model.
+- `tellfold-bench`: the accuracy benchmark harness (`bench/`, see [bench/README.md](../bench/README.md)). Not in the
+  app.
+- `tellfold-brand`: writes every logo SVG in `brand/` from one geometry (`cargo run -p tellfold-brand`, with
+  `-- --appicon` for the Mac app icon PNGs). Not in the app.
 
 No test starts a real AI tool. For a manual check against one that is installed and logged in:
 
@@ -52,22 +58,16 @@ run folders.
 
 Every Mac app build compiles this engine for `aarch64-apple-darwin` with `MACOSX_DEPLOYMENT_TARGET=15.0` and puts
 it in `Resources/engine/tellfold` (the `release` profile, or `app-debug` without link-time optimisation for Debug).
-Setting an engine path in the app's Settings runs the Python package through `uv` instead. To point the app at a
-local build without rebuilding it, run `cargo build --release -p tellfold-cli`, set the engine path to the
-repository and the uv path to `scripts/uv-shim.sh`. The shim takes the `uv run --project <path> tellfold ...`
-command and starts `target/release/tellfold` with the same arguments (see "Parity soak" in the plan).
+To point the app at a local build without rebuilding it, run `cargo build --release -p tellfold-cli` and set
+Settings > Advanced > Engine path to the repository (the app runs `engine-rs/target/release/tellfold`), to a
+folder holding a `tellfold` binary, or to the binary itself.
 
-`schemas/` holds the JSON Schemas pydantic generates for the replies the engine asks models for. They are part of
-the prompts, so Rust embeds them as they are.
+`schemas/` holds the JSON Schemas of the replies the engine asks models for. They are part of the prompts, so the
+engine embeds them as they are; edit them by hand, together with the types they describe.
 
 ## Golden fixtures
 
-`golden/fixtures/` holds what the Python engine returns for the same inputs. Regenerate them from the repository
-root when the Python behaviour they pin changes, in the same pull request (this also rewrites `schemas/`):
-
-```bash
-uv run python engine-rs/golden/make.py
-uv run python engine-rs/golden/make_cli_help.py
-uv run python engine-rs/golden/make_cli_runs.py
-uv run python engine-rs/golden/make_api.py
-```
+`golden/fixtures/` holds what the Python engine returned for the same inputs, generated one last time at the commit
+that retired it (every generator reproduced the committed files byte for byte). They are frozen now: the Rust tests
+compare against them, so a change that shows up in a fixture is a change to what run folders, the HTTP API or the CLI
+look like. When that change is intended, edit the fixture in the same pull request and say why.

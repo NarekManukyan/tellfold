@@ -111,7 +111,7 @@ targets:
     entitlements:
       path: Tellfold/App/Tellfold.entitlements
       properties:
-        # The app spawns its engine (or `uv`) and local agent CLIs, so it cannot run in the App Sandbox.
+        # The app spawns its engine and local agent CLIs, so it cannot run in the App Sandbox.
         com.apple.security.app-sandbox: false
     settings:
       base:
@@ -133,8 +133,8 @@ targets:
         basedOnDependencyAnalysis: false
         shell: /bin/sh
         script: |
-          # Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path still runs
-          # the Python package through uv instead.
+          # Every build carries the Rust engine in Resources/engine. Settings > Advanced > Engine path runs another
+          # tellfold build instead.
           "${PROJECT_DIR}/scripts/bundle-engine.sh" "${PROJECT_DIR}/.." \
             "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/engine" "${EXPANDED_CODE_SIGN_IDENTITY:--}"
 

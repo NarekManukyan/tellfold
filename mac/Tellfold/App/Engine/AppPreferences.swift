@@ -15,11 +15,11 @@ final class AppPreferences {
 
     /// Where runs are stored; passed to the engine as `--runs`.
     var runsFolder: String { didSet { defaults.set(runsFolder, forKey: Keys.runsFolder) } }
-    /// A Python engine project to run with `uv run --project` instead of the engine built into the app. Empty means
-    /// the built-in engine (and, in a Debug build without one, the repository the app was compiled from).
+    /// A `tellfold` engine to run instead of the one built into the app: the binary, a folder holding it, or a
+    /// Tellfold repository with a release build (see `EngineCommand.chooseEngine`). Empty means the built-in engine
+    /// (and, in a Debug build without one, the repository the app was compiled from). A path that holds no engine,
+    /// such as a Python project saved before 0.8, falls back to the built-in one.
     var enginePath: String { didSet { defaults.set(enginePath, forKey: Keys.enginePath) } }
-    /// Explicit `uv` binary. Empty means auto-detect.
-    var uvPath: String { didSet { defaults.set(uvPath, forKey: Keys.uvPath) } }
     var logLevel: LogLevel { didSet { defaults.set(logLevel.rawValue, forKey: Keys.logLevel) } }
     var notificationsEnabled: Bool { didSet { defaults.set(notificationsEnabled, forKey: Keys.notifications) } }
     var defaultConcurrency: Int { didSet { defaults.set(defaultConcurrency, forKey: Keys.concurrency) } }
@@ -35,7 +35,6 @@ final class AppPreferences {
         self.defaults = defaults
         runsFolder = defaults.string(forKey: Keys.runsFolder) ?? Self.defaultRunsFolder.path
         enginePath = defaults.string(forKey: Keys.enginePath) ?? ""
-        uvPath = defaults.string(forKey: Keys.uvPath) ?? ""
         logLevel = defaults.string(forKey: Keys.logLevel).flatMap(LogLevel.init(rawValue:)) ?? .info
         notificationsEnabled = defaults.object(forKey: Keys.notifications) as? Bool ?? true
         let concurrency = defaults.integer(forKey: Keys.concurrency)
@@ -49,7 +48,6 @@ final class AppPreferences {
     private enum Keys {
         static let runsFolder = "runsFolder"
         static let enginePath = "enginePath"
-        static let uvPath = "uvPath"
         static let logLevel = "logLevel"
         static let notifications = "notificationsEnabled"
         static let concurrency = "defaultConcurrency"
@@ -72,7 +70,7 @@ final class AppPreferences {
         return engine
     }
 
-    /// The Python project `uv run` uses when a Debug build has no bundled engine: the repository this file was
+    /// The engine a Debug build without a bundled engine runs: the release build in the repository this file was
     /// compiled from (four folders up from `mac/Tellfold/App/Engine`). Release builds never fall back to it.
     nonisolated static let developmentEnginePath: String = {
         var url = URL(filePath: #filePath)
@@ -80,14 +78,9 @@ final class AppPreferences {
         return (url.path(percentEncoded: false) as NSString).standardizingPath
     }()
 
-    /// The bundled engine, unless an engine path is set in Settings (which always runs through `uv`).
+    /// The bundled engine, unless an engine path is set in Settings.
     var bundledEngineFolder: URL? {
         enginePath.trimmingCharacters(in: .whitespaces).isEmpty ? Self.bundledEngine : nil
-    }
-
-    var resolvedEnginePath: String {
-        let trimmed = enginePath.trimmingCharacters(in: .whitespaces)
-        return trimmed.isEmpty ? Self.developmentEnginePath : (trimmed as NSString).expandingTildeInPath
     }
 
     var resolvedRunsFolder: URL {

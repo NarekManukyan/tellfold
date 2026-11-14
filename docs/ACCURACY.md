@@ -615,7 +615,7 @@ Read the results with these in mind. Some of them we can measure; some we can on
 
 ## Cost of a pass
 
-`python3 bench/run.py --estimate` prints the calls and tokens a pass needs, using the engine's own call estimate and
+`tellfold-bench --estimate` prints the calls and tokens a pass needs, using the engine's own call estimate and
 the average prompt and reply sizes of real runs, including the stakes plan and fact checks of the current crowd rules.
 For the 43 cases, one seed each, with the zero-shot baseline: about 1,460 model calls, 7.1M input and 1.3M output
 tokens, roughly **$13** at API list prices (Haiku 5.5 $0.10/$0.50, Sonnet 5.5 $2/$10 per million tokens). With
@@ -652,10 +652,10 @@ their wall-clock time says little about a single run.
 ## Rerun it
 
 ```bash
-cd engine-rs && cargo build --release -p tellfold-cli && cd ..
-python3 bench/run.py --validate
-python3 bench/run.py --estimate --zero-shot
-python3 bench/run.py --zero-shot
+cd engine-rs && cargo build --release -p tellfold-cli -p tellfold-bench && cd ..
+engine-rs/target/release/tellfold-bench --validate
+engine-rs/target/release/tellfold-bench --estimate --zero-shot
+engine-rs/target/release/tellfold-bench --zero-shot
 ```
 
 See [`bench/README.md`](../bench/README.md) for the options and for adding a case.

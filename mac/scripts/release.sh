@@ -140,12 +140,21 @@ sign --entitlements "$MAC/Tellfold/App/Tellfold.entitlements" "$APP"
 codesign --verify --deep --strict "$APP"
 fi
 
-# Pulls the submission id and status out of either tool's JSON.
+# The first of these key paths the JSON on stdin holds, as plain text (empty when none).
+json_field() {
+    local json=$1 key
+    shift
+    for key in "$@"; do
+        if printf '%s' "$json" | plutil -extract "$key" raw -o - - 2>/dev/null; then return; fi
+    done
+}
+
+# Pulls the submission id and status out of either tool's JSON (asc nests them under data and attributes).
 submission() {
-    python3 -c 'import json,sys
-d=json.load(sys.stdin); d=d.get("data",d)
-a=d.get("attributes",d)
-print(d.get("id",""), a.get("status",""))'
+    local json
+    json=$(cat)
+    printf '%s %s\n' "$(json_field "$json" data.id id)" \
+        "$(json_field "$json" data.attributes.status data.status attributes.status status)"
 }
 
 notarize() {

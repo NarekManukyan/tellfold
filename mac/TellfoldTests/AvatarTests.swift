@@ -3,7 +3,8 @@ import SwiftUI
 import Testing
 @testable import Tellfold
 
-/// The avatar is a port of `tellfold/web/static/js/avatar.js`: same persona, same face on the web and in the Mac app.
+/// The avatar is a port of `engine-rs/crates/tellfold-server/web/static/js/avatar.js`: same persona, same face on
+/// the web and in the Mac app.
 /// The vectors below come from that reference implementation.
 @Suite("Avatars")
 struct AvatarTests {

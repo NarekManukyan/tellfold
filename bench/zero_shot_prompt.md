@@ -3,7 +3,7 @@
 With `--zero-shot`, the harness also asks the planner model directly, with no crowd, for the same forecast, and
 grades that answer with the same judge. If the simulation does no better than this one call, the crowd adds nothing
 that the model did not already know. Everything between `## System` and `## User` is the system prompt; `{{SEED}}`
-and `{{QUESTION}}` are filled in. The reply must match `ZERO_SHOT_SCHEMA` in `bench/run.py`.
+and `{{QUESTION}}` are filled in. The reply must match `zero_shot_schema()` in `tellfold-bench`'s `judge.rs`.
 
 ## System
 

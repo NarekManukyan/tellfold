@@ -145,11 +145,6 @@ struct AdvancedSettingsTab: View {
                         Button("Choose…") { chooseEnginePath() }
                     }
                 }
-                LabeledContent("uv") {
-                    TextField("uv path", text: $prefs.uvPath, prompt: Text("Detect automatically"))
-                        .labelsHidden()
-                        .onSubmit { needsRestart = true }
-                }
                 Picker("Log level", selection: $prefs.logLevel) {
                     ForEach(AppPreferences.LogLevel.allCases) { Text($0.title).tag($0) }
                 }
@@ -160,8 +155,8 @@ struct AdvancedSettingsTab: View {
                 Text("Engine")
             } footer: {
                 Text(AppPreferences.bundledEngine == nil
-                     ? "The engine runs as `uv run --project <engine path> tellfold serve`. Changes apply after a restart."
-                     : "Leave the engine path empty to use the engine built into Tellfold. A custom path runs it with `uv run --project <engine path> tellfold serve`. Changes apply after a restart.")
+                     ? "The engine path is a tellfold binary, the folder holding it, or a Tellfold repository with a release build. Changes apply after a restart."
+                     : "Leave the engine path empty to use the engine built into Tellfold. A custom path is a tellfold binary, the folder holding it, or a Tellfold repository with a release build. Changes apply after a restart.")
             }
 
             Section {
@@ -184,10 +179,10 @@ struct AdvancedSettingsTab: View {
 
     private func chooseEnginePath() {
         let panel = NSOpenPanel()
-        panel.canChooseFiles = false
+        panel.canChooseFiles = true
         panel.canChooseDirectories = true
-        panel.message = "Choose the Tellfold engine folder (the one with pyproject.toml)."
-        panel.prompt = "Use Folder"
+        panel.message = "Choose a tellfold engine binary, the folder holding it, or a Tellfold repository."
+        panel.prompt = "Use Engine"
         if panel.runModal() == .OK, let url = panel.url {
             model.prefs.enginePath = url.path
             needsRestart = true

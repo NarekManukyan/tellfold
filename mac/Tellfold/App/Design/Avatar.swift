@@ -3,8 +3,8 @@ import SwiftUI
 
 // Illustrated, deterministic avatars for simulated people and monogram tiles for organisations.
 //
-// A port of `tellfold/web/static/js/avatar.js`, shape for shape: the same persona gets the same face on the web and in
-// the Mac app, so keep the two in step. Faces are plain circles, ellipses and rounded rectangles in a 64-unit box.
+// A port of `engine-rs/crates/tellfold-server/web/static/js/avatar.js`, shape for shape: the same persona gets the
+// same face on the web and in the Mac app, so keep the two in step. Faces are plain circles, ellipses and rounded rectangles in a 64-unit box.
 // People are framed on 5...59 and clipped to a circle of radius 27 at (32, 32); organisations are a rounded square
 // (radius 14/64) in a tile colour with white initials.
 

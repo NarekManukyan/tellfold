@@ -8,9 +8,8 @@ import Testing
 ///     TEST_RUNNER_TELLFOLD_REAL_ENGINE=1 TEST_RUNNER_TELLFOLD_HOME=/private/tmp/tellfold-mac-home xcodebuild test ...
 ///
 /// Set TELLFOLD_HOME so the engine reads and writes a scratch settings file instead of the user's. The engine
-/// built into the app answers by default. TEST_RUNNER_TELLFOLD_ENGINE_PATH=<repository> runs the Python package
-/// through `uv` instead, and TEST_RUNNER_TELLFOLD_UV_PATH points the app at another `uv`, such as a shim that starts
-/// a different engine build with the same arguments.
+/// built into the app answers by default. TEST_RUNNER_TELLFOLD_ENGINE_PATH runs another build instead: a `tellfold`
+/// binary, the folder holding it, or a repository with a release build (`engine-rs/target/release/tellfold`).
 @MainActor
 @Suite(.enabled(if: ProcessInfo.processInfo.environment["TELLFOLD_REAL_ENGINE"] == "1"), .serialized)
 struct EngineIntegrationTests {
@@ -25,12 +24,6 @@ struct EngineIntegrationTests {
         prefs.offlineTestModel = true
         prefs.logLevel = .info
         if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
-        if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
-        // uv only runs with an engine path; without one the uv path would be ignored and the bundled binary tested.
-        if !prefs.uvPath.isEmpty, prefs.bundledEngineFolder != nil {
-            Issue.record("TEST_RUNNER_TELLFOLD_UV_PATH needs TEST_RUNNER_TELLFOLD_ENGINE_PATH as well")
-            return
-        }
 
         let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
         engine.start()
@@ -40,16 +33,14 @@ struct EngineIntegrationTests {
         for _ in 0..<1200 where api == nil {
             api = engine.api
             if case .failed(let message) = engine.state { Issue.record("engine failed: \(message)\n\(engine.logText)"); return }
-            if engine.state == .uvMissing { Issue.record("uv missing"); return }
             try await Task.sleep(for: .milliseconds(100))
         }
         let client = try #require(api, "engine never became ready:\n\(engine.logText)")
         #expect(engine.state.isRunning)
         #expect(engine.health?.fakeLLM == true)
         #expect(engine.commandDescription.contains("tellfold serve --port 0"))
-        // An engine path runs the Python package through uv; otherwise the binary built into the app answers.
+        // Without an engine path, the binary built into the app answers.
         #expect(engine.commandDescription.contains("Resources/engine/tellfold serve") == (prefs.bundledEngineFolder != nil))
-        #expect(engine.commandDescription.contains(" run --project ") == (prefs.bundledEngineFolder == nil))
         // The bundled examples are listed; the new runs folder adds nothing.
         #expect(try await client.runs().allSatisfy(\.example))
         #expect(!(try await client.runtimes()).isEmpty)
@@ -95,7 +86,7 @@ struct EngineIntegrationTests {
 
     /// Every route the app calls, through the app's own client and models: a run, its reads, chat, ask, the report
     /// rebuild, rewrite, a branch, Check it and a comparison, runtimes and settings. Whichever engine answers (the
-    /// bundled binary, or the Python package through `uv`), the app must decode every answer.
+    /// bundled binary, or the one an engine path names), the app must decode every answer.
     @Test(.timeLimit(.minutes(5)))
     func everyRouteTheAppUsesAnswers() async throws {
         let suite = "dev.tellfold.mac.tests.\(UUID().uuidString)"
@@ -107,11 +98,6 @@ struct EngineIntegrationTests {
         prefs.runsFolder = runs.path
         prefs.offlineTestModel = true
         if let path = ProcessInfo.processInfo.environment["TELLFOLD_ENGINE_PATH"] { prefs.enginePath = path }
-        if let uv = ProcessInfo.processInfo.environment["TELLFOLD_UV_PATH"] { prefs.uvPath = uv }
-        if !prefs.uvPath.isEmpty, prefs.bundledEngineFolder != nil {
-            Issue.record("TEST_RUNNER_TELLFOLD_UV_PATH needs TEST_RUNNER_TELLFOLD_ENGINE_PATH as well")
-            return
-        }
         let engine = EngineController(prefs: prefs, keychain: Keychain(service: "dev.tellfold.mac.tests.none"))
         engine.start()
         defer { engine.shutdownNow() }
@@ -119,7 +105,6 @@ struct EngineIntegrationTests {
         for _ in 0..<1200 where api == nil {
             api = engine.api
             if case .failed(let message) = engine.state { Issue.record("engine failed: \(message)\n\(engine.logText)"); return }
-            if engine.state == .uvMissing { Issue.record("uv missing"); return }
             try await Task.sleep(for: .milliseconds(100))
         }
         let client = try #require(api, "engine never became ready:\n\(engine.logText)")

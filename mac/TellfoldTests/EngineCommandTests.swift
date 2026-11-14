@@ -22,29 +22,22 @@ struct EngineCommandTests {
     }
 
     @Test func commandLine() {
-        let args = EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs dir", logLevel: "INFO")
-        #expect(args == ["run", "--project", "/eng", "tellfold", "serve", "--port", "0", "--runs", "/runs dir", "--log-level", "info"])
-        let shown = EngineCommand.displayCommand(executable: "/bin/uv", arguments: args + ["--token", "tok"], token: "tok")
+        let args = EngineCommand.arguments(runsFolder: "/runs dir", logLevel: "INFO")
+        #expect(args == ["serve", "--port", "0", "--runs", "/runs dir", "--log-level", "info"])
+        let shown = EngineCommand.displayCommand(executable: "/eng/tellfold", arguments: args + ["--token", "tok"], token: "tok")
         #expect(!shown.contains("tok "))
         #expect(shown.hasSuffix("--token •••"))
         #expect(shown.contains("'/runs dir'"))
-    }
-
-    @Test func bundledCommandLine() {
-        let args = EngineCommand.bundledArguments(runsFolder: "/runs", logLevel: "Debug")
-        #expect(args == ["serve", "--port", "0", "--runs", "/runs", "--log-level", "debug"])
         let binary = EngineCommand.bundledBinary(in: URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory))
         #expect(binary.path == "/App.app/Contents/Resources/engine/tellfold")
     }
 
-    @Test func examplesFolderIsPassedWhenBundled() {
-        let args = EngineCommand.bundledArguments(runsFolder: "/runs", examplesFolder: "/App.app/Contents/Resources/Examples",
-                                                  logLevel: "warning")
+    @Test func examplesFolderIsPassedWhenGiven() {
+        let args = EngineCommand.arguments(runsFolder: "/runs", examplesFolder: "/App.app/Contents/Resources/Examples",
+                                           logLevel: "warning")
         #expect(args == ["serve", "--port", "0", "--runs", "/runs",
                          "--examples", "/App.app/Contents/Resources/Examples", "--log-level", "warning"])
-        let dev = EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs", examplesFolder: "/ex", logLevel: "info")
-        #expect(dev.suffix(4) == ["--examples", "/ex", "--log-level", "info"])
-        #expect(!EngineCommand.arguments(enginePath: "/eng", runsFolder: "/runs", logLevel: "info").contains("--examples"))
+        #expect(!EngineCommand.arguments(runsFolder: "/runs", logLevel: "info").contains("--examples"))
     }
 
     @Test func appBundleShipsTheExamples() throws {
@@ -67,18 +60,57 @@ struct EngineCommandTests {
         #expect(a.allSatisfy { $0.isHexDigit })
     }
 
-    @Test func findsUVOnTheSearchPath() {
-        let present: Set<String> = ["/opt/homebrew/bin/uv", "/home/me/.local/bin/uv"]
-        let found = EngineCommand.findUV(preferred: nil, path: "/usr/bin:/home/me/.local/bin:/opt/homebrew/bin") { present.contains($0) }
-        #expect(found?.path == "/home/me/.local/bin/uv")
-        #expect(EngineCommand.findUV(preferred: nil, path: "/usr/bin") { present.contains($0) } == nil)
+    @Test func engineFolderOrRepositoryFindsTheBinary() {
+        let present: Set<String> = ["/build/tellfold", "/repo/engine-rs/target/release/tellfold"]
+        #expect(EngineCommand.engineBinary(at: "/build") { present.contains($0) }?.path == "/build/tellfold")
+        #expect(EngineCommand.engineBinary(at: " /repo ") { present.contains($0) }?.path
+                == "/repo/engine-rs/target/release/tellfold")
+        #expect(EngineCommand.engineBinary(at: "/elsewhere") { present.contains($0) } == nil)
+        #expect(EngineCommand.engineBinary(at: "  ") { _ in true } == nil)
     }
 
-    @Test func explicitUVPathWinsAndIsNotSilentlyReplaced() {
-        let present: Set<String> = ["/custom/uv", "/opt/homebrew/bin/uv"]
-        #expect(EngineCommand.findUV(preferred: "/custom/uv", path: "/opt/homebrew/bin") { present.contains($0) }?.path == "/custom/uv")
-        #expect(EngineCommand.findUV(preferred: "/missing/uv", path: "/opt/homebrew/bin") { present.contains($0) } == nil)
-        #expect(EngineCommand.findUV(preferred: "  ", path: "/opt/homebrew/bin") { present.contains($0) }?.path == "/opt/homebrew/bin/uv")
+    @Test func chooseEnginePrefersTheEnginePathThenTheBuiltInOne() {
+        let bundled = URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory)
+        let present: Set<String> = ["/build/tellfold", "/App.app/Contents/Resources/engine/tellfold",
+                                    "/repo/engine-rs/target/release/tellfold"]
+        func choose(_ path: String, bundled: URL?, development: String? = nil) -> EngineCommand.EngineChoice {
+            EngineCommand.chooseEngine(enginePath: path, bundled: bundled, developmentPath: development) { present.contains($0) }
+        }
+        #expect(choose("/build", bundled: bundled) == .run(URL(filePath: "/build/tellfold"), note: nil))
+        #expect(choose("", bundled: bundled, development: "/repo")
+                == .run(URL(filePath: "/App.app/Contents/Resources/engine/tellfold"), note: nil))
+        // Debug builds without a bundled engine run the repository's release build
+        #expect(choose(" ", bundled: nil, development: "/repo")
+                == .run(URL(filePath: "/repo/engine-rs/target/release/tellfold"), note: nil))
+        // a release build without one has nothing to run
+        guard case .missing(let message) = choose("", bundled: nil) else { Issue.record("expected missing"); return }
+        #expect(message.contains("Reinstall Tellfold"))
+    }
+
+    @Test func anOldPythonEnginePathFallsBackToTheBuiltInEngine() {
+        // before 0.8 the engine path named the Python project, run with `uv run --project`
+        let bundled = URL(filePath: "/App.app/Contents/Resources/engine", directoryHint: .isDirectory)
+        let present: Set<String> = ["/App.app/Contents/Resources/engine/tellfold"]
+        let choice = EngineCommand.chooseEngine(enginePath: "/Users/me/tellfold", bundled: bundled,
+                                                developmentPath: nil) { present.contains($0) }
+        guard case .run(let binary, let note) = choice else { Issue.record("expected the built-in engine"); return }
+        #expect(binary.path == "/App.app/Contents/Resources/engine/tellfold")
+        #expect(note?.contains("No tellfold engine at /Users/me/tellfold") == true)
+        let nothing = EngineCommand.chooseEngine(enginePath: "/Users/me/tellfold", bundled: nil,
+                                                 developmentPath: "/repo") { present.contains($0) }
+        guard case .missing(let message) = nothing else { Issue.record("expected missing"); return }
+        #expect(message.contains("/Users/me/tellfold"))
+    }
+
+    @Test func anEngineBinaryIsUsedAsIs() throws {
+        let folder = URL.temporaryDirectory.appending(path: "tellfold-engine-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let binary = folder.appending(path: "my-tellfold")
+        try Data("#!/bin/sh\n".utf8).write(to: binary)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: binary.path)
+        #expect(EngineCommand.engineBinary(at: binary.path)?.path == binary.path)
+        #expect(EngineCommand.engineBinary(at: folder.path) == nil) // the folder holds no file named tellfold
     }
 
     @Test func searchPathAddsToolDirectoriesOnce() {
@@ -101,7 +133,6 @@ struct EngineCommandTests {
         #expect(env["TELLFOLD_FAKE_LLM"] == nil)
         #expect(env["SHOAL_FAKE_LLM"] == nil)
         #expect(env["SHOAL_SERVE_TOKEN"] == nil)
-        #expect(env["PYTHONUNBUFFERED"] == "1")
         #expect(env["HOME"] == "/Users/me")
         #expect(env["DYLD_INSERT_LIBRARIES"] == nil)
         #expect(env["XCTestConfigurationFilePath"] == nil)
@@ -152,7 +183,7 @@ struct KeychainNamingTests {
 }
 
 struct EstimateTests {
-    /// Reference values from `tellfold.runner.estimate_call_split`; the same table is in tests/test_server.py.
+    /// Reference values from the engine's `estimate_call_split`; the same table is in tellfold-store's golden tests.
     @Test(arguments: [
         (20, 6, 6, 3, 20, 4), (6, 3, 3, 1, 8, 3), (5, 4, 2, 7, 10, 4), (200, 50, 20, 40, 254, 31), (25, 10, 4, 9, 43, 7),
         (20, 6, 6, 640, 20, 19),
@@ -184,7 +215,7 @@ struct EstimateTests {
         #expect(Int(line.dropFirst("pub const CROWD_RULES: i64 = ".count).dropLast()) == NewRunRequest.crowdRules)
     }
 
-    /// A saved audience brings its people; the same rows are in tests/test_server.py and the engine's golden tests.
+    /// A saved audience brings its people; the same rows are in the engine's golden tests.
     @Test(arguments: [(20, 6, 6, 3, 20, 1), (25, 10, 4, 9, 43, 1), (5, 4, 2, 7, 10, 1)])
     func savedAudienceSkipsCasting(agents: Int, rounds: Int, batch: Int, chunks: Int, agentCalls: Int,
                                    plannerCalls: Int) {

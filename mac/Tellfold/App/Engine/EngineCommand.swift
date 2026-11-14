@@ -1,24 +1,19 @@
 import Foundation
 import Synchronization
 
-/// Pure helpers for launching the engine: command line, port-line parsing, `uv` discovery and environment.
+/// Pure helpers for launching the engine: command line, port-line parsing, finding the binary and environment.
 /// Kept free of process state so they can be unit-tested.
 enum EngineCommand {
     /// The environment variable `tellfold serve` reads its bearer token from (same as `--token`, but not visible
     /// to other users in `ps`).
     static let tokenEnvironmentKey = "TELLFOLD_SERVE_TOKEN"
 
-    /// `uv run --project <enginePath> tellfold serve --port 0 --runs <runsFolder> [--examples <folder>] --log-level
-    /// <level>` (after `uv`). The token goes in through `TELLFOLD_SERVE_TOKEN` (see `environment`), equivalent to
-    /// `--token <token>`.
-    static func arguments(enginePath: String, runsFolder: String, examplesFolder: String? = nil, logLevel: String) -> [String] {
-        ["run", "--project", enginePath]
-            + serveArguments(runsFolder: runsFolder, examplesFolder: examplesFolder, logLevel: logLevel)
-    }
-
-    /// The engine built into the app: `<engine>/tellfold serve ...` (after the executable).
-    static func bundledArguments(runsFolder: String, examplesFolder: String? = nil, logLevel: String) -> [String] {
-        Array(serveArguments(runsFolder: runsFolder, examplesFolder: examplesFolder, logLevel: logLevel).dropFirst())
+    /// `serve --port 0 --runs <runsFolder> [--examples <folder>] --log-level <level>` (after the `tellfold` binary).
+    /// The token goes in through `TELLFOLD_SERVE_TOKEN` (see `environment`), equivalent to `--token <token>`.
+    static func arguments(runsFolder: String, examplesFolder: String? = nil, logLevel: String) -> [String] {
+        ["serve", "--port", "0", "--runs", runsFolder]
+            + (examplesFolder.map { ["--examples", $0] } ?? [])
+            + ["--log-level", logLevel.lowercased()]
     }
 
     /// The example runs built into the app (`Resources/Examples`), which the engine lists read-only.
@@ -31,10 +26,51 @@ enum EngineCommand {
         engine.appending(path: "tellfold")
     }
 
-    private static func serveArguments(runsFolder: String, examplesFolder: String?, logLevel: String) -> [String] {
-        ["tellfold", "serve", "--port", "0", "--runs", runsFolder]
-            + (examplesFolder.map { ["--examples", $0] } ?? [])
-            + ["--log-level", logLevel.lowercased()]
+    /// Which engine `EngineController` starts.
+    enum EngineChoice: Equatable {
+        /// This binary, with a line for the Diagnostics log when it is not the one the settings asked for.
+        case run(URL, note: String?)
+        /// Nothing to run: why, for the user.
+        case missing(String)
+    }
+
+    /// The binary an engine path in Settings names, else the engine built into the app, else (Debug builds only,
+    /// `developmentPath`) the release build of the repository the app was compiled from. An engine path that names no
+    /// binary falls back to the built-in engine: before 0.8 the setting named a Python project run through uv.
+    static func chooseEngine(enginePath: String, bundled: URL?, developmentPath: String?,
+                             isExecutable: (String) -> Bool = FileManager.default.isExecutableFile(atPath:)) -> EngineChoice {
+        let custom = enginePath.trimmingCharacters(in: .whitespaces)
+        let howToSet = "Set the engine path in Settings > Advanced to a tellfold binary, the folder holding it, or a "
+            + "Tellfold repository with a release build (cargo build --release -p tellfold-cli in engine-rs)."
+        if !custom.isEmpty {
+            if let binary = engineBinary(at: custom, isExecutable: isExecutable) { return .run(binary, note: nil) }
+            if let bundled {
+                return .run(bundledBinary(in: bundled),
+                            note: "No tellfold engine at \(custom); running the engine built into Tellfold. \(howToSet)")
+            }
+            return .missing("No tellfold engine at \(custom). \(howToSet)")
+        }
+        if let bundled { return .run(bundledBinary(in: bundled), note: nil) }
+        if let developmentPath {
+            if let binary = engineBinary(at: developmentPath, isExecutable: isExecutable) { return .run(binary, note: nil) }
+            return .missing("No tellfold engine at \(developmentPath). \(howToSet)")
+        }
+        return .missing("The engine built into Tellfold is missing (Contents/Resources/engine/tellfold). "
+                        + "Reinstall Tellfold, or set an engine path in Settings > Advanced.")
+    }
+
+    /// The engine an engine path in Settings names: the `tellfold` binary itself, a folder holding it, or a Tellfold
+    /// repository with a release build (`engine-rs/target/release/tellfold`). Nil when none of them is executable.
+    static func engineBinary(at path: String,
+                             isExecutable: (String) -> Bool = FileManager.default.isExecutableFile(atPath:)) -> URL? {
+        let expanded = (path.trimmingCharacters(in: .whitespaces) as NSString).expandingTildeInPath
+        guard !expanded.isEmpty else { return nil }
+        var isFolder: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: expanded, isDirectory: &isFolder)
+        let candidates = exists && !isFolder.boolValue
+            ? [expanded]
+            : ["\(expanded)/tellfold", "\(expanded)/engine-rs/target/release/tellfold"]
+        return candidates.first(where: isExecutable).map { URL(filePath: $0) }
     }
 
     /// The engine prints exactly one JSON line `{"port": N}` to stdout once it is listening. Returns N for that
@@ -80,33 +116,15 @@ enum EngineCommand {
         return parts.joined(separator: ":")
     }
 
-    /// The `uv` binary: the user's explicit choice when it is executable, else the first `uv` on the search path.
-    static func findUV(preferred: String?, path: String, isExecutable: (String) -> Bool = FileManager.default.isExecutableFile(atPath:)) -> URL? {
-        if let preferred {
-            let expanded = (preferred.trimmingCharacters(in: .whitespaces) as NSString).expandingTildeInPath
-            if !expanded.isEmpty {
-                return isExecutable(expanded) ? URL(filePath: expanded) : nil
-            }
-        }
-        for dir in path.split(separator: ":") {
-            let candidate = "\(dir)/uv"
-            if isExecutable(candidate) { return URL(filePath: candidate) }
-        }
-        return nil
-    }
-
-    /// The engine's environment: the app's own, a PATH that finds `uv` and the agent CLIs, the bearer token, the
+    /// The engine's environment: the app's own, a PATH that finds the agent CLIs, the bearer token, the
     /// Keychain secrets, and output switches. `TELLFOLD_FAKE_LLM` is set only when `offline` is on.
     static func environment(base: [String: String], token: String, secrets: [String: String], offline: Bool,
                             home: String) -> [String: String] {
         // Debugger and test-runner injection (DYLD_INSERT_LIBRARIES, XCTest bundle paths) must not leak into
-        // the engine (or uv and Python under it): an injected XCTest loader makes the child wait for a test session
-        // forever.
+        // the engine: an injected XCTest loader makes the child wait for a test session forever.
         var env = base.filter { key, _ in !inheritedPrefixesToDrop.contains { key.hasPrefix($0) } }
         env["PATH"] = searchPath(existing: base["PATH"], home: home)
-        env["PYTHONUNBUFFERED"] = "1"
         env["NO_COLOR"] = "1"
-        env["UV_NO_PROGRESS"] = "1"
         // Names from before the rename to Tellfold: never let a stale inherited value reach the engine.
         for legacy in legacyEnvironmentKeys { env.removeValue(forKey: legacy) }
         env[tokenEnvironmentKey] = token

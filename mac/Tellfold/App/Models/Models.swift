@@ -517,7 +517,7 @@ enum RecommendationAction: String, Codable, Hashable, Sendable, CaseIterable {
         self = RecommendationAction(rawValue: raw.lowercased()) ?? .unknown
     }
 
-    /// The label on the step, the same words as the HTML report and the web Studio (tests/test_report.py checks).
+    /// The label on the step, the same words as the HTML report and the web Studio (tellfold-report's tests check).
     var title: String {
         switch self {
         case .keep: "Keep"
@@ -559,7 +559,7 @@ enum RecommendationAction: String, Codable, Hashable, Sendable, CaseIterable {
 /// One evidence-backed next step drawn from how the simulated crowd reacted (`report.recommendations`).
 struct Recommendation: Codable, Hashable, Sendable {
     /// The line under "What to do next", as in the HTML report and the web Studio (`RECOMMENDATIONS_NOTE` in
-    /// tellfold/report.py; tests/test_report.py checks the three match).
+    /// tellfold-report; its tests check the three match).
     static let note = "Suggestions drawn from how the simulated crowd reacted. Treat them as ideas to test with real people, not proof."
 
     var action: RecommendationAction

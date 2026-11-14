@@ -2,19 +2,26 @@
 
 Tellfold is a local swarm-simulation tool inspired by the *idea* of MiroFish (seed documents in, simulated
 social reaction and a prediction report out). It is an original implementation: no MiroFish code, no Zep,
-no OASIS, no cloud services. The only LLM is the user's locally installed **Claude Code CLI**, driven through
-the Python **claude-agent-sdk** on the user's logged-in subscription. No API key.
+no OASIS, no cloud services. The LLM is the user's locally installed AI tool, by default the **Claude Code CLI**
+on the user's logged-in subscription. No API key.
+
+> **Status.** This contract was written for the first engine, a Python package, which was retired after 0.7.0.
+> The engine is now Rust (`engine-rs/`). The module contracts below keep the Python names they were written with;
+> each one is implemented by a crate: `llm.py` by `tellfold-llm` and `tellfold-runtimes`, `ingest.py` by
+> `tellfold-llm`, `graph.py`, `personas.py` and `engine.py` by `tellfold-engine`, `world.py` by `tellfold-store`,
+> `report.py` and `chat.py` by `tellfold-report`, `compare.py`, `study.py`, `agree.py`, `branch.py` and
+> `rewrite.py` by `tellfold-study` and `tellfold-report`, the server by `tellfold-server` and `cli.py` by
+> `tellfold-cli`. The shared types are in `tellfold-models`.
 
 ## Clean-room rule
 
-This is a clean-room implementation. Builders work only from this document, `tellfold/models.py`, and
-public documentation of the libraries we depend on (claude-agent-sdk, pydantic, typer, rich, jinja2,
-pymupdf, sqlite3). Do **not** open, clone, fetch, search or recall the MiroFish repository, its forks,
+This is a clean-room implementation. Builders work only from this document, `tellfold-models`, and
+public documentation of the libraries we depend on. Do **not** open, clone, fetch, search or recall the MiroFish repository, its forks,
 DeepWiki pages about it, or the OASIS / camel-ai source. Do not reuse its prompts, file names, function names,
 data layout or UI text. Design every prompt, schema and algorithm independently from the contract below.
 
-Python >= 3.11, managed with `uv`. Package: `tellfold/`. Tests: `tests/`. All shared types live in
-`tellfold/models.py` (already written — import from it, never redefine).
+Rust (`engine-rs/`, a Cargo workspace). All shared types live in `tellfold-models` (import from it, never
+redefine).
 
 ## Pipeline
 
@@ -179,7 +186,7 @@ def render_markdown(report: Report) -> str
 - Python first computes evidence: per-round stats, top posts by engagement, most-followed agents,
   stance shift (first vs last posts of each agent), notable threads. The LLM gets that digest (not the raw
   DB) and returns a `Report`. Report must answer `config.question` directly and cite post ids / handles.
-- HTML (Jinja2 template in `tellfold/templates/report.html`): report sections, sentiment-by-round chart (inline
+- HTML (Jinja template in `engine-rs/crates/tellfold-report/templates/report.html`): report sections, sentiment-by-round chart (inline
   SVG), action mix per round, top threads rendered as a feed, persona directory. Light/dark via
   `prefers-color-scheme`. No external assets.
 
@@ -241,27 +248,15 @@ tellfold report RUN_DIR            # rebuild report from an existing run
 tellfold chat RUN_DIR --agent a03  # interactive interview (REPL)
 tellfold ask RUN_DIR "question"    # one-shot question to the report agent
 tellfold agents RUN_DIR            # table of personas
-tellfold doctor                    # checks claude CLI on PATH, logged in (tiny haiku call), SDK import
+tellfold doctor                    # checks claude CLI on PATH, logged in (tiny haiku call)
 ```
-Live progress with `rich` (stage spinners, per-round table: active agents, posts, sentiment).
+Live progress (stage spinners, per-round table: active agents, posts, sentiment).
 `--event` may repeat; format `ROUND:TEXT`. `--open` opens report.html in the browser at the end.
 Ctrl-C mid-run keeps everything written so far; `tellfold report` can rebuild from it.
 
 ## Testing
-- `tests/` uses `FakeLLM` only — no test may spawn the real CLI. Cover: chunking, graph merge/dedup,
+- Tests use the fake model only (`FakeLlm`) — no test may spawn a real AI tool. Cover: chunking, graph merge/dedup,
   world.apply validation + feed ranking, engine round loop with a fake responder (including a failing batch
-  and invalid post ids), report digest + HTML render, CLI `--help` and a full fake run via Typer's CliRunner
-  (inject the fake via an env var `TELLFOLD_FAKE_LLM=1` that `cli.py` honours).
-- Run with `uv run pytest -q`.
-
-## Ownership (build team)
-Each builder edits only its own files. If you need something from another module, code against the
-contract above exactly; do not edit the other module.
-
-| builder | files |
-|---|---|
-| llm | `tellfold/llm.py`, `tests/test_llm.py`, `tests/conftest.py` (shared FakeLLM fixtures) |
-| knowledge | `tellfold/ingest.py`, `tellfold/graph.py`, `tellfold/personas.py`, `tests/test_ingest.py`, `tests/test_graph.py`, `tests/test_personas.py` |
-| world | `tellfold/world.py`, `tellfold/engine.py`, `tests/test_world.py`, `tests/test_engine.py` |
-| report | `tellfold/report.py`, `tellfold/chat.py`, `tellfold/templates/report.html`, `tests/test_report.py` |
-| cli | `tellfold/cli.py`, `tellfold/__init__.py`, `tellfold/__main__.py`, `README.md`, `examples/`, `tests/test_cli.py` |
+  and invalid post ids), report digest + HTML render, CLI `--help` and a full fake run
+  (`TELLFOLD_FAKE_LLM=1` switches the CLI to the fake model).
+- Run with `cd engine-rs && cargo test --workspace`.

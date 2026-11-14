@@ -200,8 +200,27 @@ fn call_estimates_match_python() {
     }
 }
 
+/// The same table as EstimateTests in mac/TellfoldTests/EngineCommandTests.swift; change both together.
+#[test]
+fn estimate_reference_values_match_the_mac_app() {
+    for (agents, rounds, batch, chunks, split) in [
+        (20, 6, 6, 3, (20, 4)),
+        (6, 3, 3, 1, (8, 3)),
+        (5, 4, 2, 7, (10, 4)),
+        (200, 50, 20, 40, (254, 31)),
+        (25, 10, 4, 9, (43, 7)),
+        (20, 6, 6, 640, (20, 19)),
+    ] {
+        let mut config = SimConfig::new("q", vec![]);
+        (config.num_agents, config.rounds, config.batch_size) = (agents, rounds, batch);
+        config.crowd_rules = 0; // the table predates crowd rules; crowdRulesAddPlannerCalls covers those
+        assert_eq!(estimate_call_split(&config, chunks), split);
+        assert_eq!(tellfold_store::estimate::estimate_calls(&config, chunks), split.0 + split.1);
+    }
+}
+
 /// Not in the Python fixture: only the Rust engine starts runs from a saved audience. The same rows are in
-/// tests/test_server.py and EstimateTests in the Mac app.
+/// EstimateTests in the Mac app.
 #[test]
 fn audience_runs_skip_graph_and_persona_calls() {
     for (agents, rounds, batch, chunks, split) in

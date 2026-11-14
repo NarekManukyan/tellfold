@@ -16,7 +16,7 @@ The mark is a **folding fan**. Its six pleats are the simulated crowd, and they 
 | `app-icon/tellfold-app-icon.svg` | macOS icon master on the 1024 grid: 824-unit squircle body and 100-unit margin, glyph about 68 % of the body. |
 | `app-icon/tellfold-app-icon-small.svg` | Icon used for the 16 and 32 px slots. |
 | `web/` | `favicon.svg`, `favicon.ico` (16/32/48), PNG favicons, `apple-touch-icon.png`, PWA icons (192, 512, maskable 512), `site.webmanifest`, and `head-snippet.html`. |
-| `src/build_brand.py` | Generates every SVG above from one geometry. Edit it, never the outputs. |
+| `engine-rs/crates/tellfold-brand` | Generates every SVG above from one geometry (`src/wordmark-source.svg` holds the hand-drawn wordmark). Edit it, never the outputs; its test fails when a committed SVG differs from what it writes. |
 
 The macOS app icon PNGs live in `mac/Tellfold/App/Assets.xcassets/AppIcon.appiconset`, and `mac/project.yml` names `AppIcon` as the icon set.
 
@@ -44,7 +44,7 @@ These are the app's indigo colours. For print, convert with the printer's profil
 ## Rebuilding
 
 ```bash
-python3 brand/src/build_brand.py --appicon
+cd engine-rs && cargo run -p tellfold-brand -- --appicon
 ```
 
 `--appicon` also re-renders the AppIcon PNGs with `rsvg-convert`; the 16, 16@2x and 32 slots use the small icon. Then rebuild with `cd mac && xcodegen && xcodebuild build -scheme Tellfold -derivedDataPath /private/tmp/tellfold-dd`. If the Dock still shows an old icon after a rebuild, run `lsregister -f` on the built app (LaunchServices caches icons per bundle path).
