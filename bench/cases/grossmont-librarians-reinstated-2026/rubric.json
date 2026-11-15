@@ -1,0 +1,19 @@
+{
+  "slug": "grossmont-librarians-reinstated-2026",
+  "title": "Grossmont Union High School District settles with its union and brings back teacher-librarians from 2027-28",
+  "category": "school",
+  "announced_on": "2026-10-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will students, parents and staff in the Grossmont Union High School District react to this over the first two weeks, which groups will push back and why, and is the Grossmont Union High School District board likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "Only the nine teacher-librarians return, not the other posts cut in 2025.", "source": "https://timesofsandiego.com/?p=406322"},
+    {"id": "o2", "text": "The librarians do not return until 2027-28 and get no back pay or damages.", "source": "https://timesofsandiego.com/?p=406322"},
+    {"id": "o3", "text": "It took a labour charge and over a year of protest; questions remain about how the board majority made the cuts.", "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"},
+    {"id": "o4", "text": "Lawsuits by former staff are still pending.", "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The settlement stands as announced.", "source": "https://www.kpbs.org/news/education/2026/10/21/grossmont-union-high-school-district-to-reinstate-librarian-positions"},
+  "pushback_groups": [],
+  "notes": "Positive case: the settlement restores posts whose loss had drawn protests in 2025; the union and former librarians called it a victory. 'Objections' are limitations of the deal and continuing criticism of the board, not opposition to the reinstatement. Thin: two outlets, both on the announcement day, and no post-announcement student or parent quotes."
+}

@@ -1,0 +1,18 @@
+{
+  "slug": "nintendo-switch-2-price-rise-2026",
+  "title": "Nintendo raises the Switch 2 price to $499.99",
+  "category": "pricing",
+  "announced_on": "2026-05-08",
+  "known_to_model": true,
+  "model_cutoff": "2026-06",
+  "question": "How will Nintendo fans and prospective Switch 2 buyers react to this over the first two weeks, which groups will push back and why, and is Nintendo likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "The console was already too expensive; $500 is too much for a Nintendo handheld", "source": "https://marketrealist.com/consumer/nintendo-switch-2-price-increase/"},
+    {"id": "o2", "text": "Buyers waiting for a price cut got a rise instead and will not buy", "source": "https://marketrealist.com/consumer/nintendo-switch-2-price-increase/"},
+    {"id": "o3", "text": "Regional prices (nearly C$700 in Canada) are poor value next to a stronger PS5", "source": "https://www.vice.com/en/article/nintendo-switch-2-price-increased-to-nearly-700-in-some-regions/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The increase was kept; still going ahead days before its 1 September 2026 effective date, with no reversal reported", "source": "https://www.notebookcheck.net/Switch-2-price-hike-to-take-effect-next-week-even-as-console-sales-take-a-hit-in-July.1381459.0.html"},
+  "pushback_groups": ["prospective buyers waiting for a discount", "existing Nintendo fans", "Canadian and other non-US buyers"],
+  "notes": "CONTROL CASE: announced before the model's June 2026 cutoff, so the model may know it. Use it to compare against the unseen cases. The reaction was negative but resigned (industry-wide price rises), with no organised campaign."
+}

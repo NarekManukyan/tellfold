@@ -1,0 +1,19 @@
+{
+  "slug": "instagram-wordmark-refresh-2026",
+  "title": "Instagram refreshes its wordmark for the first time in a decade",
+  "category": "rebrand",
+  "announced_on": "2026-08-13",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Instagram users react to this over the first two weeks, which groups will push back and why, and is Instagram likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "The stylised 'r' looks like a 'z', so the name reads 'Instagzam'", "source": "https://www.socialmediatoday.com/news/instagram-reveals-its-new-logo/827871/"},
+    {"id": "o2", "text": "The new lettering is harder to read and may hurt accessibility", "source": "https://www.entrepreneur.com/business-news/instagram-just-changed-its-logo-for-the-first-time-in-a-decade"},
+    {"id": "o3", "text": "It looks generic, like AI-generated text", "source": "https://www.entrepreneur.com/business-news/instagram-just-changed-its-logo-for-the-first-time-in-a-decade"},
+    {"id": "o4", "text": "Instagram should fix the feed instead of spending effort on branding", "source": "https://www.socialmediatoday.com/news/instagram-reveals-its-new-logo/827871/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Instagram's design leads defended the new wordmark and the rollout continued", "source": "https://www.theatdb.com/news/instagram-head-of-product-design-explains-thinking-behind-that-new-logo-and-responds-to-critics-its-important-for-us-to-embrace-the-future"},
+  "pushback_groups": ["everyday users joking in replies", "designers and design press", "users frustrated with the feed"],
+  "notes": "Mixed, meme-driven reaction rather than anger. A small survey showed most preferred the old mark, but the new one still rated about 3.8/5. A prediction of a firestorm followed by a reversal would be wrong."
+}

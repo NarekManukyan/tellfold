@@ -1,0 +1,19 @@
+{
+  "slug": "reddit-ends-rss-and-public-api-2026",
+  "title": "Reddit ends RSS feeds on 13 November and closes its public API by March 2027",
+  "category": "product-change",
+  "announced_on": "2026-09-30",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Reddit moderators, developers and users react to this over the first two weeks, which groups will push back and why, and is Reddit likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Moderation bots and tools will break; large codebases cannot practically be ported to TypeScript-only Devvit.", "source": "https://ppc.land/reddit-to-halt-public-data-api-access-in-march-2027-as-14-000-apps-register/"},
+    {"id": "o2", "text": "RSS goes with no replacement outside moderation; some users relied on it to follow communities.", "source": "https://ppc.land/reddit-to-halt-public-data-api-access-in-march-2027-as-14-000-apps-register/"},
+    {"id": "o3", "text": "Reddit blames scrapers while licensing its content to AI companies.", "source": "https://decrypt.co/379892/reddit-killing-rss-feeds-and-public-api-access-to-fight-ai-scrapers"},
+    {"id": "o4", "text": "Restricting Old Reddit and logged-out access continues a closing-off of the site.", "source": "https://tech.slashdot.org/story/26/09/30/1841213/reddit-is-killing-rss-feeds-ending-public-api-access"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No reversal found; timeline stood in the sources checked.", "source": "https://ppc.land/reddit-to-halt-public-data-api-access-in-march-2027-as-14-000-apps-register/"},
+  "pushback_groups": ["volunteer moderators", "third-party bot and app developers", "RSS users and researchers", "Old Reddit users"],
+  "notes": "Negative, with a minority accepting the anti-scraping rationale and some developers migrating. Slashdot reaction is reader comments on an aggregator. Whether anything changed after mid-October (e.g. deadline extensions) was not checked; the latest source is 4 Oct 2026."
+}

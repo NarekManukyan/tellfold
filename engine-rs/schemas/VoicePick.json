@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "entity_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Entity Ids",
+      "type": "array"
+    }
+  },
+  "title": "VoicePick",
+  "type": "object"
+}

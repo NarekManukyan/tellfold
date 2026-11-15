@@ -1,0 +1,20 @@
+{
+  "slug": "wow-forever-skyborne-paid-race-2026",
+  "title": "Blizzard announces World of Warcraft: Forever, with its new Skyborne race sold in $30+ packs",
+  "category": "product-change",
+  "announced_on": "2026-09-12",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will World of Warcraft and WoW Classic players react to this over the first two weeks, which groups will push back and why, and is Blizzard likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "A playable race and its starting zone are locked behind a $30 pack on top of the subscription.", "source": "https://mein-mmo.de/en/a-detail-of-wow-forever-drives-fans-crazy-because-it-costs-you-at-least-30-euros,1587630/"},
+    {"id": "o2", "text": "Beta access is tied to the $59.99 pack, creating purchase pressure.", "source": "https://finalboss.io/world-of-warcraft-forever-skyborne-paywall-is-a-30-trust-problem"},
+    {"id": "o3", "text": "There is no timeline for the Skyborne to join the normal subscription, so the charge looks permanent.", "source": "https://finalboss.io/world-of-warcraft-forever-skyborne-paywall-is-a-30-trust-problem"},
+    {"id": "o4", "text": "Microtransactions and modern-looking additions do not fit a version meant to feel like the original game.", "source": "https://mein-mmo.de/en/a-few-of-you-dont-deserve-wow-forever,1588223/"},
+    {"id": "o5", "text": "Another elf race is something nobody asked for.", "source": "https://mein-mmo.de/en/a-detail-of-wow-forever-drives-fans-crazy-because-it-costs-you-at-least-30-euros,1587630/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The Skyborne stayed behind paid packs through the 4 November launch; later changes were ability balancing only.", "source": "https://finalboss.io/world-of-warcraft-forever-skyborne-paywall-is-a-30-trust-problem"},
+  "pushback_groups": ["Classic purists", "players opposed to microtransactions in a subscription game", "Reddit and forum communities"],
+  "notes": "Mixed case: strong enthusiasm for the long-requested 'Classic+' alongside widely reported anger at the paid Skyborne race. The Massively OP and GamesRadar pieces could only be read as headline or search snippet. Record launch numbers (FRVR, 9 Nov) fall after the two-week window."
+}

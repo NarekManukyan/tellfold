@@ -1,0 +1,55 @@
+{
+  "$defs": {
+    "RewriteChange": {
+      "properties": {
+        "what": {
+          "title": "What",
+          "type": "string"
+        },
+        "why": {
+          "title": "Why",
+          "type": "string"
+        },
+        "cites": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Cites",
+          "type": "array"
+        }
+      },
+      "required": [
+        "what",
+        "why"
+      ],
+      "title": "RewriteChange",
+      "type": "object"
+    }
+  },
+  "description": "`rewrite.json` in a run folder: a better version of the seed text, written by one `report.rewrite` call.",
+  "properties": {
+    "revised_text": {
+      "title": "Revised Text",
+      "type": "string"
+    },
+    "changes": {
+      "items": {
+        "$ref": "#/$defs/RewriteChange"
+      },
+      "title": "Changes",
+      "type": "array"
+    },
+    "kept_on_purpose": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Kept On Purpose",
+      "type": "array"
+    }
+  },
+  "required": [
+    "revised_text"
+  ],
+  "title": "RewriteSuggestion",
+  "type": "object"
+}

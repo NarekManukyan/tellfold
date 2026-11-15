@@ -1,0 +1,18 @@
+{
+  "slug": "barnet-mays-lane-parking-2026",
+  "title": "Barnet Council cuts Mays Lane paid parking to one weekday hour after trader complaints",
+  "category": "local-government",
+  "announced_on": "2026-07-23",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Mays Lane traders, shoppers and nearby residents react to this over the first two weeks, which groups will push back and why, and is Barnet Council likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "It is only an 18-month trial and could be reversed.", "source": "https://www.barnetsociety.org.uk/reprieve-for-mays-lane-traders-as-barnet-council-lifts-all-day-parking-charges-outside-their-parade-of-shops/"},
+    {"id": "o2", "text": "Shoppers may still stay away for fear of getting a penalty ticket.", "source": "https://www.barnetsociety.org.uk/reprieve-for-mays-lane-traders-as-barnet-council-lifts-all-day-parking-charges-outside-their-parade-of-shops/"},
+    {"id": "o3", "text": "A paid hour remains when traders had asked for free short stays.", "source": "https://www.barnetsociety.org.uk/despair-among-mays-lane-traders-as-introduction-of-pay-by-phone-parking-charges-leads-to-a-dramatic-loss-in-customers"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The reduced hours took effect on 3 August 2026 as announced, on an experimental basis with consultation to February 2027.", "source": "https://publicnoticeportal.uk/notice/traffic-and-roads/6a635675f0130fae7d1e46cc"},
+  "pushback_groups": [],
+  "notes": "Positive case: the announcement is itself a concession to an earlier campaign, so the expected reaction is relief with caveats about the trial. Thin coverage (civic society plus statutory notice). Objection o3 is inferred from traders' earlier request for 20-30 minutes free; treat it as low-weight."
+}

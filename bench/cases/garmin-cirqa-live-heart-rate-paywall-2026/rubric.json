@@ -1,0 +1,18 @@
+{
+  "slug": "garmin-cirqa-live-heart-rate-paywall-2026",
+  "title": "Garmin launches CIRQA band with live workout heart rate behind Connect+",
+  "category": "product-change",
+  "announced_on": "2026-07-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will fitness-tracker buyers and Garmin users react to this over the first two weeks, which groups will push back and why, and is Garmin likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Live heart rate during a workout is a basic feature that should not need a subscription", "source": "https://www.androidauthority.com/garmin-cirqa-live-heart-rate-3690344/"},
+    {"id": "o2", "text": "Paywalling it contradicts the band's 'no subscription required' marketing", "source": "https://www.notebookcheck.net/Garmin-CIRQA-will-get-basic-feature-without-Connect-subscription-following-outcry.1349333.0.html"},
+    {"id": "o3", "text": "Too many other in-workout and coaching features are locked behind Connect+", "source": "https://gizmodo.com/garmins-whoop-killer-will-offer-free-heart-rate-monitoring-after-backlash-2000789941"}
+  ],
+  "backdown": {"happened": true, "kind": "partial", "date": "2026-07-22", "summary": "Garmin made live in-workout heart rate free for all CIRQA owners via an app update; the rest of the Connect+ paywall stayed", "source": "https://www.androidauthority.com/garmin-cirqa-live-heart-rate-3690344/"},
+  "pushback_groups": ["fitness-tech reviewers", "tech press", "buyers avoiding subscriptions (Whoop alternatives)"],
+  "notes": "The specific objection (live HR) was fully reversed within about a day; scored as partial because Connect+ gating of other features stayed. The announcement is a product launch, and the contested element is one detail of it. A good prediction singles out live HR and expects a quick concession."
+}

@@ -1,0 +1,36 @@
+{
+  "description": "What `study.agree` returns.",
+  "properties": {
+    "held": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Held",
+      "type": "array"
+    },
+    "split": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Split",
+      "type": "array"
+    },
+    "verdict": {
+      "default": "mixed",
+      "enum": [
+        "consistent",
+        "mixed",
+        "unstable"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    },
+    "summary": {
+      "default": "",
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "title": "AgreementCall",
+  "type": "object"
+}

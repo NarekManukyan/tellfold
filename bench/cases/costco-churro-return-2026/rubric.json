@@ -1,0 +1,19 @@
+{
+  "slug": "costco-churro-return-2026",
+  "title": "Costco brings the Twisted Churro back to US food courts for a limited time",
+  "category": "product-change",
+  "announced_on": "2026-09-17",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Costco members in the US react to this over the first two weeks, which groups will push back and why, and is Costco likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "It is the twisted churro, not the better pre-COVID straight churro.", "source": "https://www.foxnews.com/food-drink/costco-brings-back-fan-favorite-food-court-treat-years-off-menu.print"},
+    {"id": "o2", "text": "It is only back for a limited time; fans want it permanently.", "source": "https://www.foxnews.com/food-drink/costco-brings-back-fan-favorite-food-court-treat-years-off-menu.print"},
+    {"id": "o3", "text": "Members would rather have the combo pizza or Polish hot dog back.", "source": "https://www.tastingtable.com/2261748/costco-food-court-churros-return-fans-unimpressed/"},
+    {"id": "o4", "text": "The twisted churros are often dry, doughy or stale.", "source": "https://www.tastingtable.com/2261748/costco-food-court-churros-return-fans-unimpressed/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "CFO confirmed the limited-time return on 24 September 2026; rolled out at $1.49 as stated.", "source": "https://www.cfodive.com/news/costco-cfo-doubles-down-tariff-strategy-winks-churro-comeback/831362/"},
+  "pushback_groups": ["fans of the original straight churro", "fans wanting the combo pizza or Polish dog back"],
+  "notes": "Low-stakes menu case with a genuine split: excitement ('FINALLY') alongside disappointment over the twisted version, the limited run and other missed items. Reveal date uncertain (17 or 18 September 2026); confirmation on the 24 September earnings call. Evidence is social media comments quoted by food media."
+}

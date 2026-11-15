@@ -1,0 +1,19 @@
+{
+  "slug": "witcher-3-free-remaster-upgrade-2026",
+  "title": "CD Projekt Red makes The Witcher 3 Remastered a free upgrade",
+  "category": "product-change",
+  "announced_on": "2026-08-25",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Witcher 3 owners and players react to this over the first two weeks, which groups will push back and why, and is CD Projekt Red likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "The update may break existing PC mods", "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"},
+    {"id": "o2", "text": "It is unclear whether existing save files will carry over", "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"},
+    {"id": "o3", "text": "Higher system requirements may hurt older PCs and Steam Deck", "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"},
+    {"id": "o4", "text": "Players want the original version to stay available", "source": "https://www.notebookcheck.net/The-Witcher-3-remaster-Fans-look-for-a-catch-but-can-t-find-one.1379144.0.html"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Not applicable; the free upgrade went ahead as announced", "source": null},
+  "pushback_groups": ["PC modders", "players on older hardware or Steam Deck", "visual purists (later, over a comparison clip)"],
+  "notes": "POSITIVE-reaction case. The 'objections' are practical concerns, not opposition. Expect the model to recognise strong goodwill (fans contrasting it with paid remasters) and suspicion of a hidden catch. A later visual-comparison backlash (23-24 Sep) falls outside the two-week window."
+}

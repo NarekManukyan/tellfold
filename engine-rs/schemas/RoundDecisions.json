@@ -1,0 +1,97 @@
+{
+  "$defs": {
+    "AgentDecision": {
+      "properties": {
+        "agent_id": {
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "actions": {
+          "description": "1 to 3 actions",
+          "items": {
+            "$ref": "#/$defs/ProposedAction"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "memory_note": {
+          "default": "",
+          "description": "first-person note: what stood out, current view on the topic",
+          "title": "Memory Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_id"
+      ],
+      "title": "AgentDecision",
+      "type": "object"
+    },
+    "ProposedAction": {
+      "properties": {
+        "type": {
+          "description": "one of: post, reply, repost, like, dislike, follow, nothing",
+          "title": "Type",
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "description": "text for post / reply, optional comment for repost",
+          "title": "Content",
+          "type": "string"
+        },
+        "target_post_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "post id from THIS user's feed (reply/repost/like/dislike)",
+          "title": "Target Post Id"
+        },
+        "target_agent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "agent id or handle of an author in this user's feed (follow)",
+          "title": "Target Agent"
+        },
+        "reasoning": {
+          "default": "",
+          "description": "private one-line motive",
+          "title": "Reasoning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ProposedAction",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/AgentDecision"
+      },
+      "title": "Decisions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decisions"
+  ],
+  "title": "RoundDecisions",
+  "type": "object"
+}

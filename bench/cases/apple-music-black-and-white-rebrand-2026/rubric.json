@@ -1,0 +1,19 @@
+{
+  "slug": "apple-music-black-and-white-rebrand-2026",
+  "title": "Apple Music drops its red icon for a black-and-white identity",
+  "category": "rebrand",
+  "announced_on": "2026-10-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Apple Music users react to this over the first two weeks, which groups will push back and why, and is Apple likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "The black-and-white icon is dull, boring and generic", "source": "https://engadget.com/2286289/people-are-hating-on-apple-music-redesigned-black-and-white-logo/"},
+    {"id": "o2", "text": "Losing the red removes the app's recognisable identity and charm", "source": "https://appleosophy.com/2026/10/23/from-red-note-to-black-and-white-apple-musics-new-identity/"},
+    {"id": "o3", "text": "The change is unnecessary since nothing about the service improves", "source": "https://gagadget.com/en/731157-apple-musics-red-icon-goes-black-and-white-and-users-arent-happy-amp/"},
+    {"id": "o4", "text": "It looks like a different app (e.g. a piano-lesson app) and is harder to spot", "source": "https://cultofmac.com/news/apple-music-app-icon-change-ios-27-beta"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Rolled out as planned and extended to Apple Music Classical in early November", "source": "https://gagadget.com/en/733294-apple-music-classical-goes-black-and-white-too/"},
+  "pushback_groups": ["long-time Apple Music and iPhone users", "Apple-focused bloggers and commenters"],
+  "notes": "User backlash started on 13 Oct when the icon leaked via the iOS 27.2 developer beta, a week before the official reveal. Design press were positive about the process, so a split between users (negative) and designers (positive) is the best answer. Reports disagree on whether the wordmark uses a customised SF Pro or a new typeface."
+}

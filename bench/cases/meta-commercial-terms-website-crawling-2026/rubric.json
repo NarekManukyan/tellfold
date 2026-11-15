@@ -1,0 +1,20 @@
+{
+  "slug": "meta-commercial-terms-website-crawling-2026",
+  "title": "Meta's new Commercial Terms let it crawl business-linked websites",
+  "category": "policy",
+  "announced_on": "2026-10-15",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will businesses and publishers that use Meta's business tools react to this over the first two weeks, which groups will push back and why, and is Meta likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "The clause could let Meta scrape publishers' websites and train its AI on their journalism", "source": "https://www.niemanlab.org/2026/10/metas-new-commercial-terms-will-allow-the"},
+    {"id": "o2", "text": "There is no opt-out: using any Meta business product forces acceptance of the scraping rights", "source": "https://www.niemanlab.org/2026/10/metas-new-commercial-terms-will-allow-the"},
+    {"id": "o3", "text": "Test credentials could bypass registration walls, and robots.txt is not guaranteed", "source": "https://www.searchenginejournal.com/metas-new-terms-expand-crawling-rights-beyond-advertisers/"},
+    {"id": "o4", "text": "'Associated with your products or services' is undefined and far too broad", "source": "https://www.searchenginejournal.com/metas-new-terms-expand-crawling-rights-beyond-advertisers/"},
+    {"id": "o5", "text": "Dropping the word 'train' is cosmetic; the crawling permission is still sweeping", "source": "https://www.relevantaudience.com/meta/meta-commercial-terms-delayed-to-november-20-2026/"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-11-03", "summary": "Removed 'train' wording (17 Oct), delayed to 20 Nov (23 Oct), then paused the update entirely and kept the existing terms (week of 2 Nov)", "source": "https://404media.co/meta-generative-ai-commercial-terms-on-pause"},
+  "pushback_groups": ["news publishers and their trade bodies", "legal academics", "small businesses with Meta accounts", "politicians and regulators (EU, UK, Norway, US)"],
+  "notes": "announced_on uses 2026-10-15, the first press report; Meta's notice went out in 'early October' and the exact day is unconfirmed. The pause date is approximate: 404 Media (5 Nov) says the pause was announced 'earlier this week'. Within two weeks there was already a partial backdown (wording change and delay)."
+}

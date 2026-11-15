@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "PostScore": {
+      "properties": {
+        "post_id": {
+          "title": "Post Id",
+          "type": "integer"
+        },
+        "score": {
+          "description": "-1 (strongly negative) .. 1 (strongly positive)",
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "post_id",
+        "score"
+      ],
+      "title": "PostScore",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "scores": {
+      "items": {
+        "$ref": "#/$defs/PostScore"
+      },
+      "title": "Scores",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scores"
+  ],
+  "title": "SentimentScores",
+  "type": "object"
+}

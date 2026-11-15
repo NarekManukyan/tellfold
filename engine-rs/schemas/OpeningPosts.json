@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "OpeningPost": {
+      "properties": {
+        "agent_id": {
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "memory_note": {
+          "default": "",
+          "title": "Memory Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_id",
+        "content"
+      ],
+      "title": "OpeningPost",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "posts": {
+      "items": {
+        "$ref": "#/$defs/OpeningPost"
+      },
+      "title": "Posts",
+      "type": "array"
+    }
+  },
+  "required": [
+    "posts"
+  ],
+  "title": "OpeningPosts",
+  "type": "object"
+}

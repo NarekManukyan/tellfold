@@ -1,0 +1,18 @@
+{
+  "slug": "blood-of-dawnwalker-40fps-console-cap-2026",
+  "title": "Rebel Wolves confirms The Blood of Dawnwalker tops out at 40fps on consoles, with no 60fps mode",
+  "category": "product-change",
+  "announced_on": "2026-08-21",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will console players planning to buy The Blood of Dawnwalker react to this over the first two weeks, which groups will push back and why, and is Rebel Wolves likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "There is no 60fps mode on any console, not even the PS5 Pro.", "source": "https://labs.invenglobal.com/articles/25042/the-blood-of-dawnwalker-console-graphics-modes-confirmed-max-frame-rate-capped-at-40-fps"},
+    {"id": "o2", "text": "It falls short of the 60fps option that has become standard for console releases.", "source": "https://labs.invenglobal.com/articles/25042/the-blood-of-dawnwalker-console-graphics-modes-confirmed-max-frame-rate-capped-at-40-fps"},
+    {"id": "o3", "text": "Some console buyers say they will buy the PC version instead.", "source": "https://kotaku.com/vampire-rpg-blood-of-dawnwalker-will-rush-out-a-60fps-mode-after-after-backlash-we-heard-your-feedback-2000727511"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-08-24", "summary": "Rebel Wolves announced a 60fps Performance Mode for PS5, PS5 Pro and Xbox Series X in the day-one patch; Xbox Series S stays at 30fps.", "source": "https://www.thesixthaxis.com/2026/08/24/the-blood-of-dawnwalker-will-get-a-60fps-performance-mode-in-day-one-patch/"},
+  "pushback_groups": ["console players", "PS5 Pro owners", "commenters under the gameplay video"],
+  "notes": "Announcement day inferred as Friday 21 August from the studio's 24 August post ('On Friday, we answered your questions about console performance') and The Sixth Axis; Inven's report is dated 23 August. The backdown came within three days, so nearly all of the two-week window follows it. Scored as full because the demanded 60fps mode was added on every console it was asked for; Series S was never central to the complaint."
+}

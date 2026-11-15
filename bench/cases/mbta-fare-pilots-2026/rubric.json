@@ -1,0 +1,18 @@
+{
+  "slug": "mbta-fare-pilots-2026",
+  "title": "MBTA launches unlimited-transfer, express-bus and car-free-senior fare pilots",
+  "category": "public-service",
+  "announced_on": "2026-07-28",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will MBTA riders in the Boston region react to this over the first two weeks, which groups will push back and why, and is the MBTA (and the Healey administration) likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "The savings are temporary: six-month pilots and commuter rail discounts only through November.", "source": "https://www.wbur.org/news/2026/07/28/mbta-fare-discounts-fall-commuter-rail-express-bus"},
+    {"id": "o2", "text": "The free-fare pilot for car-free seniors had no start date.", "source": "https://wgbh.org/news/local/2026-09-01/mbta-launches-new-programs-to-cut-riders-costs"},
+    {"id": "o3", "text": "Free Summer Fridays on commuter rail were not extended.", "source": "https://www.wbur.org/news/2026/07/28/mbta-fare-discounts-fall-commuter-rail-express-bus"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Transfer and express-bus pilots launched on 1 September 2026 as announced; senior pilot still in development.", "source": "https://wgbh.org/news/local/2026-09-01/mbta-launches-new-programs-to-cut-riders-costs"},
+  "pushback_groups": [],
+  "notes": "Positive control case: advocates (TransitMatters, disability advocates) welcomed it and no organised opposition was found. 'Objections' here are limitations noted in coverage, not complaints from organised groups. A model that predicts a broadly positive reaction with minor caveats and no reversal should score well; predicting backlash should score poorly."
+}

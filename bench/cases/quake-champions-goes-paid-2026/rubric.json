@@ -1,0 +1,19 @@
+{
+  "slug": "quake-champions-goes-paid-2026",
+  "title": "Quake Champions drops free-to-play for a paid Steam release and ends content updates",
+  "category": "pricing",
+  "announced_on": "2026-09-23",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Quake Champions players react to this over the first two weeks, which groups will push back and why, and is id Software (and Bethesda) likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "New players are asked to pay for a game that will get no more content updates.", "source": "https://www.gamingonlinux.com/2026/09/quake-champions-goes-from-free-to-paid-with-no-more-content-updates-planned/"},
+    {"id": "o2", "text": "A price will deter new players when the population is already tiny.", "source": "https://www.gamingonlinux.com/2026/09/quake-champions-goes-from-free-to-paid-with-no-more-content-updates-planned/"},
+    {"id": "o3", "text": "Players fear the official servers will eventually be shut down.", "source": "https://www.gamingonlinux.com/2026/09/quake-champions-goes-from-free-to-paid-with-no-more-content-updates-planned/"},
+    {"id": "o4", "text": "The steep learning curve makes paying newcomers hard to attract.", "source": "https://www.einerd.com/quake-champions-pago-atualizacao-1-31-fim-microtransacoes/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No change to the paid model reported.", "source": "https://www.gamingonlinux.com/2026/09/quake-champions-goes-from-free-to-paid-with-no-more-content-updates-planned/"},
+  "pushback_groups": ["existing and lapsed players worried about the game's future", "commentators doubting anyone will pay"],
+  "notes": "Thinly covered niche case: reaction comes from GamingOnLinux (editorial plus reader comments), Ei Nerd (editorial) and a LevelUpTalk search snippet. Existing players lost nothing and gained free unlocks, so a model predicting outrage overstates it; a split between relief at the removal of monetisation and worry about abandonment is the best reading. US price not verified (UK £8.99)."
+}

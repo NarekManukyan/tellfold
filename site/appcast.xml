@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Tellfold</title>
+    <link>https://narekmanukyan.github.io/tellfold/appcast.xml</link>
+    <description>Tellfold updates</description>
+<language>en</language>
+    <item>
+      <title>Tellfold 0.7.1</title>
+      <pubDate>Sat, 14 Nov 2026 14:55:51 +0000</pubDate>
+      <sparkle:version>175</sparkle:version>
+      <sparkle:shortVersionString>0.7.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.7.1.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.7.1/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="DepB33PeeKG/IBUluepWt0QKquJ5O7Z2sYaEU+siV57rFPrJX0mr/PUVnVYh9/w04T0y/8cY/YOka2BfkdTVBg==" length="11431060" />
+    </item>
+  </channel>
+</rss>

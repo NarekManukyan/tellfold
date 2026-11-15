@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://tellfold-stats.tellfold.workers.dev; media-src 'self'; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Tellfold for Mac: see how people react before you tell them</title>
+<meta name="description" content="A free Mac app that simulates how a crowd reacts to your announcement, price change or plan, then writes a cited report, using the AI tool you already have.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://narekmanukyan.github.io/tellfold/">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preload" as="image" href="assets/img/app-window-3098.webp" imagesrcset="assets/img/app-window-1549.webp 1549w, assets/img/app-window-3098.webp 3098w" imagesizes="(max-width: 1100px) 100vw, 1040px" fetchpriority="high">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tellfold">
+<meta property="og:title" content="Tellfold for Mac: see how people react before you tell them">
+<meta property="og:description" content="A free Mac app. A crowd of simulated people reacts to your price change, new rule, plan or announcement, round by round, and folds into one answer.">
+<meta property="og:url" content="https://narekmanukyan.github.io/tellfold/">
+<meta property="og:image" content="https://narekmanukyan.github.io/tellfold/assets/img/share-1200x630.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tellfold for Mac: see how people react before you tell them. Below the line, the app window with a finished run on a café’s price rise.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/site.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Tellfold",
+  "description": "A free Mac app that simulates how a crowd of people reacts to an announcement, price change, new rule or plan, round by round, then writes a short report where every claim cites the posts behind it. It runs with an AI tool already on the Mac, such as Claude Code, Codex, Gemini CLI, Cursor or Ollama.",
+  "url": "https://narekmanukyan.github.io/tellfold/",
+  "downloadUrl": "https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg",
+  "softwareVersion": "0.7.1",
+  "operatingSystem": "macOS 15 or later",
+  "processorRequirements": "Apple silicon",
+  "softwareRequirements": "An AI tool installed and signed in: Claude Code, Codex, Gemini CLI, Cursor, Ollama or another supported tool",
+  "applicationCategory": "BusinessApplication",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "image": "https://narekmanukyan.github.io/tellfold/assets/img/share-1200x630.jpg",
+  "screenshot": [
+    "https://narekmanukyan.github.io/tellfold/assets/img/app-window-3098.webp",
+    "https://narekmanukyan.github.io/tellfold/assets/img/app-crowd-2640.webp",
+    "https://narekmanukyan.github.io/tellfold/assets/img/app-report-2640.webp"
+  ],
+  "author": { "@type": "Person", "name": "Narek Manukyan", "url": "https://github.com/NarekManukyan" },
+  "sameAs": ["https://github.com/NarekManukyan/tellfold"]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="fan" viewBox="30 30 196 196"><path d="M76.73 194.5L214 194.5L209.45 159.97L76.86 195.5A23 23 0 0 1 76.73 194.5Z"/><path d="M75.05 188.74L207.64 153.21L194.31 121.03L75.44 189.67A23 23 0 0 1 75.05 188.74Z"/><path d="M71.94 183.6L190.81 114.97L169.61 87.34L72.55 184.4A23 23 0 0 1 71.94 183.6Z"/><path d="M67.6 179.45L164.66 82.39L137.03 61.19L68.4 180.06A23 23 0 0 1 67.6 179.45Z"/><path d="M62.33 176.56L130.97 57.69L98.79 44.36L63.26 176.95A23 23 0 0 1 62.33 176.56Z"/><path d="M56.5 175.14L92.03 42.55L57.5 38L57.5 175.27A23 23 0 0 1 56.5 175.14Z"/><circle cx="54" cy="198" r="16"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 20 20"><path d="M11.25 2 4.5 11h5l-1.25 7L15.5 9h-5z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 20 20"><circle cx="10" cy="6.5" r="3.25"/><path d="M3.75 17c.7-3.2 3.2-5 6.25-5s5.55 1.8 6.25 5"/></symbol>
+  <symbol id="i-bubble" viewBox="0 0 20 20"><path d="M3 4.75h14v9H9l-4 3v-3H3z"/><path d="M6.5 8.5h7M6.5 11h4.5"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 20 20"><path d="M4 10a6 6 0 1 0 1.8-4.3"/><path d="M3.75 3v3.5h3.5"/></symbol>
+  <symbol id="i-share" viewBox="0 0 20 20"><path d="M10 12.5V2.75M6.5 6.25 10 2.75l3.5 3.5"/><path d="M5.5 9H4v8.25h12V9h-1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M3.5 4.5h13v11h-13z"/><path d="M6.75 10.25 9 12.5l4.5-4.75"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.25"/><path d="M2.75 10h14.5M10 2.75c2 2 3 4.5 3 7.25s-1 5.25-3 7.25c-2-2-3-4.5-3-7.25s1-5.25 3-7.25z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 20 20"><path d="M2.75 5.25h5l1.5 1.75h8v9.25H2.75z"/><path d="M8.5 10.25l3 1.75-3 1.75z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 20 20"><path d="M3.25 14.5a7 7 0 1 1 13.5 0"/><path d="M10 13.25 13 8.5"/><circle cx="10" cy="13.75" r=".9"/></symbol>
+  <symbol id="i-versions" viewBox="0 0 20 20"><path d="M6.75 3.25h9.5v10.5h-9.5z"/><path d="M3.75 6.25v10.5h9.5"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 20 20"><path d="M15.6 8.25A6 6 0 0 0 4.7 6.9"/><path d="M4.25 3.25v3.75H8"/><path d="M4.4 11.75a6 6 0 0 0 10.9 1.35"/><path d="M15.75 16.75V13H12"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 20 20"><path d="M13.25 3.25l3.5 3.5-9.5 9.5h-3.5v-3.5z"/><path d="M11.25 5.25l3.5 3.5"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 20 20"><circle cx="5.75" cy="4.5" r="1.75"/><circle cx="5.75" cy="15.5" r="1.75"/><circle cx="14.25" cy="7.75" r="1.75"/><path d="M5.75 6.25v7.5"/><path d="M14.25 9.5c0 3.25-3.5 3.5-7 4.75"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 20 20"><path d="M8.5 5.5h8M8.5 10h8M8.5 14.5h8"/><path d="M3.5 5.5l1.1 1.1 1.9-2.2M3.5 10l1.1 1.1 1.9-2.2M3.5 14.5l1.1 1.1 1.9-2.2"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 20 20"><rect x="3.5" y="4" width="13" height="9" rx="1.25"/><path d="M1.75 16h16.5"/></symbol>
+  <symbol id="i-theatre" viewBox="0 0 20 20"><path d="M3 3.5h14v6.5a7 7 0 0 1-14 0z"/><path d="M7 8h.01M13 8h.01M7.25 12.25c1.5 1.3 4 1.3 5.5 0"/></symbol>
+</svg>
+
+<header class="nav-bar">
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="./"><svg class="brand-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>Tellfold</a>
+    <ul class="nav-links">
+      <li class="nav-wide"><a href="#uses">What it’s for</a></li>
+      <li class="nav-wide"><a href="#how">How it works</a></li>
+      <li class="nav-wide"><a href="#report">The report</a></li>
+      <li class="nav-wide"><a href="#install">Install</a></li>
+      <li class="nav-wide"><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
+      <li><a data-count="download-nav" class="pill pill-small" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <img class="hero-icon" src="assets/img/app-icon-256.webp" srcset="assets/img/app-icon-256.webp 1x, assets/img/app-icon-512.webp 2x" width="112" height="112" alt="">
+    <p class="hero-name">Tellfold for Mac</p>
+    <h1 id="hero-title"><span class="w">See</span> <span class="w">how</span> <span class="w">people</span> <span class="w">react</span> <span class="w">before</span> <span class="w">you</span> <span class="w">tell&nbsp;them.</span></h1>
+    <p class="lede">Give it a price change, a new rule, a plan or an announcement. A crowd of simulated people reads it, talks it over for a few rounds, and folds into one answer.</p>
+    <div class="actions">
+      <a data-count="download-hero" class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+      <a data-count="sponsor-hero" class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
+    </div>
+    <p class="reqs">Free. macOS 15 or later on Apple silicon, with an AI tool signed in: Claude Code, Codex, Gemini CLI, Cursor, Ollama and more.</p>
+  </div>
+  <figure class="hero-shot">
+    <img class="shot" src="assets/img/app-window-3098.webp" srcset="assets/img/app-window-1549.webp 1549w, assets/img/app-window-3098.webp 3098w" sizes="(max-width: 1100px) 100vw, 1040px" width="3098" height="2022" fetchpriority="high" alt="The Tellfold app showing a finished run. Question: How will regular customers react to the new prices and the Tuesday closing? Verdict: Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure, medium confidence. 7 of 9 individual regulars’ first posts were favourable; the one objection is about Tuesday. Twelve people, four rounds, fourteen posts, final sentiment +0.55. Below, the crowd split into five camps and a sentiment chart rising from +0.40 to +0.62 and settling at +0.55.">
+    <figcaption>A run on the Linden &amp; Rye café example, made with Tellfold 0.7.0. Twelve simulated people, four rounds.</figcaption>
+  </figure>
+</section>
+
+<section class="run" id="run" aria-labelledby="run-title">
+  <div class="section-head reveal">
+    <h2 id="run-title">Twelve people. Four rounds. One&nbsp;answer.</h2>
+    <p class="section-lede">This is the café run in the picture above, round by round. Every person, post and number here comes from it.</p>
+  </div>
+  <div class="run-track" data-scene="run" data-steps="5" data-step="4">
+    <div class="run-pin">
+      <ol class="run-captions">
+        <li data-at="0"><h3>Twelve people read the news.</h3><p>Nine regulars and three café accounts, each with a private stance and a memory.</p></li>
+        <li data-at="1"><h3>Round 0. First reactions.</h3><p>The café posts its note. Priya calls it a fair trade; Mattia mostly wants to know about the free buns.</p></li>
+        <li data-at="2"><h3>Round 1. They start replying.</h3><p>Finn does the Neighbour card maths. Eleanor is glad the bread discount stayed. The mood climbs.</p></li>
+        <li data-at="3"><h3>Round 2. The busiest round.</h3><p>Eight replies. The owners answer, most regulars come round, and Jonah asks why it had to be Tuesday. Rounds 3 and 4 stay quiet.</p></li>
+        <li data-at="4"><h3>It folds into one answer.</h3><p>Five camps, one verdict, and a report where every claim cites the posts behind it.</p></li>
+      </ol>
+
+      <div class="run-stage">
+        <div class="ring-wrap">
+          <svg class="edges" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            <path class="e r1" pathLength="1" d="M88 50Q50 40 12 50"/>
+            <path class="e r1" pathLength="1" d="M31 82.9Q37.2 57.4 12 50"/>
+            <path class="e r1" pathLength="1" d="M50 88Q41.5 58.6 12 50"/>
+            <path class="e r2" pathLength="1" d="M12 50Q50 61 88 50"/>
+            <path class="e r2" pathLength="1" d="M17.1 69Q38.3 61.7 31 82.9"/>
+            <path class="e r2" pathLength="1" d="M31 17.1Q54.3 42.6 88 50"/>
+            <path class="e r2" pathLength="1" d="M69 82.9Q45.7 57.4 12 50"/>
+            <path class="e r2" pathLength="1" d="M82.9 31Q66 45.7 88 50"/>
+            <path class="e r2" pathLength="1" d="M50 12Q41.5 41.5 12 50"/>
+            <path class="e r2" pathLength="1" d="M69 17.1Q45.7 42.6 12 50"/>
+            <path class="e r2" pathLength="1" d="M82.9 69Q64.8 50 82.9 31"/>
+          </svg>
+          <p class="question">How will regular customers react to the new prices and the Tuesday closing?</p>
+          <ul class="ring" aria-label="The twelve people in the run">
+            <li class="p org t-lr" data-id="a01" data-posts="0 2" data-s="pos"><span class="av" aria-hidden="true">L&amp;</span><span class="visually-hidden">Linden &amp; Rye, the café</span></li>
+            <li class="p org t-to" data-id="a02" data-s="pos"><span class="av" aria-hidden="true">TO</span><span class="visually-hidden">Tomás, co-owner</span></li>
+            <li class="p org t-ha" data-id="a03" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">HA</span><span class="visually-hidden">Hanna, co-owner</span></li>
+            <li class="p" data-id="a04" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">MD</span><span class="visually-hidden">Marguerite Dekker</span></li>
+            <li class="p" data-id="a05" data-posts="2" data-s="neg"><span class="av" aria-hidden="true">JF</span><span class="visually-hidden">Jonah Fitzgerald</span></li>
+            <li class="p" data-id="a06" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">DV</span><span class="visually-hidden">Dorotea Vance</span></li>
+            <li class="p" data-id="a07" data-posts="0 2" data-s="pos"><span class="av" aria-hidden="true">PO</span><span class="visually-hidden">Priya Osei</span></li>
+            <li class="p" data-id="a08" data-posts="1" data-s="mid"><span class="av" aria-hidden="true">FL</span><span class="visually-hidden">Finn Lacroix</span></li>
+            <li class="p" data-id="a09" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">SA</span><span class="visually-hidden">Serge Albrecht</span></li>
+            <li class="p" data-id="a10" data-posts="1" data-s="pos"><span class="av" aria-hidden="true">EW</span><span class="visually-hidden">Eleanor Whitfield</span></li>
+            <li class="p" data-id="a11" data-posts="0 1" data-s="mid"><span class="av" aria-hidden="true">MR</span><span class="visually-hidden">Mattia Russo</span></li>
+            <li class="p" data-id="a12" data-posts="2" data-s="pos"><span class="av" aria-hidden="true">NV</span><span class="visually-hidden">Noa Vandermeer</span></li>
+          </ul>
+          <ul class="camps" aria-label="The camps the crowd settled into">
+            <li class="camp k-owners"><b>Café owners explaining the changes</b><span>3 · +0.70</span></li>
+            <li class="camp k-accept"><b>Accepted the trade-off</b><span>6 · +0.74</span></li>
+            <li class="camp k-budget"><b>Budget-conscious but persuaded</b><span>1 · +0.30</span></li>
+            <li class="camp k-tuesday"><b>Lost Tuesday routine, still annoyed</b><span>1 · −0.70</span></li>
+            <li class="camp k-event"><b>Indifferent, there for the event</b><span>1 · +0.30</span></li>
+          </ul>
+        </div>
+
+        <div class="run-side">
+          <div class="feed">
+            <div class="page page-wait" data-at="0">
+              <p class="page-head"><b>Round 0</b> about to start</p>
+              <p class="wait">Each person reads the café’s note and decides whether to post.</p>
+            </div>
+            <div class="page" data-at="1">
+              <p class="page-head"><b>Round 0</b> 3 posts · mean <span class="pos">+0.40</span></p>
+              <ul class="posts">
+                <li class="post"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.70</span> #1</span></p><p class="post-text">After 9 years on Alder Street, we’re raising prices from 2 March and closing Tuesdays from April. Butter, flour, rent—costs have climbed.&nbsp;…</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">PO</span><div><p class="post-who"><b>Priya Osei</b> <span class="handle">@priya_lunchbreak</span><span class="post-n"><span class="pos">+0.60</span> #2</span></p><p class="post-text">Losing Tuesday soup is annoying but honestly? Staff burnout is real and margins on independent cafés are thin.&nbsp;…</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">MR</span><div><p class="post-who"><b>Mattia Russo</b> <span class="handle">@mattia_alderst</span><span class="post-n"><span class="neg">−0.10</span> #3</span></p><p class="post-text">wait free buns at the open evening on the 26th?? what time and also why is everything getting expensive now</p></div></li>
+              </ul>
+            </div>
+            <div class="page" data-at="2">
+              <p class="page-head"><b>Round 1</b> 3 posts · mean <span class="pos">+0.62</span></p>
+              <ul class="posts">
+                <li class="post"><span class="av" aria-hidden="true">FL</span><div><p class="post-who"><b>Finn Lacroix</b> <span class="handle">@finn_altcoffee</span><span class="post-n"><span class="pos">+0.30</span> #4</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">So the Neighbour card is €12/month for a free filter coffee daily?&nbsp;… actually might work if I go most days. Need to do the math before March.</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">EW</span><div><p class="post-who"><b>Eleanor Whitfield</b> <span class="handle">@eleanor_oldbread</span><span class="post-n"><span class="pos">+0.85</span> #5</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">Glad you kept the bread discount and that board. Thirty years on this street, I’ve seen places forget their regulars. You haven’t.&nbsp;…</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">MR</span><div><p class="post-who"><b>Mattia Russo</b> <span class="handle">@mattia_alderst</span><span class="post-n"><span class="pos">+0.70</span> #6</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">7pm on the 26th? I’m there. Free buns + wifi = excuse to avoid my flat that evening lol</p></div></li>
+              </ul>
+            </div>
+            <div class="page" data-at="3">
+              <p class="page-head"><b>Round 2</b> 8 posts · mean <span class="pos">+0.55</span></p>
+              <ul class="posts">
+                <li class="post post-wide"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.60</span> #7</span></p><p class="post-reply">replying to @finn_altcoffee #4</p><p class="post-text">Yes—for daily visitors it works out cheaper than before, even with the price rise.&nbsp;…</p></div></li>
+                <li class="post"><span class="av" aria-hidden="true">MD</span><div><p class="post-who"><b>Marguerite Dekker</b> <span class="handle">@marguerite_alder</span><span class="post-n"><span class="pos">+0.70</span> #9</span></p><p class="post-reply">replying to @finn_altcoffee #4</p><p class="post-text">Twelve euros a month is reasonable if I’m there most mornings anyway. Keeps my routine affordable. I’ll try it.</p></div></li>
+                <li class="post post-neg"><span class="av" aria-hidden="true">JF</span><div><p class="post-who"><b>Jonah Fitzgerald</b> <span class="handle">@jonah_soupguy</span><span class="post-n"><span class="neg">−0.70</span> #10</span></p><p class="post-reply">replying to @lindenandrye #1</p><p class="post-text">Tuesday though? That’s my one proper lunch break. Could you not have picked literally any other day?</p></div></li>
+                <li class="post post-wide"><span class="av" aria-hidden="true">NV</span><div><p class="post-who"><b>Noa Vandermeer</b> <span class="handle">@noa_vandermeer</span><span class="post-n"><span class="pos">+0.65</span> #14</span></p><p class="post-reply">replying to @priya_lunchbreak #2</p><p class="post-text">… Tuesday’s tough for my schedule but the staff deserve actual rest. I’ll make it work.</p></div></li>
+              </ul>
+              <p class="page-more">And four more replies.</p>
+            </div>
+            <div class="page verdict" data-at="4">
+              <p class="badges"><span class="badge badge-done">Done</span><span class="badge">Medium confidence</span></p>
+              <p class="verdict-title">Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure</p>
+              <p class="split-label">First reactions from the nine regulars</p>
+              <p class="split" aria-hidden="true"><span class="split-pos"></span><span class="split-mid"></span><span class="split-neg"></span></p>
+              <p class="split-key"><span class="pos">7 in favour</span> · 1 neither · <span class="neg">1 against</span></p>
+              <dl class="stats">
+                <div><dt>People</dt><dd data-to="12">12</dd></div>
+                <div><dt>Rounds</dt><dd data-to="4">4</dd></div>
+                <div><dt>Posts</dt><dd data-to="14">14</dd></div>
+                <div><dt>Final mood</dt><dd class="pos" data-to="0.55">+0.55</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <figure class="mood">
+            <figcaption><span>Mood by round</span><output class="mood-val">+0.55</output></figcaption>
+            <svg viewBox="0 0 300 112" aria-hidden="true" focusable="false">
+              <path class="grid" d="M20 10H280M20 50H280M20 90H280"/>
+              <text class="tick" x="0" y="13">+1</text>
+              <text class="tick" x="0" y="53">+.5</text>
+              <text class="tick" x="0" y="93">0</text>
+              <path class="seg s1" pathLength="1" d="M40 58L98 40.6"/>
+              <path class="seg s2" pathLength="1" d="M98 40.6L156 46"/>
+              <circle class="dot d0" cx="40" cy="58" r="4"/>
+              <circle class="dot d1" cx="98" cy="40.6" r="4"/>
+              <circle class="dot d2" cx="156" cy="46" r="4"/>
+              <text class="xl" x="40" y="110">r0</text>
+              <text class="xl" x="98" y="110">r1</text>
+              <text class="xl" x="156" y="110">r2</text>
+              <text class="xl xl-quiet" x="214" y="110">r3</text>
+              <text class="xl xl-quiet" x="272" y="110">r4</text>
+            </svg>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="uses" id="uses" aria-labelledby="uses-title">
+  <div class="section-head reveal">
+    <h2 id="uses-title">Try it on anything people will have an opinion about.</h2>
+    <p class="section-lede">Shops, schools, councils, teams, clubs, landlords, apps. If a group of people will hear about it, Tellfold can rehearse how they take it.</p>
+  </div>
+  <ul class="uses-list reveal">
+    <li><p class="use-who">A café or shop</p><p class="use-q">How will regular customers take a 20% price rise?</p></li>
+    <li><p class="use-who">A school</p><p class="use-q">Will parents back a phone-free school day?</p></li>
+    <li><p class="use-who">A town council</p><p class="use-q">Will shop owners support closing the main street to cars?</p></li>
+    <li><p class="use-who">A workplace</p><p class="use-q">How will the team react to three office days a week?</p></li>
+    <li><p class="use-who">A landlord or housing co‑op</p><p class="use-q">Will tenants accept a rent increase that pays for new repairs?</p></li>
+    <li><p class="use-who">A club or charity</p><p class="use-q">Will members agree to a higher fee for a new clubhouse?</p></li>
+  </ul>
+</section>
+
+<section class="how" id="how" aria-labelledby="how-title">
+  <div class="section-head reveal">
+    <h2 id="how-title">Three questions in. One answer out.</h2>
+    <p class="section-lede">A run takes a few minutes and keeps going in the background. Watch every round, or come back to the answer.</p>
+  </div>
+
+  <ol class="steps">
+    <li class="step step-split">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 1</p>
+        <h3>Describe it.</h3>
+        <p>What do you want to find out, what is it about, and how big should the crowd be. Add a letter, a plan or an announcement, or just paste the text.</p>
+      </div>
+      <figure class="step-shot step-shot-sheet reveal">
+        <img class="shot" src="assets/img/app-new-1241.webp" srcset="assets/img/app-new-620.webp 620w, assets/img/app-new-1241.webp 1241w" sizes="(max-width: 460px) 90vw, 420px" width="1241" height="1559" loading="lazy" alt="The New simulation sheet in Tellfold, filled in. What do you want to find out: How will regular customers react to the new prices and the Tuesday closing? What is it about: the café’s note, pasted in, with the new prices for filter coffee and sourdough and the Tuesday closing. Below, Who is the audience, where you can add what real people have said, cleaned on the Mac first. At the bottom, the run size and an estimate of the model calls it will make.">
+        <figcaption>The New simulation sheet in Tellfold, with the café’s note pasted in.</figcaption>
+      </figure>
+    </li>
+    <li class="step">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 2</p>
+        <h3>The crowd reacts.</h3>
+        <p>Each person has a private stance and a memory. Round by round they post, reply, repost, like and follow. Drop breaking news into a later round and see whether the mood turns.</p>
+      </div>
+      <figure class="step-shot step-shot-fade reveal">
+        <img class="shot" src="assets/img/app-crowd-2640.webp" srcset="assets/img/app-crowd-1320.webp 1320w, assets/img/app-crowd-2640.webp 2640w" sizes="(max-width: 1100px) 100vw, 1040px" width="2640" height="1390" loading="lazy" alt="The Crowd view in round 2 of the café run. On the left, the crowd graph groups people into camps: Accepted the trade-off, Budget-conscious but persuaded, Lost Tuesday routine and still annoyed, Indifferent, and the café owners explaining the changes. On the right, the round 2 feed: the café answers that the neighbour card works out cheaper for daily visitors, Hanna thanks Eleanor, and Jonah Fitzgerald asks why it had to be Tuesday.">
+        <figcaption>Round 2 of the café run: the owners answer, and the one regular who lost a Tuesday lunch break pushes back.</figcaption>
+      </figure>
+    </li>
+    <li class="step">
+      <div class="step-copy reveal">
+        <p class="step-n">Step 3</p>
+        <h3>Read the answer.</h3>
+        <p>The report leads with a verdict, how sure it is, and why. Every claim cites the posts and people behind it, and you can interview anyone in the crowd afterwards.</p>
+      </div>
+      <figure class="step-shot reveal">
+        <img class="shot" src="assets/img/app-report-2640.webp" srcset="assets/img/app-report-1320.webp 1320w, assets/img/app-report-2640.webp 2640w" sizes="(max-width: 1100px) 100vw, 1040px" width="2640" height="1680" loading="lazy" alt="The Report view: Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure. The summary counts first reactions (7 in favour, 1 against, 1 neither) and cites people such as @dorotea_coffeefan and @jonah_soupguy and posts such as #10 and #12. The prediction box says all 186 citations were checked against the posts. Medium confidence.">
+        <figcaption>The report for the café run. Every citation is checked against the posts.</figcaption>
+      </figure>
+    </li>
+  </ol>
+</section>
+
+<section class="film" id="film" aria-labelledby="film-title">
+  <div class="section-head reveal">
+    <h2 id="film-title">Watch a run fold into an answer.</h2>
+    <p class="section-lede">A café’s price rise, talked over round by round, then the Mossbook report with every claim tied to a post. Every post and number here comes from a real run.</p>
+  </div>
+  <figure class="film-frame reveal">
+    <video class="film-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/video/tellfold-loop-poster.webp" data-poster-narrow="assets/video/tellfold-loop-square-poster.webp" aria-describedby="film-caption">
+      <source src="assets/video/tellfold-loop-square.webm" type="video/webm" media="(max-width: 759px)">
+      <source src="assets/video/tellfold-loop-square.mp4" type="video/mp4" media="(max-width: 759px)">
+      <source src="assets/video/tellfold-loop.webm" type="video/webm">
+      <source src="assets/video/tellfold-loop.mp4" type="video/mp4">
+    </video>
+    <picture>
+      <source srcset="assets/video/tellfold-loop-square-poster.webp" media="(max-width: 759px)" width="720" height="720">
+      <img class="film-still" src="assets/video/tellfold-loop-poster.webp" width="1280" height="720" loading="lazy" alt="Eight simulated people around a ring in round 3 of the Linden &amp; Rye café run. The feed shows Tomás replying to Dean about softening the price rise for regulars, and the mood line rises from −0.15 to +0.70.">
+    </picture>
+    <figcaption id="film-caption">Silent, 20 seconds, on repeat. The Linden &amp; Rye café run, then the Mossbook report. The people are simulated.</figcaption>
+  </figure>
+</section>
+
+<section class="report" id="report" aria-labelledby="report-title">
+  <div class="section-head reveal">
+    <h2 id="report-title">Every claim leads back to a&nbsp;post.</h2>
+    <p class="section-lede">The report is written from the simulation record, not from the model’s general opinion. Citations like <span class="cite">@handle</span> and <span class="cite">#12</span> open the person and the post behind them.</p>
+  </div>
+  <div class="cites reveal" data-scene="cites">
+    <div class="cites-report">
+      <h3 class="cites-title">Regulars broadly accept Linden &amp; Rye’s price rise and Tuesday closure</h3>
+      <p class="cites-text">Support consolidates around the idea that the changes are a fair trade for staff wellbeing and that key perks were kept unchanged, as voiced by <button type="button" class="cite" data-post="12" aria-controls="cited-posts">@dorotea_coffeefan #12</button>, <button type="button" class="cite" data-post="5" aria-controls="cited-posts">@eleanor_oldbread #5</button> and <button type="button" class="cite" data-post="11" aria-controls="cited-posts">@priya_lunchbreak #11</button>. A budget-conscious student, <button type="button" class="cite" data-post="4" aria-controls="cited-posts">@finn_altcoffee</button>, moves from wary to persuaded once he runs the Neighbour card numbers himself (<button type="button" class="cite" data-post="4" aria-controls="cited-posts">#4</button>, <button type="button" class="cite" data-post="7" aria-controls="cited-posts">#7</button>, <button type="button" class="cite" data-post="9" aria-controls="cited-posts">#9</button>). The one sustained objection comes from <button type="button" class="cite" data-post="10" aria-controls="cited-posts">@jonah_soupguy</button>, who loses his Tuesday lunch routine and asks “Could you not have picked literally any other day?” (<button type="button" class="cite" data-post="10" aria-controls="cited-posts">#10</button>)</p>
+      <p class="audit"><svg class="audit-check" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8"/><path pathLength="1" d="M6.5 10.25 9 12.5l4.5-4.75"/></svg><span>All <span class="audit-n" data-to="186">186</span> citations checked against the posts</span></p>
+    </div>
+    <div class="cites-posts" id="cited-posts" aria-live="polite">
+      <article class="post card is-on" data-post="12"><span class="av" aria-hidden="true">DV</span><div><p class="post-who"><b>Dorotea Vance</b> <span class="handle">@dorotea_coffeefan</span><span class="post-n"><span class="pos">+0.85</span> #12</span></p><p class="post-reply">Round 2, replying to @lindenandrye #1</p><p class="post-text">Nine years watching you treat staff right and keep the board running—this is fair. I’ll adjust my budget. See you at the 26th.</p></div></article>
+      <article class="post card" data-post="5"><span class="av" aria-hidden="true">EW</span><div><p class="post-who"><b>Eleanor Whitfield</b> <span class="handle">@eleanor_oldbread</span><span class="post-n"><span class="pos">+0.85</span> #5</span></p><p class="post-reply">Round 1, replying to @lindenandrye #1</p><p class="post-text">Glad you kept the bread discount and that board. Thirty years on this street, I’ve seen places forget their regulars. You haven’t. That matters more than the price.</p></div></article>
+      <article class="post card" data-post="11"><span class="av" aria-hidden="true">PO</span><div><p class="post-who"><b>Priya Osei</b> <span class="handle">@priya_lunchbreak</span><span class="post-n"><span class="pos">+0.70</span> #11</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">The math checks out if you’re a regular. And honestly, it’s worth it just to know the staff aren’t burning out.</p></div></article>
+      <article class="post card" data-post="4"><span class="av" aria-hidden="true">FL</span><div><p class="post-who"><b>Finn Lacroix</b> <span class="handle">@finn_altcoffee</span><span class="post-n"><span class="pos">+0.30</span> #4</span></p><p class="post-reply">Round 1, replying to @lindenandrye #1</p><p class="post-text">So the Neighbour card is €12/month for a free filter coffee daily? That’s what, 26 euros in free coffee vs 12 in subscription… actually might work if I go most days. Need to do the math before March.</p></div></article>
+      <article class="post card" data-post="7"><span class="av t-lr" aria-hidden="true">L&amp;</span><div><p class="post-who"><b>Linden &amp; Rye</b> <span class="handle">@lindenandrye</span><span class="post-n"><span class="pos">+0.60</span> #7</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">Yes—for daily visitors it works out cheaper than before, even with the price rise. The maths on our end is tight, which is exactly why we needed the change.</p></div></article>
+      <article class="post card" data-post="9"><span class="av" aria-hidden="true">MD</span><div><p class="post-who"><b>Marguerite Dekker</b> <span class="handle">@marguerite_alder</span><span class="post-n"><span class="pos">+0.70</span> #9</span></p><p class="post-reply">Round 2, replying to @finn_altcoffee #4</p><p class="post-text">Twelve euros a month is reasonable if I’m there most mornings anyway. Keeps my routine affordable. I’ll try it.</p></div></article>
+      <article class="post card post-neg" data-post="10"><span class="av" aria-hidden="true">JF</span><div><p class="post-who"><b>Jonah Fitzgerald</b> <span class="handle">@jonah_soupguy</span><span class="post-n"><span class="neg">−0.70</span> #10</span></p><p class="post-reply">Round 2, replying to @lindenandrye #1</p><p class="post-text">Tuesday though? That’s my one proper lunch break. Could you not have picked literally any other day?</p></div></article>
+    </div>
+  </div>
+  <ul class="features reveal">
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg><h3>Inject breaking news</h3><p>Add a newspaper story, a rival’s offer or a post that goes viral to a later round.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-person"/></svg><h3>Interview anyone</h3><p>Ask a person why they posted what they did. They answer in character, from their memory.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bubble"/></svg><h3>Ask about the outcome</h3><p>Follow-up questions are answered from the report and the full record.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><h3>Every quote is checked</h3><p>Before you see the report, Tellfold checks each citation and quote against the run and marks anything it can’t match.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-replay"/></svg><h3>Replay the crowd</h3><p>Scrub the rounds and see the same people as camps, on a sentiment spectrum, or by influence.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-share"/></svg><h3>Export it</h3><p>Save any report as a PDF or a single web page to share with the people deciding with you.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-globe"/></svg><h3>In your language</h3><p>Pick the language the crowd posts in. The report is written in it too.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><h3>Two examples built in</h3><p>Open a finished café run and a school run before you set anything up, or start your own from a template.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-gauge"/></svg><h3>See the cost first</h3><p>Before a run starts, Tellfold estimates how many AI calls it will make. Afterwards it shows how many it used.</p></li>
+  </ul>
+</section>
+
+<section class="crowd" id="crowd" aria-labelledby="crowd-title">
+  <div class="section-head reveal">
+    <h2 id="crowd-title">A crowd that looks like your&nbsp;audience.</h2>
+    <p class="section-lede">Tellfold works out who your news affects and builds the crowd from them. Give it what your own customers have said, and the people in the run are written from that.</p>
+  </div>
+  <ul class="features reveal">
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><h3>Start from your customers</h3><p>Add reviews, survey answers, support emails or comments. Each person stands for a group of similar comments, and names, emails and phone numbers are taken out on your Mac before anything is sent.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-theatre"/></svg><h3>The people it affects</h3><p>Tellfold names the groups the announcement touches and how they’re likely to lean at first, then spreads the crowd over them, with someone on each side.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-person"/></svg><h3>Check the cast first</h3><p>See who’s in the crowd before the run starts. Remove someone, change a stance, or describe a group in a sentence and have it added. Save a cast to use again.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-bubble"/></svg><h3>Every objection, listed</h3><p>The report has a section with every objection anyone raised, so the one person who spotted a real problem isn’t lost behind the loudest voices.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><h3>Organisations stick to the facts</h3><p>Company and council accounts in the crowd can explain what you announced, but they can’t invent a discount, a date or a promise. A post that does is dropped.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-share"/></svg><h3>Share the result</h3><p>Turn a report into an image card for a post, or send the whole run as a .tellfold file that opens on another Mac.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-laptop"/></svg><h3>Use it from Claude Code</h3><p>Start a run, read the report or question the crowd from Claude Code, Cursor and other MCP tools. Those runs show up in the app too.</p></li>
+  </ul>
+</section>
+
+<section class="compare" id="compare" aria-labelledby="compare-title">
+  <div class="section-head reveal">
+    <h2 id="compare-title">Try it two ways before you pick&nbsp;one.</h2>
+    <p class="section-lede">One run is a single sample. Run a second draft past the same people, check whether the answer holds up, or see what would have happened if something had gone differently.</p>
+  </div>
+  <ul class="features reveal">
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-versions"/></svg><h3>Compare two drafts</h3><p>Edit the text and run it past the same people. Both mood curves go on one chart, and a short comparison says which draft did better, citing posts from both.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-repeat"/></svg><h3>Check it</h3><p>Run the same question again with the same people. Tellfold tells you in plain words what held, what didn’t, and how far the runs drifted apart.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><h3>Suggest a better version</h3><p>Get a rewrite based on what the crowd pushed back on, with each change linked to the posts behind it. Test it with one click.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-branch"/></svg><h3>Branch from any round</h3><p>What if the owner had apologised in round 2? Change what happens after any round and compare the branch with the original.</p></li>
+    <li><svg class="ficon" aria-hidden="true" focusable="false"><use href="#i-steps"/></svg><h3>What to do next</h3><p>Every report ends with a few concrete steps, each with the posts it rests on and the people it’s meant for.</p></li>
+  </ul>
+</section>
+
+<section class="honest" aria-labelledby="honest-title">
+  <h2 id="honest-title" class="visually-hidden">Where it runs and what it isn’t</h2>
+  <div class="note reveal">
+    <svg class="nicon" aria-hidden="true" focusable="false"><use href="#i-laptop"/></svg>
+    <h3>Runs on your Mac, with what you already have.</h3>
+    <p>Tellfold uses an AI tool you already have: Claude Code, Codex, Gemini CLI, Cursor, Ollama and more. It finds them on its own and suggests one. There’s no Tellfold account. Your documents go only to the AI you choose, and every run stays on your Mac. Bigger runs use more of your plan.</p>
+  </div>
+  <div class="note reveal">
+    <svg class="nicon" aria-hidden="true" focusable="false"><use href="#i-theatre"/></svg>
+    <h3>A rehearsal, not a poll.</h3>
+    <p>Think of it as a focus group on your Mac, but the people are simulated by AI, not real. They tend to be more polite and more reasonable than a real crowd, twenty of them is a town meeting rather than the whole town, and results vary from run to run. Every report says so.</p>
+    <p>We tested it on <span class="count" data-to="43">43</span> real announcements whose outcome is known. It found about half of the objections real people raised and called the overall mood right just over half the time, and it rarely calls good news good. Asking the same AI directly did better on both. <a href="https://github.com/NarekManukyan/tellfold/blob/main/docs/ACCURACY.md">Every result is public</a>.</p>
+    <p>Use it to think through reactions before real people have them, and run a question two or three times before you trust the answer.</p>
+  </div>
+</section>
+
+<section class="install" id="install" aria-labelledby="install-title">
+  <div class="section-head reveal">
+    <h2 id="install-title">Install.</h2>
+  </div>
+  <div class="install-grid reveal">
+    <ol class="install-steps">
+      <li><span>Download <a data-count="download-install" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Tellfold.dmg</a>.</span></li>
+      <li><span>Open it and drag Tellfold to Applications.</span></li>
+      <li><span>Open Tellfold. It finds the AI tools on your Mac and suggests one. If yours isn’t signed in yet, open it once in Terminal and sign in.</span></li>
+    </ol>
+    <dl class="specs">
+      <div><dt>macOS</dt><dd>15 or later</dd></div>
+      <div><dt>Mac</dt><dd>Apple silicon</dd></div>
+      <div><dt>AI</dt><dd>Claude Code, Codex, Gemini CLI, Cursor, Ollama and more, installed and signed in</dd></div>
+      <div><dt>Everything else</dt><dd>Included. The simulation engine ships inside the app, so there’s no Python to set up.</dd></div>
+      <div><dt>Updates</dt><dd>Arrive inside the app. To check yourself, choose Tellfold › Check for Updates…</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="close" id="sponsor" aria-labelledby="close-title">
+  <img class="close-icon reveal" src="assets/img/app-icon-256.webp" srcset="assets/img/app-icon-256.webp 1x, assets/img/app-icon-512.webp 2x" width="160" height="160" alt="" loading="lazy">
+  <h2 id="close-title" class="reveal">Tellfold is free.</h2>
+  <p class="reveal">Free to download and free to use. If it helped you make a decision, sponsoring it on GitHub pays for the time that goes into building it.</p>
+  <div class="actions reveal">
+    <a data-count="download-close" class="pill" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download for Mac</a>
+    <a data-count="sponsor-close" class="more" href="https://github.com/sponsors/NarekManukyan">Sponsor on GitHub<svg class="chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-row">
+    <a class="brand brand-foot" href="./"><svg class="brand-fan" aria-hidden="true" focusable="false"><use href="#fan"/></svg>Tellfold</a>
+    <ul class="foot-links">
+      <li><a href="https://github.com/NarekManukyan/tellfold">GitHub</a></li>
+      <li><a data-count="sponsor-footer" href="https://github.com/sponsors/NarekManukyan">Sponsor</a></li>
+      <li><a data-count="download-footer" href="https://github.com/NarekManukyan/tellfold/releases/latest/download/Tellfold.dmg">Download</a></li>
+    </ul>
+  </div>
+  <p class="legal">© 2026 Narek Manukyan. All rights reserved. The source is public to read; no licence is granted.</p>
+  <p class="legal">This site counts page views and Download clicks per day, and the app counts its update checks per day and version. No cookies, no IP addresses, nothing that identifies you.</p>
+</footer>
+</body>
+</html>

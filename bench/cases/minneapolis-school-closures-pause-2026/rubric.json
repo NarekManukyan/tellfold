@@ -1,0 +1,19 @@
+{
+  "slug": "minneapolis-school-closures-pause-2026",
+  "title": "Minneapolis Public Schools drops plans to close up to 16 schools and bars closures for 2027-28",
+  "category": "school",
+  "announced_on": "2026-10-13",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will Minneapolis Public Schools families and staff react to this over the first two weeks, which groups will push back and why, and is Minneapolis Public Schools likely to keep, change or reverse the decision?",
+  "direction": "positive",
+  "objections": [
+    {"id": "o1", "text": "Distrust of the board's intentions after how the closure plans were handled.", "source": "https://mndaily.com/city/minneapolis-parents-feel-relief-as-school-board-votes-against-closing-schools/10/14/2026/eicmndaily-com/"},
+    {"id": "o2", "text": "Families should be consulted before proposals are made; the district should admit the plan was a mess.", "source": "https://fox9.com/news/what-changed-mps-superintendent-reverses-course-closures"},
+    {"id": "o3", "text": "Parents want follow-through: a financial audit, an enrollment-growth plan and a racial impact analysis.", "source": "https://www.mprnews.org/episode/2026/10/14/minneapolis-reverses-school-closure-plans-parent-calls-for-more-engagement-from-district"},
+    {"id": "o4", "text": "Enrollment and budget problems are unresolved, so closures may only be postponed.", "source": "https://mndaily.com/city/minneapolis-parents-feel-relief-as-school-board-votes-against-closing-schools/10/14/2026/eicmndaily-com/"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "The pause on closures for 2027-28 stands.", "source": "https://www.mprnews.org/story/2026/10/14/minneapolis-public-schools-backs-off-school-closure-plan"},
+  "pushback_groups": [],
+  "notes": "Positive case: the announcement withdraws an unpopular plan, and parents, family groups and the teachers' union welcomed it with relief; 'objections' are caveats about trust, process and follow-through. Some board members objected to how the resolution was drafted, not to its substance. Coverage after the first two days is thin. Linked to the separate case minneapolis-school-closure-plans-2026 (the September proposals)."
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "apple-iphone-duo-and-price-rises-2026",
+  "title": "Apple unveils the $1,999 iPhone Duo foldable and iPhone 18 Pro, and raises prices of existing iPhones by $100",
+  "category": "pricing",
+  "announced_on": "2026-09-09",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will iPhone buyers and Apple fans react to this over the first two weeks, which groups will push back and why, and is Apple likely to keep, change or reverse the decision?",
+  "direction": "mixed",
+  "objections": [
+    {"id": "o1", "text": "Raising prices on older iPhones already on sale (e.g. an iPhone 16 still at $799-800 two years after launch).", "source": "https://www.macrumors.com/2026/09/09/apple-raises-iphone-17-prices/"},
+    {"id": "o2", "text": "The iPhone Duo is very expensive, 'double-priced' relative to the Pro, and storage tiers add a lot.", "source": "https://daringfireball.net/2026/09/thoughts_and_observations_on_apples_surprise_and_shine_event"},
+    {"id": "o3", "text": "Ordinary buyers doubt they would pay about $2,000 for a foldable; the price will test loyal customers.", "source": "https://www.thenationalnews.com/future/technology/2026/09/09/iphone-duo-price-apple-event/"},
+    {"id": "o4", "text": "Duo compromises: no Face ID and no dedicated telephoto camera.", "source": "https://daringfireball.net/2026/09/thoughts_and_observations_on_apples_surprise_and_shine_event"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "No price change or reversal reported; the Duo kept its announced price and schedule.", "source": "https://daringfireball.net/2026/09/thoughts_and_observations_on_apples_surprise_and_shine_event"},
+  "pushback_groups": ["Apple enthusiast-site readers (over older-iPhone price rises)", "price-sensitive buyers", "some analysts and commentators on Duo pricing and features"],
+  "notes": "Mixed: enthusiasm and favourable analyst views on the Duo (Counterpoint 'bold move', Spyglass 'looks great', NerdZap 'good outcome') alongside complaints about price rises, especially on older models. Reaction evidence is commentators, analysts, a few public vox pops and enthusiast-site comments; no buyer survey. A model predicting a split with the price rises as the main grievance and no reversal should score well."
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "openai-chatgpt-pro-200-usage-cut-2026",
+  "title": "OpenAI halves the ChatGPT Pro 200 usage allowance and adds Pro 500",
+  "category": "pricing",
+  "announced_on": "2026-09-29",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will ChatGPT Pro subscribers react to this over the first two weeks, which groups will push back and why, and is OpenAI likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Same $200 price for about half the usage is a hidden price rise", "source": "https://trendingtopics.eu/chatgpt-pro-tokens-halved/"},
+    {"id": "o2", "text": "Existing paying subscribers are being cut, and limits already ran out too fast", "source": "https://www.makeuseof.com/openai-is-giving-away-62500-free-credits-to-pro/"},
+    {"id": "o3", "text": "Codex coding usage is halved and the top model did not get cheaper", "source": "https://jutsu.ai/blog/openai-halved-chatgpt-pro-ai-usage-governance"},
+    {"id": "o4", "text": "OpenAI's explanations were unconvincing; some users cancelled or threatened to switch to Claude", "source": "https://pcworld.com/article/3249113/chatgpt-pros-biggest-perk-just-got-cut-in-half-meet-the-new-ai-subscription-math.html"}
+  ],
+  "backdown": {"happened": true, "kind": "full", "date": "2026-10-29", "summary": "Cancelled the Pro 200 reduction the day before it took effect and said it doubled usage limits on all Pro tiers and Business Premium", "source": "https://bleepingcomputer.com/news/artificial-intelligence/openai-doubles-chatgpt-pro-usage-limits-after-backlash-over-planned-50-percent-cut"},
+  "pushback_groups": ["existing Pro 200 subscribers", "developers using Codex", "AI power users on X and forums"],
+  "notes": "The reversal came about a month after the announcement, outside the two-week window but before the cut took effect. A prediction of 'keeps it at first, then softens or reverses before the effective date' fits best. The Pro 500 tier stayed."
+}

@@ -1,0 +1,20 @@
+{
+  "slug": "united-mileageplus-spend-only-status-2026",
+  "title": "United drops flight-based MileagePlus status and raises Premier 1K to 32,000 PQPs for 2027",
+  "category": "policy",
+  "announced_on": "2026-10-13",
+  "known_to_model": false,
+  "model_cutoff": "2026-06",
+  "question": "How will United MileagePlus members and frequent flyers react to this over the first two weeks, which groups will push back and why, and is United Airlines likely to keep, change or reverse the decision?",
+  "direction": "negative",
+  "objections": [
+    {"id": "o1", "text": "Ending the flight-count path hurts frequent flyers on cheaper fares, such as commuters and road warriors.", "source": "https://www.thetravel.com/united-airlines-plans-more-changes-after-stripping-mileage-perk-from-passengers-without-150-credit-card/"},
+    {"id": "o2", "text": "Premier 1K at 32,000 PQPs is a large premium over Delta and American and materially harder to earn.", "source": "https://onemileatatime.com/news/united-mileageplus-elite-status-harder-earn-winning-overly-confident/"},
+    {"id": "o3", "text": "United asks for more and offers less loyalty; members who fall short may take their business elsewhere.", "source": "https://liveandletsfly.com/united-mileageplus-status-changes-2027/"},
+    {"id": "o4", "text": "Status now leans on co-branded credit card spending, and chasing it may no longer make financial sense.", "source": "https://www.afar.com/magazine/united-drops-flight-based-status-new-mileageplus-math"},
+    {"id": "o5", "text": "Members who fly enough but lack the matching spend will be upset to miss status.", "source": "https://www.afar.com/magazine/united-drops-flight-based-status-new-mileageplus-math"}
+  ],
+  "backdown": {"happened": false, "kind": "none", "date": null, "summary": "Rules reported as taking effect on 1 January 2027 unchanged as of 5 November 2026.", "source": "https://www.thetravel.com/united-is-ending-flight-based-elite-status-what-mileageplus-flyers-gain-and-lose/"},
+  "pushback_groups": ["high-segment, lower-spend frequent flyers", "long-time Premier 1K members", "loyalty bloggers"],
+  "notes": "Reaction is from loyalty blogs, comment sections and Reddit posts quoted by TheTravel; no survey or organised campaign. A minority accepted the change as simpler or aimed at high spenders, and premium-cabin business travellers were less affected. Silver/Gold/Platinum points-only thresholds are unchanged; only 1K rises."
+}
