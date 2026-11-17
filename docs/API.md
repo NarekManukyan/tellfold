@@ -89,7 +89,10 @@ each of those after checking the citations.
 `memory_size`, `agent_model`, `planner_model`, `concurrency`, `language`, `events` (list of `{round, content}`),
 `seed`, `think`, `agent_runtime`, `planner_runtime`, `cast_from`, `study_id`, `variant`, `branched_from`,
 `branch_round`, and, only when set, `review_cast` (true), `fair_turns` (true: every opinion camp gets a turn and
-strongly held views are not left idle), `audience` (the name of the saved audience the people came from) and
+strongly held views are not left idle), `planner_direction` (true: the report's overall direction comes from the
+stance mix the planner expected, not from the crowd's first posts; set on a new run unless the form asks for
+`crowd_direction`, cleared when the run has no planned mix (a saved audience, audience material, or a plan that
+failed), and missing from runs made before it), `audience` (the name of the saved audience the people came from) and
 `material` (a **MaterialSummary** of the audience material the people were built from).
 
 **MaterialSummary** describes what was sent: `items` (how many items), `counts` (those items by kind, e.g.
@@ -117,7 +120,9 @@ null), `llm_calls`, `llm_seconds`.
 **Report**: `title`, `summary`, `prediction`, `confidence` (`low`, `medium` or `high`), `sections`
 (`{title, body_markdown}`), `key_voices`, `reasons`, `camps` (`{name, summary, members, sentiment}`), `risks`,
 `caveats`, `recommendations` (`{action, title, why, addresses, evidence, expected_effect, confidence}`, where `action`
-is `keep`, `change`, `add`, `drop` or `test`), `citation_audit`.
+is `keep`, `change`, `add`, `drop` or `test`), `citation_audit`, `first_reaction` (`{direction, against, in_favour,
+neither}`: the sides the crowd's first posts took) and, when the report took its direction from the planner's mix,
+`expected_reaction` (`{direction, mix}`).
 
 ## Runs
 
@@ -165,12 +170,13 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 | `think` | `1`/`true`/`yes`/`on` | extended thinking for the planner |
 | `seed` | 0 to 2³¹-1, default 7 | random seed |
 | `events` | JSON list | `[{"round": 3, "content": "A rival cuts its price."}]`, rounds 1 to `rounds`, 2000 characters each |
-| `cast_from` | a run id | reuse that run's topic map and people (it must have them already); the two runs join a study |
+| `cast_from` | a run id | reuse that run's people (it must have them already), and its topic map when the text is the same (from crowd rules 4 a version with other text reads its own); the two runs join a study |
 | `study_id` | needs `cast_from` | the study to join (default: the source's study, else a new one) |
 | `variant` | needs `cast_from` | label of this run in the study (default: the next letter) |
 | `review_cast` | `1`/`true`/`yes`/`on` | pause once the people are written, for the cast to be checked (see [below](#checking-the-cast-before-the-run)) |
 | `fair_turns` | `1`/`true`/`yes`/`on` | every opinion camp gets a turn to post, and strongly held views are never idle more than two rounds in a row |
-| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}, "material": MaterialSummary}` (1-200 people; `material` optional, held to known kinds and categories and to the caps below): the run uses these people and topic map and skips the graph and persona stages |
+| `crowd_direction` | `1`/`true`/`yes`/`on` | the report's overall direction comes from the crowd's first posts, as before, instead of the stance mix the planner expected |
+| `audience` | JSON, not with `cast_from` | a saved cast, `{"name": "...", "personas": [Persona], "graph": {...}, "material": MaterialSummary}` (1-200 people; `material` optional, held to known kinds and categories and to the caps below): the run uses these people and skips the persona stage; from crowd rules 4 it still reads the topic map of its own text, and the audience's map only shapes who follows whom |
 | `material` or `material[]` | optional, repeatable, not with `cast_from` or `audience` | audience material to build the people from: `.txt`, `.md`, `.markdown`, `.csv`, `.tsv` or `.eml`, at most 10 MB each, 20 files and 200 MB in all (see [Audience material](#audience-material)) |
 | `material_spec` | JSON list, needs `material` | one `{"kind": ..., "column": ...}` per material file, in the form's order (under either key); both keys optional |
 | `material_hide` | text, needs `material` | other names or words to hide, one per line or separated by commas, at most 200 |
@@ -178,8 +184,11 @@ run needs at least one file). Answers `{"id": "<run id>"}` as soon as the run is
 A whole form may hold 300 MB (the seeds' 100 MB and the material's 200 MB) and 120 files; over that the answer is
 413, `"the upload is larger than 300 MB: the seed files may add up to 100 MB and the audience material to 200 MB"`.
 
-With `cast_from`, `agents` and `fair_turns` are taken from the source run, so a new version differs only in the
-text, and the source's `material` summary is kept. `cast_from` answers 409 when the source's cast was never checked:
+With `cast_from`, `agents`, `fair_turns` and `planner_direction` are taken from the source run, so a new version differs only in the
+text, and the source's `material` summary is kept. So are its crowd rules, except that a source on version 3 gives
+version 4, which only changes how the reused cast is prepared: a version whose text differs reads its own topic map,
+and its people are rewritten without what describes the source's text (all of them when the source is on version 3,
+else those who quote a figure of it that the new text lacks). `cast_from` answers 409 when the source's cast was never checked:
 a `review_cast` run that is still waiting, or was stopped there. With `audience`, `agents` is the number of people in
 it.
 

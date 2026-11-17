@@ -1,11 +1,15 @@
 # How accurate is Tellfold?
 
-**Not accurate enough yet.** There have been four passes. In the latest (13 November 2026: 43 cases, three
-seeds each), Tellfold called the overall reaction right in 55% of runs. Asking the same model once, with no simulated
-crowd, got 62%. The stance mix Tellfold's planner picks before anyone in the crowd posts got 66% on its own, and
-answering "negative" every time would get 49%. The simulated crowd beats a fixed guess by a few points, but it does
-worse than the model's own answer and worse than the mix it started from. Tellfold makes no accuracy claim. This
-page describes the test, holds every result and lists where it goes wrong.
+**Not accurate enough yet.** There have been five passes. In the latest (16 November 2026: 43 cases, three seeds
+each), Tellfold as it now runs called the overall reaction right in 65% of runs. Since that pass a report takes its
+overall direction from the stance mix the planner expects before anyone in the crowd posts, and the crowd supplies
+the reasons, objections and quotes ([fifth pass](#fifth-pass-16-november-direction-from-the-planner)). On the same
+simulations, reports that took the direction from the crowd got 55%, as they did on 13 November, and the planner's
+mix alone got 68%. On 13 November, asking the same model once, with no simulated crowd, got 62%. Answering
+"negative" every time would get 49%. So the direction is now about as good as the model's own guess, and the crowd
+adds the arguments, not the direction. The 65% comes from the cases that suggested the change, so it still needs a
+pass on new cases. Tellfold makes no accuracy claim. This page describes the test, holds every result and lists where
+it goes wrong. Pass `--crowd-direction` (or `crowd_direction` in the API) for the old behaviour.
 
 Tellfold calls itself a rehearsal, not a survey. A rehearsal is still only worth doing if it points the right way
 more often than a guess. So we took real announcements whose public reaction is well documented, gave Tellfold only
@@ -151,6 +155,28 @@ average 0.55 lower afterwards, those in the middle 0.27 lower, while critics pos
 Unlike versions 1 and 2, version 3 was written after looking at the cases it was then measured on (the balanced
 cases), so its scores on those cases are not an independent test.
 
+Version 4 (`crowd_rules: 4`) leaves the rounds and the report as they are and changes only the cast, for studies
+that show the same people two versions of a text. A version reused the first run's topic map and people as they were,
+so the second crowd was told about the first version every round, and people written from it quoted its prices: in
+one study whose versions differed only in price (a monthly plan against paying per use), the second crowd argued
+about the monthly price and never mentioned paying per use, and the comparison called it a tie. Version 4 adds:
+
+- **People, not the announcement.** The persona prompt writes who each person is, their situation and which way they
+  lean, without the announcement's own prices, figures, dates or terms, and the stakes plan says what it changes for
+  each group in kind. General preferences, such as disliking recurring fees, stay.
+- **Each version told about itself.** A run that reuses a cast for different text extracts its own topic map, which
+  the opening and every round show. The follows still come from the map the people were written from (kept as
+  `cast_graph.json`), so both versions have the same network. A repeat of the same text reuses everything.
+- **The earlier text's terms taken out.** The planner rewrites people without the earlier version's specifics (its
+  prices, figures, dates and how it is sold), keeping who they are and how they lean. In a cast written on version 4
+  that means the few who still quote a figure of the earlier text that the new one lacks; a cast written before
+  version 4 is rewritten whole, as its people describe the earlier terms in words too ("the monthly price is
+  trivial"). They are never shown the new text.
+
+A version of a run on version 3 runs on version 4, since nothing else changes. The benchmark builds a new cast for
+every case and never reuses one, so only the persona and stakes prompt rules reach it; version 4 has not been through
+a pass.
+
 ### Scoring
 
 One judge call (Claude Sonnet 5.5, prompt in [`bench/judge_prompt.md`](../bench/judge_prompt.md)) reads Tellfold's
@@ -258,8 +284,46 @@ compared on all 43; it is listed with the passes but not counted as one:
   129 runs and 42 of the 43 zero-shot answers were graded (one zero-shot call failed). Results:
   [`2026-11-13-sonnet-haiku-rules3.json`](../bench/results/2026-11-13-sonnet-haiku-rules3.json), per-case table in
   [`2026-11-13-sonnet-haiku-rules3.md`](../bench/results/2026-11-13-sonnet-haiku-rules3.md).
+- **16 November 2026, fifth pass, commit `e28eb04`:** crowd rules version 4 on all 43 cases, three seeds each, twice
+  over the same simulations: once with the direction from the crowd, once with it from the planner's mix. All 129
+  runs were graded in both; no zero-shot answers. Results:
+  [`2026-11-16-sonnet-haiku-rules4.json`](../bench/results/2026-11-16-sonnet-haiku-rules4.json) and
+  [`2026-11-16-sonnet-haiku-rules4-planner-direction.json`](../bench/results/2026-11-16-sonnet-haiku-rules4-planner-direction.json),
+  per-case tables in the `.md` files next to them.
 
 Every judge verdict and the quote behind it is in the JSON files.
+
+### Fifth pass (16 November): direction from the planner
+
+The fourth pass found that the planner's mix called the direction better than the crowd that ran from it. This pass
+tests the obvious fix: let the report take its direction from the mix, and use the crowd only for why people react,
+who objects and what they say. With it on, the report task gets an EXPECTED REACTION block (the mix and the direction
+it implies, by the first-reaction rule) in place of the crowd's FIRST REACTION block, and is told to describe a crowd
+that leaned another way as dissent.
+
+The two arms share their simulations. The first ran the bench as usual (crowd rules 4, Haiku crowd, Sonnet planner
+and judge). The second copied those 129 run folders, turned the option on in each `config.json`, rebuilt every report
+with `tellfold report` and graded it again. So the crowd, its posts and the planner's mix are the same run for run;
+only the report and the judge's reading of it differ.
+
+| | direction | objection recall | backdown |
+|---|---|---|---|
+| direction from the crowd | 55% | 48% | 78% |
+| direction from the planner's mix | 65% | 50% | 75% |
+| planner's mix alone | 68% | – | – |
+
+Paired run for run, 20 runs went from wrong to right and 7 from right to wrong (exact McNemar test, p = 0.02). By
+case, 13 of the 43 got better and 5 worse. Objection recall and backdown moved within what a rebuilt report and a
+second judge call change on their own: 17 runs changed their backdown call, 3 more for the worse than the better.
+
+The reports still don't follow the mix every time. In 16 runs the report called the reaction mixed where the mix
+leaned one way, 13 of them on a positive mix. 6 of those 16 were right. On the 10 positive cases the mix alone
+called 19 of 30 runs right, the planner-direction reports 10 and the crowd 8. The report writer still hedges good
+news, even when told the direction.
+
+So the default changed: a new run with a planned mix takes the planner's direction, and `--crowd-direction` keeps the old one. A run without one (a saved audience, audience material, or a plan that failed) keeps the crowd's direction, and its config says so. A
+version made with `cast_from` keeps its source's choice, so a study compares like for like. Runs made before keep
+the crowd's direction when their report is rebuilt.
 
 ### Third and fourth passes (13 November)
 

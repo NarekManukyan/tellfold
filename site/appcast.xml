@@ -6,6 +6,15 @@
     <description>Tellfold updates</description>
 <language>en</language>
     <item>
+      <title>Tellfold 0.7.2</title>
+      <pubDate>Tue, 17 Nov 2026 07:02:04 +0000</pubDate>
+      <sparkle:version>196</sparkle:version>
+      <sparkle:shortVersionString>0.7.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://narekmanukyan.github.io/tellfold/releases/0.7.2.md</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/NarekManukyan/tellfold/releases/download/v0.7.2/Tellfold.dmg" type="application/octet-stream" sparkle:edSignature="lBhAfpmpTpoFPumCxTzXXQy1aVPr9/SRK//+OIfCnJDj5wc3FeFNCanoXxY3il5Qzxhzz7/csWP+BLO263aOAg==" length="11540819" />
+    </item>
+    <item>
       <title>Tellfold 0.7.1</title>
       <pubDate>Sat, 14 Nov 2026 14:55:51 +0000</pubDate>
       <sparkle:version>175</sparkle:version>
