@@ -1,15 +1,17 @@
 # How accurate is Tellfold?
 
-**Not accurate enough yet.** There have been five passes. In the latest (16 November 2026: 43 cases, three seeds
-each), Tellfold as it now runs called the overall reaction right in 65% of runs. Since that pass a report takes its
-overall direction from the stance mix the planner expects before anyone in the crowd posts, and the crowd supplies
-the reasons, objections and quotes ([fifth pass](#fifth-pass-16-november-direction-from-the-planner)). On the same
-simulations, reports that took the direction from the crowd got 55%, as they did on 13 November, and the planner's
-mix alone got 68%. On 13 November, asking the same model once, with no simulated crowd, got 62%. Answering
-"negative" every time would get 49%. So the direction is now about as good as the model's own guess, and the crowd
-adds the arguments, not the direction. The 65% comes from the cases that suggested the change, so it still needs a
-pass on new cases. Tellfold makes no accuracy claim. This page describes the test, holds every result and lists where
-it goes wrong. Pass `--crowd-direction` (or `crowd_direction` in the API) for the old behaviour.
+**Not accurate enough yet.** There have been six passes, and the latest tested Tellfold on cases it was never tuned
+on. On 17 November 2026 we wrote 13 held-out cases, after the last change to the engine, and ran them three times
+each. Tellfold as it now runs called the overall reaction right in 77% of runs (30 of 39). Asking the same model once
+the same day, with no simulated crowd, got 23 of 26 answers right (88%), and it found more of the objections people
+actually raised (69% against 49%). Answering "negative" every time would get 31% on these cases. So on new cases
+Tellfold's direction is as good as the planner's own guess at the stance mix, which the report now follows, and no
+better than asking the model directly ([held-out pass](#held-out-cases-17-november)). Thirteen cases is a small set:
+one case moves the run figure by almost 8 points, and the gap to the direct answer is not yet statistically clear
+(p = 0.11). On the 43 bench cases, the [sixth pass](#sixth-pass-17-november-the-report-follows-the-mix) fixed the
+report so it no longer hedges good news, which raised direction from 65% to 69%. Tellfold makes no accuracy claim.
+This page describes the test, holds every result and lists where it goes wrong. Pass `--crowd-direction` (or
+`crowd_direction` in the API) to take the direction from the crowd instead, as before 16 November.
 
 Tellfold calls itself a rehearsal, not a survey. A rehearsal is still only worth doing if it points the right way
 more often than a guess. So we took real announcements whose public reaction is well documented, gave Tellfold only
@@ -204,7 +206,9 @@ Two baselines sit next to the scores, because a number means little on its own:
 
 ## Cases
 
-43 cases: 41 announced after the cutoff and 2 controls. Reactions: 21 negative, 12 mixed, 10 positive. Backdowns: 6 full, 4 partial, 33 none.
+43 cases: 41 announced after the cutoff and 2 controls. A further 13 are kept apart in
+[`bench/heldout/`](../bench/heldout/) to test changes on cases nobody tuned them on; they are not in this table or in
+any figure except the [held-out pass](#held-out-cases-17-november). Reactions: 21 negative, 12 mixed, 10 positive. Backdowns: 6 full, 4 partial, 33 none.
 
 The first 20 cases leaned negative (15 of 20): well-sourced positive reactions were hard to find, because quiet approval is rarely reported. On 13 November we added 23 cases chosen to balance the set: 6 negative, 10 mixed and 7 positive. Always answering "negative" now gets 49% of directions right, against 75% on the first 20 alone, so that is the bar to beat, not 33%. Some outcomes may still move: the most recent cases were only a few weeks old when written, and each case's `notes` field says where the facts are thin or the dates uncertain.
 
@@ -256,7 +260,8 @@ The first 20 cases leaned negative (15 of 20): well-sourced positive reactions w
 
 ## Results
 
-Four passes so far, with the same models, settings and judge, each with the zero-shot baseline. The first two
+Six passes and a held-out pass so far, all with the same models, settings and judge. The fifth and sixth rebuilt
+the reports of saved simulations instead of running new ones, and the held-out pass ran new cases. The first two
 ran the original 20 cases with one seed (7), the third the same 20 with three seeds (7, 8 and 9), and the fourth all
 43 cases with three seeds. A separate run put the 23 new cases through the third pass's engine, so version 2 can be
 compared on all 43; it is listed with the passes but not counted as one:
@@ -290,8 +295,104 @@ compared on all 43; it is listed with the passes but not counted as one:
   [`2026-11-16-sonnet-haiku-rules4.json`](../bench/results/2026-11-16-sonnet-haiku-rules4.json) and
   [`2026-11-16-sonnet-haiku-rules4-planner-direction.json`](../bench/results/2026-11-16-sonnet-haiku-rules4-planner-direction.json),
   per-case tables in the `.md` files next to them.
+- **17 November 2026, sixth pass, commit `055cbe2`:** the report fix on the fifth pass's 129 simulations, every
+  report rebuilt and graded again; no zero-shot answers. Results:
+  [`2026-11-17-sonnet-haiku-rules4-hedge-fix.json`](../bench/results/2026-11-17-sonnet-haiku-rules4-hedge-fix.json),
+  per-case table in the `.md` file next to it.
+- **17 November 2026, held-out pass, commit `5db9d7e`:** the 13 [held-out cases](../bench/heldout/), three seeds
+  each, with the new default and the zero-shot baseline, then the same simulations with the direction from the crowd
+  and a second zero-shot answer. All 39 runs and all 26 zero-shot answers were graded in both. Results:
+  [`2026-11-17-heldout-sonnet-haiku.json`](../bench/results/2026-11-17-heldout-sonnet-haiku.json) and
+  [`2026-11-17-heldout-sonnet-haiku-crowd-direction.json`](../bench/results/2026-11-17-heldout-sonnet-haiku-crowd-direction.json),
+  per-case tables in the `.md` files next to them.
 
 Every judge verdict and the quote behind it is in the JSON files.
+
+### Sixth pass (17 November): the report follows the mix
+
+The fifth pass left the reports hedging good news: in 16 of 129 runs the report called the reaction mixed where the
+planner's mix leaned one way, 14 of them on a positive mix. Read side by side, those reports mostly stated the
+planner's direction first, then spent the summary and the prediction on how the crowd's sentiment slid over the
+rounds and which camps pushed back, and the judge read the whole as mixed. A simulated crowd drifts as it argues, so
+its last round is a poor guide anyway: on the truly positive cases the crowd's final sentiment read positive in only
+10 of 30 runs.
+
+The fix (commit `055cbe2`) rewrites the direction rule the report writer gets. The title, the summary's first
+sentence and the prediction's first sentence each state the direction in plain words. Pushback inside a positive or
+negative reaction is named as dissent from a smaller group, or as a risk to watch, never as a split. The crowd's
+sentiment numbers and how they moved stay out of the summary and the prediction and go in the sections, as what
+happened in the simulation. And the EXPECTED REACTION block now comes last in the prompt, after the crowd's first
+posts, so the posts read as reasons for the direction rather than a vote on it.
+
+It was tested the cheap way, on the fifth pass's simulations: the 129 run folders copied again, every report rebuilt
+with the fix and graded again. The crowd, its posts and the planner's mix are the same run for run as in both arms of
+the fifth pass.
+
+| | direction | objection recall | backdown |
+|---|---|---|---|
+| direction from the crowd (fifth pass) | 55% | 48% | 78% |
+| direction from the planner's mix (fifth pass) | 65% | 50% | 75% |
+| direction from the planner's mix, report fix | 69% | 49% | 74% |
+| planner's mix alone | 68% | – | – |
+
+The report now follows the mix in 127 of 129 runs; in one it called a mixed mix positive and in one a positive mix
+mixed. On the 10 positive cases it got 19 of 30 runs right, as the mix does, against 10 before the fix. Paired run
+for run against the fifth pass's planner arm, 10 runs went from wrong to right and 5 from right to wrong (exact
+McNemar test, p = 0.30); against its crowd arm, 28 and 10 (p = 0.005). Objection recall and backdown moved no more
+than a rebuilt report and a second judge call move on their own. The mixed cases gave back what the hedging had won
+by accident: 16 of 36 runs right, against 21 before and the mix's own 15. Results:
+[`2026-11-17-sonnet-haiku-rules4-hedge-fix.json`](../bench/results/2026-11-17-sonnet-haiku-rules4-hedge-fix.json),
+per-case table in the `.md` file next to it.
+
+### Held-out cases (17 November)
+
+The 65% and 69% above come from the cases that suggested both changes, so they flatter them. To test the changes
+fairly we wrote 13 new cases after making them, in [`bench/heldout/`](../bench/heldout/), and looked at none of them
+while designing either: 4 positive, 4 negative and 5 mixed, with 2 full backdowns and 1 partial. One (Rogers, June
+2026) is from before the models' cutoff and is marked `known_to_model`. The folder's README sets the rules: don't
+tune on them, don't train on them, add rather than edit.
+
+The pass ran the new default with `--zero-shot`, three seeds per case and the same settings as every other pass.
+Then the same 39 simulations were copied, their reports rebuilt with the direction from the crowd
+(`--crowd-direction`), and graded again with a second, independent zero-shot answer per case.
+
+| | direction | objection recall | backdown |
+|---|---|---|---|
+| direction from the planner's mix (the default) | 77% (30 of 39) | 49% | 64% |
+| direction from the crowd | 69% (27 of 39) | 51% | 64% |
+| planner's mix alone | 77% | – | – |
+| zero-shot, two answers per case | 88% (23 of 26) | 69% | 85% |
+| always "negative" | 31% | – | – |
+| always "mixed", the commonest answer | 38% | – | – |
+
+The report followed the planner's mix in all 39 runs. Paired run for run, the planner's direction beat the crowd's
+in 6 runs and lost in 3 (p = 0.51): the same way as on the bench, but too few to show it alone. Against the zero-shot
+answer, paired with the same day's answer for each run's case, Tellfold was right where the direct answer was wrong
+in 2 runs and the reverse in 8 (p = 0.11); with the direction from the crowd it was 3 and 9 (p = 0.15). Neither gap
+is significant at this size, but every column points the same way. On new cases a single Sonnet answer called the
+direction at least as well, found more of the real objections and called backdowns better.
+
+Where it goes wrong:
+
+- **Mixed reactions.** Tellfold got 7 of 15 runs. The planner read the Magic: The Gathering booster changes and the
+  Sézane rebrand as negative in every seed, and Camden's pedestrianisation and Manitoba's permanent daylight time as
+  positive in one seed each. The zero-shot answers called all five mixed cases mixed, both times.
+- **The direct answer's misses.** It called Trinity University's logo change mixed twice (it was negative, and the
+  university backed down in full) and the Glasgow fire-and-rehire dispute mixed once. Tellfold got Trinity right in 2
+  of 3 runs and Glasgow in all 3.
+- **Positive reactions** are no longer the problem when the direction comes from the planner: the mix and the report
+  got all 12 runs. With the direction from the crowd the report got 8, calling the veterans' allied-health cap and
+  Hawaii's free school meals mixed, which is the hedging the fifth and sixth passes were about.
+
+So the direction now comes from the planner's mix and the report follows it, and what is left is the gap between that
+mix and a direct answer. The mix is one part of the planner's job, sized for casting a crowd; the zero-shot call is
+asked for the direction itself, and it read mixed reactions better. These cases look easier than the bench for every
+method (the mix alone got 77% here against 68%), so the bench's 62% zero-shot from 13 November is not a fair
+comparison; the same-day answer is. Any change made because of this result moves these cases to `bench/cases`, and
+new held-out cases replace them, as the README says. Results:
+[`2026-11-17-heldout-sonnet-haiku.json`](../bench/results/2026-11-17-heldout-sonnet-haiku.json) and
+[`2026-11-17-heldout-sonnet-haiku-crowd-direction.json`](../bench/results/2026-11-17-heldout-sonnet-haiku-crowd-direction.json),
+per-case tables in the `.md` files next to them.
 
 ### Fifth pass (16 November): direction from the planner
 
@@ -317,7 +418,7 @@ case, 13 of the 43 got better and 5 worse. Objection recall and backdown moved w
 second judge call change on their own: 17 runs changed their backdown call, 3 more for the worse than the better.
 
 The reports still don't follow the mix every time. In 16 runs the report called the reaction mixed where the mix
-leaned one way, 13 of them on a positive mix. 6 of those 16 were right. On the 10 positive cases the mix alone
+leaned one way, 14 of them on a positive mix. 6 of those 16 were right. On the 10 positive cases the mix alone
 called 19 of 30 runs right, the planner-direction reports 10 and the crowd 8. The report writer still hedges good
 news, even when told the direction.
 
